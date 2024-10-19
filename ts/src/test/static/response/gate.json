@@ -549,6 +549,30 @@
                     "fee": null,
                     "fees": [],
                     "trades": [],
+                    "info": {
+                        "market": "BTC_USDT",
+                        "user": "3368716",
+                        "trigger": {
+                            "price": "64444",
+                            "rule": "<=",
+                            "expiration": "86400"
+                        },
+                        "put": {
+                            "type": "limit",
+                            "side": "buy",
+                            "price": "61075.1",
+                            "amount": "0.00010000000000000000",
+                            "account": "normal",
+                            "time_in_force": "gtc",
+                            "auto_borrow": false,
+                            "auto_repay": false,
+                            "text": ""
+                        },
+                        "id": "916460068",
+                        "ctime": "1729176124",
+                        "ftime": "1729177584",
+                        "status": "canceled"
+                    },
                     "lastUpdateTimestamp": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null
@@ -866,6 +890,38 @@
                       }
                     ],
                     "trades": [],
+                    "info":{
+                        "id": "700604309511",
+                        "text": "web",
+                        "amend_text": "-",
+                        "create_time": "1729180336",
+                        "update_time": "1729180336",
+                        "create_time_ms": "1729180336718",
+                        "update_time_ms": "1729180336718",
+                        "status": "open",
+                        "currency_pair": "BTC_USDT",
+                        "type": "limit",
+                        "account": "spot",
+                        "side": "sell",
+                        "amount": "0.00009",
+                        "price": "69662.3",
+                        "time_in_force": "gtc",
+                        "iceberg": "0",
+                        "left": "0.00009",
+                        "filled_amount": "0",
+                        "fill_price": "0",
+                        "filled_total": "0",
+                        "fee": "0",
+                        "fee_currency": "USDT",
+                        "point_fee": "0",
+                        "gt_fee": "0",
+                        "gt_maker_fee": "0",
+                        "gt_taker_fee": "0",
+                        "gt_discount": false,
+                        "rebated_fee": "0",
+                        "rebated_fee_currency": "BTC",
+                        "finish_as": "open"
+                    },                    
                     "lastUpdateTimestamp": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null
@@ -934,6 +990,29 @@
                     "fee": null,
                     "fees": [],
                     "trades": [],
+                    "info": {
+                        "market": "BTC_USDT",
+                        "user": "3368716",
+                        "trigger": {
+                            "price": "64777",
+                            "rule": "<=",
+                            "expiration": "86400"
+                        },
+                        "put": {
+                            "type": "limit",
+                            "side": "sell",
+                            "price": "67736.3",
+                            "amount": "0.00009000000000000000",
+                            "account": "normal",
+                            "time_in_force": "gtc",
+                            "auto_borrow": false,
+                            "auto_repay": false,
+                            "text": ""
+                        },
+                        "id": "916510270",
+                        "ctime": "1729180075",
+                        "status": "open"
+                    },
                     "lastUpdateTimestamp": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null
