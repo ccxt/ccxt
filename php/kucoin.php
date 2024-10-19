@@ -161,6 +161,7 @@ class kucoin extends Exchange {
                         'mark-price/{symbol}/current' => 3, // 2PW
                         'mark-price/all-symbols' => 3,
                         'margin/config' => 25, // 25SW
+                        'announcements' => 20, // 20W
                     ),
                     'post' => array(
                         // ws
@@ -650,6 +651,7 @@ class kucoin extends Exchange {
                             'currencies/{currency}' => 'v3',
                             'symbols' => 'v2',
                             'mark-price/all-symbols' => 'v3',
+                            'announcements' => 'v3',
                         ),
                     ),
                     'private' => array(
@@ -3028,7 +3030,7 @@ class kucoin extends Exchange {
             ),
             'status' => $status,
             'lastTradeTimestamp' => null,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgDealPrice'),
             'trades' => null,
         ), $market);
     }
@@ -4346,17 +4348,6 @@ class kucoin extends Exchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function parse_borrow_rate_history($response, $code, $since, $limit) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $borrowRate = $this->parse_borrow_rate($item);
-            $result[] = $borrowRate;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
-    }
-
     public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //     array(
@@ -4951,7 +4942,7 @@ class kucoin extends Exchange {
         $headers = ($headers !== null) ? $headers : array();
         $url = $this->urls['api'][$api];
         if (!$this->is_empty($query)) {
-            if (($method === 'GET') || ($method === 'DELETE')) {
+            if ((($method === 'GET') || ($method === 'DELETE')) && ($path !== 'orders/multi-cancel')) {
                 $endpoint .= '?' . $this->rawencode($query);
             } else {
                 $body = $this->json($query);

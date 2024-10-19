@@ -490,6 +490,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_spot_lever_token_order_record($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_spot_margin_trade_interest_rate_history($params = array()) {
+        return $this->request('v5/spot-margin-trade/interest-rate-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_spot_margin_trade_state($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1389,6 +1392,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5SpotLeverTokenOrderRecord($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetV5SpotMarginTradeInterestRateHistory($params = array()) {
+        return $this->request('v5/spot-margin-trade/interest-rate-history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5SpotMarginTradeState($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));

@@ -1007,16 +1007,16 @@ class lbank extends lbank$1 {
         }
         if (since === undefined) {
             const duration = this.parseTimeframe(timeframe);
-            since = this.milliseconds() - duration * 1000 * limit;
+            since = this.milliseconds() - (duration * 1000 * limit);
         }
         const request = {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
             'time': this.parseToInt(since / 1000),
-            'size': limit, // max 2000
+            'size': Math.min(limit + 1, 2000), // max 2000
         };
         const response = await this.spotPublicGetKline(this.extend(request, params));
-        const ohlcvs = this.safeValue(response, 'data', []);
+        const ohlcvs = this.safeList(response, 'data', []);
         //
         //
         // [

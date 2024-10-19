@@ -131,6 +131,7 @@ public struct Limits
     public MinMax? cost;
     public MinMax? leverage;
     public MinMax? price;
+    public MinMax? market;
 
     public Limits(object limits2)
     {
@@ -139,6 +140,7 @@ public struct Limits
         cost = limits.ContainsKey("cost") ? new MinMax(limits["cost"]) : null;
         leverage = limits.ContainsKey("leverage") ? new MinMax(limits["leverage"]) : null;
         price = limits.ContainsKey("price") ? new MinMax(limits["price"]) : null;
+        market = limits.ContainsKey("market") ? new MinMax(limits["market"]) : null;
     }
 }
 

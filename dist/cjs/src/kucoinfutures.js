@@ -33,6 +33,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': true,
                 'closePositions': false,
@@ -204,6 +205,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'stopOrders': 1,
                         'sub/api-key': 1,
                         'orders/client-order/{clientOid}': 1,
+                        'orders/multi-cancel': 20,
                     },
                 },
                 'webExchange': {
@@ -1662,6 +1664,67 @@ class kucoinfutures extends kucoinfutures$1 {
         //
         return this.safeValue(response, 'data');
     }
+    async cancelOrders(ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#cancelOrders
+         * @description cancel multiple orders
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+         * @param {string[]} ids order ids
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string[]} [params.clientOrderIds] client order ids
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const ordersRequests = [];
+        const clientOrderIds = this.safeList2(params, 'clientOrderIds', 'clientOids', []);
+        params = this.omit(params, ['clientOrderIds', 'clientOids']);
+        let useClientorderId = false;
+        for (let i = 0; i < clientOrderIds.length; i++) {
+            useClientorderId = true;
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
+            }
+            ordersRequests.push({
+                'symbol': market['id'],
+                'clientOid': this.safeString(clientOrderIds, i),
+            });
+        }
+        for (let i = 0; i < ids.length; i++) {
+            ordersRequests.push(ids[i]);
+        }
+        const requestKey = useClientorderId ? 'clientOidsList' : 'orderIdsList';
+        const request = {};
+        request[requestKey] = ordersRequests;
+        const response = await this.futuresPrivateDeleteOrdersMultiCancel(this.extend(request, params));
+        //
+        //   {
+        //       "code": "200000",
+        //       "data":
+        //       [
+        //           {
+        //               "orderId": "80465574458560512",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           },
+        //           {
+        //               "orderId": "80465575289094144",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           }
+        //       ]
+        //   }
+        //
+        const orders = this.safeList(response, 'data', []);
+        return this.parseOrders(orders, market);
+    }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
@@ -2154,8 +2217,8 @@ class kucoinfutures extends kucoinfutures$1 {
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filledSize');
         const cost = this.safeString(order, 'filledValue');
-        let average = undefined;
-        if (Precise["default"].stringGt(filled, '0')) {
+        let average = this.safeString(order, 'avgDealPrice');
+        if ((average === undefined) && Precise["default"].stringGt(filled, '0')) {
             const contractSize = this.safeString(market, 'contractSize');
             if (market['linear']) {
                 average = Precise["default"].stringDiv(cost, Precise["default"].stringMul(contractSize, filled));

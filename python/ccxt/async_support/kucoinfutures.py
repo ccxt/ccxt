@@ -46,6 +46,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'closePositions': False,
@@ -217,6 +218,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'stopOrders': 1,
                         'sub/api-key': 1,
                         'orders/client-order/{clientOid}': 1,
+                        'orders/multi-cancel': 20,
                     },
                 },
                 'webExchange': {
@@ -1584,6 +1586,61 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
+    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        ordersRequests = []
+        clientOrderIds = self.safe_list_2(params, 'clientOrderIds', 'clientOids', [])
+        params = self.omit(params, ['clientOrderIds', 'clientOids'])
+        useClientorderId = False
+        for i in range(0, len(clientOrderIds)):
+            useClientorderId = True
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds')
+            ordersRequests.append({
+                'symbol': market['id'],
+                'clientOid': self.safe_string(clientOrderIds, i),
+            })
+        for i in range(0, len(ids)):
+            ordersRequests.append(ids[i])
+        requestKey = 'clientOidsList' if useClientorderId else 'orderIdsList'
+        request: dict = {}
+        request[requestKey] = ordersRequests
+        response = await self.futuresPrivateDeleteOrdersMultiCancel(self.extend(request, params))
+        #
+        #   {
+        #       "code": "200000",
+        #       "data":
+        #       [
+        #           {
+        #               "orderId": "80465574458560512",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           },
+        #           {
+        #               "orderId": "80465575289094144",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           }
+        #       ]
+        #   }
+        #
+        orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market)
+
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
@@ -2046,8 +2103,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filledSize')
         cost = self.safe_string(order, 'filledValue')
-        average = None
-        if Precise.string_gt(filled, '0'):
+        average = self.safe_string(order, 'avgDealPrice')
+        if (average is None) and Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
                 average = Precise.string_div(cost, Precise.string_mul(contractSize, filled))

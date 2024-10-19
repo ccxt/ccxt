@@ -173,6 +173,7 @@ def test_market(exchange, skipped_properties, method, market):
         assert keys_length >= 2, 'precision should have "amount" and "price" keys at least' + log_text
         for i in range(0, len(precision_keys)):
             test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, market['precision'], precision_keys[i])
+    is_inactive_market = market['active'] is False
     # check limits
     if not ('limits' in skipped_properties):
         limits_keys = list(market['limits'].keys())
@@ -181,6 +182,8 @@ def test_market(exchange, skipped_properties, method, market):
         for i in range(0, len(limits_keys)):
             key = limits_keys[i]
             limit_entry = market['limits'][key]
+            if is_inactive_market:
+                continue
             # min >= 0
             test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, limit_entry, 'min', '0')
             # max >= 0

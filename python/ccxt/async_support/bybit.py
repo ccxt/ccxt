@@ -385,6 +385,7 @@ class bybit(Exchange, ImplicitAPI):
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
+                        'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
@@ -6703,7 +6704,8 @@ class bybit(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
-            return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)
+            params['timeframe'] = timeframe
+            return await self.fetch_paginated_call_cursor('fetchOpenInterestHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 200)
         market = self.market(symbol)
         if market['spot'] or market['option']:
             raise BadRequest(self.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol)
@@ -6775,12 +6777,22 @@ class bybit(Exchange, ImplicitAPI):
         #         "timestamp": 1666734490778
         #     }
         #
+        # fetchBorrowRateHistory
+        #     {
+        #         "timestamp": 1721469600000,
+        #         "currency": "USDC",
+        #         "hourlyBorrowRate": "0.000014621596",
+        #         "vipLevel": "No VIP"
+        #     }
+        #
         timestamp = self.safe_integer(info, 'timestamp')
-        currencyId = self.safe_string(info, 'coin')
+        currencyId = self.safe_string_2(info, 'coin', 'currency')
+        hourlyBorrowRate = self.safe_number(info, 'hourlyBorrowRate')
+        period = 3600000 if (hourlyBorrowRate is not None) else 86400000  # 1h or 1d
         return {
             'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.safe_number(info, 'interestRate'),
-            'period': 86400000,  # Daily
+            'rate': self.safe_number(info, 'interestRate', hourlyBorrowRate),
+            'period': period,  # Daily
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -6829,6 +6841,53 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'loanAccountList', [])
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+        :param str code: unified currency code
+        :param int [since]: timestamp for the earliest borrow rate
+        :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        if since is None:
+            since = self.milliseconds() - 86400000 * 30  # last 30 days
+        request['startTime'] = since
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
+        params = self.omit(params, ['until'])
+        if endTime is None:
+            endTime = since + 86400000 * 30  # since + 30 days
+        request['endTime'] = endTime
+        response = await self.privateGetV5SpotMarginTradeInterestRateHistory(self.extend(request, params))
+        #
+        #   {
+        #       "retCode": 0,
+        #       "retMsg": "OK",
+        #       "result": {
+        #           "list": [
+        #               {
+        #                   "timestamp": 1721469600000,
+        #                   "currency": "USDC",
+        #                   "hourlyBorrowRate": "0.000014621596",
+        #                   "vipLevel": "No VIP"
+        #               }
+        #           ]
+        #       },
+        #       "retExtInfo": "{}",
+        #       "time": 1721899048991
+        #   }
+        #
+        data = self.safe_dict(response, 'result')
+        rows = self.safe_list(data, 'list', [])
+        return self.parse_borrow_rate_history(rows, code, since, limit)
 
     def parse_borrow_interest(self, info: dict, market: Market = None):
         #

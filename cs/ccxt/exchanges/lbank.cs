@@ -1025,16 +1025,16 @@ public partial class lbank : Exchange
         if (isTrue(isEqual(since, null)))
         {
             object duration = this.parseTimeframe(timeframe);
-            since = subtract(this.milliseconds(), multiply(multiply(duration, 1000), limit));
+            since = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limit)));
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "type", this.safeString(this.timeframes, timeframe, timeframe) },
             { "time", this.parseToInt(divide(since, 1000)) },
-            { "size", limit },
+            { "size", mathMin(add(limit, 1), 2000) },
         };
         object response = await this.spotPublicGetKline(this.extend(request, parameters));
-        object ohlcvs = this.safeValue(response, "data", new List<object>() {});
+        object ohlcvs = this.safeList(response, "data", new List<object>() {});
         //
         //
         // [

@@ -993,16 +993,16 @@ class lbank extends Exchange {
         }
         if ($since === null) {
             $duration = $this->parse_timeframe($timeframe);
-            $since = $this->milliseconds() - $duration * 1000 * $limit;
+            $since = $this->milliseconds() - ($duration * 1000 * $limit);
         }
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'time' => $this->parse_to_int($since / 1000),
-            'size' => $limit, // max 2000
+            'size' => min ($limit + 1, 2000), // max 2000
         );
         $response = $this->spotPublicGetKline ($this->extend($request, $params));
-        $ohlcvs = $this->safe_value($response, 'data', array());
+        $ohlcvs = $this->safe_list($response, 'data', array());
         //
         //
         // array(
