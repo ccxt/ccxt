@@ -1926,7 +1926,7 @@ export default class Exchange {
         await this.close ();
     }
 
-    async closeAndClear () {
+    async closeAndClean () {
         await this.close ();
         this.ids = [];
         this.markets = {};
