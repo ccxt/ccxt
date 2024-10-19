@@ -765,7 +765,7 @@
                   "isolated": false,
                   "hedged": null,
                   "side": "short",
-                  "contracts": -0.5,
+                  "contracts": 0.5,
                   "contractSize": 1,
                   "entryPrice": 138.76,
                   "markPrice": null,
