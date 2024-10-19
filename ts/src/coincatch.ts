@@ -401,6 +401,7 @@ export default class coincatch extends Exchange {
                     '43009': BadRequest, // The current commission price exceeds the limit {0}
                     '43010': BadRequest, // The transaction amount cannot be less than {0}
                     '43011': BadRequest, // The current order price cannot be less than {0}
+                    '43012': InsufficientFunds, // {"code":"43012","msg":"Insufficient balance","requestTime":1729327822139,"data":null}
                     '43117': InsufficientFunds, // Exceeds the maximum amount that can be transferred
                     '43118': BadRequest, // clientOrderId duplicate
                     '43122': BadRequest, // The purchase limit of this currency is {0}, and there is still {1} left
@@ -3809,7 +3810,7 @@ export default class coincatch extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeDict (response, 'data', {}); // todo add failure to handle errors
+            const data = this.safeDict (response, 'data', {});
             result = this.safeList (data, 'resultList', []);
         } else if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
@@ -5244,14 +5245,23 @@ export default class coincatch extends Exchange {
         if (!response) {
             return undefined; // fallback to default error handler
         }
-        const message = this.safeString (response, 'msg');
+        let message = this.safeString (response, 'msg');
         const feedback = this.id + ' ' + body;
-        const nonEmptyMessage = ((message !== undefined) && (message !== '') && (message !== 'success'));
-        if (nonEmptyMessage) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+        let messageCode = this.safeString (response, 'code');
+        let notSuccess = message !== 'success';
+        if (url.indexOf ('batch') >= 0) { // createOrders, cancelOrders
+            const data = this.safeDict (response, 'data', {});
+            const failure = this.safeList2 (data, 'failure', 'fail_infos', []);
+            if (!this.isEmpty (failure)) {
+                notSuccess = true;
+                const firstEntry = this.safeDict (failure, 0, {});
+                messageCode = this.safeString (firstEntry, 'errorCode');
+                message = this.safeString (firstEntry, 'errorMsg');
+            }
         }
-        if (nonEmptyMessage) {
+        if (notSuccess || (messageCode !== '00000')) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
