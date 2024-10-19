@@ -3459,7 +3459,7 @@ fetchLongShortRatio (symbol, period = undefined, params = {})
 Parameters
 
 - **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **period** (String) The period to calculate the ratio from, default is 24 hours (e.g. `"24h"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
 
 Returns
@@ -3473,7 +3473,7 @@ fetchLongShortRatioHistory (symbol = undefined, period = undefined, since = unde
 Parameters
 
 - **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
-- **period** (String) The period to calculate the ratio from, default is 24 hours (e.g. `"24h"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
 - **since** (Integer) Timestamp for the earliest ratio (e.g. `1645807945000`)
 - **limit** (Integer) The maximum number of ratios to retrieve (e.g. `10`)
 - **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)

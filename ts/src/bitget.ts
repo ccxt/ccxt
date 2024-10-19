@@ -271,7 +271,7 @@ export default class bitget extends Exchange {
                             'v2/mix/market/current-fund-rate': 1,
                             'v2/mix/market/contracts': 1,
                             'v2/mix/market/query-position-lever': 2,
-                            'v2/mix/market/long-short-ratio': 20,
+                            'v2/mix/market/account-long-short': 20,
                         },
                     },
                     'margin': {
@@ -282,6 +282,7 @@ export default class bitget extends Exchange {
                             'margin/v1/isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
                             'margin/v1/public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies': 2,
+                            'v2/margin/market/long-short-ratio': 20,
                         },
                     },
                     'earn': {
@@ -8839,8 +8840,9 @@ export default class bitget extends Exchange {
          * @name bitget#fetchLongShortRatioHistory
          * @description fetches the long short ratio history for a unified market symbol
          * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+         * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
          * @param {string} symbol unified symbol of the market to fetch the long short ratio for
-         * @param {string} [period] the period for the ratio, default is 24 hours
+         * @param {string} [period] the period for the ratio
          * @param {int} [since] the earliest time in ms to fetch ratios for
          * @param {int} [limit] the maximum number of long short ratio structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8848,14 +8850,46 @@ export default class bitget extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (period === undefined) {
-            period = '24h';
-        }
         const request: Dict = {
             'symbol': market['id'],
-            'period': period,
         };
-        const response = await this.publicMixGetV2MixMarketLongShortRatio (this.extend (request, params));
+        if (period !== undefined) {
+            request['period'] = period;
+        }
+        let response = undefined;
+        if (market['swap'] || market['future']) {
+            response = await this.publicMixGetV2MixMarketAccountLongShort (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729321233281,
+            //         "data": [
+            //             {
+            //                 "longAccountRatio": "0.58",
+            //                 "shortAccountRatio": "0.42",
+            //                 "longShortAccountRatio": "0.0138",
+            //                 "ts": "1729312200000"
+            //             },
+            //         ]
+            //     }
+            //
+        } else {
+            response = await this.publicMarginGetV2MarginMarketLongShortRatio (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729306974712,
+            //         "data": [
+            //             {
+            //                 "longShortRatio": "40.66",
+            //                 "ts": "1729306800000"
+            //             },
+            //         ]
+            //     }
+            //
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseLongShortRatioHistory (data, market);
     }
@@ -8869,7 +8903,7 @@ export default class bitget extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'period': undefined,
-            'longShortRatio': this.safeNumber (info, 'longShortRatio'),
+            'longShortRatio': this.safeNumber2 (info, 'longShortRatio', 'longShortAccountRatio'),
         };
     }
 
