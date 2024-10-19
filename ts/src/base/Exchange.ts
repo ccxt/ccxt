@@ -1922,6 +1922,27 @@ export default class Exchange {
         };
     }
 
+    async closeWs () {
+        await this.close ();
+    }
+
+    async closeAndClean () {
+        await this.close ();
+        this.ids = [];
+        this.markets = {};
+        this.markets_by_id = {};
+        this.symbols = [];
+        this.codes = [];
+        this.currencies = {};
+        this.currencies_by_id = {};
+        this.baseCurrencies = {};
+        this.quoteCurrencies = {};
+        this.last_http_response = undefined;
+        this.last_json_response = undefined;
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+    }
+
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
