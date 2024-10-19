@@ -2879,12 +2879,28 @@ export default class Exchange {
         if (margin !== undefined) {
             return margin;
         }
-        // now, by priority check types
-        const marketTypeByOptions = this.handleOption (methodName, 'type');
-        const marketTypeByMarket = this.safeString (market, 'type', marketTypeByOptions);
-        const marketTypeByParams = this.safeString (params, 'type', marketTypeByMarket);
-        const marginMode = this.safeString (params, 'marginMode');
-        return (marketTypeByParams === 'margin') || ((marketTypeByParams === 'spot') && (marginMode !== undefined));
+        // check if it's passed as param
+        let marketType = this.safeString (params, 'type');
+        if (marketType === undefined) {
+            // check if specific market was passed
+            marketType = this.safeString (market, 'type');
+            if (marketType === undefined) {
+                // in last case, check exchange-wide default
+                marketType = this.handleOption (methodName, 'type');
+            }
+        }
+        // only for backward compatibility, we support "margin" possiblity as market-type
+        if (marketType === 'margin') {
+            return true;
+        }
+        // only if 
+        if (this.safeString (params, 'marginMode') !== undefined) {
+            // only if this is spot type
+            if (marketType === 'spot' || marketType === undefined) {
+                return true;
+            }
+        }
+        return false;
     }
 
     setMarkets (markets, currencies = undefined) {
