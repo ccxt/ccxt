@@ -932,6 +932,7 @@ export default class coincatch extends coincatchRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap'
          * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
+         * @param {bool} [params.trigger] *swap only* whether to watch trigger orders (default is false)
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'watchOrders';
@@ -962,7 +963,12 @@ export default class coincatch extends coincatchRest {
                 }
             }
         }
-        const channel = 'orders';
+        let channel = 'orders';
+        const isTrigger = this.safeBool (params, 'trigger');
+        if (isTrigger) {
+            channel = 'ordersAlgo'; // channel does not return any data
+            params = this.omit (params, 'trigger');
+        }
         const args: Dict = {
             'instType': instType,
             'channel': channel,
@@ -1451,7 +1457,7 @@ export default class coincatch extends coincatchRest {
         if (channel === 'account') {
             this.handleBalance (client, message);
         }
-        if (channel === 'orders') {
+        if ((channel === 'orders') || (channel === 'ordersAlgo')) {
             this.handleOrder (client, message);
         }
         if (channel === 'positions') {
@@ -1574,7 +1580,7 @@ export default class coincatch extends coincatchRest {
         const market = this.safeMarket (instId, undefined, undefined, type);
         const symbol = market['symbol'];
         const messageHash = 'unsubscribe:ohlcv:' + timeframe + ':' + market['symbol'];
-        const subMessageHash = 'ohlcv:' + timeframe + ':' + symbol;
+        const subMessageHash = 'ohlcv:' + symbol + ':' + timeframe;
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
