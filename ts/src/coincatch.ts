@@ -239,12 +239,12 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/order/cancel-symbol-orders': 2, // done
                         'api/mix/v1/order/cancel-all-orders': 2, // done
                         'api/mix/v1/plan/placePlan': 2, // done
-                        'api/mix/v1/plan/modifyPlan': 1,
-                        'api/mix/v1/plan/modifyPlanPreset': 1,
+                        'api/mix/v1/plan/modifyPlan': 2,
+                        'api/mix/v1/plan/modifyPlanPreset': 2,
                         'api/mix/v1/plan/placeTPSL': 2, // done
                         'api/mix/v1/plan/placeTrailStop': 2, // not used
                         'api/mix/v1/plan/placePositionsTPSL': 2, // not used
-                        'api/mix/v1/plan/modifyTPSLPlan': 1,
+                        'api/mix/v1/plan/modifyTPSLPlan': 2,
                         'api/mix/v1/plan/cancelPlan': 2, // done
                         'api/mix/v1/plan/cancelSymbolPlan': 2, // done
                         'api/mix/v1/plan/cancelAllPlan': 2, // done
@@ -2002,7 +2002,7 @@ export default class coincatch extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string} tag
+         * @param {string} [tag]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} params.network network for withdraw (mandatory)
          * @param {string} [params.remark] remark
@@ -2408,7 +2408,6 @@ export default class coincatch extends Exchange {
          * @returns {object} request to be sent to the exchange
          */
         let methodName = 'createSwapOrderRequest';
-        // todo check it and add additional stop loss and take profit
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         const market = this.market (symbol);
         let request: Dict = {
@@ -2692,7 +2691,6 @@ export default class coincatch extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        // todo handle errors in response
         const data = this.safeDict (response, 'data', {});
         responseOrders = this.safeList (data, propertyName, []);
         return this.parseOrders (responseOrders);
@@ -5198,7 +5196,7 @@ export default class coincatch extends Exchange {
             'info': item,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'account': undefined, // todo check
+            'account': undefined,
             'direction': direction,
             'referenceId': undefined,
             'referenceAccount': undefined,
