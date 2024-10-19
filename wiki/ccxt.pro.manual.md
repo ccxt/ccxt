@@ -31,6 +31,9 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │     watchOrderBookForSymbols .                              |
     │                              .                              |
     +=============================================================+
+    │                          unWatch                            |
+    │                   (to stop **watch** method)                |
+    +=============================================================+
     │                              .                              |
     |            The Underlying Exchange-Specific APIs            |
     |         (Derived Classes And Their Implementations)         |
@@ -171,23 +174,40 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
 - Public API
   - `fetchStatus` → `watchStatus`
   - `fetchOrderBook` → `watchOrderBook`
+  - `fetchOrderBookForSymbols` → `watchOrderBookForSymbols`
   - `fetchTicker` → `watchTicker`
   - `fetchTickers` → `watchTickers`
   - `fetchOHLCV` → `watchOHLCV`
+  - `fetchOHLCVForSymbols` → `watchOHLCVForSymbols`
   - `fetchTrades` → `watchTrades`
+  - `fetchTradesForSymbols` → `watchTradesForSymbols`
+  - `fetchBidsAsks` → `watchBidsAsks`
+  - `fetchLiquidations` → `watchLiquidations`
+  - `fetchLiquidationsForSymbols` → `watchLiquidationsForSymbols`
 - Private API
   - `fetchBalance` → `watchBalance`
-  - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
+  - `fetchOrders` → `watchOrders`
+  - `fetchOrdersForSymbols` → `watchOrdersForSymbols`
   - `fetchMyTrades` → `watchMyTrades`
+  - `fetchPosition` → `watchPosition`
   - `fetchPositions` → `watchPositions`
   - `fetchLiquidations` → `watchLiquidations`
+  - `fetchMyLiquidations` → `watchMyLiquidations`
+  - `fetchMyLiquidationsForSymbols` → `watchMyLiquidationsForSymbols`
   - `fetchFundingRates` → `watchFundingRates`
+- REST alternatives
+  - `fetchTrades` → `fetchTradesWs`
   - `createOrder` → `createOrderWs`
   - `editOrder` → `editOrderWs`
   - `cancelOrder` → `cancelOrderWs`
   - `cancelOrders` → `cancelOrdersWs`
   - `cancelAllOrders` → `cancelAllOrdersWs`
-
+  - etc ...
+- unWatch (stops background subscription for `watch`-ed methods)
+  - `unWatchOrderBook`
+  - `unWatchOrderBooksForSymbols`
+  - `unwatchTrades`
+  - etc ...
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -272,6 +292,10 @@ A *pub* interface usually allows users to send data requests towards the server.
 - etc
 
 **Some exchanges do not offer a *pub* WS API, they will offer *sub* WS API only.** However, there are exchanges that have a complete Streaming API as well. In most cases a user cannot operate effectively having just the Streaming API. Exchanges will stream public market data *sub*, and the REST API is still needed for the *pub* part where missing.
+
+### unWatch
+
+Each `watchX` method establishes a subscription with a stream and will continuously get updates from the exchange. Even if you stop getting the return value from the `watchX` method, the stream will keep sending that, which is handled and stored in the background. To stop those background subscriptions, you should use `unWatch` method (eg. `watchTrades` -> `unWatchTrades`).
 
 ### Incremental Data Structures
 
