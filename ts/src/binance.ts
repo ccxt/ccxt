@@ -13669,10 +13669,10 @@ export default class binance extends Exchange {
         let response = undefined;
         if (subType === 'linear') {
             request['symbol'] = market['id'];
-            response = await this.fapiDataGetGlobalLongShortAccountRatio (params);
+            response = await this.fapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
         } else if (subType === 'inverse') {
             request['pair'] = market['id'];
-            response = await this.dapiDataGetGlobalLongShortAccountRatio (params);
+            response = await this.dapiDataGetGlobalLongShortAccountRatio (this.extend (request, params));
         } else {
             throw new BadRequest (this.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
         }
