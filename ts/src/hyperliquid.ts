@@ -656,9 +656,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
-                const free = this.safeString (balance, 'hold');
+                const used = this.safeString (balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance (spotBalances);
@@ -668,7 +668,7 @@ export default class hyperliquid extends Exchange {
             'info': response,
             'USDC': {
                 'total': this.safeFloat (data, 'accountValue'),
-                'used': this.safeFloat (data, 'totalMarginUsed'),
+                'free': this.safeFloat (response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger (response, 'time');
