@@ -638,17 +638,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(self.safe_string(balance, 'coin'))
                 account = self.account()
                 total = self.safe_string(balance, 'total')
-                free = self.safe_string(balance, 'hold')
+                used = self.safe_string(balance, 'hold')
                 account['total'] = total
-                account['used'] = free
+                account['used'] = used
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
         result: dict = {
             'info': response,
             'USDC': {
-                'total': self.safe_float(data, 'accountValue'),
-                'used': self.safe_float(data, 'totalMarginUsed'),
+                'total': self.safe_number(data, 'accountValue'),
+                'free': self.safe_number(response, 'withdrawable'),
             },
         }
         timestamp = self.safe_integer(response, 'time')
@@ -2112,10 +2112,11 @@ class hyperliquid(Exchange, ImplicitAPI):
         leverage = self.safe_dict(entry, 'leverage', {})
         marginMode = self.safe_string(leverage, 'type')
         isIsolated = (marginMode == 'isolated')
-        size = self.safe_number(entry, 'szi')
+        size = self.safe_string(entry, 'szi')
         side = None
         if size is not None:
-            side = 'long' if (size > 0) else 'short'
+            side = 'long' if Precise.string_gt(size, '0') else 'short'
+            size = Precise.string_abs(size)
         unrealizedPnl = self.safe_number(entry, 'unrealizedPnl')
         initialMargin = self.safe_number(entry, 'marginUsed')
         percentage = unrealizedPnl / initialMargin * 100

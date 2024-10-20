@@ -414,6 +414,7 @@ public partial class kucoin : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "The order does not exist.", typeof(OrderNotFound) },
                     { "order not exist", typeof(OrderNotFound) },
                     { "order not exist.", typeof(OrderNotFound) },
                     { "order_not_exist", typeof(OrderNotFound) },
