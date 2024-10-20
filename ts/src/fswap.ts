@@ -460,7 +460,7 @@ export default class fswap extends Exchange {
         const baseSymbol = this.parseSpecialSymbol (baseId, this.safeString (market, 'base_symbol'));
         const quoteSymbol = this.parseSpecialSymbol (quoteId, this.safeString (market, 'quote_symbol'));
         return {
-            'id': baseId + '-' + quoteId,
+            'id': baseId + '/' + quoteId,
             'symbol': baseSymbol + '/' + quoteSymbol,
             'base': baseSymbol,
             'quote': quoteSymbol,
@@ -545,6 +545,9 @@ export default class fswap extends Exchange {
         if (tokenId === 'cfcd55cd-9f76-3941-81d6-9e7616cc1b83') {
             return 'BUSD@BEP20';
         }
+        if (tokenId === '0c79a53f-9caf-3e7c-a3ce-1edcba33301f') {
+            return 'FTT';
+        }
         return this.safeSymbol (tokenSymbol);
     }
 
@@ -577,7 +580,7 @@ export default class fswap extends Exchange {
         //
         const response = await this.fswapPublicGetAssets (params);
         const data = this.safeValue (response, 'data', {});
-        const assets = Object.values (data);
+        const assets = this.safeValue (data, 'assets', []);
         return this.parseCurrencies (assets);
     }
 
@@ -667,8 +670,8 @@ export default class fswap extends Exchange {
         // @returns {object} a balance structure
         //
         const response = await this.mixinPrivateGetSafeSnapshots (params);
-        const outputs = this.safeValue (response, 'data', []);
-        return this.parseBalance (outputs);
+        const outputs = this.safeValue (response, 'data', {});
+        return (outputs);
     }
 
     parseBalance (outputs: Dict): Balances {
@@ -1023,6 +1026,7 @@ export default class fswap extends Exchange {
             const jwtToken = this.mixinSignAuthenticationToken (method, actualPath, params, requestID, {
                 'app_id': this.uid,
                 'session_id': this.login,
+                'server_public_key': this.apiKey,
                 'session_private_key': this.password,
             });
             headers = {
