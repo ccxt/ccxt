@@ -1291,6 +1291,20 @@ asyncio.run(example())
 <!-- tabs:end -->
 
 
+### Resource clean-up
+
+# Resource clean-up
+
+When your script finishes its work with any exchange, you are advised to clean-up the resources:
+```python
+poloniex = ccxt.poloniex()
+while(condition):
+    await poloniex.watch_ticker('ETH/USDT'))
+# ... your codes
+await polonix.close()  # close the exchange instance when you don't need it anymore
+```
+
+
 ### Error Handling
 
 In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/README?id=error-handling) for more details.

@@ -1385,6 +1385,7 @@ export default class Exchange {
     }
 
     async close () {
+        // WS part
         const clients = Object.values (this.clients || {});
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
@@ -1397,6 +1398,8 @@ export default class Exchange {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
         }
+        // REST part
+        // nothing here
         return;
     }
 
@@ -1920,10 +1923,6 @@ export default class Exchange {
                 'cost': { 'min': undefined, 'max': undefined },
             },
         };
-    }
-
-    async closeWs () {
-        await this.close ();
     }
 
     async resetData () {
