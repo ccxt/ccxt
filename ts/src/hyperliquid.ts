@@ -667,8 +667,8 @@ export default class hyperliquid extends Exchange {
         const result: Dict = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat (data, 'accountValue'),
-                'free': this.safeFloat (response, 'withdrawable'),
+                'total': this.safeNumber (data, 'accountValue'),
+                'free': this.safeNumber (response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger (response, 'time');
