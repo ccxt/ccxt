@@ -1922,8 +1922,11 @@ export default class Exchange {
         };
     }
 
-    async closeAndClean () {
+    async closeWs () {
         await this.close ();
+    }
+
+    async clean () {
         this.ids = [];
         this.markets = {};
         this.markets_by_id = {};
