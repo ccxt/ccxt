@@ -1926,7 +1926,7 @@ export default class Exchange {
         await this.close ();
     }
 
-    async clean () {
+    async resetData () {
         this.ids = [];
         this.markets = {};
         this.markets_by_id = {};
