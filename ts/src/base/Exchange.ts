@@ -1922,10 +1922,6 @@ export default class Exchange {
         };
     }
 
-    async closeWs () {
-        await this.close ();
-    }
-
     async closeAndClean () {
         await this.close ();
         this.ids = [];
