@@ -765,7 +765,7 @@
                   "isolated": false,
                   "hedged": null,
                   "side": "short",
-                  "contracts": -0.5,
+                  "contracts": 0.5,
                   "contractSize": 1,
                   "entryPrice": 138.76,
                   "markPrice": null,
@@ -1128,65 +1128,65 @@
               }
             }
           },
-            {
-                "description": "swap balance",
-                "method": "fetchBalance",
-                "input": [],
-                "httpResponse": {
-                  "assetPositions": [],
-                  "crossMaintenanceMarginUsed": "0.0",
-                  "crossMarginSummary": {
-                    "accountValue": "16570.115313",
-                    "totalMarginUsed": "0.0",
-                    "totalNtlPos": "0.0",
-                    "totalRawUsd": "16570.115313"
-                  },
-                  "marginSummary": {
-                    "accountValue": "16570.115313",
-                    "totalMarginUsed": "0.0",
-                    "totalNtlPos": "0.0",
-                    "totalRawUsd": "16570.115313"
-                  },
-                  "time": "1711801666353",
-                  "withdrawable": "16564.115313"
+          {
+            "description": "swap balance",
+            "method": "fetchBalance",
+            "input": [],
+            "httpResponse": {
+              "marginSummary": {
+                "accountValue": "20.454862",
+                "totalNtlPos": "0.0",
+                "totalRawUsd": "20.454862",
+                "totalMarginUsed": "0.0"
+              },
+              "crossMarginSummary": {
+                "accountValue": "20.454862",
+                "totalNtlPos": "0.0",
+                "totalRawUsd": "20.454862",
+                "totalMarginUsed": "0.0"
+              },
+              "crossMaintenanceMarginUsed": "0.0",
+              "withdrawable": "19.954862",
+              "assetPositions": [],
+              "time": "1729416701061"
+            },
+            "parsedResponse": {
+              "info": {
+                "marginSummary": {
+                  "accountValue": "20.454862",
+                  "totalNtlPos": "0.0",
+                  "totalRawUsd": "20.454862",
+                  "totalMarginUsed": "0.0"
                 },
-                "parsedResponse": {
-                  "info": {
-                    "assetPositions": [],
-                    "crossMaintenanceMarginUsed": "0.0",
-                    "crossMarginSummary": {
-                      "accountValue": "16570.115313",
-                      "totalMarginUsed": "0.0",
-                      "totalNtlPos": "0.0",
-                      "totalRawUsd": "16570.115313"
-                    },
-                    "marginSummary": {
-                      "accountValue": "16570.115313",
-                      "totalMarginUsed": "0.0",
-                      "totalNtlPos": "0.0",
-                      "totalRawUsd": "16570.115313"
-                    },
-                    "time": "1711801666353",
-                    "withdrawable": "16564.115313"
-                  },
-                  "USDC": {
-                    "total": 16570.115313,
-                    "used": 0,
-                    "free": 16570.115313
-                  },
-                  "timestamp": 1711801666353,
-                  "datetime": "2024-03-30T12:27:46.353Z",
-                  "free": {
-                    "USDC": 16570.115313
-                  },
-                  "used": {
-                    "USDC": 0
-                  },
-                  "total": {
-                    "USDC": 16570.115313
-                  }
-                }
+                "crossMarginSummary": {
+                  "accountValue": "20.454862",
+                  "totalNtlPos": "0.0",
+                  "totalRawUsd": "20.454862",
+                  "totalMarginUsed": "0.0"
+                },
+                "crossMaintenanceMarginUsed": "0.0",
+                "withdrawable": "19.954862",
+                "assetPositions": [],
+                "time": "1729416701061"
+              },
+              "USDC": {
+                "total": 20.454862,
+                "free": 19.954862,
+                "used": 0.5
+              },
+              "timestamp": 1729416701061,
+              "datetime": "2024-10-20T09:31:41.061Z",
+              "free": {
+                "USDC": 19.954862
+              },
+              "used": {
+                "USDC": 0.5
+              },
+              "total": {
+                "USDC": 20.454862
+              }
             }
+          }
         ],
         "fetchTradingFee": [
             {
