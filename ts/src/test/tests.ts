@@ -890,7 +890,7 @@ class testMainClass {
         const storedString = jsonStringify (storedOutput);
         let errorMessage = message;
         if (key !== undefined) {
-            errorMessage = ' | ' + key + ' | ';
+            errorMessage = '[' + key + ']';
         }
         errorMessage += ' computed: ' + storedString + ' stored: ' + calculatedString;
         assert (cond, errorMessage);
