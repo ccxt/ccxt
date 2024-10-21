@@ -299,59 +299,59 @@ export default class coincatch extends Exchange {
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
                 'networks': {
-                },
-                'networksById': {
-                    'BITCOIN': 'BTC',
+                    'BTC': 'BITCOIN',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'TRX(TRC20)': 'TRC20',
                     'BEP20': 'BEP20',
-                    'ArbitrumOne': 'ARB', // todo check
-                    'Optimism': 'OPTIMISM',
+                    'ARB': 'ArbitrumOne',
+                    'OPTIMISM': 'Optimism',
                     'LTC': 'LTC',
                     'BCH': 'BCH',
                     'ETC': 'ETC',
                     'SOL': 'SOL',
                     'NEO3': 'NEO3',
-                    'stacks': 'STX',
-                    'Elrond': 'EGLD',
-                    'NEARProtocol': 'NEAR',
-                    'AcalaToken': 'ACA',
-                    'Klaytn': 'KLAY',
-                    'Fantom': 'FTM',
-                    'Terra': 'TERRA',
+                    'STX': 'stacks',
+                    'EGLD': 'Elrond',
+                    'NEAR': 'NEARProtocol',
+                    'ACA': 'AcalaToken',
+                    'KLAY': 'Klaytn',
+                    'FTM': 'Fantom',
+                    'TERRA': 'Terra',
                     'WAVES': 'WAVES',
                     'TAO': 'TAO',
                     'SUI': 'SUI',
                     'SEI': 'SEI',
-                    'THORChain': 'RUNE', // todo check
+                    'RUNE': 'THORChain',
                     'ZIL': 'ZIL',
-                    'Solar': 'SXP', // todo check
+                    'SXP': 'Solar',
                     'FET': 'FET',
-                    'C-Chain': 'AVAX', // todo check
+                    'AVAX': 'C-Chain',
                     'XRP': 'XRP',
                     'EOS': 'EOS',
-                    'DOGECOIN': 'DOGE',
-                    'CAP20': 'CAP20', // todo check
-                    'Polygon': 'MATIC',
+                    'DOGE': 'DOGECOIN',
+                    'CAP20': 'CAP20',
+                    'MATIC': 'Polygon',
                     'CSPR': 'CSPR',
-                    'Moonbeam': 'GLMR',
+                    'GLMR': 'Moonbeam',
                     'MINA': 'MINA',
-                    'CFXeSpace': 'CFX', // todo check
                     'CFX': 'CFX',
-                    'StratisEVM': 'STRAT', // todo check
-                    'Celestia': 'TIA',
-                    'ChilizChain': 'ChilizChain', // todo check
-                    'Aptos': 'APT',
-                    'Ontology': 'ONT',
+                    'STRAT': 'StratisEVM',
+                    'TIA': 'Celestia',
+                    'ChilizChain': 'ChilizChain',
+                    'APT': 'Aptos',
+                    'ONT': 'Ontology',
                     'ICP': 'ICP',
-                    'Cardano': 'ADA',
+                    'ADA': 'Cardano',
                     'FIL': 'FIL',
                     'CELO': 'CELO',
                     'DOT': 'DOT',
-                    'StellarLumens': 'XLM', // todo check
+                    'XLM': 'StellarLumens',
                     'ATOM': 'ATOM',
-                    'CronosChain': 'CRO', // todo check
+                    'CRO': 'CronosChain',
+                },
+                'networksById': {
+                    'TRX(TRC20)': 'TRC20',
+                    'CFXeSpace': 'CFX',
                 },
             },
             'commonCurrencies': {},
@@ -2252,7 +2252,7 @@ export default class coincatch extends Exchange {
             if (type === 'limit') {
                 request['price'] = price; // spot markets have no precision
             }
-            request['quantity'] = isMarketBuy ? cost : amount.toString (); // spot markets have no precision
+            request['quantity'] = isMarketBuy ? cost : this.numberToString (amount); // spot markets have no precision
             request['force'] = timeInForce ? timeInForce : 'normal'; // the exchange requres force but accepts any value
         } else {
             request['triggerPrice'] = triggerPrice; // spot markets have no precision
