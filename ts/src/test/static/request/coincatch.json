@@ -3,11 +3,27 @@
     "skipKeys": [ "startTime", "endTime" ],
     "outputType": "both",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "url": "https://api.coincatch.com/api/spot/v1/public/time",
+                "input": []
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "Fetch currencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.coincatch.com/api/mix/v1/market/contracts?productType=dmcbl",
                 "input": []
             }
         ],
@@ -49,6 +65,44 @@
                 "url": "https://api.coincatch.com/api/spot/v1/market/merge-depth?symbol=ETHUSDT_SPBL&limit=1",
                 "input": [
                     "ETH/USDT",
+                    1
+                ]
+            },
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.coincatch.com/api/mix/v1/market/merge-depth?symbol=ETHUSDT_UMCBL&limit=1",
+                "input": [
+                  "ETH/USDT:USDT",
+                  1
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/spot/v1/market/candles?symbol=ETHUSDT_SPBL&period=1min",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/mix/v1/market/candles?symbol=ETHUSDT_UMCBL&granularity=1m&startTime=1729437331987&endTime=1729497331987",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.coincatch.com/api/spot/v1/market/candles?symbol=ETHUSDT_SPBL&limit=1000&period=1min&after=1726956360000",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    1726956360000,
                     1
                 ]
             }
@@ -155,6 +209,86 @@
                         "until": 1726541200000
                     }
                 ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0002,
+                  25000
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":25000,\"quantity\":\"0.0002\",\"force\":\"normal\"}"
+            },
+            {
+                "description": "Spot cross limit buy order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.0002,
+                    25000,
+                    {
+                        "marginMode": "cross",
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":25000,\"quantity\":\"0.0002\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "Swap cross limit buy order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    25000,
+                    {
+                        "marginMode": "cross",
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "Swap cross limit buy order with trigger price",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/plan/placePlan",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    25000,
+                    {
+                        "marginMode": "cross",
+                        "triggerPrice": 26000,
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"triggerType\":\"fill_price\",\"executePrice\":\"25000\",\"triggerPrice\":\"26000\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "Spot market buy order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "buy",
+                    0.0002,
+                    40000
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"8\",\"force\":\"normal\"}"
             }
         ],
         "fetchOpenOrders": [
