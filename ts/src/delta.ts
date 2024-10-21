@@ -1827,6 +1827,7 @@ export default class delta extends Exchange {
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -1845,6 +1846,11 @@ export default class delta extends Exchange {
         };
         if (type === 'limit') {
             request['limit_price'] = this.priceToPrecision (market['symbol'], price);
+        }
+        const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['stop_order_type'] = 'stop_loss_order';
+            request['stop_price'] = this.priceToPrecision (market['symbol'], triggerPrice);
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
