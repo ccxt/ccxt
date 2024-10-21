@@ -3681,6 +3681,7 @@ export default class coincatch extends Exchange {
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + ' () requires a symbol argument for spot non-trigger orders');
                 }
+                request['symbol'] = market['id'];
                 //
                 //     {
                 //         "code": "00000",
