@@ -1152,7 +1152,7 @@ export default class valr extends Exchange {
             'lastUpdateTimestamp': this.parse8601 (updateDatetime),
             'price': finalPrice,
             'amount': this.safeString2 (order, 'executedQuantity', 'originalQuantity'),
-            'cost': undefined,
+            'cost': this.safeString (order, 'total'),
             'average': this.safeString (order, 'averagePrice'),
             'filled': undefined,
             'remaining': this.safeString (order, 'remainingQuantity'),
