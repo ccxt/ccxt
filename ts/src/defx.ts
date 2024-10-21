@@ -86,6 +86,8 @@ export default class defx extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
@@ -657,6 +659,17 @@ export default class defx extends Exchange {
         //       "markPrice": "1645.15"
         //     }
         //
+        // fetchMarkPrice
+        //
+        // {
+        //     "markPrice": "100.00",
+        //     "indexPrice": "100.00",
+        //     "ltp": "101.34",
+        //     "movingFundingRate": "0.08",
+        //     "payoutFundingRate": "-0.03",
+        //     "nextFundingPayout": 1711555532146
+        // }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         if (marketId !== undefined) {
             market = this.market (marketId);
@@ -700,7 +713,7 @@ export default class defx extends Exchange {
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': this.safeString (ticker, 'markPrice'),
-            'indexPrice': undefined,
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -902,6 +915,26 @@ export default class defx extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+    }
+
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name defx#fetchMarkPrice
+         * @description fetches mark price for the market
+         * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetSymbolsSymbolPrices (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     nonce () {
