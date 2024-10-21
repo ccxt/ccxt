@@ -166,6 +166,5 @@
         "info": { "product_code": "FX_BTC_JPY", "market_type": "FX" },
         "tierBased": null,
         "percentage": null
-    },
-    
+    }
 }
