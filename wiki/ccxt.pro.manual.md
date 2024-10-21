@@ -1302,6 +1302,7 @@ while(condition):
     await poloniex.watch_ticker('ETH/USDT'))
 # ... your codes
 await polonix.close()  # close the exchange instance when you don't need it anymore
+poloniex.reset_data ()  # resets all fetched instance datas (markets, etc..)
 ```
 
 
