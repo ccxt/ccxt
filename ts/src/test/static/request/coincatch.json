@@ -366,6 +366,18 @@
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"67753.9\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"marginMode\":\"cross\"}"
             }
         ],
+        "createMarketBuyOrderWithCost": {
+            {
+                "description": "Spot create market buy order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"2\",\"force\":\"normal\"}"
+            }
+        },
         "fetchOpenOrders": [
             {
                 "description": "Fetch open orders",
@@ -375,6 +387,14 @@
                     "ETH/USDT"
                 ],
                 "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            },
+            {
+                "description": "Fetch open orders for swap",
+                "method": "fetchOpenOrders",
+                "url": "https://api.coincatch.com/api/mix/v1/order/current?symbol=BTCUSDT_UMCBL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -386,6 +406,17 @@
                     "ETH/USDT"
                 ],
                 "output": "{\"symbol\":\"ETHUSDT_SPBL\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders for swap",
+                "method": "cancelAllOrders",
+                "url": "https://api.coincatch.com/api/mix/v1/order/cancel-symbol-orders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\"}"
             }
         ],
         "fetchMyTrades": [
