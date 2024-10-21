@@ -1754,7 +1754,7 @@
     },
     "paradex": {
         "skipMethods": {
-            "loadMarkets" : {
+            "loadMarkets": {
                 "active":"not provided",
                 "currencyIdAndCode": "broken currencies"
 	          }
@@ -1771,6 +1771,14 @@
             "watchTrades": {
                 "side": "not provided"
             }
+        }
+    },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": "linear and inverse values are same"
         }
     }
 }
