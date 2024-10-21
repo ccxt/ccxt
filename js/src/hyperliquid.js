@@ -645,9 +645,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
-                const free = this.safeString(balance, 'hold');
+                const used = this.safeString(balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -656,8 +656,8 @@ export default class hyperliquid extends Exchange {
         const result = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat(data, 'accountValue'),
-                'used': this.safeFloat(data, 'totalMarginUsed'),
+                'total': this.safeNumber(data, 'accountValue'),
+                'free': this.safeNumber(response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger(response, 'time');
@@ -2230,10 +2230,11 @@ export default class hyperliquid extends Exchange {
         const leverage = this.safeDict(entry, 'leverage', {});
         const marginMode = this.safeString(leverage, 'type');
         const isIsolated = (marginMode === 'isolated');
-        const size = this.safeNumber(entry, 'szi');
+        let size = this.safeString(entry, 'szi');
         let side = undefined;
         if (size !== undefined) {
-            side = (size > 0) ? 'long' : 'short';
+            side = Precise.stringGt(size, '0') ? 'long' : 'short';
+            size = Precise.stringAbs(size);
         }
         const unrealizedPnl = this.safeNumber(entry, 'unrealizedPnl');
         const initialMargin = this.safeNumber(entry, 'marginUsed');

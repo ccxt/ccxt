@@ -662,9 +662,9 @@ public partial class hyperliquid : Exchange
                 object code = this.safeCurrencyCode(this.safeString(balance, "coin"));
                 object account = this.account();
                 object total = this.safeString(balance, "total");
-                object free = this.safeString(balance, "hold");
+                object used = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
-                ((IDictionary<string,object>)account)["used"] = free;
+                ((IDictionary<string,object>)account)["used"] = used;
                 ((IDictionary<string,object>)spotBalances)[(string)code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -673,8 +673,8 @@ public partial class hyperliquid : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "USDC", new Dictionary<string, object>() {
-                { "total", this.safeFloat(data, "accountValue") },
-                { "used", this.safeFloat(data, "totalMarginUsed") },
+                { "total", this.safeNumber(data, "accountValue") },
+                { "free", this.safeNumber(response, "withdrawable") },
             } },
         };
         object timestamp = this.safeInteger(response, "time");
@@ -2425,11 +2425,12 @@ public partial class hyperliquid : Exchange
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         object marginMode = this.safeString(leverage, "type");
         object isIsolated = (isEqual(marginMode, "isolated"));
-        object size = this.safeNumber(entry, "szi");
+        object size = this.safeString(entry, "szi");
         object side = null;
         if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue((isGreaterThan(size, 0)))) ? "long" : "short";
+            side = ((bool) isTrue(Precise.stringGt(size, "0"))) ? "long" : "short";
+            size = Precise.stringAbs(size);
         }
         object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
         object initialMargin = this.safeNumber(entry, "marginUsed");

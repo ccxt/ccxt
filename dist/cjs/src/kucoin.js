@@ -454,6 +454,7 @@ class kucoin extends kucoin$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'The order does not exist.': errors.OrderNotFound,
                     'order not exist': errors.OrderNotFound,
                     'order not exist.': errors.OrderNotFound,
                     'order_not_exist': errors.OrderNotFound,

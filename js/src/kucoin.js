@@ -457,6 +457,7 @@ export default class kucoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'The order does not exist.': OrderNotFound,
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,
                     'order_not_exist': OrderNotFound,

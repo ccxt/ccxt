@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -355,6 +355,9 @@ export default class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
+                        'account/spot-manual-borrow-repay': 10,
+                        'account/set-auto-repay': 4,
+                        'account/spot-borrow-repay-history': 4,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -886,6 +889,11 @@ export default class okx extends Exchange {
                     '59301': ExchangeError, // Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401': ExchangeError, // Holdings already reached the limit
+                    '59410': OperationRejected, // You can only borrow this crypto if it supports borrowing and borrowing is enabled.
+                    '59411': InsufficientFunds, // Manual borrowing failed. Your account's free margin is insufficient
+                    '59412': OperationRejected, // Manual borrowing failed. The amount exceeds your borrowing limit.
+                    '59413': OperationRejected, // You didn't borrow this crypto. No repayment needed.
+                    '59414': BadRequest, // Manual borrowing failed. The minimum borrowing limit is {param0}.needed.
                     '59500': ExchangeError, // Only the APIKey of the main account has permission
                     '59501': ExchangeError, // Only 50 APIKeys can be created per account
                     '59502': ExchangeError, // Note name cannot be duplicate with the currently created APIKey note name
