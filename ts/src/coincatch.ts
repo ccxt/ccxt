@@ -251,6 +251,11 @@ export default class coincatch extends Exchange {
                     },
                 },
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'fees': {
                 'trading': {
                     'spot': {
@@ -263,6 +268,7 @@ export default class coincatch extends Exchange {
                 },
             },
             'options': {
+                'brokerId': '47cfy',
                 'createMarketBuyOrderRequiresPrice': true, // for spot orders only
                 'timeframes': {
                     'spot': {
@@ -5340,6 +5346,7 @@ export default class coincatch extends Exchange {
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
                 'Content-Type': 'application/json',
+                'X-CHANNEL-API-CODE': this.safeString (this.options, 'brokerId', '47cfy'),
             };
         }
         const url = this.urls['api'][api] + endpoint;
