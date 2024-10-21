@@ -30,6 +30,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NetworkError;
 use ccxt\pro\ClientTrait;
 use ccxt\RateLimitExceeded;
+use ccxt\UnsubscribeError;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
