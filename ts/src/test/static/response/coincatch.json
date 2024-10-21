@@ -867,6 +867,267 @@
                     }
                 }
             }
+        ],
+        "createOrder": [
+            {
+                "description": "Create order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.00002
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1729510697635",
+                    "data": {
+                        "orderId": "1232222665168039937",
+                        "clientOrderId": "3d13ec41-ee8b-4b76-90cc-c98add74ecd1"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "1232222665168039937",
+                    "clientOrderId": "3d13ec41-ee8b-4b76-90cc-c98add74ecd1",
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "side": null,
+                    "price": null,
+                    "average": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ],
+                    "reduceOnly": null,
+                    "postOnly": null,
+                    "info": {
+                        "orderId": "1232222665168039937",
+                        "clientOrderId": "3d13ec41-ee8b-4b76-90cc-c98add74ecd1"
+                    }
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1729511265605",
+                    "data": [
+                        {
+                            "accountId": "1002820815393",
+                            "symbol": "LTCUSDT_SPBL",
+                            "orderId": "1232224960702230528",
+                            "clientOrderId": "e7436cfb-9fad-4891-b18c-3b177f6f0434",
+                            "price": "90.0000000000000000",
+                            "quantity": "0.2000000000000000",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "status": "new",
+                            "fillPrice": "0",
+                            "fillQuantity": "0.0000000000000000",
+                            "fillTotalAmount": "0.0000000000000000",
+                            "enterPointSource": "API",
+                            "feeDetail": "",
+                            "orderSource": "normal",
+                            "cTime": "1729511244941"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1232224960702230528",
+                        "clientOrderId": "e7436cfb-9fad-4891-b18c-3b177f6f0434",
+                        "datetime": "2024-10-21T11:47:24.941Z",
+                        "timestamp": 1729511244941,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "LTC/USDT",
+                        "type": "limit",
+                        "timeInForce": null,
+                        "side": "sell",
+                        "price": 90,
+                        "average": null,
+                        "amount": 0.2,
+                        "filled": 0,
+                        "remaining": 0.2,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": {
+                            "currency": null,
+                            "cost": null
+                        },
+                        "fees": [
+                            {
+                                "currency": null,
+                                "cost": null
+                            }
+                        ],
+                        "reduceOnly": null,
+                        "postOnly": null
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": "00000",
+                    "msg": "success",
+                    "requestTime": "1729511362363",
+                    "data": [
+                        {
+                            "coinId": "1",
+                            "coinName": "BTC",
+                            "coinDisplayName": "BTC",
+                            "available": "0.00000987",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729510699000"
+                        },
+                        {
+                            "coinId": "3",
+                            "coinName": "ETH",
+                            "coinDisplayName": "ETH",
+                            "available": "0.00000930",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1728917586000"
+                        },
+                        {
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "coinDisplayName": "USDT",
+                            "available": "2.57886818",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729510699000"
+                        },
+                        {
+                            "coinId": "5",
+                            "coinName": "LTC",
+                            "coinDisplayName": "LTC",
+                            "available": "0.01898080",
+                            "frozen": "0.20000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729511245000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": [
+                        {
+                            "coinId": "1",
+                            "coinName": "BTC",
+                            "coinDisplayName": "BTC",
+                            "available": "0.00000987",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729510699000"
+                        },
+                        {
+                            "coinId": "3",
+                            "coinName": "ETH",
+                            "coinDisplayName": "ETH",
+                            "available": "0.00000930",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1728917586000"
+                        },
+                        {
+                            "coinId": "2",
+                            "coinName": "USDT",
+                            "coinDisplayName": "USDT",
+                            "available": "2.57886818",
+                            "frozen": "0.00000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729510699000"
+                        },
+                        {
+                            "coinId": "5",
+                            "coinName": "LTC",
+                            "coinDisplayName": "LTC",
+                            "available": "0.01898080",
+                            "frozen": "0.20000000",
+                            "lock": "0.00000000",
+                            "uTime": "1729511245000"
+                        }
+                    ],
+                    "BTC": {
+                        "free": 0.00000987,
+                        "used": 0,
+                        "total": 0.00000987
+                    },
+                    "ETH": {
+                        "free": 0.0000093,
+                        "used": 0,
+                        "total": 0.0000093
+                    },
+                    "USDT": {
+                        "free": 2.57886818,
+                        "used": 0,
+                        "total": 2.57886818
+                    },
+                    "LTC": {
+                        "free": 0.0189808,
+                        "used": 0.2,
+                        "total": 0.2189808
+                    },
+                    "free": {
+                        "BTC": 0.00000987,
+                        "ETH": 0.0000093,
+                        "USDT": 2.57886818,
+                        "LTC": 0.0189808
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "ETH": 0,
+                        "USDT": 0,
+                        "LTC": 0.2
+                    },
+                    "total": {
+                        "BTC": 0.00000987,
+                        "ETH": 0.0000093,
+                        "USDT": 2.57886818,
+                        "LTC": 0.2189808
+                    }
+                }
+            }
         ]
     }
 }
