@@ -22,6 +22,7 @@ export default class woo extends wooRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchPositions': true,
@@ -411,6 +412,80 @@ export default class woo extends wooRest {
             result.push (ticker);
         }
         client.resolve (result, topic);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name woo#watchBidsAsks
+         * @see https://docs.woox.io/#bbos
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const name = 'bbos';
+        const topic = name;
+        const request: Dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const tickers = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "topic": "bbos",
+        //         "ts": 1618822376000,
+        //         "data": [
+        //             {
+        //                 "symbol": "SPOT_FIL_USDT",
+        //                 "ask": 159.0318,
+        //                 "askSize": 370.43,
+        //                 "bid": 158.9158,
+        //                 "bidSize": 16
+        //             }
+        //         ]
+        //     }
+        //
+        const topic = this.safeString (message, 'topic');
+        const data = this.safeList (message, 'data', []);
+        const timestamp = this.safeInteger (message, 'ts');
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.safeDict (data, i);
+            ticker['ts'] = timestamp;
+            const parsedTicker = this.parseWsBidAsk (ticker);
+            const symbol = parsedTicker['symbol'];
+            this.bidsasks[symbol] = parsedTicker;
+            result[symbol] = parsedTicker;
+        }
+        client.resolve (result, topic);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 'ts');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString (ticker, 'ask'),
+            'askVolume': this.safeString (ticker, 'askSize'),
+            'bid': this.safeString (ticker, 'bid'),
+            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1209,6 +1284,7 @@ export default class woo extends wooRest {
             'trade': this.handleTrade,
             'balance': this.handleBalance,
             'position': this.handlePositions,
+            'bbos': this.handleBidAsk,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);

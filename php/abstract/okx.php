@@ -238,6 +238,9 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_copytrading_public_subpositions_history($params = array()) {
         return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_support_announcements_types($params = array()) {
+        return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function private_get_rfq_counterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -457,6 +460,15 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_account_fixed_loan_borrowing_orders_list($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_account_spot_manual_borrow_repay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_account_set_auto_repay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_spot_borrow_repay_history($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -624,6 +636,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_get_users_partner_if_rebate($params = array()) {
         return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_support_announcements($params = array()) {
+        return $this->request('support/announcements', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function private_post_rfq_create_rfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));
@@ -1207,6 +1222,9 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetCopytradingPublicSubpositionsHistory($params = array()) {
         return $this->request('copytrading/public-subpositions-history', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function publicGetSupportAnnouncementsTypes($params = array()) {
+        return $this->request('support/announcements-types', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function privateGetRfqCounterparties($params = array()) {
         return $this->request('rfq/counterparties', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1426,6 +1444,15 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAccountFixedLoanBorrowingOrdersList($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetAccountSpotManualBorrowRepay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetAccountSetAutoRepay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1593,6 +1620,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetUsersPartnerIfRebate($params = array()) {
         return $this->request('users/partner/if-rebate', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetSupportAnnouncements($params = array()) {
+        return $this->request('support/announcements', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     public function privatePostRfqCreateRfq($params = array()) {
         return $this->request('rfq/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 4));

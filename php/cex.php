@@ -43,6 +43,7 @@ class cex extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -1563,7 +1564,7 @@ class cex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * @see https://docs.cex.io/#get-crypto-$address
          * fetch the deposit $address for a $currency associated with this account
@@ -1607,11 +1608,11 @@ class cex extends Exchange {
         $address = $this->safe_string_2($addressObject, 'address', 'destination');
         $this->check_address($address);
         return array(
+            'info' => $data,
             'currency' => $code,
+            'network' => $this->network_id_to_code($selectedNetworkId),
             'address' => $address,
             'tag' => $this->safe_string_2($addressObject, 'destinationTag', 'memo'),
-            'network' => $this->network_id_to_code($selectedNetworkId),
-            'info' => $data,
         );
     }
 

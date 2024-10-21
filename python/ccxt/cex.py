@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -59,6 +59,7 @@ class cex(Exchange, ImplicitAPI):
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
@@ -1511,7 +1512,7 @@ class cex(Exchange, ImplicitAPI):
         response = self.privatePostCancelReplaceOrderPair(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         :see: https://docs.cex.io/#get-crypto-address
         fetch the deposit address for a currency associated with self account
@@ -1555,11 +1556,11 @@ class cex(Exchange, ImplicitAPI):
         address = self.safe_string_2(addressObject, 'address', 'destination')
         self.check_address(address)
         return {
+            'info': data,
             'currency': code,
+            'network': self.network_id_to_code(selectedNetworkId),
             'address': address,
             'tag': self.safe_string_2(addressObject, 'destinationTag', 'memo'),
-            'network': self.network_id_to_code(selectedNetworkId),
-            'info': data,
         }
 
     def nonce(self):

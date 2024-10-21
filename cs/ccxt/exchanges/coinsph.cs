@@ -1698,7 +1698,7 @@ public partial class coinsph : Exchange
         object warning = this.safeBool(options, "warning", true);
         if (isTrue(warning))
         {
-            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options[\'withdraw\'][\'warning\'] = false to make a withdrawal to your coins_ph account")) ;
+            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         object networkCode = this.safeString(parameters, "network");
         object networkId = this.networkCodeToId(networkCode, code);
@@ -2016,11 +2016,11 @@ public partial class coinsph : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "addressTag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

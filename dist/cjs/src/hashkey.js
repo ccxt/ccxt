@@ -65,6 +65,8 @@ class hashkey extends hashkey$1 {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1815,11 +1817,11 @@ class hashkey extends hashkey$1 {
             tag = undefined;
         }
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3739,7 +3741,7 @@ class hashkey extends hashkey$1 {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3758,7 +3760,6 @@ class hashkey extends hashkey$1 {
     }
     parseFundingRate(contract, market = undefined) {
         //
-        // fetchFundingRates
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
         //         "rate": "0.0001",
@@ -3787,6 +3788,7 @@ class hashkey extends hashkey$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {

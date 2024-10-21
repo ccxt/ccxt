@@ -48,7 +48,9 @@ export default class coinone extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1106,10 +1108,11 @@ export default class coinone extends Exchange {
             let depositAddress = this.safeValue(result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
+                    'info': value,
                     'currency': code,
+                    'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                    'info': value,
                 };
             }
             const address = this.safeString(depositAddress, 'address', value);

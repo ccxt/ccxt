@@ -549,7 +549,7 @@ public partial class okcoin : ccxt.okcoin
         object type = this.safeString(parameters, "type", defaultType);
         if (isTrue(isEqual(type, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of \'spot\', \'margin\', \'futures\', \'swap\')")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')")) ;
         }
         // const query = this.omit (params, 'type');
         object negotiation = await this.authenticate();
@@ -563,7 +563,7 @@ public partial class okcoin : ccxt.okcoin
         object type = this.safeString(parameters, "type", defaultType);
         if (isTrue(isEqual(type, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of \'spot\', \'margin\', \'futures\', \'swap\')")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " watchBalance requires a type parameter (one of 'spot', 'margin', 'futures', 'swap')")) ;
         }
         await this.loadMarkets();
         object currencyId = this.safeString(parameters, "currency");
@@ -581,19 +581,19 @@ public partial class okcoin : ccxt.okcoin
         {
             if (isTrue(currencyUndefined))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'currency\' (id) or a unified \'code\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'currency' (id) or a unified 'code' parameter for "), type), " accounts")) ;
             }
         } else if (isTrue(isTrue(isTrue((isEqual(type, "margin"))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "option")))))
         {
             if (isTrue(marketUndefined))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'instrument_id\' (id) or a unified \'symbol\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'instrument_id' (id) or a unified 'symbol' parameter for "), type), " accounts")) ;
             }
         } else if (isTrue(isEqual(type, "futures")))
         {
             if (isTrue(isTrue(currencyUndefined) && isTrue(marketUndefined)))
             {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a \'currency\' (id), or unified \'code\', or \'instrument_id\' (id), or unified \'symbol\' parameter for "), type), " accounts")) ;
+                throw new ArgumentsRequired ((string)add(add(add(this.id, " watchBalance requires a 'currency' (id), or unified 'code', or 'instrument_id' (id), or unified 'symbol' parameter for "), type), " accounts")) ;
             }
         }
         object suffix = null;
@@ -734,7 +734,7 @@ public partial class okcoin : ccxt.okcoin
                 object method = "login";
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                 }
                 return false;
             }

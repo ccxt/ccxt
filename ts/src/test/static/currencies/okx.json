@@ -17,11 +17,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00016,
+                "fee": 0.00002,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.001,
+                        "min": 0.0005,
                         "max": 500
                     }
                 },
@@ -35,14 +35,14 @@
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/btc20230419112752.png",
                     "mainNet": true,
-                    "maxFee": "0.00032",
-                    "maxFeeForCtAddr": "0.00032",
+                    "maxFee": "0.00004",
+                    "maxFeeForCtAddr": "0.00004",
                     "maxWd": "500",
                     "minDep": "0.0005",
                     "minDepArrivalConfirm": "1",
-                    "minFee": "0.00016",
-                    "minFeeForCtAddr": "0.00016",
-                    "minWd": "0.001",
+                    "minFee": "0.00002",
+                    "minFeeForCtAddr": "0.00002",
+                    "minWd": "0.0005",
                     "minWdUnlockConfirm": "2",
                     "name": "Bitcoin",
                     "needTag": false,
@@ -104,7 +104,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0,
-                        "max": 100
+                        "max": 500
                     }
                 },
                 "info": {
@@ -119,7 +119,7 @@
                     "mainNet": false,
                     "maxFee": "0",
                     "maxFeeForCtAddr": "0",
-                    "maxWd": "100",
+                    "maxWd": "500",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "2",
                     "minFee": "0",
@@ -154,12 +154,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.002,
+                "fee": 0.0011,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
-                        "max": 9093
+                        "max": 12473
                     }
                 },
                 "info": {
@@ -172,56 +172,15 @@
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
                     "mainNet": true,
-                    "maxFee": "0.004",
-                    "maxFeeForCtAddr": "0.004",
-                    "maxWd": "9093",
+                    "maxFee": "0.0022",
+                    "maxFeeForCtAddr": "0.0022",
+                    "maxWd": "12473",
                     "minDep": "0.001",
                     "minDepArrivalConfirm": "32",
-                    "minFee": "0.002",
-                    "minFeeForCtAddr": "0.002",
+                    "minFee": "0.0011",
+                    "minFeeForCtAddr": "0.0011",
                     "minWd": "0.01",
                     "minWdUnlockConfirm": "96",
-                    "name": "Ethereum",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "8"
-                }
-            },
-            "OKTC": {
-                "id": "ETHK-OKTC",
-                "network": "OKTC",
-                "active": false,
-                "deposit": true,
-                "withdraw": false,
-                "fee": 0,
-                "precision": 1e-8,
-                "limits": {
-                    "withdraw": {
-                        "min": 0,
-                        "max": 9093
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": false,
-                    "ccy": "ETH",
-                    "chain": "ETHK-OKTC",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
-                    "mainNet": false,
-                    "maxFee": "0",
-                    "maxFeeForCtAddr": "0",
-                    "maxWd": "9093",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "2",
-                    "minFee": "0",
-                    "minFeeForCtAddr": "0",
-                    "minWd": "0",
-                    "minWdUnlockConfirm": "4",
                     "name": "Ethereum",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -236,12 +195,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0001,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
-                        "max": 9093
+                        "max": 4989
                     }
                 },
                 "info": {
@@ -254,138 +213,15 @@
                     "depQuoteDailyLayer2": "200000",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
                     "mainNet": false,
-                    "maxFee": "0.0002",
-                    "maxFeeForCtAddr": "0.0002",
-                    "maxWd": "9093",
+                    "maxFee": "0.00008",
+                    "maxFeeForCtAddr": "0.00008",
+                    "maxWd": "4989",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "12",
-                    "minFee": "0.0001",
-                    "minFeeForCtAddr": "0.0001",
+                    "minDepArrivalConfirm": "1850",
+                    "minFee": "0.00004",
+                    "minFeeForCtAddr": "0.00004",
                     "minWd": "0.001",
-                    "minWdUnlockConfirm": "12",
-                    "name": "Ethereum",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "8"
-                }
-            },
-            "OPTIMISM": {
-                "id": "ETH-Optimism",
-                "network": "OPTIMISM",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.0001,
-                "precision": 1e-8,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.0001,
-                        "max": 9093
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "ETH",
-                    "chain": "ETH-Optimism",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "100000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
-                    "mainNet": false,
-                    "maxFee": "0.0002",
-                    "maxFeeForCtAddr": "0.0002",
-                    "maxWd": "9093",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "150",
-                    "minFee": "0.0001",
-                    "minFeeForCtAddr": "0.0001",
-                    "minWd": "0.0001",
-                    "minWdUnlockConfirm": "200",
-                    "name": "Ethereum",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "8"
-                }
-            },
-            "Starknet": {
-                "id": "ETH-Starknet",
-                "network": "Starknet",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.0001,
-                "precision": 1e-8,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.00001,
-                        "max": 9093
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "ETH",
-                    "chain": "ETH-Starknet",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "100000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
-                    "mainNet": false,
-                    "maxFee": "0.0002",
-                    "maxFeeForCtAddr": "0.0002",
-                    "maxWd": "9093",
-                    "minDep": "0.0008",
-                    "minDepArrivalConfirm": "2",
-                    "minFee": "0.0001",
-                    "minFeeForCtAddr": "0.0001",
-                    "minWd": "0.00001",
-                    "minWdUnlockConfirm": "5",
-                    "name": "Ethereum",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "8"
-                }
-            },
-            "zkSync Era": {
-                "id": "ETH-zkSync Era",
-                "network": "zkSync Era",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.00015,
-                "precision": 1e-8,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.0001,
-                        "max": 9093
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "ETH",
-                    "chain": "ETH-zkSync Era",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
-                    "mainNet": false,
-                    "maxFee": "0.0003",
-                    "maxFeeForCtAddr": "0.0003",
-                    "maxWd": "9093",
-                    "minDep": "0.001",
-                    "minDepArrivalConfirm": "12",
-                    "minFee": "0.00015",
-                    "minFeeForCtAddr": "0.00015",
-                    "minWd": "0.0001",
-                    "minWdUnlockConfirm": "30",
+                    "minWdUnlockConfirm": "1850",
                     "name": "Ethereum",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -400,12 +236,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0002,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.002,
-                        "max": 9093
+                        "max": 2495
                     }
                 },
                 "info": {
@@ -418,13 +254,13 @@
                     "depQuoteDailyLayer2": "50000",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
                     "mainNet": false,
-                    "maxFee": "0.0004",
-                    "maxFeeForCtAddr": "0.0004",
-                    "maxWd": "9093",
+                    "maxFee": "0.00008",
+                    "maxFeeForCtAddr": "0.00008",
+                    "maxWd": "2495",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "30",
-                    "minFee": "0.0002",
-                    "minFeeForCtAddr": "0.0002",
+                    "minDepArrivalConfirm": "120",
+                    "minFee": "0.00004",
+                    "minFeeForCtAddr": "0.00004",
                     "minWd": "0.002",
                     "minWdUnlockConfirm": "120",
                     "name": "Ethereum",
@@ -446,7 +282,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.0001,
-                        "max": 9093
+                        "max": 2495
                     }
                 },
                 "info": {
@@ -461,13 +297,218 @@
                     "mainNet": false,
                     "maxFee": "0.0004",
                     "maxFeeForCtAddr": "0.0004",
-                    "maxWd": "9093",
+                    "maxWd": "2495",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "64",
+                    "minDepArrivalConfirm": "5000",
                     "minFee": "0.0002",
                     "minFeeForCtAddr": "0.0002",
                     "minWd": "0.0001",
-                    "minWdUnlockConfirm": "96",
+                    "minWdUnlockConfirm": "5000",
+                    "name": "Ethereum",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "OKTC": {
+                "id": "ETHK-OKTC",
+                "network": "OKTC",
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": 12473
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": false,
+                    "ccy": "ETH",
+                    "chain": "ETHK-OKTC",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
+                    "mainNet": false,
+                    "maxFee": "0",
+                    "maxFeeForCtAddr": "0",
+                    "maxWd": "12473",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "2",
+                    "minFee": "0",
+                    "minFeeForCtAddr": "0",
+                    "minWd": "0",
+                    "minWdUnlockConfirm": "4",
+                    "name": "Ethereum",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "OPTIMISM": {
+                "id": "ETH-Optimism",
+                "network": "OPTIMISM",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00004,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 4989
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "ETH",
+                    "chain": "ETH-Optimism",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "100000",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
+                    "mainNet": false,
+                    "maxFee": "0.00008",
+                    "maxFeeForCtAddr": "0.00008",
+                    "maxWd": "4989",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "450",
+                    "minFee": "0.00004",
+                    "minFeeForCtAddr": "0.00004",
+                    "minWd": "0.0001",
+                    "minWdUnlockConfirm": "450",
+                    "name": "Ethereum",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "Starknet": {
+                "id": "ETH-Starknet",
+                "network": "Starknet",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.000095,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.00001,
+                        "max": 4989
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "ETH",
+                    "chain": "ETH-Starknet",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "100000",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
+                    "mainNet": false,
+                    "maxFee": "0.00019",
+                    "maxFeeForCtAddr": "0.00019",
+                    "maxWd": "4989",
+                    "minDep": "0.0008",
+                    "minDepArrivalConfirm": "5",
+                    "minFee": "0.000095",
+                    "minFeeForCtAddr": "0.000095",
+                    "minWd": "0.00001",
+                    "minWdUnlockConfirm": "5",
+                    "name": "Ethereum",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "X Layer": {
+                "id": "ETH-X Layer",
+                "network": "X Layer",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00003,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 3742
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "ETH",
+                    "chain": "ETH-X Layer",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
+                    "mainNet": false,
+                    "maxFee": "0.00006",
+                    "maxFeeForCtAddr": "0.00006",
+                    "maxWd": "3742",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "120",
+                    "minFee": "0.00003",
+                    "minFeeForCtAddr": "0.00003",
+                    "minWd": "0.0001",
+                    "minWdUnlockConfirm": "120",
+                    "name": "Ethereum",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "zkSync Era": {
+                "id": "ETH-zkSync Era",
+                "network": "zkSync Era",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.000041,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 4989
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "ETH",
+                    "chain": "ETH-zkSync Era",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/eth20230419112854.png",
+                    "mainNet": false,
+                    "maxFee": "0.000082",
+                    "maxFeeForCtAddr": "0.000082",
+                    "maxWd": "4989",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "12",
+                    "minFee": "0.000041",
+                    "minFeeForCtAddr": "0.000041",
+                    "minWd": "0.0001",
+                    "minWdUnlockConfirm": "30",
                     "name": "Ethereum",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -490,6 +531,170 @@
             "amount": {}
         },
         "networks": {
+            "TRC20": {
+                "id": "USDT-TRC20",
+                "network": "TRC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 30768700
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDT",
+                    "chain": "USDT-TRC20",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                    "mainNet": false,
+                    "maxFee": "2",
+                    "maxFeeForCtAddr": "2",
+                    "maxWd": "30768700",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "19",
+                    "minFee": "1",
+                    "minFeeForCtAddr": "1",
+                    "minWd": "2",
+                    "minWdUnlockConfirm": "38",
+                    "name": "Tether",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "ERC20": {
+                "id": "USDT-ERC20",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2.67,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": 30768700
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDT",
+                    "chain": "USDT-ERC20",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                    "mainNet": false,
+                    "maxFee": "5.34",
+                    "maxFeeForCtAddr": "5.34",
+                    "maxWd": "30768700",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "32",
+                    "minFee": "2.67",
+                    "minFeeForCtAddr": "2.67",
+                    "minWd": "2",
+                    "minWdUnlockConfirm": "96",
+                    "name": "Tether",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "ARBONE": {
+                "id": "USDT-Arbitrum One",
+                "network": "ARBONE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.098,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 30768700
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDT",
+                    "chain": "USDT-Arbitrum One",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "200000",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                    "mainNet": false,
+                    "maxFee": "0.196",
+                    "maxFeeForCtAddr": "0.196",
+                    "maxWd": "30768700",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "1850",
+                    "minFee": "0.098",
+                    "minFeeForCtAddr": "0.098",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "1850",
+                    "name": "Tether",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "AVAXC": {
+                "id": "USDT-Avalanche C-Chain",
+                "network": "AVAXC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.22,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 6153740
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDT",
+                    "chain": "USDT-Avalanche C-Chain",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                    "mainNet": false,
+                    "maxFee": "0.44",
+                    "maxFeeForCtAddr": "0.44",
+                    "maxWd": "6153740",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "30",
+                    "minFee": "0.22",
+                    "minFeeForCtAddr": "0.22",
+                    "minWd": "0.01",
+                    "minWdUnlockConfirm": "120",
+                    "name": "Tether",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
             "OKTC": {
                 "id": "USDT-OKTC",
                 "network": "OKTC",
@@ -501,7 +706,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0,
-                        "max": 21505600
+                        "max": 30768700
                     }
                 },
                 "info": {
@@ -512,11 +717,11 @@
                     "chain": "USDT-OKTC",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
                     "mainNet": false,
                     "maxFee": "0",
                     "maxFeeForCtAddr": "0",
-                    "maxWd": "21505600",
+                    "maxWd": "30768700",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "2",
                     "minFee": "0",
@@ -531,18 +736,18 @@
                     "wdTickSz": "8"
                 }
             },
-            "ERC20": {
-                "id": "USDT-ERC20",
-                "network": "ERC20",
+            "OPTIMISM": {
+                "id": "USDT-Optimism",
+                "network": "OPTIMISM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 3.82,
+                "fee": 0.15,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 2,
-                        "max": 21505600
+                        "min": 1,
+                        "max": 30768700
                     }
                 },
                 "info": {
@@ -550,61 +755,20 @@
                     "canInternal": true,
                     "canWd": true,
                     "ccy": "USDT",
-                    "chain": "USDT-ERC20",
+                    "chain": "USDT-Optimism",
                     "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
+                    "depQuoteDailyLayer2": "200000",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
                     "mainNet": false,
-                    "maxFee": "7.64",
-                    "maxFeeForCtAddr": "7.64",
-                    "maxWd": "21505600",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "32",
-                    "minFee": "3.82",
-                    "minFeeForCtAddr": "3.82",
-                    "minWd": "2",
-                    "minWdUnlockConfirm": "96",
-                    "name": "Tether",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "TRC20": {
-                "id": "USDT-TRC20",
-                "network": "TRC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 1,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 2,
-                        "max": 21505600
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDT",
-                    "chain": "USDT-TRC20",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
-                    "mainNet": false,
-                    "maxFee": "2",
-                    "maxFeeForCtAddr": "2",
-                    "maxWd": "21505600",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "1",
-                    "minFee": "1",
-                    "minFeeForCtAddr": "1",
-                    "minWd": "2",
-                    "minWdUnlockConfirm": "1",
+                    "maxFee": "0.3",
+                    "maxFeeForCtAddr": "0.3",
+                    "maxWd": "30768700",
+                    "minDep": "0.05",
+                    "minDepArrivalConfirm": "450",
+                    "minFee": "0.15",
+                    "minFeeForCtAddr": "0.15",
+                    "minWd": "1",
+                    "minWdUnlockConfirm": "450",
                     "name": "Tether",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -624,7 +788,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
-                        "max": 21505600
+                        "max": 30768700
                     }
                 },
                 "info": {
@@ -635,11 +799,11 @@
                     "chain": "USDT-Polygon",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
                     "mainNet": false,
                     "maxFee": "1.6",
                     "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21505600",
+                    "maxWd": "30768700",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "300",
                     "minFee": "0.8",
@@ -665,7 +829,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.1,
-                        "max": 21505600
+                        "max": 30768700
                     }
                 },
                 "info": {
@@ -676,11 +840,11 @@
                     "chain": "USDT-Solana",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
                     "mainNet": false,
                     "maxFee": "2",
                     "maxFeeForCtAddr": "2",
-                    "maxWd": "21505600",
+                    "maxWd": "30768700",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "200",
                     "minFee": "1",
@@ -695,18 +859,18 @@
                     "wdTickSz": "6"
                 }
             },
-            "AVAXC": {
-                "id": "USDT-Avalanche C-Chain",
-                "network": "AVAXC",
+            "TON": {
+                "id": "USDT-TON",
+                "network": "TON",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.8,
+                "fee": 0.15,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0.01,
-                        "max": 21505600
+                        "min": 0.0001,
+                        "max": 6153740
                     }
                 },
                 "info": {
@@ -714,102 +878,61 @@
                     "canInternal": true,
                     "canWd": true,
                     "ccy": "USDT",
-                    "chain": "USDT-Avalanche C-Chain",
+                    "chain": "USDT-TON",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
                     "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21505600",
+                    "maxFee": "0.3",
+                    "maxFeeForCtAddr": "0.3",
+                    "maxWd": "6153740",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "30",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.01",
+                    "minDepArrivalConfirm": "50",
+                    "minFee": "0.15",
+                    "minFeeForCtAddr": "0.15",
+                    "minWd": "0.0001",
+                    "minWdUnlockConfirm": "150",
+                    "name": "Tether",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "X Layer": {
+                "id": "USDT-X Layer",
+                "network": "X Layer",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 9230610
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDT",
+                    "chain": "USDT-X Layer",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                    "mainNet": false,
+                    "maxFee": "0.2",
+                    "maxFeeForCtAddr": "0.2",
+                    "maxWd": "9230610",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "120",
+                    "minFee": "0.1",
+                    "minFeeForCtAddr": "0.1",
+                    "minWd": "0.0001",
                     "minWdUnlockConfirm": "120",
-                    "name": "Tether",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "ARBONE": {
-                "id": "USDT-Arbitrum One",
-                "network": "ARBONE",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.1,
-                        "max": 21505600
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDT",
-                    "chain": "USDT-Arbitrum One",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "200000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21505600",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "12",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.1",
-                    "minWdUnlockConfirm": "12",
-                    "name": "Tether",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "OPTIMISM": {
-                "id": "USDT-Optimism",
-                "network": "OPTIMISM",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 1,
-                        "max": 21505600
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDT",
-                    "chain": "USDT-Optimism",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "200000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20230419113051.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21505600",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "150",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "1",
-                    "minWdUnlockConfirm": "200",
                     "name": "Tether",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -832,6 +955,170 @@
             "amount": {}
         },
         "networks": {
+            "ERC20": {
+                "id": "USDC-ERC20",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 2.67,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": 30762547
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDC",
+                    "chain": "USDC-ERC20",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
+                    "mainNet": true,
+                    "maxFee": "5.34",
+                    "maxFeeForCtAddr": "5.34",
+                    "maxWd": "30762547",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "32",
+                    "minFee": "2.67",
+                    "minFeeForCtAddr": "2.67",
+                    "minWd": "1",
+                    "minWdUnlockConfirm": "96",
+                    "name": "USD Coin",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "ARBONE": {
+                "id": "USDC-Arbitrum One",
+                "network": "ARBONE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.098,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 18457528
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDC",
+                    "chain": "USDC-Arbitrum One",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "200000",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
+                    "mainNet": false,
+                    "maxFee": "0.196",
+                    "maxFeeForCtAddr": "0.196",
+                    "maxWd": "18457528",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "1850",
+                    "minFee": "0.098",
+                    "minFeeForCtAddr": "0.098",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "1850",
+                    "name": "USD Coin",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "AVAXC": {
+                "id": "USDC-Avalanche C-Chain",
+                "network": "AVAXC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.8,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 18457528
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDC",
+                    "chain": "USDC-Avalanche C-Chain",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
+                    "mainNet": false,
+                    "maxFee": "1.6",
+                    "maxFeeForCtAddr": "1.6",
+                    "maxWd": "18457528",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "30",
+                    "minFee": "0.8",
+                    "minFeeForCtAddr": "0.8",
+                    "minWd": "0.01",
+                    "minWdUnlockConfirm": "120",
+                    "name": "USD Coin",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
+            "Base": {
+                "id": "USDC-Base",
+                "network": "Base",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 6152509
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "USDC",
+                    "chain": "USDC-Base",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
+                    "mainNet": false,
+                    "maxFee": "0.2",
+                    "maxFeeForCtAddr": "0.2",
+                    "maxWd": "6152509",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "120",
+                    "minFee": "0.1",
+                    "minFeeForCtAddr": "0.1",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "120",
+                    "name": "USD Coin",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "6"
+                }
+            },
             "OKTC": {
                 "id": "USDC-OKTC",
                 "network": "OKTC",
@@ -843,7 +1130,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0,
-                        "max": 21492704
+                        "max": 30762547
                     }
                 },
                 "info": {
@@ -858,7 +1145,7 @@
                     "mainNet": false,
                     "maxFee": "0",
                     "maxFeeForCtAddr": "0",
-                    "maxWd": "21492704",
+                    "maxWd": "30762547",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "2",
                     "minFee": "0",
@@ -873,18 +1160,18 @@
                     "wdTickSz": "8"
                 }
             },
-            "ERC20": {
-                "id": "USDC-ERC20",
-                "network": "ERC20",
+            "OPTIMISM": {
+                "id": "USDC-Optimism",
+                "network": "OPTIMISM",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 5.6,
+                "fee": 0.15,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
-                        "max": 21492704
+                        "min": 0.1,
+                        "max": 18457528
                     }
                 },
                 "info": {
@@ -892,20 +1179,20 @@
                     "canInternal": true,
                     "canWd": true,
                     "ccy": "USDC",
-                    "chain": "USDC-ERC20",
+                    "chain": "USDC-Optimism",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
-                    "mainNet": true,
-                    "maxFee": "11.2",
-                    "maxFeeForCtAddr": "11.2",
-                    "maxWd": "21492704",
+                    "mainNet": false,
+                    "maxFee": "0.3",
+                    "maxFeeForCtAddr": "0.3",
+                    "maxWd": "18457528",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "32",
-                    "minFee": "5.6",
-                    "minFeeForCtAddr": "5.6",
-                    "minWd": "1",
-                    "minWdUnlockConfirm": "96",
+                    "minDepArrivalConfirm": "450",
+                    "minFee": "0.15",
+                    "minFeeForCtAddr": "0.15",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "450",
                     "name": "USD Coin",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -914,18 +1201,18 @@
                     "wdTickSz": "6"
                 }
             },
-            "TRC20": {
-                "id": "USDC-TRC20",
-                "network": "TRC20",
+            "MATIC": {
+                "id": "USDC-Polygon",
+                "network": "MATIC",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 1,
+                "fee": 0.8,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0.01,
-                        "max": 21492704
+                        "min": 0.1,
+                        "max": 6152509
                     }
                 },
                 "info": {
@@ -933,20 +1220,20 @@
                     "canInternal": true,
                     "canWd": true,
                     "ccy": "USDC",
-                    "chain": "USDC-TRC20",
+                    "chain": "USDC-Polygon",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
                     "mainNet": false,
-                    "maxFee": "2",
-                    "maxFeeForCtAddr": "2",
-                    "maxWd": "21492704",
+                    "maxFee": "1.6",
+                    "maxFeeForCtAddr": "1.6",
+                    "maxWd": "6152509",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "1",
-                    "minFee": "1",
-                    "minFeeForCtAddr": "1",
-                    "minWd": "0.01",
-                    "minWdUnlockConfirm": "1",
+                    "minDepArrivalConfirm": "300",
+                    "minFee": "0.8",
+                    "minFeeForCtAddr": "0.8",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "800",
                     "name": "USD Coin",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -966,7 +1253,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.1,
-                        "max": 21492704
+                        "max": 30762547
                     }
                 },
                 "info": {
@@ -981,7 +1268,7 @@
                     "mainNet": false,
                     "maxFee": "1.6",
                     "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
+                    "maxWd": "30762547",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "300",
                     "minFee": "0.8",
@@ -1007,7 +1294,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
-                        "max": 21492704
+                        "max": 30762547
                     }
                 },
                 "info": {
@@ -1022,7 +1309,7 @@
                     "mainNet": false,
                     "maxFee": "2",
                     "maxFeeForCtAddr": "2",
-                    "maxWd": "21492704",
+                    "maxWd": "30762547",
                     "minDep": "0.1",
                     "minDepArrivalConfirm": "200",
                     "minFee": "1",
@@ -1037,18 +1324,18 @@
                     "wdTickSz": "6"
                 }
             },
-            "AVAXC": {
-                "id": "USDC-Avalanche C-Chain",
-                "network": "AVAXC",
+            "X Layer": {
+                "id": "USDC-X Layer",
+                "network": "X Layer",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.8,
+                "fee": 0.1,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 0.01,
-                        "max": 21492704
+                        "min": 0.0001,
+                        "max": 9228764
                     }
                 },
                 "info": {
@@ -1056,184 +1343,20 @@
                     "canInternal": true,
                     "canWd": true,
                     "ccy": "USDC",
-                    "chain": "USDC-Avalanche C-Chain",
+                    "chain": "USDC-X Layer",
                     "depQuotaFixed": "",
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
                     "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
+                    "maxFee": "0.2",
+                    "maxFeeForCtAddr": "0.2",
+                    "maxWd": "9228764",
                     "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "30",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.01",
+                    "minDepArrivalConfirm": "120",
+                    "minFee": "0.1",
+                    "minFeeForCtAddr": "0.1",
+                    "minWd": "0.0001",
                     "minWdUnlockConfirm": "120",
-                    "name": "USD Coin",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "Optimism (Bridged)": {
-                "id": "USDC-Optimism (Bridged)",
-                "network": "Optimism (Bridged)",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 1,
-                        "max": 21492704
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDC",
-                    "chain": "USDC-Optimism (Bridged)",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "200000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "150",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "1",
-                    "minWdUnlockConfirm": "200",
-                    "name": "USD Coin",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "ARBONE": {
-                "id": "USDC-Arbitrum One",
-                "network": "ARBONE",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.1,
-                        "max": 21492704
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDC",
-                    "chain": "USDC-Arbitrum One",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "200000",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "12",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.1",
-                    "minWdUnlockConfirm": "12",
-                    "name": "USD Coin",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "OPTIMISM": {
-                "id": "USDC-Optimism",
-                "network": "OPTIMISM",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.1,
-                        "max": 21492704
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDC",
-                    "chain": "USDC-Optimism",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "150",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.1",
-                    "minWdUnlockConfirm": "200",
-                    "name": "USD Coin",
-                    "needTag": false,
-                    "usedDepQuotaFixed": "",
-                    "usedWdQuota": "0",
-                    "wdQuota": "10000000",
-                    "wdTickSz": "6"
-                }
-            },
-            "MATIC": {
-                "id": "USDC-Polygon",
-                "network": "MATIC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "precision": 0.000001,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.1,
-                        "max": 21492704
-                    }
-                },
-                "info": {
-                    "canDep": true,
-                    "canInternal": true,
-                    "canWd": true,
-                    "ccy": "USDC",
-                    "chain": "USDC-Polygon",
-                    "depQuotaFixed": "",
-                    "depQuoteDailyLayer2": "",
-                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdc20230419113033.png",
-                    "mainNet": false,
-                    "maxFee": "1.6",
-                    "maxFeeForCtAddr": "1.6",
-                    "maxWd": "21492704",
-                    "minDep": "0.00000001",
-                    "minDepArrivalConfirm": "300",
-                    "minFee": "0.8",
-                    "minFeeForCtAddr": "0.8",
-                    "minWd": "0.1",
-                    "minWdUnlockConfirm": "800",
                     "name": "USD Coin",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
@@ -1267,7 +1390,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.01,
-                        "max": 126783
+                        "max": 191140
                     }
                 },
                 "info": {
@@ -1282,7 +1405,7 @@
                     "mainNet": true,
                     "maxFee": "0.002",
                     "maxFeeForCtAddr": "0.002",
-                    "maxWd": "126783",
+                    "maxWd": "191140",
                     "minDep": "0.0001",
                     "minDepArrivalConfirm": "3",
                     "minFee": "0.001",
@@ -1308,7 +1431,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 0,
-                        "max": 126783
+                        "max": 477849
                     }
                 },
                 "info": {
@@ -1323,7 +1446,7 @@
                     "mainNet": false,
                     "maxFee": "0",
                     "maxFeeForCtAddr": "0",
-                    "maxWd": "126783",
+                    "maxWd": "477849",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "2",
                     "minFee": "0",
@@ -1363,7 +1486,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 817910751
+                        "max": 859701034
                     }
                 },
                 "info": {
@@ -1378,7 +1501,7 @@
                     "mainNet": true,
                     "maxFee": "8",
                     "maxFeeForCtAddr": "8",
-                    "maxWd": "817910751",
+                    "maxWd": "859701034",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "6",
                     "minFee": "4",
@@ -1418,7 +1541,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 2,
-                        "max": 26748259
+                        "max": 52003437
                     }
                 },
                 "info": {
@@ -1433,7 +1556,7 @@
                     "mainNet": true,
                     "maxFee": "1.6",
                     "maxFeeForCtAddr": "1.6",
-                    "maxWd": "26748259",
+                    "maxWd": "52003437",
                     "minDep": "0.00000001",
                     "minDepArrivalConfirm": "40",
                     "minFee": "0.8",
@@ -1468,12 +1591,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0064,
+                "fee": 0.008,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
-                        "max": 359889
+                        "max": 334670
                     }
                 },
                 "info": {
@@ -1486,16 +1609,112 @@
                     "depQuoteDailyLayer2": "",
                     "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/sol20230419112951.png",
                     "mainNet": true,
-                    "maxFee": "0.0128",
-                    "maxFeeForCtAddr": "0.0128",
-                    "maxWd": "359889",
+                    "maxFee": "0.016",
+                    "maxFeeForCtAddr": "0.016",
+                    "maxWd": "334670",
                     "minDep": "0.005",
                     "minDepArrivalConfirm": "200",
-                    "minFee": "0.0064",
-                    "minFeeForCtAddr": "0.0064",
+                    "minFee": "0.008",
+                    "minFeeForCtAddr": "0.008",
                     "minWd": "0.001",
                     "minWdUnlockConfirm": "200",
                     "name": "Solana",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            }
+        }
+    },
+    "POL": {
+        "code": "POL",
+        "id": "POL",
+        "name": "Polygon",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "precision": 1e-8,
+        "limits": {
+            "amount": {}
+        },
+        "networks": {
+            "ERC20": {
+                "id": "POL-ERC20",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 10,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.1,
+                        "max": 48456813
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "POL",
+                    "chain": "POL-ERC20",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/pol20240903114912.png",
+                    "mainNet": true,
+                    "maxFee": "20",
+                    "maxFeeForCtAddr": "20",
+                    "maxWd": "48456813",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "32",
+                    "minFee": "10",
+                    "minFeeForCtAddr": "10",
+                    "minWd": "0.1",
+                    "minWdUnlockConfirm": "96",
+                    "name": "Polygon",
+                    "needTag": false,
+                    "usedDepQuotaFixed": "",
+                    "usedWdQuota": "0",
+                    "wdQuota": "10000000",
+                    "wdTickSz": "8"
+                }
+            },
+            "MATIC": {
+                "id": "POL-Polygon",
+                "network": "MATIC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 80761355
+                    }
+                },
+                "info": {
+                    "canDep": true,
+                    "canInternal": true,
+                    "canWd": true,
+                    "ccy": "POL",
+                    "chain": "POL-Polygon",
+                    "depQuotaFixed": "",
+                    "depQuoteDailyLayer2": "",
+                    "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/pol20240903114912.png",
+                    "mainNet": false,
+                    "maxFee": "0.2",
+                    "maxFeeForCtAddr": "0.2",
+                    "maxWd": "80761355",
+                    "minDep": "0.00000001",
+                    "minDepArrivalConfirm": "300",
+                    "minFee": "0.1",
+                    "minFeeForCtAddr": "0.1",
+                    "minWd": "0.001",
+                    "minWdUnlockConfirm": "800",
+                    "name": "Polygon",
                     "needTag": false,
                     "usedDepQuotaFixed": "",
                     "usedWdQuota": "0",

@@ -39,6 +39,8 @@ public partial class bitstamp : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -445,7 +447,7 @@ public partial class bitstamp : Exchange
                     { "Please update your profile with your FATCA information, before using API.", typeof(PermissionDenied) },
                     { "Order not found.", typeof(OrderNotFound) },
                     { "Price is more than 20% below market price.", typeof(InvalidOrder) },
-                    { "Bitstamp.net is under scheduled maintenance. We\'ll be back soon.", typeof(OnMaintenance) },
+                    { "Bitstamp.net is under scheduled maintenance. We'll be back soon.", typeof(OnMaintenance) },
                     { "Order could not be placed.", typeof(ExchangeNotAvailable) },
                     { "Invalid offset.", typeof(BadRequest) },
                 } },
@@ -2251,11 +2253,11 @@ public partial class bitstamp : Exchange
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

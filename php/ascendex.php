@@ -2330,7 +2330,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2352,15 +2352,15 @@ class ascendex extends Exchange {
         $chainName = $this->safe_string($depositAddress, 'blockchain');
         $network = $this->network_id_to_code($chainName, $code);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-$addresses
@@ -2720,7 +2720,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2755,15 +2755,16 @@ class ascendex extends Exchange {
             'fundingRate' => $nextFundingRate,
             'fundingTimestamp' => $nextFundingRateTimestamp,
             'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

@@ -47,6 +47,7 @@ export default class upbit extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1841,11 +1842,11 @@ export default class upbit extends Exchange {
         const networkId = this.safeString(depositAddress, 'net_type');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

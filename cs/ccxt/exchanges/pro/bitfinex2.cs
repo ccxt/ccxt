@@ -753,8 +753,8 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object responseChecksum = this.safeInteger(message, 2);
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
-
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))
             {
@@ -977,7 +977,7 @@ public partial class bitfinex2 : ccxt.bitfinex2
             // allows further authentication attempts
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
     }

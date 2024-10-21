@@ -17,6 +17,8 @@ export default class okx extends okxRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    watchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
@@ -52,6 +54,7 @@ export default class okx extends okxRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any, subscription?: any): void;
     handleMyTrades(client: Client, message: any): void;
+    requestId(): string;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     handlePlaceOrders(client: Client, message: any): void;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;

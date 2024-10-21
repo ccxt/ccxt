@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.timex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -359,11 +359,7 @@ class timex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result = []
-        for i in range(0, len(response)):
-            currency = response[i]
-            result.append(self.parse_currency(currency))
-        return self.index_by(result, 'code')
+        return self.parse_currencies(response)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -1239,7 +1235,7 @@ class timex(Exchange, ImplicitAPI):
             'info': market,
         }
 
-    def parse_currency(self, currency: dict):
+    def parse_currency(self, currency: dict) -> Currency:
         #
         #     {
         #         "symbol": "BTC",
@@ -1300,7 +1296,7 @@ class timex(Exchange, ImplicitAPI):
                 for i in range(0, -dotIndex):
                     fraction += '0'
                 fee = self.parse_number(fraction + feeString)
-        return {
+        return self.safe_currency_structure({
             'id': code,
             'code': code,
             'info': currency,
@@ -1316,7 +1312,7 @@ class timex(Exchange, ImplicitAPI):
                 'amount': {'min': None, 'max': None},
             },
             'networks': {},
-        }
+        })
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1514,7 +1510,7 @@ class timex(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account, does not accept params["network"]
         :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Currency/selectCurrencyBySymbol
@@ -1548,7 +1544,7 @@ class timex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'currency', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        symbol: 'BTC',
@@ -1567,9 +1563,9 @@ class timex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': None,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': None,
-            'network': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

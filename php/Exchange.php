@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.5';
+$version = '4.4.20';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.5';
+    const VERSION = '4.4.20';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2204,6 +2204,14 @@ class Exchange {
         return array();
     }
 
+    public function rand_number($size) {
+        $number = '';
+        for ($i = 0; $i < $size; $i++) {
+            $number .= mt_rand(0, 9);
+        }
+        return (int)$number;
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2359,6 +2367,8 @@ class Exchange {
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
                 'fetchFundingRateHistory' => null,
+                'fetchFundingInterval' => null,
+                'fetchFundingIntervals' => null,
                 'fetchFundingRates' => null,
                 'fetchGreeks' => null,
                 'fetchIndexOHLCV' => null,
@@ -2419,6 +2429,7 @@ class Exchange {
                 'fetchTicker' => true,
                 'fetchTickerWs' => null,
                 'fetchTickers' => null,
+                'fetchMarkPrices' => null,
                 'fetchTickersWs' => null,
                 'fetchTime' => null,
                 'fetchTrades' => true,
@@ -3063,6 +3074,21 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTradingLimits() is not supported yet');
     }
 
+    public function parse_currency(array $rawCurrency) {
+        throw new NotSupported($this->id . ' parseCurrency() is not supported yet');
+    }
+
+    public function parse_currencies($rawCurrencies) {
+        $result = array();
+        $arr = $this->to_array($rawCurrencies);
+        for ($i = 0; $i < count($arr); $i++) {
+            $parsed = $this->parse_currency($arr[$i]);
+            $code = $parsed['code'];
+            $result[$code] = $parsed;
+        }
+        return $result;
+    }
+
     public function parse_market(array $market) {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
@@ -3157,6 +3183,10 @@ class Exchange {
 
     public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchFundingRates() is not supported yet');
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchFundingIntervals() is not supported yet');
     }
 
     public function watch_funding_rate(string $symbol, $params = array ()) {
@@ -3308,6 +3338,7 @@ class Exchange {
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
+                'BRC20' => array( 'BRC20' => 'BTC' ),
             ),
         );
     }
@@ -4242,6 +4273,8 @@ class Exchange {
             'baseVolume' => $this->parse_number($baseVolume),
             'quoteVolume' => $this->parse_number($quoteVolume),
             'previousClose' => $this->safe_number($ticker, 'previousClose'),
+            'indexPrice' => $this->safe_number($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_number($ticker, 'markPrice'),
         ));
     }
 
@@ -5511,6 +5544,23 @@ class Exchange {
         }
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()) {
+        if ($this->has['fetchMarkPrices']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $tickers = $this->fetch_mark_prices(array( $symbol ), $params);
+            $ticker = $this->safe_dict($tickers, $symbol);
+            if ($ticker === null) {
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
     public function fetch_ticker_ws(string $symbol, $params = array ()) {
         if ($this->has['fetchTickersWs']) {
             $this->load_markets();
@@ -5534,6 +5584,10 @@ class Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
     }
 
     public function fetch_tickers_ws(?array $symbols = null, $params = array ()) {
@@ -6339,7 +6393,8 @@ class Exchange {
         if ($precision === null) {
             return $this->force_string($fee);
         } else {
-            return $this->decimal_to_precision($fee, ROUND, $precision, $this->precisionMode, $this->paddingMode);
+            $roundingMode = $this->safe_integer($this->options, 'currencyToPrecisionRoundingMode', ROUND);
+            return $this->decimal_to_precision($fee, $roundingMode, $precision, $this->precisionMode, $this->paddingMode);
         }
     }
 
@@ -6634,7 +6689,7 @@ class Exchange {
             $result = $this->filter_by_array($result, 'currency', $codes, false);
         }
         if ($indexed) {
-            return $this->index_by($result, 'currency');
+            $result = $this->filter_by_array($result, 'currency', null, $indexed);
         }
         return $result;
     }
@@ -6646,6 +6701,21 @@ class Exchange {
             $interests[] = $this->parse_borrow_interest($row, $market);
         }
         return $interests;
+    }
+
+    public function parse_borrow_rate($info, ?array $currency = null) {
+        throw new NotSupported($this->id . ' parseBorrowRate() is not supported yet');
+    }
+
+    public function parse_borrow_rate_history($response, ?string $code, ?int $since, ?int $limit) {
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $item = $response[$i];
+            $borrowRate = $this->parse_borrow_rate($item);
+            $result[] = $borrowRate;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
     public function parse_isolated_borrow_rates(mixed $info) {
@@ -6816,6 +6886,26 @@ class Exchange {
             }
         } else {
             throw new NotSupported($this->id . ' fetchFundingRate () is not supported yet');
+        }
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()) {
+        if ($this->has['fetchFundingIntervals']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            if (!$market['contract']) {
+                throw new BadSymbol($this->id . ' fetchFundingInterval() supports contract markets only');
+            }
+            $rates = $this->fetch_funding_intervals(array( $symbol ), $params);
+            $rate = $this->safe_value($rates, $symbol);
+            if ($rate === null) {
+                throw new NullResponse($this->id . ' fetchFundingInterval() returned no data for ' . $symbol);
+            } else {
+                return $rate;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchFundingInterval() is not supported yet');
         }
     }
 
@@ -7270,6 +7360,8 @@ class Exchange {
         $i = 0;
         $errors = 0;
         $result = array();
+        $timeframe = $this->safe_string($params, 'timeframe');
+        $params = $this->omit($params, 'timeframe'); // reading the $timeframe from the $method arguments to avoid changing the signature
         while ($i < $maxCalls) {
             try {
                 if ($cursorValue !== null) {
@@ -7283,6 +7375,8 @@ class Exchange {
                     $response = $this->$method ($params);
                 } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                     $response = $this->$method ($symbol, $params);
+                } elseif ($method === 'fetchOpenInterestHistory') {
+                    $response = $this->$method ($symbol, $timeframe, $since, $maxEntriesPerRequest, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);
                 }
@@ -7291,15 +7385,26 @@ class Exchange {
                 if ($this->verbose) {
                     $cursorString = ($cursorValue === null) ? '' : $cursorValue;
                     $iteration = ($i + 1);
-                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' cursor ' . $cursorString;
+                    $cursorMessage = 'Cursor pagination call ' . (string) $iteration . ' $method ' . $method . ' $response length ' . (string) $responseLength . ' $cursor ' . $cursorString;
                     $this->log($cursorMessage);
                 }
                 if ($responseLength === 0) {
                     break;
                 }
                 $result = $this->array_concat($result, $response);
-                $last = $this->safe_value($response, $responseLength - 1);
-                $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                $last = $this->safe_dict($response, $responseLength - 1);
+                // $cursorValue = $this->safe_value($last['info'], $cursorReceived);
+                $cursorValue = null; // search for the $cursor
+                for ($j = 0; $j < $responseLength; $j++) {
+                    $index = $responseLength - $j - 1;
+                    $entry = $this->safe_dict($response, $index);
+                    $info = $this->safe_dict($entry, 'info');
+                    $cursor = $this->safe_value($info, $cursorReceived);
+                    if ($cursor !== null) {
+                        $cursorValue = $cursor;
+                        break;
+                    }
+                }
                 if ($cursorValue === null) {
                     break;
                 }

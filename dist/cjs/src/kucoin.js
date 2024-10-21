@@ -59,6 +59,7 @@ class kucoin extends kucoin$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
@@ -78,6 +79,8 @@ class kucoin extends kucoin$1 {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
@@ -160,7 +163,8 @@ class kucoin extends kucoin$1 {
                         // margin trading
                         'mark-price/{symbol}/current': 3,
                         'mark-price/all-symbols': 3,
-                        'margin/config': 25, // 25SW
+                        'margin/config': 25,
+                        'announcements': 20, // 20W
                     },
                     'post': {
                         // ws
@@ -450,6 +454,7 @@ class kucoin extends kucoin$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'The order does not exist.': errors.OrderNotFound,
                     'order not exist': errors.OrderNotFound,
                     'order not exist.': errors.OrderNotFound,
                     'order_not_exist': errors.OrderNotFound,
@@ -622,7 +627,8 @@ class kucoin extends kucoin$1 {
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT', // ALTLAYER
+                'KALT': 'ALT',
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': false,
@@ -649,6 +655,7 @@ class kucoin extends kucoin$1 {
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
+                            'announcements': 'v3',
                         },
                     },
                     'private': {
@@ -758,7 +765,7 @@ class kucoin extends kucoin$1 {
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'BTC': 'btc',
+                    'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
                     'ERC20': 'eth',
                     'TRC20': 'trx',
@@ -1340,7 +1347,7 @@ class kucoin extends kucoin$1 {
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(chainId);
+                const networkCode = this.networkIdToCode(chainId, code);
                 const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
                 if (isWithdrawEnabled === undefined) {
                     isWithdrawEnabled = chainWithdrawEnabled;
@@ -1659,7 +1666,7 @@ class kucoin extends kucoin$1 {
         const symbol = market['symbol'];
         const baseVolume = this.safeString(ticker, 'vol');
         const quoteVolume = this.safeString(ticker, 'volValue');
-        const timestamp = this.safeInteger2(ticker, 'time', 'datetime');
+        const timestamp = this.safeIntegerN(ticker, ['time', 'datetime', 'timePoint']);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1680,6 +1687,7 @@ class kucoin extends kucoin$1 {
             'average': this.safeString(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'value'),
             'info': ticker,
         }, market);
     }
@@ -1738,6 +1746,22 @@ class kucoin extends kucoin$1 {
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrices
+         * @description fetches the mark price for multiple markets
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.publicGetMarkPriceAllSymbols(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTickers(data);
+    }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
@@ -1776,6 +1800,26 @@ class kucoin extends kucoin$1 {
         //             "makerCoefficient": "1" // Maker Fee Coefficient
         //         }
         //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarkPriceSymbolCurrent(this.extend(request, params));
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
@@ -1940,9 +1984,9 @@ class kucoin extends kucoin$1 {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -3050,7 +3094,7 @@ class kucoin extends kucoin$1 {
             },
             'status': status,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': this.safeString(order, 'avgDealPrice'),
             'trades': undefined,
         }, market);
     }
@@ -4385,16 +4429,6 @@ class kucoin extends kucoin$1 {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    parseBorrowRateHistory(response, code, since, limit) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const borrowRate = this.parseBorrowRate(item);
-            result.push(borrowRate);
-        }
-        const sorted = this.sortBy(result, 'timestamp');
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
     parseBorrowRate(info, currency = undefined) {
         //
         //     {
@@ -4996,7 +5030,7 @@ class kucoin extends kucoin$1 {
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
         if (!this.isEmpty(query)) {
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode(query);
             }
             else {

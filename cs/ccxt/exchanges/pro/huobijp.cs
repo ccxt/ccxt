@@ -403,7 +403,7 @@ public partial class huobijp : ccxt.huobijp
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         return null;
@@ -509,7 +509,7 @@ public partial class huobijp : ccxt.huobijp
         object limit = this.safeInteger(subscription, "limit");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         // watch the snapshot in a separate async call
@@ -539,7 +539,7 @@ public partial class huobijp : ccxt.huobijp
             // clean up
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
         }
         return message;
@@ -647,7 +647,7 @@ public partial class huobijp : ccxt.huobijp
                     ((WebSocketClient)client).reject(e, id);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
                 }
             }

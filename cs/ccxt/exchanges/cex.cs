@@ -39,6 +39,7 @@ public partial class cex : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -526,7 +527,7 @@ public partial class cex : Exchange
         {
             if (isTrue(getValue(this.options, "fetchOHLCVWarning")))
             {
-                throw new ExchangeError ((string)add(this.id, " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options[\'fetchOHLCVWarning\'] = false or add ({ \'options\': { \'fetchOHLCVWarning\': false }}) to constructor params to suppress this warning message.")) ;
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV warning: CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add ({ 'options': { 'fetchOHLCVWarning': false }}) to constructor params to suppress this warning message.")) ;
             }
         }
         object request = new Dictionary<string, object>() {
@@ -1673,11 +1674,11 @@ public partial class cex : Exchange
         object address = this.safeString2(addressObject, "address", "destination");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", data },
             { "currency", code },
+            { "network", this.networkIdToCode(selectedNetworkId) },
             { "address", address },
             { "tag", this.safeString2(addressObject, "destinationTag", "memo") },
-            { "network", this.networkIdToCode(selectedNetworkId) },
-            { "info", data },
         };
     }
 

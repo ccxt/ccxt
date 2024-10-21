@@ -33,6 +33,8 @@ public partial class blockchaincom : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -866,16 +868,13 @@ public partial class blockchaincom : Exchange
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
         }
-        object result = new Dictionary<string, object>() {
+        return new Dictionary<string, object>() {
             { "info", response },
+            { "currency", getValue(currency, "code") },
+            { "network", null },
+            { "address", address },
+            { "tag", tag },
         };
-        ((IDictionary<string,object>)result)["currency"] = getValue(currency, "code");
-        ((IDictionary<string,object>)result)["address"] = address;
-        if (isTrue(!isEqual(tag, null)))
-        {
-            ((IDictionary<string,object>)result)["tag"] = tag;
-        }
-        return result;
     }
 
     public virtual object parseTransactionState(object state)

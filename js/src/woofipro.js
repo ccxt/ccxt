@@ -73,6 +73,8 @@ export default class woofipro extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -763,12 +765,14 @@ export default class woofipro extends Exchange {
         //            "sum_unitary_funding": 521.367
         //         }
         //
-        //
         const symbol = this.safeString(fundingRate, 'symbol');
         market = this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
+        const fundingTimeString = this.safeString(fundingRate, 'last_funding_rate_timestamp');
+        const nextFundingTimeString = this.safeString(fundingRate, 'next_funding_time');
+        const millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -787,7 +791,30 @@ export default class woofipro extends Exchange {
             'previousFundingRate': this.safeNumber(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601(lastFundingRateTimestamp),
+            'interval': this.parseFundingInterval(millisecondsInterval),
         };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -827,7 +854,7 @@ export default class woofipro extends Exchange {
         /**
          * @method
          * @name woofipro#fetchFundingRates
-         * @description fetch the current funding rates
+         * @description fetch the current funding rate for multiple markets
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint

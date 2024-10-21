@@ -663,6 +663,8 @@
                     "average": null,
                     "baseVolume": 3410.0783503636,
                     "quoteVolume": 243764368.46418,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "currency_pair": "BTC_USDT",
                         "last": "73373.9",
