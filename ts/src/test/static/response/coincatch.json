@@ -996,7 +996,25 @@
                             }
                         ],
                         "reduceOnly": null,
-                        "postOnly": null
+                        "postOnly": null,
+                        "info": {
+                            "accountId": "1002820815393",
+                            "symbol": "LTCUSDT_SPBL",
+                            "orderId": "1232224960702230528",
+                            "clientOrderId": "e7436cfb-9fad-4891-b18c-3b177f6f0434",
+                            "price": "90.0000000000000000",
+                            "quantity": "0.2000000000000000",
+                            "orderType": "limit",
+                            "side": "sell",
+                            "status": "new",
+                            "fillPrice": "0",
+                            "fillQuantity": "0.0000000000000000",
+                            "fillTotalAmount": "0.0000000000000000",
+                            "enterPointSource": "API",
+                            "feeDetail": "",
+                            "orderSource": "normal",
+                            "cTime": "1729511244941"
+                        }
                     }
                 ]
             }
