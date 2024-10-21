@@ -253,7 +253,10 @@ class Client {
     }
 
     public function close() {
+        // [WS cleanup]
         $this->connection->close();
+        // [REST cleanup]
+        // parent::close(); // todo
     }
 
     public function on_pong($message) {

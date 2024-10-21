@@ -1385,6 +1385,7 @@ export default class Exchange {
     }
 
     async close () {
+        // [WS cleanup]
         const clients = Object.values (this.clients || {});
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
@@ -1397,6 +1398,8 @@ export default class Exchange {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
         }
+        // [REST cleanup]
+        // todo
         return;
     }
 
@@ -1920,6 +1923,22 @@ export default class Exchange {
                 'cost': { 'min': undefined, 'max': undefined },
             },
         };
+    }
+
+    async resetData () {
+        this.ids = [];
+        this.markets = {};
+        this.markets_by_id = {};
+        this.symbols = [];
+        this.codes = [];
+        this.currencies = {};
+        this.currencies_by_id = {};
+        this.baseCurrencies = {};
+        this.quoteCurrencies = {};
+        this.last_http_response = undefined;
+        this.last_json_response = undefined;
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
