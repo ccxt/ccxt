@@ -1489,10 +1489,15 @@ export default class bingx extends bingxRest {
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
             const account = (code in this.balance[type]) ? this.balance[type][code] : this.account ();
-            account['free'] = this.safeString (balance, 'wb');
+            const free = this.safeString (balance, 'wb');
+            const used = this.safeString (account, 'used');
             const balanceChange = this.safeString (balance, 'bc');
-            if (account['used'] !== undefined) {
-                account['used'] = Precise.stringSub (this.safeString (account, 'used'), balanceChange);
+            account['free'] = free;
+            if (used !== undefined) {
+                account['used'] = Precise.stringSub (used, balanceChange);
+                if (free !== undefined) {
+                    account['total'] = Precise.stringAdd (free, used);
+                }
             }
             this.balance[type][code] = account;
         }
