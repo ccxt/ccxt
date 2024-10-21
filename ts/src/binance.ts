@@ -134,6 +134,7 @@ export default class binance extends Exchange {
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsForSymbol': 'emulated',
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': true,
                 'fetchPremiumIndexOHLCV': true,
@@ -10394,6 +10395,10 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}) {
+        return await this.fetchPositions ([ symbol ], params);
     }
 
     async fetchAccountPositions (symbols: Strings = undefined, params = {}) {
