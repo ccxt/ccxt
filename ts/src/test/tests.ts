@@ -888,8 +888,11 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify (calculatedOutput);
         const storedString = jsonStringify (storedOutput);
-        let errorPrefix = (key !== undefined) ? '[' + key + ' ]' : message;
-        let errorMessage = errorPrefix + ' computed ' + storedString + ' stored: ' + calculatedString;
+        let errorMessage = message;
+        if (key !== undefined) {
+            errorMessage = ' | ' + key + ' | ';
+        }
+        errorMessage += ' computed: ' + storedString + ' stored: ' + calculatedString;
         assert (cond, errorMessage);
     }
 
@@ -1032,7 +1035,6 @@ class testMainClass {
                 const storedUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (computedBool === storedBool) && (computedString === storedString) && (computedUndefined === storedUndefined);
                 this.assertStaticError (shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
-                this.assertStaticError (exchange.parseToNumeric (sanitizedNewOutput) === exchange.parseToNumeric (sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
                 const isBoolean = computedBool || storedBool;
                 const isString = computedString || storedString;
                 const isUndefined = computedUndefined || storedUndefined; // undefined is a perfetly valid value
