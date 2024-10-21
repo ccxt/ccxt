@@ -3643,6 +3643,24 @@
                     "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "inverse swap fetch long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://dapi.binance.com/futures/data/globalLongShortAccountRatio?period=1d&pair=BTCUSD",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "linear swap fetch long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?period=1d&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }
