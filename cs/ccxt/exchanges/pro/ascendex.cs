@@ -839,7 +839,7 @@ public partial class ascendex : ccxt.ascendex
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -1062,7 +1062,7 @@ public partial class ascendex : ccxt.ascendex
         object symbol = getValue(market, "symbol");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         if (isTrue(isTrue(isEqual(getValue(this.options, "defaultType"), "swap")) || isTrue(getValue(market, "contract"))))

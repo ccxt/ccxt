@@ -396,6 +396,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetCopytradingPublicSubpositionsHistory",parameters);
     }
 
+    public async Task<object> publicGetSupportAnnouncementsTypes (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSupportAnnouncementsTypes",parameters);
+    }
+
     public async Task<object> privateGetRfqCounterparties (object parameters = null)
     {
         return await this.callAsync ("privateGetRfqCounterparties",parameters);
@@ -761,6 +766,21 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
     }
 
+    public async Task<object> privateGetAccountSpotManualBorrowRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotManualBorrowRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSetAutoRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSetAutoRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSpotBorrowRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);
@@ -1039,6 +1059,11 @@ public partial class okx : Exchange
     public async Task<object> privateGetUsersPartnerIfRebate (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersPartnerIfRebate",parameters);
+    }
+
+    public async Task<object> privateGetSupportAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSupportAnnouncements",parameters);
     }
 
     public async Task<object> privatePostRfqCreateRfq (object parameters = null)

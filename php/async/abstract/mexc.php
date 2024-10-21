@@ -169,6 +169,9 @@ abstract class mexc extends \ccxt\async\Exchange {
     public function spot_private_get_userdatastream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_private_get_selfsymbols($params = array()) {
+        return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_private_post_order($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -690,6 +693,9 @@ abstract class mexc extends \ccxt\async\Exchange {
     }
     public function spotPrivateGetUserDataStream($params = array()) {
         return $this->request('userDataStream', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function spotPrivateGetSelfSymbols($params = array()) {
+        return $this->request('selfSymbols', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function spotPrivatePostOrder($params = array()) {
         return $this->request('order', array('spot', 'private'), 'POST', $params, null, null, array("cost" => 1));

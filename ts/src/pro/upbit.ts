@@ -3,7 +3,7 @@
 
 import upbitRest from '../upbit.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Dict, Balances, Tickers, Strings } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { jwt } from '../base/functions/rsa.js';
 import Client from '../base/ws/Client.js';
@@ -17,6 +17,7 @@ export default class upbit extends upbitRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchOrders': true,
@@ -61,6 +62,34 @@ export default class upbit extends upbitRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    async watchPublicMultiple (symbols: Strings, channel, params = {}) {
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const url = this.implodeParams (this.urls['api']['ws'], {
+            'hostname': this.hostname,
+        });
+        const messageHashes = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            messageHashes.push (channel + ':' + marketIds[i]);
+        }
+        const request = [
+            {
+                'ticket': this.uuid (),
+            },
+            {
+                'type': channel,
+                'codes': marketIds,
+                // 'isOnlySnapshot': false,
+                // 'isOnlyRealtime': false,
+            },
+        ];
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
+    }
+
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -72,6 +101,25 @@ export default class upbit extends upbitRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic (symbol, 'ticker');
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name upbit#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://global-docs.upbit.com/reference/websocket-ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const newTickers = await this.watchPublicMultiple (symbols, 'ticker');
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

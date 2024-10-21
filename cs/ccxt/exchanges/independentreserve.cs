@@ -838,9 +838,9 @@ public partial class independentreserve : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeString(currency, "code") },
+            { "network", null },
             { "address", address },
             { "tag", this.safeString(depositAddress, "Tag") },
-            { "network", null },
         };
     }
 

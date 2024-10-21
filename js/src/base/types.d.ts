@@ -84,6 +84,7 @@ export interface MarketInterface {
         cost?: MinMax;
         leverage?: MinMax;
         price?: MinMax;
+        market?: MinMax;
     };
     created: Int;
     info: any;
@@ -144,22 +145,24 @@ export interface Ticker {
     info: any;
     timestamp: Int;
     datetime: Str;
-    high: Int;
-    low: Int;
-    bid: Int;
-    bidVolume: Int;
-    ask: Int;
-    askVolume: Int;
-    vwap: Int;
-    open: Int;
-    close: Int;
-    last: Int;
-    previousClose: Int;
-    change: Int;
-    percentage: Int;
-    average: Int;
-    quoteVolume: Int;
-    baseVolume: Int;
+    high: Num;
+    low: Num;
+    bid: Num;
+    bidVolume: Num;
+    ask: Num;
+    askVolume: Num;
+    vwap: Num;
+    open: Num;
+    close: Num;
+    last: Num;
+    previousClose: Num;
+    change: Num;
+    percentage: Num;
+    average: Num;
+    quoteVolume: Num;
+    baseVolume: Num;
+    indexPrice: Num;
+    markPrice: Num;
 }
 export interface Transaction {
     info: any;
@@ -237,10 +240,11 @@ export interface Balances extends Dictionary<Balance> {
     datetime?: any;
 }
 export interface DepositAddress {
-    currency: Str;
-    address: string;
-    status: Str;
     info: any;
+    currency: string;
+    network?: string;
+    address: string;
+    tag?: Str;
 }
 export interface WithdrawalResponse {
     info: any;
@@ -270,6 +274,7 @@ export interface FundingRate {
     previousFundingTimestamp?: number;
     previousFundingDatetime?: string;
     previousFundingRate?: number;
+    interval?: string;
 }
 export interface FundingRates extends Dictionary<FundingRate> {
 }

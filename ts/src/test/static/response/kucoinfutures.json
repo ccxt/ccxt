@@ -375,7 +375,8 @@
                     "nextFundingDatetime": null,
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
                 }
             }
         ],
@@ -544,6 +545,8 @@
                     "average": null,
                     "baseVolume": null,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "sequence": 1699691075217,
                         "symbol": "XBTUSDTM",

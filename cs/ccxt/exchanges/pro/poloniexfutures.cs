@@ -116,7 +116,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
         {
             var future = this.safeValue(getValue(this.options, "urls"), connectId);
             ((Future)future).reject(e);
-
+            ((IDictionary<string,object>)getValue(this.options, "urls")).Remove((string)connectId);
         }
         return null;
     }
@@ -850,7 +850,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderBook, messageHash});
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -1135,7 +1135,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

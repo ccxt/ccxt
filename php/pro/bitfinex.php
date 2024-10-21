@@ -233,15 +233,15 @@ class bitfinex extends \ccxt\async\bitfinex {
         if (($last !== null) && ($change !== null)) {
             $open = Precise::string_sub($last, $change);
         }
-        $result = array(
+        $result = $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
             'datetime' => null,
-            'high' => $this->safe_float($message, 9),
-            'low' => $this->safe_float($message, 10),
-            'bid' => $this->safe_float($message, 1),
+            'high' => $this->safe_string($message, 9),
+            'low' => $this->safe_string($message, 10),
+            'bid' => $this->safe_string($message, 1),
             'bidVolume' => null,
-            'ask' => $this->safe_float($message, 3),
+            'ask' => $this->safe_string($message, 3),
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->parse_number($open),
@@ -249,12 +249,12 @@ class bitfinex extends \ccxt\async\bitfinex {
             'last' => $this->parse_number($last),
             'previousClose' => null,
             'change' => $this->parse_number($change),
-            'percentage' => $this->safe_float($message, 6),
+            'percentage' => $this->safe_string($message, 6),
             'average' => null,
-            'baseVolume' => $this->safe_float($message, 8),
+            'baseVolume' => $this->safe_string($message, 8),
             'quoteVolume' => null,
             'info' => $message,
-        );
+        ));
         $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
     }

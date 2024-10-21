@@ -145,6 +145,8 @@ python path/to/example.py # substitute for actual filename here
 
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
 
+[Comprehensive Cryptocurrency Trading Utility with ccxt: Real-time and Historical Data Analysis](https://medium.com/@deepml1818/comprehensive-cryptocurrency-trading-utility-with-ccxt-real-time-and-historical-data-analysis-6b9cbba57375) – A tutorial on technical analysis with CCXT.
+
 [Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
 
 [Data science is eating the world — Here’s how you can start exploring it](https://medium.com/covee-network/data-science-is-eating-the-world-heres-how-you-can-start-exploring-it-37501414af15) – An article on collecting and analyzing financial big data.
@@ -196,6 +198,8 @@ python path/to/example.py # substitute for actual filename here
 [How to work with CCXT in Python](https://zetcode.com/python/ccxt/) – An article showing how to work with cryptocurrency exchange library (CCXT) in Python.
 
 [CryptoCurrency eXchange Trading library - CCXT](https://barbotine.medium.com/crypto-currency-exchange-trading-library-ccxt-34ed66ebede8) – An overview of CCXT.
+
+[Simplifying Trading Automation with CCXT](https://j4nt4ncrypto.medium.com/simplifying-trading-automation-with-ccxt-creating-orders-and-fetching-positions-on-kucoin-futures-d42c329577de) – Creating Orders and Fetching Positions on Kucoin Futures.
 
 [https://python.plainenglish.io/cryptocurrency-trading-with-python-5f655d06a4bd](Cryptocurrency Trading with Python) – How to trade cryptocurrencies with CCXT in Python.
 

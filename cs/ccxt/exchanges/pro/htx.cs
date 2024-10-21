@@ -480,8 +480,8 @@ public partial class htx : ccxt.htx
             }
         } catch(Exception e)
         {
-
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             ((WebSocketClient)client).reject(e, messageHash);
         }
     }
@@ -519,7 +519,7 @@ public partial class htx : ccxt.htx
             return (orderbook as IOrderBook).limit();
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         return null;
@@ -1864,7 +1864,7 @@ public partial class htx : ccxt.htx
             // clean up
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
         }
     }
@@ -2149,7 +2149,7 @@ public partial class htx : ccxt.htx
                     ((WebSocketClient)client).reject(e, id);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
                 }
             }
@@ -2171,7 +2171,7 @@ public partial class htx : ccxt.htx
                     object method = "auth";
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
                     {
-
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                     }
                     return false;
                 } else

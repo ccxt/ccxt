@@ -1636,6 +1636,32 @@
                   "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetchMarkPrices",
+                "method": "fetchMarkPrices",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/premiumIndex?timestamp=1700747597612",
+                "input": []
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/premiumIndex?timestamp=1700747597612&symbol=BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/premiumIndex?timestamp=1700747597612&symbol=BTC-USD",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }

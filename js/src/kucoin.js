@@ -62,6 +62,7 @@ export default class kucoin extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
@@ -81,6 +82,8 @@ export default class kucoin extends Exchange {
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
@@ -163,7 +166,8 @@ export default class kucoin extends Exchange {
                         // margin trading
                         'mark-price/{symbol}/current': 3,
                         'mark-price/all-symbols': 3,
-                        'margin/config': 25, // 25SW
+                        'margin/config': 25,
+                        'announcements': 20, // 20W
                     },
                     'post': {
                         // ws
@@ -453,6 +457,7 @@ export default class kucoin extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    'The order does not exist.': OrderNotFound,
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,
                     'order_not_exist': OrderNotFound,
@@ -625,7 +630,8 @@ export default class kucoin extends Exchange {
                 'VAI': 'VAIOT',
                 'WAX': 'WAXP',
                 'ALT': 'APTOSLAUNCHTOKEN',
-                'KALT': 'ALT', // ALTLAYER
+                'KALT': 'ALT',
+                'FUD': 'FTX Users\' Debt',
             },
             'options': {
                 'hf': false,
@@ -652,6 +658,7 @@ export default class kucoin extends Exchange {
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
+                            'announcements': 'v3',
                         },
                     },
                     'private': {
@@ -761,7 +768,7 @@ export default class kucoin extends Exchange {
                     'hf': 'trade_hf',
                 },
                 'networks': {
-                    'BTC': 'btc',
+                    'BRC20': 'btc',
                     'BTCNATIVESEGWIT': 'bech32',
                     'ERC20': 'eth',
                     'TRC20': 'trx',
@@ -1343,7 +1350,7 @@ export default class kucoin extends Exchange {
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(chainId);
+                const networkCode = this.networkIdToCode(chainId, code);
                 const chainWithdrawEnabled = this.safeBool(chain, 'isWithdrawEnabled', false);
                 if (isWithdrawEnabled === undefined) {
                     isWithdrawEnabled = chainWithdrawEnabled;
@@ -1540,11 +1547,12 @@ export default class kucoin extends Exchange {
         //        "chain": "ERC20"
         //    }
         //
+        const minWithdrawFee = this.safeNumber(fee, 'withdrawMinFee');
         const result = {
             'info': fee,
             'withdraw': {
-                'fee': undefined,
-                'percentage': undefined,
+                'fee': minWithdrawFee,
+                'percentage': false,
             },
             'deposit': {
                 'fee': undefined,
@@ -1552,29 +1560,15 @@ export default class kucoin extends Exchange {
             },
             'networks': {},
         };
-        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled', true);
-        let minFee = undefined;
-        if (isWithdrawEnabled) {
-            result['withdraw']['percentage'] = false;
-            const chains = this.safeList(fee, 'chains', []);
-            for (let i = 0; i < chains.length; i++) {
-                const chain = chains[i];
-                const networkId = this.safeString(chain, 'chainId');
-                const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
-                const withdrawFee = this.safeString(chain, 'withdrawalMinFee');
-                if (minFee === undefined || (Precise.stringLt(withdrawFee, minFee))) {
-                    minFee = withdrawFee;
-                }
-                result['networks'][networkCode] = {
-                    'withdraw': this.parseNumber(withdrawFee),
-                    'deposit': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                };
-            }
-            result['withdraw']['fee'] = this.parseNumber(minFee);
-        }
+        const networkId = this.safeString(fee, 'chain');
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+        result['networks'][networkCode] = {
+            'withdraw': minWithdrawFee,
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+        };
         return result;
     }
     isFuturesMethod(methodName, params) {
@@ -1662,7 +1656,7 @@ export default class kucoin extends Exchange {
         const symbol = market['symbol'];
         const baseVolume = this.safeString(ticker, 'vol');
         const quoteVolume = this.safeString(ticker, 'volValue');
-        const timestamp = this.safeInteger2(ticker, 'time', 'datetime');
+        const timestamp = this.safeIntegerN(ticker, ['time', 'datetime', 'timePoint']);
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1683,6 +1677,7 @@ export default class kucoin extends Exchange {
             'average': this.safeString(ticker, 'averagePrice'),
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'value'),
             'info': ticker,
         }, market);
     }
@@ -1741,6 +1736,22 @@ export default class kucoin extends Exchange {
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrices
+         * @description fetches the mark price for multiple markets
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const response = await this.publicGetMarkPriceAllSymbols(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseTickers(data);
+    }
     async fetchTicker(symbol, params = {}) {
         /**
          * @method
@@ -1779,6 +1790,26 @@ export default class kucoin extends Exchange {
         //             "makerCoefficient": "1" // Maker Fee Coefficient
         //         }
         //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarkPriceSymbolCurrent(this.extend(request, params));
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
@@ -1943,9 +1974,9 @@ export default class kucoin extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'chain')),
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -3053,7 +3084,7 @@ export default class kucoin extends Exchange {
             },
             'status': status,
             'lastTradeTimestamp': undefined,
-            'average': undefined,
+            'average': this.safeString(order, 'avgDealPrice'),
             'trades': undefined,
         }, market);
     }
@@ -4388,16 +4419,6 @@ export default class kucoin extends Exchange {
         }
         return this.safeValue(config, 'cost', 1);
     }
-    parseBorrowRateHistory(response, code, since, limit) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const borrowRate = this.parseBorrowRate(item);
-            result.push(borrowRate);
-        }
-        const sorted = this.sortBy(result, 'timestamp');
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
     parseBorrowRate(info, currency = undefined) {
         //
         //     {
@@ -4999,7 +5020,7 @@ export default class kucoin extends Exchange {
         headers = (headers !== undefined) ? headers : {};
         let url = this.urls['api'][api];
         if (!this.isEmpty(query)) {
-            if ((method === 'GET') || (method === 'DELETE')) {
+            if (((method === 'GET') || (method === 'DELETE')) && (path !== 'orders/multi-cancel')) {
                 endpoint += '?' + this.rawencode(query);
             }
             else {

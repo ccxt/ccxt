@@ -52,6 +52,9 @@ class vertex extends \ccxt\async\vertex {
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
                 ),
+                'ws' => array(
+                    'inflate' => true,
+                ),
             ),
             'streaming' => array(
                 // 'ping' => array($this, 'ping'),
@@ -83,6 +86,14 @@ class vertex extends \ccxt\async\vertex {
                 'id' => $requestId,
             );
             $request = $this->extend($subscribe, $message);
+            $wsOptions = array(
+                'headers' => array(
+                    'Sec-WebSocket-Extensions' => 'permessage-deflate',
+                ),
+            );
+            $this->options['ws'] = array(
+                'options' => $wsOptions,
+            );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
         }) ();
     }

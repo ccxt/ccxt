@@ -207,7 +207,7 @@ public partial class coinmetro : Exchange
                     { "Both buyingCurrency and sellingCurrency are required", typeof(InvalidOrder) },
                     { "One and only one of buyingQty and sellingQty is required", typeof(InvalidOrder) },
                     { "Invalid buyingCurrency", typeof(InvalidOrder) },
-                    { "Invalid \'from\'", typeof(BadRequest) },
+                    { "Invalid 'from'", typeof(BadRequest) },
                     { "Invalid sellingCurrency", typeof(InvalidOrder) },
                     { "Invalid buyingQty", typeof(InvalidOrder) },
                     { "Invalid sellingQty", typeof(InvalidOrder) },

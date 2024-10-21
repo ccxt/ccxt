@@ -537,6 +537,8 @@ class blofin extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -555,6 +557,26 @@ class blofin extends Exchange {
             'instId' => $market['id'],
         );
         $response = $this->publicGetMarketTickers ($this->extend($request, $params));
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_ticker($first, $market);
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): array {
+        /**
+         * fetches mark price for the $market
+         * @see https://docs.blofin.com/index.html#get-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] "linear" or "inverse"
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetMarketMarkPrice ($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($first, $market);
@@ -782,23 +804,16 @@ class blofin extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate" => "0.00027815",
         //        "fundingTime" => "1634256000000",
         //        "instId" => "BTC-USD-SWAP",
-        //        "instType" => "SWAP",
-        //        "nextFundingRate" => "0.00017",
-        //        "nextFundingTime" => "1634284800000"
         //    }
         //
-        // in the response above $nextFundingRate is actually two funding rates from now
-        //
-        $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $marketId = $this->safe_string($contract, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $nextFundingRate = $this->safe_number($contract, 'nextFundingRate');
         $fundingTime = $this->safe_integer($contract, 'fundingTime');
         // > The current interest is 0.
         return array(
@@ -813,16 +828,17 @@ class blofin extends Exchange {
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $fundingTime,
             'fundingDatetime' => $this->iso8601($fundingTime),
-            'nextFundingRate' => $nextFundingRate,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
          * @see https://blofin.com/docs#get-funding-rate
@@ -847,9 +863,6 @@ class blofin extends Exchange {
         //                "fundingRate" => "0.00027815",
         //                "fundingTime" => "1634256000000",
         //                "instId" => "BTC-USD-SWAP",
-        //                "instType" => "SWAP",
-        //                "nextFundingRate" => "0.00017",
-        //                "nextFundingTime" => "1634284800000"
         //            }
         //        ),
         //        "msg" => ""

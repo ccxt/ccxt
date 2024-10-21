@@ -113,6 +113,8 @@
                     "average": null,
                     "baseVolume": 0,
                     "quoteVolume": 0,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "OMSId": "1",
                         "InstrumentId": "82",

@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -60,11 +60,15 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -3600,7 +3604,7 @@ export default class xt extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name xt#fetchDepositAddress
@@ -3637,7 +3641,7 @@ export default class xt extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddress (depositAddress, currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3647,12 +3651,12 @@ export default class xt extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode (undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': undefined,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4270,7 +4274,20 @@ export default class xt extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    async fetchFundingRate (symbol: string, params = {}) {
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name xt#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
+    }
+
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         /**
          * @method
          * @name xt#fetchFundingRate
@@ -4313,7 +4330,7 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4325,6 +4342,7 @@ export default class xt extends Exchange {
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, '_', 'swap');
         const timestamp = this.safeInteger (contract, 'nextCollectionTime');
+        const interval = this.safeString (contract, 'collectionInternal');
         return {
             'info': contract,
             'symbol': symbol,
@@ -4343,7 +4361,8 @@ export default class xt extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': interval + 'h',
+        } as FundingRate;
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

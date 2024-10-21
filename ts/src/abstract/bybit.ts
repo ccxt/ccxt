@@ -139,6 +139,9 @@ interface Exchange {
     privateGetV5AccountContractTransactionLog (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountSmpGroup (params?: {}): Promise<implicitReturnType>;
     privateGetV5AccountMmpState (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AssetExchangeQueryCoinList (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AssetExchangeConvertResultQuery (params?: {}): Promise<implicitReturnType>;
+    privateGetV5AssetExchangeQueryConvertHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetExchangeOrderRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetDeliveryRecord (params?: {}): Promise<implicitReturnType>;
     privateGetV5AssetSettlementRecord (params?: {}): Promise<implicitReturnType>;
@@ -167,6 +170,7 @@ interface Exchange {
     privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserSubmembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
@@ -277,6 +281,8 @@ interface Exchange {
     privatePostV5AccountSetHedgingMode (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpModify (params?: {}): Promise<implicitReturnType>;
     privatePostV5AccountMmpReset (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AssetExchangeQuoteApply (params?: {}): Promise<implicitReturnType>;
+    privatePostV5AssetExchangeConvertExecute (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferInterTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferSaveTransferSubMember (params?: {}): Promise<implicitReturnType>;
     privatePostV5AssetTransferUniversalTransfer (params?: {}): Promise<implicitReturnType>;

@@ -1092,7 +1092,7 @@ public partial class luno : Exchange
             min_row = -1000; // Maximum number of records supported
         } else if (isTrue(isTrue(isEqual(min_row, null)) || isTrue(isEqual(max_row, null))))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchLedger() require both params \'max_row\' and \'min_row\' or neither to be defined")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")) ;
         }
         if (isTrue(isTrue(!isEqual(limit, null)) && isTrue(isGreaterThan(subtract(max_row, min_row), limit))))
         {
@@ -1106,7 +1106,7 @@ public partial class luno : Exchange
         }
         if (isTrue(isGreaterThan(subtract(max_row, min_row), 1000)))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchLedger() requires the params \'max_row\' - \'min_row\' <= 1000")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")) ;
         }
         object request = new Dictionary<string, object>() {
             { "id", id },

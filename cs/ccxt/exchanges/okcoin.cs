@@ -36,6 +36,8 @@ public partial class okcoin : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -2351,11 +2353,11 @@ public partial class okcoin : Exchange
         //
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
@@ -2363,7 +2365,7 @@ public partial class okcoin : Exchange
     {
         /**
         * @method
-        * @name okx#fetchDepositAddress
+        * @name okcoin#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code
@@ -2389,7 +2391,7 @@ public partial class okcoin : Exchange
     {
         /**
         * @method
-        * @name okx#fetchDepositAddressesByNetwork
+        * @name okcoin#fetchDepositAddressesByNetwork
         * @description fetch a dictionary of addresses for a currency, indexed by network
         * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
         * @param {string} code unified currency code of the currency for the deposit address
