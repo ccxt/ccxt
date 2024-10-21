@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook } from './base/types.js';
+import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -77,8 +77,8 @@ export default class defx extends Exchange {
                 'fetchFundingInterval': true,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': true,
-                'fetchFundingRates': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
@@ -934,7 +934,83 @@ export default class defx extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.v1PublicGetSymbolsSymbolPrices (this.extend (request, params));
+        //
+        // {
+        //     "markPrice": "100.00",
+        //     "indexPrice": "100.00",
+        //     "ltp": "101.34",
+        //     "movingFundingRate": "0.08",
+        //     "payoutFundingRate": "-0.03",
+        //     "nextFundingPayout": 1711555532146
+        // }
+        //
         return this.parseTicker (response, market);
+    }
+
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name defx#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetSymbolsSymbolPrices (this.extend (request, params));
+        //
+        // {
+        //     "markPrice": "100.00",
+        //     "indexPrice": "100.00",
+        //     "ltp": "101.34",
+        //     "movingFundingRate": "0.08",
+        //     "payoutFundingRate": "-0.03",
+        //     "nextFundingPayout": 1711555532146
+        // }
+        //
+        return this.parseFundingRate (response, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        // {
+        //     "markPrice": "100.00",
+        //     "indexPrice": "100.00",
+        //     "ltp": "101.34",
+        //     "movingFundingRate": "0.08",
+        //     "payoutFundingRate": "-0.03",
+        //     "nextFundingPayout": 1711555532146
+        // }
+        //
+        const markPrice = this.safeNumber (contract, 'markPrice');
+        const indexPrice = this.safeNumber (contract, 'indexPrice');
+        const fundingRate = this.safeNumber (contract, 'payoutFundingRate');
+        const fundingTime = this.safeInteger (contract, 'nextFundingPayout');
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
     }
 
     nonce () {
