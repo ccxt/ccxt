@@ -2020,17 +2020,17 @@ export default class valr extends Exchange {
         return results;
     }
 
-    parseBorrowRate (parseResponseRate) {
-        const code = this.safeCurrencyCode (this.safeString (parseResponseRate, 'currency'));
+    parseBorrowRate (info, currency: Currency = undefined): Dict {
+        const code = this.safeCurrencyCode (this.safeString (info, 'currency'));
         const httpTime = this.safeString (this.last_response_headers, 'Date');
         const timestamp = this.parseDate (httpTime);
         return {
             'currency': code,
-            'rate': this.safeFloat (parseResponseRate, 'estimatedNextBorrowRate'),
+            'rate': this.safeFloat (info, 'estimatedNextBorrowRate'),
             'period': 3600000,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': parseResponseRate,
+            'info': info,
         };
     }
 
