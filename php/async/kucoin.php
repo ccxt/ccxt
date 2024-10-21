@@ -1560,11 +1560,12 @@ class kucoin extends Exchange {
         //        "chain" => "ERC20"
         //    }
         //
+        $minWithdrawFee = $this->safe_number($fee, 'withdrawMinFee');
         $result = array(
             'info' => $fee,
             'withdraw' => array(
-                'fee' => null,
-                'percentage' => null,
+                'fee' => $minWithdrawFee,
+                'percentage' => false,
             ),
             'deposit' => array(
                 'fee' => null,
@@ -1572,29 +1573,15 @@ class kucoin extends Exchange {
             ),
             'networks' => array(),
         );
-        $isWithdrawEnabled = $this->safe_bool($fee, 'isWithdrawEnabled', true);
-        $minFee = null;
-        if ($isWithdrawEnabled) {
-            $result['withdraw']['percentage'] = false;
-            $chains = $this->safe_list($fee, 'chains', array());
-            for ($i = 0; $i < count($chains); $i++) {
-                $chain = $chains[$i];
-                $networkId = $this->safe_string($chain, 'chainId');
-                $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
-                $withdrawFee = $this->safe_string($chain, 'withdrawalMinFee');
-                if ($minFee === null || (Precise::string_lt($withdrawFee, $minFee))) {
-                    $minFee = $withdrawFee;
-                }
-                $result['networks'][$networkCode] = array(
-                    'withdraw' => $this->parse_number($withdrawFee),
-                    'deposit' => array(
-                        'fee' => null,
-                        'percentage' => null,
-                    ),
-                );
-            }
-            $result['withdraw']['fee'] = $this->parse_number($minFee);
-        }
+        $networkId = $this->safe_string($fee, 'chain');
+        $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+        $result['networks'][$networkCode] = array(
+            'withdraw' => $minWithdrawFee,
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+        );
         return $result;
     }
 

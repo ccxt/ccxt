@@ -1393,11 +1393,12 @@ public partial class kucoin : Exchange
         //        "chain": "ERC20"
         //    }
         //
+        object minWithdrawFee = this.safeNumber(fee, "withdrawMinFee");
         object result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
-                { "fee", null },
-                { "percentage", null },
+                { "fee", minWithdrawFee },
+                { "percentage", false },
             } },
             { "deposit", new Dictionary<string, object>() {
                 { "fee", null },
@@ -1405,32 +1406,15 @@ public partial class kucoin : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        object isWithdrawEnabled = this.safeBool(fee, "isWithdrawEnabled", true);
-        object minFee = null;
-        if (isTrue(isWithdrawEnabled))
-        {
-            ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
-            object chains = this.safeList(fee, "chains", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
-            {
-                object chain = getValue(chains, i);
-                object networkId = this.safeString(chain, "chainId");
-                object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
-                object withdrawFee = this.safeString(chain, "withdrawalMinFee");
-                if (isTrue(isTrue(isEqual(minFee, null)) || isTrue((Precise.stringLt(withdrawFee, minFee)))))
-                {
-                    minFee = withdrawFee;
-                }
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", this.parseNumber(withdrawFee) },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.parseNumber(minFee);
-        }
+        object networkId = this.safeString(fee, "chain");
+        object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+        ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+            { "withdraw", minWithdrawFee },
+            { "deposit", new Dictionary<string, object>() {
+                { "fee", null },
+                { "percentage", null },
+            } },
+        };
         return result;
     }
 

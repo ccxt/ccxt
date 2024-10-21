@@ -366,7 +366,7 @@ export default class Exchange {
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
     axolotl(payload: any, hexKey: any, ed25519: any): string;
-    fixStringifiedJsonMembers(content: string): any;
+    fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
     retrieveStarkAccount(signature: any, accountClassHash: any, accountProxyClassHash: any): {

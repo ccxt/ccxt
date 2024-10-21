@@ -1532,11 +1532,12 @@ class kucoin(Exchange, ImplicitAPI):
         #        "chain": "ERC20"
         #    }
         #
+        minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result: dict = {
             'info': fee,
             'withdraw': {
-                'fee': None,
-                'percentage': None,
+                'fee': minWithdrawFee,
+                'percentage': False,
             },
             'deposit': {
                 'fee': None,
@@ -1544,26 +1545,15 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        isWithdrawEnabled = self.safe_bool(fee, 'isWithdrawEnabled', True)
-        minFee = None
-        if isWithdrawEnabled:
-            result['withdraw']['percentage'] = False
-            chains = self.safe_list(fee, 'chains', [])
-            for i in range(0, len(chains)):
-                chain = chains[i]
-                networkId = self.safe_string(chain, 'chainId')
-                networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-                withdrawFee = self.safe_string(chain, 'withdrawalMinFee')
-                if minFee is None or (Precise.string_lt(withdrawFee, minFee)):
-                    minFee = withdrawFee
-                result['networks'][networkCode] = {
-                    'withdraw': self.parse_number(withdrawFee),
-                    'deposit': {
-                        'fee': None,
-                        'percentage': None,
-                    },
-                }
-            result['withdraw']['fee'] = self.parse_number(minFee)
+        networkId = self.safe_string(fee, 'chain')
+        networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+        result['networks'][networkCode] = {
+            'withdraw': minWithdrawFee,
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+        }
         return result
 
     def is_futures_method(self, methodName, params):
