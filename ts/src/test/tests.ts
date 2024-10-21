@@ -71,9 +71,9 @@ class testMainClass {
     proxyTestFileName = "proxies";
 
     parseCliArgsAndProps () {
-        this.responseTests = getCliArgValue ('--responseTests');
+        this.responseTests = getCliArgValue ('--responseTests') || getCliArgValue ('--response');
         this.idTests = getCliArgValue ('--idTests');
-        this.requestTests = getCliArgValue ('--requestTests');
+        this.requestTests = getCliArgValue ('--requestTests') || getCliArgValue ('--request');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
         this.debug = getCliArgValue ('--debug');

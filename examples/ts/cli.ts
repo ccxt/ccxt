@@ -236,7 +236,8 @@ const printHumanReadable = (exchange, result) => {
                     return String (x)
                 }
             })
-            log (result.length > 0 ? configuredAsTable (result.map (element => {
+            log (result.length > 0 ? configuredAsTable (result.map (rawElement => {
+                const element = Object.assign ({}, rawElement)
                 let keys = Object.keys (element)
                 delete element['info']
                 keys.forEach (key => {
