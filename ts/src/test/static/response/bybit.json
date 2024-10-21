@@ -630,7 +630,7 @@
                     "remaining": 0,
                     "status": "closed",
                     "fee": {
-                        "cost": "0.00385935",
+                        "cost": 0.00385935,
                         "currency": "USDT"
                     },
                     "trades": [],

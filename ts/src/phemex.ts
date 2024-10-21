@@ -2122,8 +2122,10 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const result = (type === 'swap') ? this.parseSwapBalance (response) : this.parseSpotBalance (response);
-        return result;
+        if (type === 'swap') {
+            return this.parseSwapBalance (response);
+        }
+        return this.parseSpotBalance (response);
     }
 
     parseOrderStatus (status: Str) {

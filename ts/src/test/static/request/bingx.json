@@ -1520,7 +1520,7 @@
         ],
         "reduceMargin": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "reduceMargin",
                 "method": "reduceMargin",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/positionMargin?amount=1&symbol=BTC-USDT&timestamp=1711660858980&type=2&signature=bde504579e677b43e8450197833dd7992680de74fa1926c4814578dd2b1a5ed9",
                 "input": [

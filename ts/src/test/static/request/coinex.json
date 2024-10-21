@@ -6,7 +6,7 @@
         "tonce",
         "client_id"
     ],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "fetchMyTrades": [
             {
