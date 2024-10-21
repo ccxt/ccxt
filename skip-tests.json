@@ -1258,7 +1258,8 @@
             },
             "fetchOrderBook": {
                 "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
-            }
+            },
+            "fetchL2OrderBook": "asks and bids could be empty"
         }
     },
     "mexc": {
