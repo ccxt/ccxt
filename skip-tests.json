@@ -67,7 +67,9 @@
             },
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3539 & https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4119"
-            }
+            },
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "binanceus": {
@@ -82,7 +84,9 @@
             "orderBook": {
                 "timestamp": "not present https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3458 https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L3866"
             },
-            "fetchStatus": "private endpoints"
+            "fetchStatus": "private endpoints",
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "binancecoinm": {
@@ -95,7 +99,8 @@
             "ticker": {
                 "baseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L2414"
             },
-            "watchOrderBook": "out of order update"
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "binanceusdm": {
@@ -123,7 +128,9 @@
             "watchOrderBookForSymbols": {
                 "spread": "same",
                 "timestamp": "same"
-            }
+            },
+            "watchOrderBook.php": "todo: weird https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5498",
+            "watchOrderBookForSymbols.php": "same"
         }
     },
     "bit2c": {
