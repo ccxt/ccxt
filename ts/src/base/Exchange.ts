@@ -1385,7 +1385,7 @@ export default class Exchange {
     }
 
     async close () {
-        // WS part
+        // [WS cleanup]
         const clients = Object.values (this.clients || {});
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
@@ -1398,8 +1398,8 @@ export default class Exchange {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
         }
-        // REST part
-        // nothing here
+        // [REST cleanup]
+        // todo
         return;
     }
 

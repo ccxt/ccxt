@@ -1293,8 +1293,6 @@ asyncio.run(example())
 
 ### Resource clean-up
 
-# Resource clean-up
-
 When your script finishes its work with any exchange, you are advised to clean-up the resources:
 ```python
 poloniex = ccxt.poloniex()
