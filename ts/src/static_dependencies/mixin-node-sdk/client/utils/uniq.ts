@@ -1,4 +1,4 @@
-import md5 from './_md5.js';
+import { md5 } from '../../../noble-hashes/md5.js';
 import { blake3 } from '../../../noble-hashes/blake3.js';
 import { sha3_256 } from '../../../noble-hashes/sha3.js';
 import { sha256 } from '../../../noble-hashes/sha256.js';
@@ -14,8 +14,9 @@ export const hashMembers = (ids: string[]): string => {
 /** Generate an unique conversation id for contact */
 export const uniqueConversationID = (userID: string, recipientID: string): string => {
   const [minId, maxId] = [userID, recipientID].sort();
-  const res = md5(minId + maxId);
-  const bytes = Buffer.from(res, 'hex');
+  const res = md5.create().update(minId + maxId).digest();
+  const resHex = Array.from(res).map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const bytes = Buffer.from(resHex, 'hex');
 
   bytes[6] = (bytes[6] & 0x0f) | 0x30;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;

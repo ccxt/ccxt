@@ -1,13 +1,13 @@
+import { randomUUID } from 'crypto';
 import { UUIDTypes, Version4Options } from './_types.js';
-import native from './native.js';
 import rng from './rng.js';
 import { unsafeStringify } from './stringify.js';
 
 function v4(options?: Version4Options, buf?: undefined, offset?: number): string;
 function v4(options?: Version4Options, buf?: Uint8Array, offset?: number): Uint8Array;
 function v4(options?: Version4Options, buf?: Uint8Array, offset?: number): UUIDTypes {
-  if (native.randomUUID && !buf && !options) {
-    return native.randomUUID();
+  if (!buf && !options) {
+    return randomUUID();
   }
 
   options = options || {};

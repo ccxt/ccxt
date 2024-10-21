@@ -3,7 +3,7 @@ import { utf8, bin } from './_md5/_charenc.js';
 import isBuffer from './_md5/_is-buffer.js';
 
 // The core MD5 function
-function md5(message, options) {
+export function md5(message, options) {
   // Convert to byte array
   if (message.constructor === String) {
     if (options && options.encoding === 'binary') {
