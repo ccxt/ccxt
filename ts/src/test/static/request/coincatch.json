@@ -366,7 +366,7 @@
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"67753.9\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"marginMode\":\"cross\"}"
             }
         ],
-        "createMarketBuyOrderWithCost": {
+        "createMarketBuyOrderWithCost": [
             {
                 "description": "Spot create market buy order with cost",
                 "method": "createMarketBuyOrderWithCost",
@@ -377,7 +377,7 @@
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"2\",\"force\":\"normal\"}"
             }
-        },
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch open orders",
