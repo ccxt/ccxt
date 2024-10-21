@@ -281,6 +281,89 @@
                     40000
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"8\",\"force\":\"normal\"}"
+            },
+            {
+                "description": "Spot market sell order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "BTC/USDT",
+                    "market",
+                    "sell",
+                    0.0001
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"sell\",\"orderType\":\"market\",\"quantity\":\"0.0001\",\"force\":\"normal\"}"
+            },
+            {
+                "description": "spot margin market buy with createMarketBuyOrderRequiresPrice = false",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "createMarketBuyOrderRequiresPrice": false,
+                        "marginMode": "cross",
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"10\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "Spot margin market buy",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    6,
+                    1,
+                    {
+                        "marginMode": "cross",
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"6\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
+            },
+            {
+                "description": "Spot limit buy with post only",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    25000,
+                    {
+                        "postOnly": true,
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\"}"
+            },
+            {
+                "description": "Swap limit sell order with postOnly and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.001,
+                    67753.9,
+                    {
+                        "postOnly": true,
+                        "reduceOnly": true,
+                        "marginMode": "cross",
+                        "methodName": "createOrder"
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"67753.9\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"marginMode\":\"cross\"}"
             }
         ],
         "fetchOpenOrders": [
