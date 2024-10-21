@@ -248,7 +248,7 @@ export default class currencycom extends Exchange {
                     'stop': 'RESULT',
                 },
                 'leverage_markets_suffix': '_LEVERAGE',
-                'collateralCurrencies': [ 'USD', 'EUR', 'USDT' ],
+                'collateralCurrencies': [ 'USD', 'EUR', 'USDT', 'GBP', 'BYN', 'RUB' ],
             },
             'exceptions': {
                 'broad': {
@@ -475,7 +475,7 @@ export default class currencycom extends Exchange {
             const margin = undefined;
             if (swap) {
                 symbol = symbol.replace (this.options['leverage_markets_suffix'], '');
-                symbol += ':' + quote;
+                symbol += ':' + 'QUANTO';
             }
             const active = this.safeString (market, 'status') === 'TRADING';
             // to set taker & maker fees, we use one from the below data - pairs either have 'exchangeFee' or 'tradingFee', if none of them (rare cases), then they should have 'takerFee & makerFee'
@@ -641,6 +641,17 @@ export default class currencycom extends Exchange {
             });
         }
         return result;
+    }
+
+    async getAccountIdBySettleCurrency (currencyCode) {
+        await this.loadAccounts ();
+        for (let i = 0; i < this.accounts.length; i++) {
+            const account = this.accounts[i];
+            if (account['currency'] === currencyCode) {
+                return account['id'];
+            }
+        }
+        throw new ArgumentsRequired (this.id + ' does not have an account for ' + currencyCode);
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {
@@ -1301,11 +1312,17 @@ export default class currencycom extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let accountId = undefined;
-        if (market['margin']) {
+        if (market['contract']) {
             accountId = this.safeString (this.options, 'accountId');
             accountId = this.safeString (params, 'accountId', accountId);
             if (accountId === undefined) {
-                throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
+                let settleCurrency = this.safeString (this.options, 'settleCurrency');
+                settleCurrency = this.safeString (params, 'settleCurrency', settleCurrency);
+                if (settleCurrency === undefined) {
+                    throw new ArgumentsRequired (this.id + " createOrder() for contract markets requires a 'settleCurrency' parameter or exchange.options['settleCurrency']. Alternatively, you can directly set 'accountId' parameter/option");
+                } else {
+                    accountId = await this.getAccountIdBySettleCurrency (settleCurrency);
+                }
             }
         }
         const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
@@ -1321,6 +1338,9 @@ export default class currencycom extends Exchange {
             // 'stopLoss': '54.321',
             // 'guaranteedStopLoss': '54.321',
         };
+        if (accountId !== undefined) {
+            request['accountId'] = accountId;
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
             request['timeInForce'] = this.options['defaultTimeInForce'];
