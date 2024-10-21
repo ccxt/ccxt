@@ -1017,17 +1017,59 @@ export default class Exchange {
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarkets (this.markets);
             }
-            return this.markets
+            return this.markets;
         }
-        let currencies = undefined
+        const leveragesFromOutside = this.safeValue (params, 'leveragesFromOutside', undefined);
+        if (leveragesFromOutside) {
+            this.options['leveragesFromOutside'] = leveragesFromOutside;
+        }
+        const fetchLeveragesCallback = this.safeValue (params, 'fetchLeveragesCallback', undefined);
+        if (fetchLeveragesCallback) {
+            this.options['fetchLeveragesCallback'] = fetchLeveragesCallback;
+        }
+        let cleanupOutside = false;
+        let currencies = undefined;
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            const currenciesFromOutside = this.safeValue (params, 'currenciesFromOutside', undefined);
+            if (!currenciesFromOutside || reload) {
+                currencies = await this.fetchCurrencies ();
+                const fetchCurrenciesCallback = this.safeValue (params, 'fetchCurrenciesCallback', undefined);
+                if (fetchCurrenciesCallback) {
+                    currencies = fetchCurrenciesCallback (currencies)
+                    cleanupOutside = true;
+                }
+            } else {
+                currencies = currenciesFromOutside;
+                cleanupOutside = true;
+            }
+            if (cleanupOutside) {
+                this.omit (params, 'currenciesFromOutside');
+                this.omit (params, 'fetchCurrenciesCallback');
         }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
+        }
+        let markets;
+        const loadFromOutside = this.safeValue(params, 'loadFromOutside', undefined);
+        if (!loadFromOutside || reload) {
+            cleanupOutside = false;
+            markets = await this.fetchMarkets (params);
+            const loadedMarketCallback = this.safeValue (params, 'loadedMarketCallback', undefined);
+            if (loadedMarketCallback) {
+                loadedMarketCallback (markets);
+                cleanupOutside = true;
+            }
+        } else {
+            markets = this.fetchMarketsFromOutside (loadFromOutside);
+            cleanupOutside = true;
+        }
+        if (cleanupOutside) {
+            this.omit (params, 'loadFromOutside');
+            this.omit (params, 'loadedMarketCallback');
+        }
+
+        return this.setMarkets (markets, currencies);
     }
 
     async loadMarkets (reload = false, params = {}): Promise<Dictionary<Market>> {
@@ -1075,6 +1117,10 @@ export default class Exchange {
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    }
+
+    fetchMarketsFromOutside (markets: {}) {
+        return markets;
     }
 
     checkRequiredDependencies () {
@@ -1492,7 +1538,7 @@ export default class Exchange {
               guardian: '0',
             }),
         });
-        
+
         const address = Starknet.hash.calculateContractAddressFromHash(
             publicKey,
             accountProxyClassHash,

@@ -5160,7 +5160,7 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name binance#editOrder
@@ -7322,7 +7322,7 @@ export default class binance extends Exchange {
         }
     }
 
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name binance#cancelOrders
@@ -8356,7 +8356,7 @@ export default class binance extends Exchange {
         };
     }
 
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         /**
          * @method
          * @name binance#transfer
@@ -10042,20 +10042,39 @@ export default class binance extends Exchange {
             let isPortfolioMargin = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'loadLeverageBrackets', 'papi', 'portfolioMargin', false);
             let response = undefined;
-            if (this.isLinear (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetUmLeverageBracket (query);
+            let leveragesFromOutside = this.safeValue (params, 'leveragesFromOutside', undefined);
+            if (!leveragesFromOutside) {
+                leveragesFromOutside = this.safeValue (this.options, 'leveragesFromOutside', undefined);
+            }
+            if (!leveragesFromOutside || reload) {
+                if (this.isLinear (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetUmLeverageBracket (query);
+                    } else {
+                        response = await this.fapiPrivateGetLeverageBracket (query);
+                    }
+                } else if (this.isInverse (type, subType)) {
+                    if (isPortfolioMargin) {
+                        response = await this.papiGetCmLeverageBracket (query);
+                    } else {
+                        response = await this.dapiPrivateV2GetLeverageBracket (query);
+                    }
                 } else {
-                    response = await this.fapiPrivateGetLeverageBracket (query);
+                    throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
                 }
-            } else if (this.isInverse (type, subType)) {
-                if (isPortfolioMargin) {
-                    response = await this.papiGetCmLeverageBracket (query);
-                } else {
-                    response = await this.dapiPrivateV2GetLeverageBracket (query);
+                let fetchLeveragesCallback = this.safeValue (params, 'fetchLeveragesCallback', undefined);
+                if (!fetchLeveragesCallback) {
+                    fetchLeveragesCallback = this.safeValue (this.options, 'fetchLeveragesCallback', undefined);
+                }
+                if (fetchLeveragesCallback) {
+                    fetchLeveragesCallback (response);
+                    this.omit (params, 'fetchLeveragesCallback');
+                    this.omit (this.options, 'fetchLeveragesCallback');
                 }
             } else {
-                throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
+                response = leveragesFromOutside;
+                this.omit (params, 'leveragesFromOutside');
+                this.omit (this.options, 'leveragesFromOutside');
             }
             this.options['leverageBrackets'] = {};
             for (let i = 0; i < response.length; i++) {
