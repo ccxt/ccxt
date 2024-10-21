@@ -19,14 +19,6 @@
                 "input": []
             }
         ],
-        "fetchMarkets": [
-            {
-                "description": "Fetch markets",
-                "method": "fetchMarkets",
-                "url": "https://api.coincatch.com/api/mix/v1/market/contracts?productType=dmcbl",
-                "input": []
-            }
-        ],
         "fetchTicker": [
             {
                 "description": "Fetch ticker",
