@@ -40,9 +40,9 @@ class testMainClass {
         this.proxyTestFileName = "proxies";
     }
     parseCliArgsAndProps() {
-        this.responseTests = getCliArgValue('--responseTests');
+        this.responseTests = getCliArgValue('--responseTests') || getCliArgValue('--response');
         this.idTests = getCliArgValue('--idTests');
-        this.requestTests = getCliArgValue('--requestTests');
+        this.requestTests = getCliArgValue('--requestTests') || getCliArgValue('--request');
         this.info = getCliArgValue('--info');
         this.verbose = getCliArgValue('--verbose');
         this.debug = getCliArgValue('--debug');
@@ -1128,7 +1128,7 @@ class testMainClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1147,7 +1147,7 @@ class testMainClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse(exchange, undefined); // reset state

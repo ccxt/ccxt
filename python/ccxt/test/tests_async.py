@@ -31,9 +31,9 @@ class testMainClass:
     proxy_test_file_name = 'proxies'
 
     def parse_cli_args_and_props(self):
-        self.response_tests = get_cli_arg_value('--responseTests')
+        self.response_tests = get_cli_arg_value('--responseTests') or get_cli_arg_value('--response')
         self.id_tests = get_cli_arg_value('--idTests')
-        self.request_tests = get_cli_arg_value('--requestTests')
+        self.request_tests = get_cli_arg_value('--requestTests') or get_cli_arg_value('--request')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -858,7 +858,7 @@ class testMainClass:
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
 
     async def test_response_statically(self, exchange, method, skip_keys, data):
@@ -873,7 +873,7 @@ class testMainClass:
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
         except Exception as e:
             self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
 

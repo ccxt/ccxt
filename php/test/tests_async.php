@@ -40,9 +40,9 @@ class testMainClass {
     public $proxy_test_file_name = 'proxies';
 
     public function parse_cli_args_and_props() {
-        $this->response_tests = get_cli_arg_value('--responseTests');
+        $this->response_tests = get_cli_arg_value('--responseTests') || get_cli_arg_value('--response');
         $this->id_tests = get_cli_arg_value('--idTests');
-        $this->request_tests = get_cli_arg_value('--requestTests');
+        $this->request_tests = get_cli_arg_value('--requestTests') || get_cli_arg_value('--request');
         $this->info = get_cli_arg_value('--info');
         $this->verbose = get_cli_arg_value('--verbose');
         $this->debug = get_cli_arg_value('--debug');
@@ -1069,7 +1069,7 @@ class testMainClass {
                 $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
             } catch(\Throwable $e) {
                 $this->request_tests_failed = true;
-                $error_message = '[' . $this->lang . '][STATIC_REQUEST_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+                $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
                 dump('[TEST_FAILURE]' . $error_message);
             }
         }) ();
@@ -1089,7 +1089,7 @@ class testMainClass {
                 }
             } catch(\Throwable $e) {
                 $this->response_tests_failed = true;
-                $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+                $error_message = '[' . $this->lang . '][STATIC_RESPONSE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
                 dump('[TEST_FAILURE]' . $error_message);
             }
             set_fetch_response($exchange, null); // reset state
