@@ -1929,7 +1929,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode);
+            request['chain'] = this.networkCodeToId (networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
         const response = await this.privatePostDepositAddressCreate (this.extend (request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
@@ -2005,7 +2005,7 @@ export default class kucoin extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chainId')),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
         } as DepositAddress;
