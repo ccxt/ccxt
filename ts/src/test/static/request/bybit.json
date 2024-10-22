@@ -1346,6 +1346,16 @@
                 ]
             }
         ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "fetch the long short ratio history for a linear swap market",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api-testnet.bybit.com/v5/market/account-ratio?symbol=BTCUSDT&period=1d&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchBorrowRateHistory": [
             {
                 "description": "fetchBorrowRateHistory",
