@@ -1095,6 +1095,45 @@
                   "deposit": {}
                 }
             }
+        ],
+        "createDepositAddress":[
+            {
+                "description": "with network",
+                "method": "createDepositAddress",
+                "input": [
+                  "BNB",
+                  {
+                    "networkCode": "BEP20"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  },
+                  "currency": "BNB",
+                  "network": "BEP20",
+                  "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                  "tag": null
+                }
+            }
         ]
     }
 }
