@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, FundingRate, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -39,6 +39,8 @@ class bitflyer(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -78,6 +80,7 @@ class bitflyer(Exchange, ImplicitAPI):
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ],
                 },
                 'private': {
@@ -961,6 +964,58 @@ class bitflyer(Exchange, ImplicitAPI):
             'comment': None,
             'internal': None,
             'fee': fee,
+        }
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+        :see: https://lightning.bitflyer.com/docs#funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'product_code': market['id'],
+        }
+        response = await self.publicGetGetfundingrate(self.extend(request, params))
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_rate_settledate')
+        nextFundingTimestamp = self.parse8601(nextFundingDatetime)
+        return {
+            'info': contract,
+            'symbol': self.safe_string(market, 'symbol'),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'current_funding_rate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
