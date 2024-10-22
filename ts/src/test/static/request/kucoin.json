@@ -792,7 +792,7 @@
                 "input": []
             }
         ],
-        "fetchDepositAddresses": [
+        "fetchDepositAddress": [
             {
                 "description": "default",
                 "method": "fetchDepositAddress",
