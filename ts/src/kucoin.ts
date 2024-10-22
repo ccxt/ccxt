@@ -1959,7 +1959,7 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
+            request['chain'] = this.networkCodeToId (networkCode);
         }
         const groupedByNetwork = await this.fetchDepositAddressesByNetwork (code, this.extend (request, params));
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (currency['code'], networkCode, groupedByNetwork);
@@ -2042,7 +2042,7 @@ export default class kucoin extends Exchange {
         //        ]
         //    }
         //
-        const chains = this.safeList (response, 'data', []);
+        const chains = this.safeList (response, 'data');
         if (chains === undefined) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
         }
