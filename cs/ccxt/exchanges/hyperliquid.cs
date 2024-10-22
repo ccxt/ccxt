@@ -2425,16 +2425,18 @@ public partial class hyperliquid : Exchange
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         object marginMode = this.safeString(leverage, "type");
         object isIsolated = (isEqual(marginMode, "isolated"));
-        object size = this.safeString(entry, "szi");
+        object rawSize = this.safeString(entry, "szi");
+        object size = rawSize;
         object side = null;
         if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue(Precise.stringGt(size, "0"))) ? "long" : "short";
+            side = ((bool) isTrue(Precise.stringGt(rawSize, "0"))) ? "long" : "short";
             size = Precise.stringAbs(size);
         }
-        object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
-        object initialMargin = this.safeNumber(entry, "marginUsed");
-        object percentage = multiply(divide(unrealizedPnl, initialMargin), 100);
+        object rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
+        object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        object initialMargin = this.safeString(entry, "marginUsed");
+        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2444,7 +2446,7 @@ public partial class hyperliquid : Exchange
             { "isolated", isIsolated },
             { "hedged", null },
             { "side", side },
-            { "contracts", size },
+            { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
             { "markPrice", null },
@@ -2455,10 +2457,10 @@ public partial class hyperliquid : Exchange
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
-            { "unrealizedPnl", unrealizedPnl },
+            { "unrealizedPnl", this.parseNumber(rawUnrealizedPnl) },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
             { "marginMode", marginMode },
-            { "percentage", percentage },
+            { "percentage", this.parseNumber(percentage) },
         });
     }
 

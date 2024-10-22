@@ -2227,15 +2227,17 @@ class hyperliquid extends hyperliquid$1 {
         const leverage = this.safeDict(entry, 'leverage', {});
         const marginMode = this.safeString(leverage, 'type');
         const isIsolated = (marginMode === 'isolated');
-        let size = this.safeString(entry, 'szi');
+        const rawSize = this.safeString(entry, 'szi');
+        let size = rawSize;
         let side = undefined;
         if (size !== undefined) {
-            side = Precise["default"].stringGt(size, '0') ? 'long' : 'short';
+            side = Precise["default"].stringGt(rawSize, '0') ? 'long' : 'short';
             size = Precise["default"].stringAbs(size);
         }
-        const unrealizedPnl = this.safeNumber(entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber(entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString(entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise["default"].stringAbs(rawUnrealizedPnl);
+        const initialMargin = this.safeString(entry, 'marginUsed');
+        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2245,7 +2247,7 @@ class hyperliquid extends hyperliquid$1 {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': size,
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(entry, 'entryPx'),
             'markPrice': undefined,
@@ -2256,10 +2258,10 @@ class hyperliquid extends hyperliquid$1 {
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber(entry, 'liquidationPx'),
             'marginMode': marginMode,
-            'percentage': percentage,
+            'percentage': this.parseNumber(percentage),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

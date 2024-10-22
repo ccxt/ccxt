@@ -285,6 +285,7 @@ class kucoin extends Exchange {
                         // ws
                         'bullet-private' => 10, // 10SW
                         'position/update-user-leverage' => 5,
+                        'deposit-address/create' => 20,
                     ),
                     'delete' => array(
                         // account
@@ -704,6 +705,7 @@ class kucoin extends Exchange {
                             'accounts/sub-transfer' => 'v2',
                             'accounts/inner-transfer' => 'v2',
                             'transfer-out' => 'v3',
+                            'deposit-address/create' => 'v3',
                             // spot trading
                             'oco/order' => 'v3',
                             // margin trading
@@ -715,6 +717,7 @@ class kucoin extends Exchange {
                             'redeem' => 'v3',
                             'lend/purchase/update' => 'v3',
                             'position/update-user-leverage' => 'v3',
+                            'withdrawals' => 'v3',
                         ),
                         'DELETE' => array(
                             // account
@@ -780,7 +783,7 @@ class kucoin extends Exchange {
                     'TLOS' => 'tlos', // tlosevm is different
                     'CFX' => 'cfx',
                     'ACA' => 'aca',
-                    'OPTIMISM' => 'optimism',
+                    'OP' => 'optimism',
                     'ONT' => 'ont',
                     'GLMR' => 'glmr',
                     'CSPR' => 'cspr',
@@ -1881,7 +1884,7 @@ class kucoin extends Exchange {
 
     public function create_deposit_address(string $code, $params = array ()) {
         /**
-         * @see https://docs.kucoin.com/#create-deposit-address
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1896,12 +1899,24 @@ class kucoin extends Exchange {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
-            $request['chain'] = strtolower($this->network_code_to_id($networkCode));
+            $request['chain'] = $this->network_code_to_id($networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
-        $response = $this->privatePostDepositAddresses ($this->extend($request, $params));
+        $response = $this->privatePostDepositAddressCreate ($this->extend($request, $params));
         // array("code":"260000","msg":"Deposit address already exists.")
-        // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
-        // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
+        //
+        //   {
+        //     "code" => "200000",
+        //     "data" => {
+        //       "address" => "0x2336d1834faab10b2dac44e468f2627138417431",
+        //       "memo" => null,
+        //       "chainId" => "bsc",
+        //       "to" => "MAIN",
+        //       "expirationDate" => 0,
+        //       "currency" => "BNB",
+        //       "chainName" => "BEP20"
+        //     }
+        //   }
+        //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
     }
@@ -1958,7 +1973,7 @@ class kucoin extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $code,
-            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chain')),
+            'network' => $this->network_id_to_code($this->safe_string($depositAddress, 'chainId')),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
@@ -3361,7 +3376,7 @@ class kucoin extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -3375,7 +3390,8 @@ class kucoin extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
-            'address' => $address,
+            'toAddress' => $address,
+            'withdrawType' => 'ADDRESS',
             // 'memo' => $tag,
             // 'isInner' => false, // internal transfer or external withdrawal
             // 'remark' => 'optional',
@@ -3389,8 +3405,7 @@ class kucoin extends Exchange {
         if ($networkCode !== null) {
             $request['chain'] = strtolower($this->network_code_to_id($networkCode));
         }
-        $this->load_currency_precision($currency, $networkCode);
-        $request['amount'] = $this->currency_to_precision($code, $amount, $networkCode);
+        $request['amount'] = floatval($this->currency_to_precision($code, $amount, $networkCode));
         $includeFee = null;
         list($includeFee, $params) = $this->handle_option_and_params($params, 'withdraw', 'includeFee', false);
         if ($includeFee) {
@@ -3398,7 +3413,7 @@ class kucoin extends Exchange {
         }
         $response = $this->privatePostWithdrawals ($this->extend($request, $params));
         //
-        // https://github.com/ccxt/ccxt/issues/5558
+        // the id is inside "data"
         //
         //     {
         //         "code" =>  200000,
@@ -3409,54 +3424,6 @@ class kucoin extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_transaction($data, $currency);
-    }
-
-    public function load_currency_precision($currency, ?string $networkCode = null) {
-        // might not have $network specific precisions defined in fetchCurrencies (because of webapi failure)
-        // we should check and refetch $precision once-per-instance for that specific $currency & $network
-        // so avoids thorwing exceptions and burden to users
-        // Note => this needs to be executed only if $networkCode was provided
-        if ($networkCode !== null) {
-            $networks = $currency['networks'];
-            $network = $this->safe_dict($networks, $networkCode);
-            if ($this->safe_number($network, 'precision') !== null) {
-                // if $precision exists, no need to refetch
-                return;
-            }
-            // otherwise try to fetch and store in instance
-            $request = array(
-                'currency' => $currency['id'],
-                'chain' => strtolower($this->network_code_to_id($networkCode)),
-            );
-            $response = $this->privateGetWithdrawalsQuotas ($request);
-            //
-            //    {
-            //        "code" => "200000",
-            //        "data" => {
-            //            "currency" => "USDT",
-            //            "limitBTCAmount" => "14.24094850",
-            //            "usedBTCAmount" => "0.00000000",
-            //            "quotaCurrency" => "USDT",
-            //            "limitQuotaCurrencyAmount" => "999999.00000000",
-            //            "usedQuotaCurrencyAmount" => "0",
-            //            "remainAmount" => "999999.0000",
-            //            "availableAmount" => "10.77545071",
-            //            "withdrawMinFee" => "1",
-            //            "innerWithdrawMinFee" => "0",
-            //            "withdrawMinSize" => "10",
-            //            "isWithdrawEnabled" => true,
-            //            "precision" => 4,
-            //            "chain" => "EOS",
-            //            "reason" => null,
-            //            "lockedAmount" => "0"
-            //        }
-            //    }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($data, 'precision')));
-            $code = $currency['code'];
-            $this->currencies[$code]['networks'][$networkCode]['precision'] = $precision;
-        }
     }
 
     public function parse_transaction_status(?string $status) {
