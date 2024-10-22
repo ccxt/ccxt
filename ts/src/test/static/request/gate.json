@@ -2,6 +2,9 @@
     "exchange": "gate",
     "skipKeys": ["text"],
     "outputType": "json",
+    "options": {
+        "unifiedAccount": false
+    },
     "methods": {
         "createOrder": [
             {
