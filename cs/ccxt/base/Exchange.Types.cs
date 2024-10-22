@@ -1924,13 +1924,13 @@ public struct LongShortRatio
     public string? timeframe;
     public double? longShortRatio;
 
-    public LongShortRatio(object longShortRatio)
+    public LongShortRatio(object lsRatio)
     {
-        info = Helper.GetInfo(longShortRatio);
-        symbol = Exchange.SafeString(longShortRatio, "symbol");
-        timestamp = Exchange.SafeInteger(longShortRatio, "timestamp");
-        datetime = Exchange.SafeString(longShortRatio, "datetime");
-        timeframe = Exchange.SafeString(longShortRatio, "timeframe");
-        longShortRatio = Exchange.SafeFloat(longShortRatio, "longShortRatio");
+        info = Helper.GetInfo(lsRatio);
+        symbol = Exchange.SafeString(lsRatio, "symbol");
+        timestamp = Exchange.SafeInteger(lsRatio, "timestamp");
+        datetime = Exchange.SafeString(lsRatio, "datetime");
+        timeframe = Exchange.SafeString(lsRatio, "timeframe");
+        longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
     }
 }
