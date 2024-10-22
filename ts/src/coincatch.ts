@@ -147,7 +147,10 @@ export default class coincatch extends Exchange {
                 'www': 'https://www.coincatch.com/',
                 'doc': 'https://coincatch.github.io/github.io/en/',
                 'fees': 'https://www.coincatch.com/en/rate/',
-                'referral': '',
+                'referral': {
+                    'url': 'https://partner.coincatch.cc/bg/92hy70391729607848548',
+                    'discount': 0.1,
+                },
             },
             'api': {
                 'public': {
