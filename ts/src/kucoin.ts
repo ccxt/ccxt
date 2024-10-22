@@ -732,6 +732,7 @@ export default class kucoin extends Exchange {
                             'oco/client-order/{clientOid}': 'v3',
                             'oco/orders': 'v3',
                             // margin trading
+                            'withdrawals': 'v3',
                         },
                     },
                     'futuresPrivate': {
@@ -3432,7 +3433,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#withdraw
          * @description make a withdrawal
-         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
+         * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -3469,7 +3470,7 @@ export default class kucoin extends Exchange {
         }
         const response = await this.privatePostWithdrawals (this.extend (request, params));
         //
-        // https://github.com/ccxt/ccxt/issues/5558
+        // the id is inside "data"
         //
         //     {
         //         "code":  200000,

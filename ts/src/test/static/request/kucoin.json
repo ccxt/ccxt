@@ -564,7 +564,7 @@
             {
                 "description": "network specific withdraw with precision working",
                 "method": "withdraw",
-                "url": "https://api.kucoin.com/api/v1/withdrawals",
+                "url": "https://api.kucoin.com/api/v3/withdrawals",
                 "input": [
                     "USDT",
                     5.12345678,
