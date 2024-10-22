@@ -2,8 +2,8 @@
 import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { ArgumentsRequired } from '../../../base/errors.js';
-import { Exchange, Tickers } from '../../../../ccxt.js';
+import { ArgumentsRequired, ExchangeError } from '../../../base/errors.js';
+import { Exchange, Message, Tickers } from '../../../../ccxt.js';
 
 async function testWatchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchTickersHelper (exchange, skippedProperties, undefined);
@@ -15,6 +15,16 @@ async function testWatchTickersHelper (exchange: Exchange, skippedProperties: ob
     const method = 'watchTickers';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
+    const consumer = function consumer (message: Message) {
+        if (message.error) {
+            throw new ExchangeError (message.error);
+        }
+        if (!message.payload) {
+            throw new ExchangeError ("received null or undefined payload");
+        }
+        // TODO: add payload test
+    };
+    await exchange.subscribeTickers (argSymbols, consumer, true, argParams);
     while (now < ends) {
         let response: Tickers = undefined;
         try {
