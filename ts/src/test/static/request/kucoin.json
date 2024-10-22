@@ -838,7 +838,7 @@
                 "input": [
                   "USDT",
                   {
-                    "networkCode": "ERC20"
+                    "network": "ERC20"
                   }
                 ],
                 "output": "{\"currency\":\"USDT\",\"chain\":\"eth\"}"
