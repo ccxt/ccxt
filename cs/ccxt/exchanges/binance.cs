@@ -94,6 +94,8 @@ public partial class binance : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarginMode", "emulated" },
                 { "fetchMarginModes", true },
@@ -14372,5 +14374,97 @@ public partial class binance : Exchange
         //
         object result = this.parseFundingRates(response, market);
         return this.filterByArray(result, "symbol", symbols);
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio, default is 24 hours
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            timeframe = "1d";
+        }
+        object request = new Dictionary<string, object>() {
+            { "period", timeframe },
+        };
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            response = await this.fapiDataGetGlobalLongShortAccountRatio(this.extend(request, parameters));
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            ((IDictionary<string,object>)request)["pair"] = getValue(getValue(market, "info"), "pair");
+            response = await this.dapiDataGetGlobalLongShortAccountRatio(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
+        }
+        return this.parseLongShortRatioHistory(response, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        //
+        // linear
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "longAccount": "0.4558",
+        //         "longShortRatio": "0.8376",
+        //         "shortAccount": "0.5442",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount": "0.7262",
+        //         "longShortRatio": "2.6523",
+        //         "shortAccount": "0.2738",
+        //         "pair": "BTCUSD",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeIntegerOmitZero(info, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.safeNumber(info, "longShortRatio") },
+        };
     }
 }

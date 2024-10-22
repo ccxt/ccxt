@@ -8,7 +8,7 @@ from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -129,6 +129,8 @@ class binance(Exchange, ImplicitAPI):
                 'fetchLeverages': True,
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': True,
                 'fetchMarginMode': 'emulated',
                 'fetchMarginModes': True,
@@ -12701,3 +12703,96 @@ class binance(Exchange, ImplicitAPI):
         #
         result = self.parse_funding_rates(response, market)
         return self.filter_by_array(result, 'symbol', symbols)
+
+    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio, default is 24 hours
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest ratio to fetch
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if timeframe is None:
+            timeframe = '1d'
+        request: dict = {
+            'period': timeframe,
+        }
+        request, params = self.handle_until_option('endTime', request, params)
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLongShortRatioHistory', market, params)
+        response = None
+        if subType == 'linear':
+            request['symbol'] = market['id']
+            response = await self.fapiDataGetGlobalLongShortAccountRatio(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "longAccount": "0.4558",
+            #             "longShortRatio": "0.8376",
+            #             "shortAccount": "0.5442",
+            #             "timestamp": 1726790400000
+            #         },
+            #     ]
+            #
+        elif subType == 'inverse':
+            request['pair'] = market['info']['pair']
+            response = await self.dapiDataGetGlobalLongShortAccountRatio(self.extend(request, params))
+            #
+            #     [
+            #         {
+            #             "longAccount": "0.7262",
+            #             "longShortRatio": "2.6523",
+            #             "shortAccount": "0.2738",
+            #             "pair": "BTCUSD",
+            #             "timestamp": 1726790400000
+            #         },
+            #     ]
+            #
+        else:
+            raise BadRequest(self.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only')
+        return self.parse_long_short_ratio_history(response, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        #
+        # linear
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "longAccount": "0.4558",
+        #         "longShortRatio": "0.8376",
+        #         "shortAccount": "0.5442",
+        #         "timestamp": 1726790400000
+        #     }
+        #
+        # inverse
+        #
+        #     {
+        #         "longAccount": "0.7262",
+        #         "longShortRatio": "2.6523",
+        #         "shortAccount": "0.2738",
+        #         "pair": "BTCUSD",
+        #         "timestamp": 1726790400000
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_omit_zero(info, 'timestamp')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.safe_number(info, 'longShortRatio'),
+        }

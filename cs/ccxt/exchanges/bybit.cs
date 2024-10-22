@@ -81,6 +81,8 @@ public partial class bybit : Exchange
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", true },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -10075,6 +10077,92 @@ public partial class bybit : Exchange
             { "toAmount", this.safeNumber(conversion, "toAmount") },
             { "price", null },
             { "fee", null },
+        };
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio, default is 24 hours
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = null;
+        var typeparametersVariable = this.getBybitType("fetchLongShortRatioHistory", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "option"))))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
+        }
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            timeframe = "1d";
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "period", timeframe },
+            { "category", type },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetV5MarketAccountRatio(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "buyRatio": "0.5707",
+        //                     "sellRatio": "0.4293",
+        //                     "timestamp": "1729123200000"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1729147842516
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "list", new List<object>() {});
+        return this.parseLongShortRatioHistory(data, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "buyRatio": "0.5707",
+        //         "sellRatio": "0.4293",
+        //         "timestamp": "1729123200000"
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeIntegerOmitZero(info, "timestamp");
+        object longString = this.safeString(info, "buyRatio");
+        object shortString = this.safeString(info, "sellRatio");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
         };
     }
 

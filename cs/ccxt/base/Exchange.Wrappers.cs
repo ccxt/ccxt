@@ -236,6 +236,18 @@ public partial class Exchange
         var res = await this.setMargin(symbol, amount, parameters);
         return ((Dictionary<string, object>)res);
     }
+    public async Task<LongShortRatio> FetchLongShortRatio(string symbol, string timeframe = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLongShortRatio(symbol, timeframe, parameters);
+        return new LongShortRatio(res);
+    }
+    public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LongShortRatio(item)).ToList<LongShortRatio>();
+    }
     public async Task<List<MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since2 = 0, double? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

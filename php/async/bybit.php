@@ -95,6 +95,8 @@ class bybit extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => true,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -9352,6 +9354,84 @@ class bybit extends Exchange {
             'toAmount' => $this->safe_number($conversion, 'toAmount'),
             'price' => null,
             'fee' => null,
+        );
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches the long short ratio history for a unified $market $symbol
+             * @see https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+             * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+             * @param {string} [$timeframe] the period for the ratio, default is 24 hours
+             * @param {int} [$since] the earliest time in ms to fetch ratios for
+             * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $type = null;
+            list($type, $params) = $this->get_bybit_type('fetchLongShortRatioHistory', $market, $params);
+            if ($type === 'spot' || $type === 'option') {
+                throw new NotSupported($this->id . ' fetchLongShortRatioHistory() only support linear and inverse markets');
+            }
+            if ($timeframe === null) {
+                $timeframe = '1d';
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'period' => $timeframe,
+                'category' => $type,
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetV5MarketAccountRatio ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => array(
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTCUSDT",
+            //                     "buyRatio" => "0.5707",
+            //                     "sellRatio" => "0.4293",
+            //                     "timestamp" => "1729123200000"
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1729147842516
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $data = $this->safe_list($result, 'list', array());
+            return $this->parse_long_short_ratio_history($data, $market);
+        }) ();
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "buyRatio" => "0.5707",
+        //         "sellRatio" => "0.4293",
+        //         "timestamp" => "1729123200000"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_omit_zero($info, 'timestamp');
+        $longString = $this->safe_string($info, 'buyRatio');
+        $shortString = $this->safe_string($info, 'sellRatio');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->parse_to_numeric(Precise::string_div($longString, $shortString)),
         );
     }
 

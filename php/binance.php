@@ -99,6 +99,8 @@ class binance extends Exchange {
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
                 'fetchMarginMode' => 'emulated',
                 'fetchMarginModes' => true,
@@ -13434,5 +13436,104 @@ class binance extends Exchange {
         //
         $result = $this->parse_funding_rates($response, $market);
         return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches the long short ratio history for a unified $market $symbol
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+         * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+         * @param {string} [$timeframe] the period for the ratio, default is 24 hours
+         * @param {int} [$since] the earliest time in ms to fetch ratios for
+         * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if ($timeframe === null) {
+            $timeframe = '1d';
+        }
+        $request = array(
+            'period' => $timeframe,
+        );
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLongShortRatioHistory', $market, $params);
+        $response = null;
+        if ($subType === 'linear') {
+            $request['symbol'] = $market['id'];
+            $response = $this->fapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params));
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "BTCUSDT",
+            //             "longAccount" => "0.4558",
+            //             "longShortRatio" => "0.8376",
+            //             "shortAccount" => "0.5442",
+            //             "timestamp" => 1726790400000
+            //         ),
+            //     )
+            //
+        } elseif ($subType === 'inverse') {
+            $request['pair'] = $market['info']['pair'];
+            $response = $this->dapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params));
+            //
+            //     array(
+            //         array(
+            //             "longAccount" => "0.7262",
+            //             "longShortRatio" => "2.6523",
+            //             "shortAccount" => "0.2738",
+            //             "pair" => "BTCUSD",
+            //             "timestamp" => 1726790400000
+            //         ),
+            //     )
+            //
+        } else {
+            throw new BadRequest($this->id . ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
+        }
+        return $this->parse_long_short_ratio_history($response, $market);
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        //
+        // linear
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "longAccount" => "0.4558",
+        //         "longShortRatio" => "0.8376",
+        //         "shortAccount" => "0.5442",
+        //         "timestamp" => 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount" => "0.7262",
+        //         "longShortRatio" => "2.6523",
+        //         "shortAccount" => "0.2738",
+        //         "pair" => "BTCUSD",
+        //         "timestamp" => 1726790400000
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_omit_zero($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
+        );
     }
 }

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -106,6 +106,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -8663,6 +8665,77 @@ class bybit(Exchange, ImplicitAPI):
             'toAmount': self.safe_number(conversion, 'toAmount'),
             'price': None,
             'fee': None,
+        }
+
+    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio, default is 24 hours
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type = None
+        type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
+        if type == 'spot' or type == 'option':
+            raise NotSupported(self.id + ' fetchLongShortRatioHistory() only support linear and inverse markets')
+        if timeframe is None:
+            timeframe = '1d'
+        request: dict = {
+            'symbol': market['id'],
+            'period': timeframe,
+            'category': type,
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetV5MarketAccountRatio(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "buyRatio": "0.5707",
+        #                     "sellRatio": "0.4293",
+        #                     "timestamp": "1729123200000"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1729147842516
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        return self.parse_long_short_ratio_history(data, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "buyRatio": "0.5707",
+        #         "sellRatio": "0.4293",
+        #         "timestamp": "1729123200000"
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_omit_zero(info, 'timestamp')
+        longString = self.safe_string(info, 'buyRatio')
+        shortString = self.safe_string(info, 'sellRatio')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

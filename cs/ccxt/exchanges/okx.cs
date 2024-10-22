@@ -86,6 +86,8 @@ public partial class okx : Exchange
                 { "fetchLedgerEntry", null },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -225,6 +227,7 @@ public partial class okx : Exchange
                         { "rubik/stat/taker-volume", 4 },
                         { "rubik/stat/margin/loan-ratio", 4 },
                         { "rubik/stat/contracts/long-short-account-ratio", 4 },
+                        { "rubik/stat/contracts/long-short-account-ratio-contract", 4 },
                         { "rubik/stat/contracts/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume", 4 },
                         { "rubik/stat/option/open-interest-volume-ratio", 4 },
@@ -8973,5 +8976,87 @@ public partial class okx : Exchange
         object data = this.safeList(response, "data");
         object positions = this.parsePositions(data, symbols, parameters);
         return this.filterBySinceLimit(positions, since, limit);
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instId", getValue(market, "id") },
+        };
+        object until = this.safeString2(parameters, "until", "end");
+        parameters = this.omit(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["end"] = until;
+        }
+        if (isTrue(!isEqual(timeframe, null)))
+        {
+            ((IDictionary<string,object>)request)["period"] = timeframe;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["begin"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             ["1729323600000", "0.9398602814619824"],
+        //             ["1729323300000", "0.9398602814619824"],
+        //             ["1729323000000", "0.9398602814619824"],
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object entry = getValue(data, i);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "timestamp", this.safeString(entry, 0) },
+                { "longShortRatio", this.safeString(entry, 1) },
+            });
+        }
+        return this.parseLongShortRatioHistory(result, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        object timestamp = this.safeInteger(info, "timestamp");
+        object symbol = null;
+        if (isTrue(!isEqual(market, null)))
+        {
+            symbol = getValue(market, "symbol");
+        }
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.safeNumber(info, "longShortRatio") },
+        };
     }
 }
