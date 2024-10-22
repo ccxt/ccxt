@@ -60,6 +60,7 @@ class alpaca extends alpaca$1 {
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,

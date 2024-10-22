@@ -5116,13 +5116,7 @@ export default class htx extends Exchange {
         let cost = undefined;
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf('market') >= 0)) {
-            // for market orders amount is in quote currency, meaning it is the cost
-            if (side === 'sell') {
-                cost = this.safeString(order, 'field-cash-amount');
-            }
-            else {
-                cost = this.safeString(order, 'amount');
-            }
+            cost = this.safeString(order, 'field-cash-amount');
         }
         else {
             amount = this.safeString2(order, 'volume', 'amount');
