@@ -4769,7 +4769,7 @@ export default class coincatch extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
-    async fetchPosition (symbol: string, params = {}): Promise<Position> {
+    async fetchPosition (symbol: string, params = {}) {
         /**
          * @method
          * @name coincatch#fetchPosition
