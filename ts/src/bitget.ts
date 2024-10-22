@@ -8834,7 +8834,7 @@ export default class bitget extends Exchange {
         return this.parseFundingRate (first, market);
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name bitget#fetchLongShortRatioHistory
@@ -8842,7 +8842,7 @@ export default class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
          * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
          * @param {string} symbol unified symbol of the market to fetch the long short ratio for
-         * @param {string} [period] the period for the ratio
+         * @param {string} [timeframe] the period for the ratio
          * @param {int} [since] the earliest time in ms to fetch ratios for
          * @param {int} [limit] the maximum number of long short ratio structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8853,8 +8853,8 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        if (period !== undefined) {
-            request['period'] = period;
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
         }
         let response = undefined;
         if (market['swap'] || market['future']) {

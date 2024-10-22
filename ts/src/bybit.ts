@@ -9327,14 +9327,14 @@ export default class bybit extends Exchange {
         } as Conversion;
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name bybit#fetchLongShortRatioHistory
          * @description fetches the long short ratio history for a unified market symbol
          * @see https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
          * @param {string} symbol unified symbol of the market to fetch the long short ratio for
-         * @param {string} [period] the period for the ratio, default is 24 hours
+         * @param {string} [timeframe] the period for the ratio, default is 24 hours
          * @param {int} [since] the earliest time in ms to fetch ratios for
          * @param {int} [limit] the maximum number of long short ratio structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9347,12 +9347,12 @@ export default class bybit extends Exchange {
         if (type === 'spot' || type === 'option') {
             throw new NotSupported (this.id + ' fetchLongShortRatioHistory() only support linear and inverse markets');
         }
-        if (period === undefined) {
-            period = '1d';
+        if (timeframe === undefined) {
+            timeframe = '1d';
         }
         const request: Dict = {
             'symbol': market['id'],
-            'period': period,
+            'period': timeframe,
             'category': type,
         };
         if (limit !== undefined) {

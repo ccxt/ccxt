@@ -8513,14 +8513,14 @@ export default class okx extends Exchange {
         return this.filterBySinceLimit (positions, since, limit);
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         /**
          * @method
          * @name okx#fetchLongShortRatioHistory
          * @description fetches the long short ratio history for a unified market symbol
          * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
          * @param {string} symbol unified symbol of the market to fetch the long short ratio for
-         * @param {string} [period] the period for the ratio
+         * @param {string} [timeframe] the period for the ratio
          * @param {int} [since] the earliest time in ms to fetch ratios for
          * @param {int} [limit] the maximum number of long short ratio structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8537,8 +8537,8 @@ export default class okx extends Exchange {
         if (until !== undefined) {
             request['end'] = until;
         }
-        if (period !== undefined) {
-            request['period'] = period;
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
         }
         if (since !== undefined) {
             request['begin'] = since;
