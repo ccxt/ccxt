@@ -1259,7 +1259,7 @@ export default class kucoin extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies (params);
-                //
+        //
         //    {
         //        "code":"200000",
         //        "data":[
