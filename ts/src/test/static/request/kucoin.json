@@ -829,6 +829,20 @@
                 ],
                 "output": "{\"leverage\":\"4\",\"isIsolated\":false}"
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "with network code",
+                "method": "createDepositAddress",
+                "url": "https://api.kucoin.com/api/v3/deposit-address/create",
+                "input": [
+                  "ACH",
+                  {
+                    "networkCode": "ERC20"
+                  }
+                ],
+                "output": "{\"currency\":\"ACH\",\"chain\":\"eth\"}"
+            }
         ]
     }
 }
