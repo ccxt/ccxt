@@ -2611,11 +2611,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' setMargin() is not supported yet');
     }
 
-    async fetchLongShortRatio (symbol: string, period: Str = undefined, params = {}): Promise<LongShortRatio> {
+    async fetchLongShortRatio (symbol: string, timeframe: Str = undefined, params = {}): Promise<LongShortRatio> {
         throw new NotSupported (this.id + ' fetchLongShortRatio() is not supported yet');
     }
 
-    async fetchLongShortRatioHistory (symbol: Str = undefined, period: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
         throw new NotSupported (this.id + ' fetchLongShortRatioHistory() is not supported yet');
     }
 
