@@ -1294,7 +1294,7 @@ export default class kucoin extends Exchange {
         //              ]
         //           },
         //    }
-        // 
+        //
         const currenciesData = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
