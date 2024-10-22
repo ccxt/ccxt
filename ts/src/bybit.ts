@@ -1323,6 +1323,9 @@ export default class bybit extends Exchange {
     }
 
     getPrice (symbol: string, price: string) {
+        if (price === undefined) {
+            return price;
+        }
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         if (!emptyPrecisionPrice) {
