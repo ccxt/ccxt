@@ -313,10 +313,17 @@ public partial class gate : Exchange
                             { "interest_records", divide(20, 15) },
                             { "estimate_rate", divide(20, 15) },
                             { "currency_discount_tiers", divide(20, 15) },
+                            { "risk_units", divide(20, 15) },
+                            { "unified_mode", divide(20, 15) },
+                            { "loan_margin_tiers", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
+                            { "portfolio_calculator", divide(20, 15) },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "unified_mode", divide(20, 15) },
                         } },
                     } },
                     { "spot", new Dictionary<string, object>() {
@@ -616,6 +623,7 @@ public partial class gate : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
+                { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
@@ -804,6 +812,44 @@ public partial class gate : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
+    public async virtual Task loadUnifiedStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#isUnifiedEnabled
+        * @description returns unifiedAccount so the user can check if the unified account is enabled
+        * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+        * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+        */
+        parameters ??= new Dictionary<string, object>();
+        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        if (isTrue(isEqual(unifiedAccount, null)))
+        {
+            object response = await this.privateAccountGetDetail(parameters);
+            //
+            //     {
+            //         "user_id": 10406147,
+            //         "ip_whitelist": [],
+            //         "currency_pairs": [],
+            //         "key": {
+            //             "mode": 1
+            //         },
+            //         "tier": 0,
+            //         "tier_expire_time": "0001-01-01T00:00:00Z",
+            //         "copy_trading_role": 0
+            //     }
+            //
+            object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+        }
+    }
+
+    public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.privateUnifiedPutUnifiedMode(parameters);
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -1561,6 +1607,10 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(apiBackup, null)))
         {
             return null;
+        }
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            await this.loadUnifiedStatus();
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
@@ -2774,11 +2824,17 @@ public partial class gate : Exchange
         * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.symbol] margin only - unified ccxt symbol
+        * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, "symbol");
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
         var typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -2794,7 +2850,10 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
@@ -2969,6 +3028,57 @@ public partial class gate : Exchange
         //         "currency": "USDT",
         //         "short_enabled": false,
         //         "orders_limit": 10
+        //     }
+        //
+        // unified
+        //
+        //     {
+        //         "user_id": 10001,
+        //         "locked": false,
+        //         "balances": {
+        //             "ETH": {
+        //                 "available": "0",
+        //                 "freeze": "0",
+        //                 "borrowed": "0.075393666654",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "1016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "POINT": {
+        //                 "available": "9999999999.017023138734",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "12016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "USDT": {
+        //                 "available": "0.00000062023",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "16.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             }
+        //         },
+        //         "total": "230.94621713",
+        //         "borrowed": "161.66395521",
+        //         "total_initial_margin": "1025.0524665088",
+        //         "total_margin_balance": "3382495.944473949183",
+        //         "total_maintenance_margin": "205.01049330176",
+        //         "total_initial_margin_rate": "3299.827135672679",
+        //         "total_maintenance_margin_rate": "16499.135678363399",
+        //         "total_available_margin": "3381470.892007440383",
+        //         "unified_account_total": "3381470.892007440383",
+        //         "unified_account_total_liab": "0",
+        //         "unified_account_total_equity": "100016.1",
+        //         "leverage": "2"
         //     }
         //
         object result = new Dictionary<string, object>() {
