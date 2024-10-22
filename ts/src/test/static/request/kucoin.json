@@ -792,13 +792,34 @@
                 "input": []
             }
         ],
+        "fetchDepositAddresses": [
+            {
+                "description": "default",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kucoin.com/api/v3/deposit-addresses?currency=LTC",
+                "input": [
+                  "LTC"
+                ]
+            },
+            {
+                "description": "with networkCode",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kucoin.com/api/v3/deposit-addresses?currency=USDT&chain=eth",
+                "input": [
+                  "USDT",
+                  {
+                    "networkCode": "ERC20"
+                  }
+                ]
+            }
+        ],
         "fetchDepositAddressesByNetwork": [
             {
-                "description": "with common currency",
+                "description": "default",
                 "method": "fetchDepositAddressesByNetwork",
-                "url": "https://api.kucoin.com/api/v2/deposit-addresses?currency=KALT",
+                "url": "https://api.kucoin.com/api/v3/deposit-addresses?currency=LTC",
                 "input": [
-                  "ALT"
+                  "LTC"
                 ]
             }
         ],
