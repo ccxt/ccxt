@@ -633,7 +633,7 @@ export default class gate extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
-                'enableUnifiedAccount': undefined,
+                'unifiedAccount': undefined,
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
@@ -897,16 +897,16 @@ export default class gate extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async isUnifiedEnabled (params = {}) {
+    async loadUnifiedStatus (params = {}) {
         /**
          * @method
          * @name gate#isUnifiedEnabled
-         * @description returns enableUnifiedAccount so the user can check if the unified account is enabled
+         * @description returns unifiedAccount so the user can check if the unified account is enabled
          * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
-         * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the enableUnifiedAccount option if it is undefined
+         * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
          */
-        const enableUnifiedAccount = this.safeBool (this.options, 'enableUnifiedAccount');
-        if (enableUnifiedAccount === undefined) {
+        const unifiedAccount = this.safeBool (this.options, 'unifiedAccount');
+        if (unifiedAccount === undefined) {
             const response = await this.privateAccountGetDetail (params);
             //
             //     {
@@ -922,9 +922,8 @@ export default class gate extends Exchange {
             //     }
             //
             const result = this.safeDict (response, 'key', {});
-            this.options['enableUnifiedAccount'] = this.safeInteger (result, 'mode') === 2;
+            this.options['unifiedAccount'] = this.safeInteger (result, 'mode') === 2;
         }
-        return this.options['enableUnifiedAccount'];
     }
 
     async upgradeUnifiedTradeAccount (params = {}) {
@@ -1625,6 +1624,9 @@ export default class gate extends Exchange {
         const apiBackup = this.safeValue (this.urls, 'apiBackup');
         if (apiBackup !== undefined) {
             return undefined;
+        }
+        if (this.checkRequiredCredentials (false)) {
+            await this.loadUnifiedStatus ();
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
@@ -2735,11 +2737,11 @@ export default class gate extends Exchange {
          * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
          */
         await this.loadMarkets ();
+        await this.loadUnifiedStatus ();
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
         let isUnifiedAccount = false;
         [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'unifiedAccount');
-        const isUnifiedAccountEnabled = await this.isUnifiedEnabled ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const [ marginMode, requestQuery ] = this.getMarginMode (false, requestParams);
@@ -2748,7 +2750,7 @@ export default class gate extends Exchange {
             request['currency_pair'] = market['id'];
         }
         let response = undefined;
-        if (isUnifiedAccount || isUnifiedAccountEnabled) {
+        if (isUnifiedAccount) {
             response = await this.privateUnifiedGetAccounts (this.extend (request, params));
         } else if (type === 'spot') {
             if (marginMode === 'spot') {
