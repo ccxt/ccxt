@@ -13730,7 +13730,7 @@ export default class binance extends Exchange {
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'period': undefined,
+            'timeframe': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
         } as LongShortRatio;
     }

@@ -8902,7 +8902,7 @@ export default class bitget extends Exchange {
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'period': undefined,
+            'timeframe': undefined,
             'longShortRatio': this.safeNumber2 (info, 'longShortRatio', 'longShortAccountRatio'),
         } as LongShortRatio;
     }

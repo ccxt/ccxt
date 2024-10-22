@@ -538,7 +538,7 @@ class LongShortRatio:
     symbol: Str
     timestamp: Optional[Int]
     datetime: Optional[Str]
-    period: Optional[Str]
+    timeframe: Optional[Str]
     longShortRatio: float
 
 

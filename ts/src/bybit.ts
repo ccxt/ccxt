@@ -9400,7 +9400,7 @@ export default class bybit extends Exchange {
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'period': undefined,
+            'timeframe': undefined,
             'longShortRatio': this.parseToNumeric (Precise.stringDiv (longString, shortString)),
         } as LongShortRatio;
     }

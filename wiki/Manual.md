@@ -3490,7 +3490,7 @@ Returns
     symbol: 'BTC/USDT:USDT',
     timestamp: 1645833600000,
     datetime: '2022-02-26T00:00:00.000Z',
-    period: '24h',
+    timeframe: '24h',
     longShortRatio: 0.000072,
 }
 ```

@@ -561,7 +561,7 @@ export interface LongShortRatio {
     symbol: string,
     timestamp?: number,
     datetime?: string,
-    period?: string,
+    timeframe?: string,
     longShortRatio: number,
 }
 

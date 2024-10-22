@@ -1921,7 +1921,7 @@ public struct LongShortRatio
     public string? symbol;
     public Int64? timestamp;
     public string? datetime;
-    public string? period;
+    public string? timeframe;
     public double? longShortRatio;
 
     public LongShortRatio(object longShortRatio)
@@ -1930,7 +1930,7 @@ public struct LongShortRatio
         symbol = Exchange.SafeString(longShortRatio, "symbol");
         timestamp = Exchange.SafeInteger(longShortRatio, "timestamp");
         datetime = Exchange.SafeString(longShortRatio, "datetime");
-        period = Exchange.SafeString(longShortRatio, "period");
+        timeframe = Exchange.SafeString(longShortRatio, "timeframe");
         longShortRatio = Exchange.SafeFloat(longShortRatio, "longShortRatio");
     }
 }
