@@ -634,7 +634,7 @@ export default class kucoin extends Exchange {
                 'FUD': 'FTX Users\' Debt',
             },
             'options': {
-                'hf': true,
+                'hf': undefined, // would be auto set to `true/false` after first load
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1227,15 +1227,15 @@ export default class kucoin extends Exchange {
     }
 
     async loadMigrationStatus (force: boolean = false) {
-        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
+        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
             const result: Dict = await this.privateGetHfAccountsOpened ();
-            this.options['hfMigrated'] = this.safeBool (result, 'data');
+            this.options['hf'] = this.safeBool (result, 'data');
         }
     }
 
     async handleHfAndParams (params = {}) {
         await this.loadMigrationStatus ();
-        const migrated: Bool = this.safeBool2 (this.options, 'hfMigrated', 'hf', false);
+        const migrated: Bool = this.safeBool (this.options, 'hf', false);
         let loadedHf: Bool = undefined;
         if (migrated !== undefined) {
             if (migrated) {
