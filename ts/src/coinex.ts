@@ -5715,7 +5715,7 @@ export default class coinex extends Exchange {
          * @param {string} symbol unified CCXT market symbol
          * @param {string} [side] buy or sell, not used by coinex
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} params.type required by coinex, one of: limit, market, maker_only, ioc or fok
+         * @param {string} params.type required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
          * @param {string} [params.price] the price to fulfill the order, ignored in market orders
          * @param {string} [params.amount] the amount to trade in units of the base currency
          * @param {string} [params.clientOrderId] the client id of the order
@@ -5723,13 +5723,11 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = this.safeString (params, 'type');
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePosition() requires a type parameter');
-        }
+        const type = this.safeString (params, 'type', 'market');
         const request: Dict = {
             'market': market['id'],
             'market_type': 'FUTURES',
+            'type': type,
         };
         const clientOrderId = this.safeString2 (params, 'client_id', 'clientOrderId');
         if (clientOrderId !== undefined) {
