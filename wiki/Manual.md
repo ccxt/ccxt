@@ -5954,17 +5954,31 @@ Returns
 
 *margin only*
 
-To borrow and repay currency as a margin loan use `borrowMargin` and `repayMargin`.
+To borrow and repay currency as a margin loan use `borrowCrossMargin`, `borrowIsolatedMargin`, `repayCrossMargin` and `repayIsolatedMargin`.
 
 ```javascript
-borrowMargin (code, amount, symbol = undefined, params = {})
-repayMargin (code, amount, symbol = undefined, params = {})
+borrowCrossMargin (code, amount, params = {})
+repayCrossMargin (code, amount, params = {})
 ```
 Parameters
 
 - **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
 - **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
-- **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
+
+Returns
+
+- A [margin loan structure](#margin-loan-structure)
+
+```javascript
+borrowIsolatedMargin (symbol, code, amount, params = {})
+repayIsolatedMargin (symbol, code, amount, params = {})
+```
+Parameters
+
+- **symbol** (String) *required* The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
 
 Returns

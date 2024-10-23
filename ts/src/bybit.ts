@@ -7630,13 +7630,13 @@ export default class bybit extends Exchange {
 
     parseMarginLoan (info, currency: Currency = undefined) {
         //
-        // borrowMargin
+        // borrowCrossMargin
         //
         //     {
         //         "transactId": "14143"
         //     }
         //
-        // repayMargin
+        // repayCrossMargin
         //
         //     {
         //         "repayId": "12128"
