@@ -88,6 +88,10 @@ export default class ace extends Exchange {
                 'transfer': false,
                 'withdraw': false,
                 'ws': false,
+                'fetchGreeks': false,
+                'fetchOption': false,
+                'fetchOptionChain': false,
+                'fetchVolatilityHistory': false,
             },
             'timeframes': {
                 '1m': 1,

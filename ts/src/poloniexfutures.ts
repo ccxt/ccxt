@@ -42,6 +42,7 @@ export default class poloniexfutures extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchL3OrderBook': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
