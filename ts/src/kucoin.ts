@@ -1293,6 +1293,7 @@ export default class kucoin extends Exchange {
         //                 }
         //              ]
         //           },
+        //        ]
         //    }
         //
         const currenciesData = this.safeList (response, 'data', []);
