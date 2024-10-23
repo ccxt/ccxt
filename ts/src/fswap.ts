@@ -1153,7 +1153,9 @@ export default class fswap extends Exchange {
     async getSafeTx (asset_id: string, amount: string, memo: string) {
         const members = [ this.options.MTGMember0, this.options.MTGMember1, this.options.MTGMember2, this.options.MTGMember3, this.options.MTGMember4, this.options.MTGMember5 ];
         const recipients = [ this.mixinBuildSafeTransactionRecipient (members, this.options.MTGThrehold, amount) ];
-        const resp = await this.mixinPrivateGetSafeOutputs ();
+        const resp = await this.mixinPrivateGetSafeOutputs ({
+            'asset_id': asset_id,
+        });
         const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
@@ -1192,8 +1194,6 @@ export default class fswap extends Exchange {
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order> {
         await this.loadMarkets ();
-        // 0. Convert params to 4swap compatible params
-        // 0.1 Determin payAssetId and fillAssetId based on symbol and side
         const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
         console.log (baseSymbol, quoteSymbol);
         let payAssetId = '';
@@ -1213,7 +1213,6 @@ export default class fswap extends Exchange {
             throw new Error ('Unable to find asset id for fillAsset');
         }
         console.log ('payAssetId:', payAssetId, 'fillAssetId:', fillAssetId);
-        // 1. Pre order and get memo
         const followID = this.uuid ();
         const preOrderResp = await this.ccxtProxyPost4swapPreorder (this.extend ({
             'payAssetId': payAssetId,
@@ -1224,43 +1223,39 @@ export default class fswap extends Exchange {
         console.log ('preOrderResp:', preOrderResp);
         const memo = this.safeString (preOrderResp, 'memo');
         console.log ('memo:', memo);
-        // 3. Init safe tx
         const resp = await this.safeTransfer (payAssetId, amount.toString (), memo);
         console.log ('safeTransfer:', resp);
         return resp;
     }
 
     async deposit (symbol: string, amount: number) {
-        const asset_id = this.mapSymbolToAssetId (symbol);
-        const resp = await this.safeTransfer (asset_id, amount.toString (), '');
+        // const asset_id = this.mapSymbolToAssetId (symbol);
+        // const resp = await this.safeTransfer (asset_id, amount.toString (), '');
         // Placeholder for deposit logic
-        return resp;
+        // return resp;
     }
 
     sign (path, api = 'fswapPublic', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        //
-        // @method
-        // @name fswap#sign
-        // @description signs the request using the exchange credentials
-        // @param {string} path the endpoint path
-        // @param {string} [api] the API type ('public' or 'private')
-        // @param {string} [method] the HTTP method (default is 'GET')
-        // @param {object} [params] extra parameters specific to the exchange API endpoint
-        // @param {object} [headers] additional headers for the request
-        // @param {string} [body] the body of the request
-        // @returns {object} an object containing the signed request data (url, method, body, headers)
-        //
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
-            this.checkRequiredCredentials ();
+        const isPrivate = api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy';
+        if (isPrivate) {
             const requestID = this.uuid ();
             let actualPath = '/' + path;
             let signMethod = method;
             let signParams = params;
-            if (api === 'fswapPrivate' || api === 'ccxtProxy') {
-                signMethod = 'GET';
-                actualPath = '/me';
+            this.checkRequiredCredentials ();
+            if (method === 'GET') {
+                url += '?' + this.urlencode (params);
+                actualPath = actualPath + '?' + this.urlencode (params);
                 signParams = '';
+            } else {
+                if (api === 'fswapPrivate' || api === 'ccxtProxy') {
+                    signMethod = 'GET';
+                    actualPath = '/me';
+                    signParams = '';
+                } else {
+                    body = this.json (params);
+                }
             }
             const jwtToken = this.signAuthenticationToken (signMethod, actualPath, signParams, requestID);
             headers = {
@@ -1268,11 +1263,6 @@ export default class fswap extends Exchange {
                 'Authorization': 'Bearer ' + jwtToken,
                 'X-Request-Id': requestID,
             };
-            if (method === 'GET') {
-                url += '?' + this.urlencode (params);
-            } else {
-                body = this.json (params);
-            }
         } else {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
