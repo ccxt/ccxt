@@ -7087,13 +7087,13 @@ class bybit(Exchange, ImplicitAPI):
 
     def parse_margin_loan(self, info, currency: Currency = None):
         #
-        # borrowMargin
+        # borrowCrossMargin
         #
         #     {
         #         "transactId": "14143"
         #     }
         #
-        # repayMargin
+        # repayCrossMargin
         #
         #     {
         #         "repayId": "12128"

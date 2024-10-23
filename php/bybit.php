@@ -7510,13 +7510,13 @@ class bybit extends Exchange {
 
     public function parse_margin_loan($info, ?array $currency = null) {
         //
-        // borrowMargin
+        // borrowCrossMargin
         //
         //     {
         //         "transactId" => "14143"
         //     }
         //
-        // repayMargin
+        // repayCrossMargin
         //
         //     {
         //         "repayId" => "12128"

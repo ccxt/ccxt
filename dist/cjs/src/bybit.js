@@ -7644,13 +7644,13 @@ class bybit extends bybit$1 {
     }
     parseMarginLoan(info, currency = undefined) {
         //
-        // borrowMargin
+        // borrowCrossMargin
         //
         //     {
         //         "transactId": "14143"
         //     }
         //
-        // repayMargin
+        // repayCrossMargin
         //
         //     {
         //         "repayId": "12128"

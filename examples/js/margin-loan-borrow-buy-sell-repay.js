@@ -41,7 +41,7 @@ async function example() {
         }
         // now, as we have enough margin collateral, initiate borrow
         console.log('Initiating margin borrow of ', needed_amount_to_borrow, ' ', borrow_coin);
-        const borrowResult = await exchange.borrowIsolatedMargin(symbol, borrow_coin, needed_amount_to_borrow);
+        const borrowResult = await exchange.borrowMargin(borrow_coin, needed_amount_to_borrow, symbol, { 'marginMode': marginMode });
     }
     console.log('Submitting order.');
     const order = await exchange.createOrder(symbol, order_type, order_side, amount_to_trade, limit_price, { 'marginMode': marginMode });
@@ -63,7 +63,7 @@ async function example() {
         const purchase_back_price = 1.01;
         const order_back = await exchange.createOrder(symbol, order_type, (order_side === 'buy' ? 'sell' : 'buy'), amount_to_repay_back, purchase_back_price, { 'marginMode': marginMode });
         console.log('Now, repaying the loan.');
-        const repayResult = await exchange.repayIsolatedMargin(symbol, borrow_coin, amount_to_repay_back);
+        const repayResult = await exchange.repayMargin(borrow_coin, amount_to_repay_back, symbol, { 'marginMode': marginMode });
         console.log('finished.');
     }
 }
