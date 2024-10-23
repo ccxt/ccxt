@@ -52,6 +52,7 @@ export default class okcoin extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRates': false,
                 'fetchFundingRateHistory': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,

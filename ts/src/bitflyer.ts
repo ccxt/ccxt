@@ -37,6 +37,7 @@ export default class bitflyer extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
+                'fetchFundingRates': false,
                 'fetchFundingRateHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
