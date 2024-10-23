@@ -1257,7 +1257,7 @@ export default class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://docs.kucoin.com/#get-currencies
+         * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-currency-list
          * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
