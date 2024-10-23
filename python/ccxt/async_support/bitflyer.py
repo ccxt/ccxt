@@ -41,6 +41,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

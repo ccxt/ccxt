@@ -290,6 +290,7 @@ export default class kucoin extends Exchange {
                         // ws
                         'bullet-private': 10, // 10SW
                         'position/update-user-leverage': 5,
+                        'deposit-address/create': 20,
                     },
                     'delete': {
                         // account
@@ -709,6 +710,7 @@ export default class kucoin extends Exchange {
                             'accounts/sub-transfer': 'v2',
                             'accounts/inner-transfer': 'v2',
                             'transfer-out': 'v3',
+                            'deposit-address/create': 'v3',
                             // spot trading
                             'oco/order': 'v3',
                             // margin trading
@@ -1913,7 +1915,7 @@ export default class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#createDepositAddress
-         * @see https://docs.kucoin.com/#create-deposit-address
+         * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1928,12 +1930,24 @@ export default class kucoin extends Exchange {
         let networkCode = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (networkCode).toLowerCase ();
+            request['chain'] = this.networkCodeToId (networkCode); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
         }
-        const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        const response = await this.privatePostDepositAddressCreate (this.extend (request, params));
         // {"code":"260000","msg":"Deposit address already exists."}
-        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
-        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        //
+        //   {
+        //     "code": "200000",
+        //     "data": {
+        //       "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+        //       "memo": null,
+        //       "chainId": "bsc",
+        //       "to": "MAIN",
+        //       "expirationDate": 0,
+        //       "currency": "BNB",
+        //       "chainName": "BEP20"
+        //     }
+        //   }
+        //
         const data = this.safeDict (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
@@ -1992,7 +2006,7 @@ export default class kucoin extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
-            'network': this.networkIdToCode (this.safeString (depositAddress, 'chain')),
+            'network': this.networkIdToCode (this.safeString (depositAddress, 'chainId')),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
         } as DepositAddress;

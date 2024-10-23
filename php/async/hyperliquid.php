@@ -2269,15 +2269,17 @@ class hyperliquid extends Exchange {
         $leverage = $this->safe_dict($entry, 'leverage', array());
         $marginMode = $this->safe_string($leverage, 'type');
         $isIsolated = ($marginMode === 'isolated');
-        $size = $this->safe_string($entry, 'szi');
+        $rawSize = $this->safe_string($entry, 'szi');
+        $size = $rawSize;
         $side = null;
         if ($size !== null) {
-            $side = Precise::string_gt($size, '0') ? 'long' : 'short';
+            $side = Precise::string_gt($rawSize, '0') ? 'long' : 'short';
             $size = Precise::string_abs($size);
         }
-        $unrealizedPnl = $this->safe_number($entry, 'unrealizedPnl');
-        $initialMargin = $this->safe_number($entry, 'marginUsed');
-        $percentage = $unrealizedPnl / $initialMargin * 100;
+        $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
+        $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
+        $initialMargin = $this->safe_string($entry, 'marginUsed');
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2287,7 +2289,7 @@ class hyperliquid extends Exchange {
             'isolated' => $isIsolated,
             'hedged' => null,
             'side' => $side,
-            'contracts' => $size,
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
             'markPrice' => null,
@@ -2298,10 +2300,10 @@ class hyperliquid extends Exchange {
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
-            'unrealizedPnl' => $unrealizedPnl,
+            'unrealizedPnl' => $this->parse_number($rawUnrealizedPnl),
             'liquidationPrice' => $this->safe_number($entry, 'liquidationPx'),
             'marginMode' => $marginMode,
-            'percentage' => $percentage,
+            'percentage' => $this->parse_number($percentage),
         ));
     }
 

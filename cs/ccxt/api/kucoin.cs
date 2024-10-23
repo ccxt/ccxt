@@ -621,6 +621,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privatePostPositionUpdateUserLeverage",parameters);
     }
 
+    public async Task<object> privatePostDepositAddressCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddressCreate",parameters);
+    }
+
     public async Task<object> privateDeleteSubApiKey (object parameters = null)
     {
         return await this.callAsync ("privateDeleteSubApiKey",parameters);

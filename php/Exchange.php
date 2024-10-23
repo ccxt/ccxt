@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.21';
+$version = '4.4.23';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.21';
+    const VERSION = '4.4.23';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -375,6 +375,7 @@ class Exchange {
         'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
+        'coincatch',
         'coincheck',
         'coinex',
         'coinlist',

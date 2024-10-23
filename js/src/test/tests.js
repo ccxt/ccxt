@@ -1381,7 +1381,8 @@ class testMainClass {
             this.testXT(),
             this.testVertex(),
             this.testParadex(),
-            this.testHashkey()
+            this.testHashkey(),
+            this.testCoincatch()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1897,6 +1898,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testCoincatch() {
+        const exchange = this.initOfflineExchange('coincatch');
+        let reqHeaders = undefined;
+        const id = "47cfy";
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }
