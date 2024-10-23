@@ -808,7 +808,7 @@
                 "input": [
                   "USDT",
                   {
-                    "networkCode": "ERC20"
+                    "network": "ERC20"
                   }
                 ]
             }
