@@ -695,6 +695,50 @@
                 }
             }
         ],
+        "withdraw": [
+            {
+                "description": "with networkCode",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  3,
+                  "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  {
+                    "network": "OP"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "withdrawalId": "6717ed803a3595000738e671"
+                  },
+                  "id": "6717ed803a3595000738e671",
+                  "timestamp": null,
+                  "datetime": null,
+                  "network": null,
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "currency": "USDT",
+                  "amount": null,
+                  "txid": null,
+                  "type": "deposit",
+                  "status": null,
+                  "comment": null,
+                  "internal": null,
+                  "fee": null,
+                  "updated": null
+                }
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetch balance",
@@ -1096,18 +1140,6 @@
                 }
             }
         ],
-<<<<<<< HEAD
-        "withdraw": [
-            {
-                "description": "with networkCode",
-                "method": "withdraw",
-                "input": [
-                  "USDT",
-                  3,
-                  "0x62d35481cb74fa959aec61d33a5d4507a1234567",
-                  {
-                    "network": "OP"
-=======
         "createDepositAddress":[
             {
                 "description": "with network",
@@ -1116,15 +1148,11 @@
                   "BNB",
                   {
                     "networkCode": "BEP20"
->>>>>>> 286038309501c7f3e61adfce98cf66633ad9b7ef
                   }
                 ],
                 "httpResponse": {
                   "code": "200000",
                   "data": {
-<<<<<<< HEAD
-                    "withdrawalId": "6717ed803a3595000738e671"
-=======
                     "address": "0x2336d1834faab10b2dac44e468f2627138417431",
                     "memo": null,
                     "chainId": "bsc",
@@ -1132,34 +1160,10 @@
                     "expirationDate": 0,
                     "currency": "BNB",
                     "chainName": "BEP20"
->>>>>>> 286038309501c7f3e61adfce98cf66633ad9b7ef
                   }
                 },
                 "parsedResponse": {
                   "info": {
-<<<<<<< HEAD
-                    "withdrawalId": "6717ed803a3595000738e671"
-                  },
-                  "id": "6717ed803a3595000738e671",
-                  "timestamp": null,
-                  "datetime": null,
-                  "network": null,
-                  "address": null,
-                  "addressTo": null,
-                  "addressFrom": null,
-                  "tag": null,
-                  "tagTo": null,
-                  "tagFrom": null,
-                  "currency": "USDT",
-                  "amount": null,
-                  "txid": null,
-                  "type": "deposit",
-                  "status": null,
-                  "comment": null,
-                  "internal": null,
-                  "fee": null,
-                  "updated": null
-=======
                     "address": "0x2336d1834faab10b2dac44e468f2627138417431",
                     "memo": null,
                     "chainId": "bsc",
@@ -1172,7 +1176,6 @@
                   "network": "BEP20",
                   "address": "0x2336d1834faab10b2dac44e468f2627138417431",
                   "tag": null
->>>>>>> 286038309501c7f3e61adfce98cf66633ad9b7ef
                 }
             }
         ]
