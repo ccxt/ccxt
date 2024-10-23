@@ -1772,5 +1772,17 @@
                 "side": "not provided"
             }
         }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+		"loadMarkets": {
+                "active":"not provided",
+                "precision": "not provided",
+                "limits": "not provided"
+            }
+        }
     }
 }
