@@ -21,6 +21,7 @@ interface Exchange {
     fswapPrivateGetOrdersFollowId (params?: {}): Promise<implicitReturnType>;
     fswapPrivateGetTransactionsBaseQuoteMine (params?: {}): Promise<implicitReturnType>;
     fswapPrivatePostActions (params?: {}): Promise<implicitReturnType>;
+    mixinPrivateGetSafeOutputs (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeSnapshots (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeDepositEntries (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeKeys (params?: {}): Promise<implicitReturnType>;

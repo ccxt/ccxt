@@ -169,9 +169,7 @@ import {SecureRandom} from "../static_dependencies/jsencrypt/lib/jsbn/rng.js";
 import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static_dependencies/scure-starknet/index.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
-import { buildMixAddress } from '../static_dependencies/mixin-node-sdk/client/utils/address.js'
 import { buildSafeTransaction, buildSafeTransactionRecipient, encodeSafeTransaction, getUnspentOutputsForRecipients, signSafeTransaction } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
-import { signAuthenticationToken } from '../static_dependencies/mixin-node-sdk/client/utils/auth.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1550,10 +1548,6 @@ export default class Exchange {
 
     mixinEncodeSafeTransaction(tx) {
         return encodeSafeTransaction(tx);
-    }
-
-    mixinSignAuthenticationToken(methodRaw, uri, params, requestID, keystore) {
-        return signAuthenticationToken(methodRaw, uri, params, requestID, keystore);
     }
 
     mixinSignSafeTransaction(raw, views, privateKey, index = 0) {

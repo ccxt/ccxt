@@ -3,7 +3,11 @@
 import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
+import { eddsa } from './base/functions.js';
 import { Balances, Currencies, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { base64 } from './static_dependencies/scure-base/index.js';
 //  ---------------------------------------------------------------------------
 
 //
@@ -44,7 +48,7 @@ export default class fswap extends Exchange {
                     'fswapPrivate': 'https://api.4swap.org/api',
                     'mixinPublic': 'https://api.mixin.one',
                     'mixinPrivate': 'https://api.mixin.one',
-                    'ccxtProxy': 'http://127.0.0.1:8080',
+                    'ccxtProxy': 'https://4swap-ccxt-proxy-production.up.railway.app',
                 },
                 'doc': 'https://developers.pando.im/references/4swap/api.html',
             },
@@ -77,6 +81,7 @@ export default class fswap extends Exchange {
                 },
                 'mixinPrivate': {
                     'get': {
+                        'safe/outputs': 1,
                         'safe/snapshots': 1,
                         'safe/deposit/entries': 1,
                     },
@@ -134,33 +139,13 @@ export default class fswap extends Exchange {
                 },
             },
             'options': {
-                // Fswap
-                'ProtocolVersion': 2,
-                'ActionAdd': 1,
-                'ActionRemove': 2,
-                'ActionSwap': 3,
-                'FswapAppId': '05c5ac01-31f9-4a69-aa8a-ab796de1d041',
-                'MTGMember0': 'a753e0eb-3010-4c4a-a7b2-a7bda4063f62',
-                'MTGMember1': '099627f8-4031-42e3-a846-006ee598c56e',
-                'MTGMember2': 'aefbfd62-727d-4424-89db-ae41f75d2e04',
-                'MTGMember3': 'd68ca71f-0e2c-458a-bb9c-1d6c2eed2497',
-                'MTGMember4': 'e4bc0740-f8fe-418c-ae1b-32d9926f5863',
-                'MTGThrehold': 3,
-                'MaxRouteDepth': 4,
-                'METHOD_UNI': 'uni',
-                'METHOD_CURVE': 'curve',
-                'CURVE_N_COINS': 2,
-                'CURVE_A': 200, // Curve Amplification Coefficient
-                'ONE': 1,
-                'TWO': 2,
-                // Mixin
-                'MainAddressPrefix': 'XIN',
-                'MixAddressPrefix': 'MIX',
-                'MixAddressVersion': 2,
-                'TxVersionHashSignature': 0x05,
-                'OutputTypeScript': 0x00,
-                'OutputTypeWithdrawalSubmit': 0xa1,
-                'Precision': 8,
+                'MTGMember0': '44a80608-8512-45e8-8797-e75d801f413d',
+                'MTGMember1': '75a8bf37-0134-47b8-9996-a0c6b44b8800',
+                'MTGMember2': 'ada07525-558f-494b-a2db-4f5ce53c41a6',
+                'MTGMember3': 'bae087a9-6762-45cc-8f84-ffa9a4985656',
+                'MTGMember4': 'd469485e-5812-466d-a156-93bee313b6a1',
+                'MTGMember5': 'd68ca71f-0e2c-458a-bb9c-1d6c2eed2497',
+                'MTGThrehold': 4,
                 'AssetMap': {
                     'c94ac88f-4671-3976-b60a-09064f1811e8': 'XIN',
                     'f5ef6b5d-cc5a-3d90-b2c0-a2fd386e7a3c': 'BOX',
@@ -915,9 +900,9 @@ export default class fswap extends Exchange {
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @returns {object} a balance structure
         //
-        const response = await this.mixinPrivateGetSafeSnapshots (params);
+        const response = await this.mixinPrivateGetSafeOutputs (params);
         const outputs = this.safeValue (response, 'data', {});
-        return (outputs);
+        return this.parseBalance (outputs);
     }
 
     parseBalance (outputs: Dict): Balances {
@@ -974,8 +959,8 @@ export default class fswap extends Exchange {
                     'total': 0,
                 };
             }
-            result[symbol].free = Precise.stringAdd (result[symbol].free, amount);
-            result[symbol].total = Precise.stringAdd (result[symbol].total, amount);
+            result[symbol].free = Precise.stringAdd (String (result[symbol].free), amount);
+            result[symbol].total = Precise.stringAdd (String (result[symbol].total), amount);
         }
         return this.safeBalance (result);
     }
@@ -1155,22 +1140,21 @@ export default class fswap extends Exchange {
     }
 
     async sendSafeTx (signedRaw: string, request_id: string) {
-        const resp = await this.mixinPrivatePostSafeTransactions ({
+        const resp = await this.mixinPrivatePostSafeTransactions ([ {
             'raw': signedRaw,
             'request_id': request_id,
-        });
+        } ]);
+        console.log ('sendSafeTx resp:', resp);
         const sendedTx = this.safeValue (resp, 'data', {});
+        console.log ('sendSafeTx sendedTx:', sendedTx);
         return sendedTx;
     }
 
-    async getSafeTx (asset_id: string, amount: string, memo: string): Promise<string> {
-        const members = [ this.options.MTGMember0, this.options.MTGMember1, this.options.MTGMember2, this.options.MTGMember3, this.options.MTGMember4 ];
+    async getSafeTx (asset_id: string, amount: string, memo: string) {
+        const members = [ this.options.MTGMember0, this.options.MTGMember1, this.options.MTGMember2, this.options.MTGMember3, this.options.MTGMember4, this.options.MTGMember5 ];
         const recipients = [ this.mixinBuildSafeTransactionRecipient (members, this.options.MTGThrehold, amount) ];
-        const resp = await this.mixinPrivateGetSafeSnapshots ({
-            'asset': asset_id,
-            'state': 'unspent',
-        });
-        const outputs = this.safeValue (resp, 'data', []);
+        const resp = await this.mixinPrivateGetSafeOutputs ();
+        const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
             recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
@@ -1185,21 +1169,24 @@ export default class fswap extends Exchange {
                 'index': i,
             });
         }
-        const ghosts = await this.mixinPrivatePostSafeKeys (recipientDetails);
-        console.log ('utxos', utxos);
-        console.log ('ghosts', ghosts);
+        const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
+        const ghosts = this.safeValue (ghostsResp, 'data', {});
         const tx = this.mixinBuildSafeTransaction (utxos, recipients, ghosts, memo);
-        console.log ('tx', tx);
         const encodedTx = this.mixinEncodeSafeTransaction (tx);
-        return encodedTx;
+        return { encodedTx, tx };
     }
 
     async safeTransfer (asset_id: string, amount: string, memo: string) {
-        const raw = await this.getSafeTx (asset_id, amount, memo);
-        const { verifiedTx, request_id } = await this.verifySafeTx (raw);
+        const { encodedTx, tx } = await this.getSafeTx (asset_id, amount, memo);
+        console.log ('safeTransfer raw:', encodedTx);
+        const { verifiedTx, request_id } = await this.verifySafeTx (encodedTx);
+        console.log ('verifiedTx:', verifiedTx);
         const views = this.safeValue (verifiedTx[0], 'views');
-        const signedTx = await this.mixinSignSafeTransaction (verifiedTx, views, this.privateKey);
-        const resp = this.sendSafeTx (signedTx, request_id);
+        console.log ('views:', views);
+        const signedTx = this.mixinSignSafeTransaction (tx, views, this.privateKey);
+        console.log ('signedTx:', signedTx);
+        const resp = await this.sendSafeTx (signedTx, request_id);
+        console.log ('resp:', resp);
         return resp;
     }
 
@@ -1207,18 +1194,17 @@ export default class fswap extends Exchange {
         await this.loadMarkets ();
         // 0. Convert params to 4swap compatible params
         // 0.1 Determin payAssetId and fillAssetId based on symbol and side
-        let [ baseSymbol, quoteSymbol ] = symbol.split ('/');
-        baseSymbol = baseSymbol.toUpperCase ();
-        quoteSymbol = quoteSymbol.toUpperCase ();
+        const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
+        console.log (baseSymbol, quoteSymbol);
         let payAssetId = '';
         let fillAssetId = '';
         if (side === 'buy') {
-            payAssetId = this.mapSymbolToAssetId (baseSymbol);
-            fillAssetId = this.mapSymbolToAssetId (quoteSymbol);
-        }
-        if (side === 'sell') {
             payAssetId = this.mapSymbolToAssetId (quoteSymbol);
             fillAssetId = this.mapSymbolToAssetId (baseSymbol);
+        }
+        if (side === 'sell') {
+            payAssetId = this.mapSymbolToAssetId (baseSymbol);
+            fillAssetId = this.mapSymbolToAssetId (quoteSymbol);
         }
         if (!payAssetId) {
             throw new Error ('Unable to find asset id for payAsset');
@@ -1226,14 +1212,15 @@ export default class fswap extends Exchange {
         if (!fillAssetId) {
             throw new Error ('Unable to find asset id for fillAsset');
         }
+        console.log ('payAssetId:', payAssetId, 'fillAssetId:', fillAssetId);
         // 1. Pre order and get memo
         const followID = this.uuid ();
-        const preOrderResp = this.ccxtProxyPost4swapPreorder ({
-            payAssetId,
-            fillAssetId,
+        const preOrderResp = await this.ccxtProxyPost4swapPreorder (this.extend ({
+            'payAssetId': payAssetId,
+            'fillAssetId': fillAssetId,
             'payAmount': amount.toString (),
-            followID,
-        });
+            'followID': followID,
+        }, params));
         console.log ('preOrderResp:', preOrderResp);
         const memo = this.safeString (preOrderResp, 'memo');
         console.log ('memo:', memo);
@@ -1268,30 +1255,19 @@ export default class fswap extends Exchange {
             this.checkRequiredCredentials ();
             const requestID = this.uuid ();
             let actualPath = '/' + path;
+            let signMethod = method;
+            let signParams = params;
             if (api === 'fswapPrivate' || api === 'ccxtProxy') {
+                signMethod = 'GET';
                 actualPath = '/me';
+                signParams = '';
             }
-            console.log ('actualPath:', actualPath);
-            console.log ('method:', method);
-            console.log ('params:', params);
-            console.log ('requestID:', requestID);
-            console.log ('app_id:', this.uid);
-            console.log ('session_id:', this.login);
-            console.log ('server_public_key:', this.apiKey);
-            console.log ('session_private_key:', this.password);
-            const jwtToken = this.mixinSignAuthenticationToken (method, actualPath, params, requestID, {
-                'app_id': this.uid,
-                'session_id': this.login,
-                'server_public_key': this.apiKey,
-                'session_private_key': this.password,
-            });
-            console.log ('jwtToken:', jwtToken);
+            const jwtToken = this.signAuthenticationToken (signMethod, actualPath, signParams, requestID);
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwtToken,
                 'X-Request-Id': requestID,
             };
-            console.log ('headers:', headers);
             if (method === 'GET') {
                 url += '?' + this.urlencode (params);
             } else {
@@ -1303,5 +1279,60 @@ export default class fswap extends Exchange {
             }
         }
         return { url, method, body, headers };
+    }
+
+    base64RawURLEncode (raw: Buffer | Uint8Array | string): string {
+        let buf = raw;
+        if (typeof raw === 'string') {
+            buf = Buffer.from (raw);
+        } else if (raw instanceof Uint8Array) {
+            buf = Buffer.from (raw);
+        }
+        if (buf.length === 0) {
+            return '';
+        }
+        return buf.toString ('base64').replace (/=+$/, '').replace (/\+/g, '-').replace (/\//g, '_');
+    }
+
+    signToken (payload: Object, private_key: string): string {
+        const header = this.base64RawURLEncode (this.json ({ 'alg': 'EdDSA', 'typ': 'JWT' }));
+        const payloadStr = this.base64RawURLEncode (this.json (payload));
+        const message = header + '.' + payloadStr;
+        const privateKey = Buffer.from (private_key, 'hex');
+        const signData = eddsa (this.encode (message), privateKey, ed25519);
+        const sign = this.base64RawURLEncode (base64.decode (signData));
+        return header + '.' + payloadStr + '.' + sign;
+    }
+
+    signAuthenticationToken (methodRaw: string, uri: string, params = {}, requestID: string = '') {
+        const app_id = this.uid;
+        const session_id = this.login;
+        const session_private_key = this.password;
+        let method = 'GET';
+        if (methodRaw) {
+            method = methodRaw.toUpperCase ();
+        }
+        let data = '';
+        if (typeof params === 'object') {
+            data = this.json (params);
+        } else if (typeof params === 'string') {
+            data = params;
+        }
+        if (data === '{}') {
+            data = '';
+        }
+        const iat = Math.floor (Date.now () / 1000);
+        const exp = iat + 3600;
+        const sig = this.hash (new TextEncoder ().encode (method + uri + data), sha256, 'hex');
+        const payload = {
+            'uid': app_id,
+            'sid': session_id,
+            'iat': iat,
+            'exp': exp,
+            'jti': requestID,
+            'sig': sig,
+            'scp': 'FULL',
+        };
+        return this.signToken (payload, session_private_key);
     }
 }
