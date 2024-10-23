@@ -1137,6 +1137,7 @@
         ],
         "fetchCurrencies": [
             {
+                "disabledCS": true,
                 "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
