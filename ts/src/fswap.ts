@@ -4,7 +4,7 @@ import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { eddsa } from './base/functions.js';
-import { Balances, Currencies, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade } from './base/types.js';
+import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { base64 } from './static_dependencies/scure-base/index.js';
@@ -28,18 +28,20 @@ export default class fswap extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'cancelOrder': false,
                 'createOrder': true,
+                'cancelOrder': false,
                 'deposit': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': false,
-                'fetchMarkets': true,
-                'fetchOpenOrders': false,
+                'withdraw': true,
                 'fetchOrder': true,
-                'fetchOrderBook': false,
                 'fetchTicker': true,
                 'fetchTrades': true,
-                'withdraw': true,
+                'fetchBalance': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOrderBook': false,
+                'fetchOpenOrders': false,
+                'fetchClosedOrders': false,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://mixin-images.zeromesh.net/A2jrSrBJzt0QA4uxeLVlgt67uaXKt8NvBhGzNeLOxxZfwRMz2FjlcMfmM5ZFoXXiynj_6vzsxZiLVloxW478pIdBnLWBJJ8SJu8y=s256',
@@ -901,6 +903,7 @@ export default class fswap extends Exchange {
         // @returns {object} a balance structure
         //
         const response = await this.mixinPrivateGetSafeOutputs (params);
+        console.log ('fetchBalance response:', response);
         const outputs = this.safeValue (response, 'data', {});
         return this.parseBalance (outputs);
     }
@@ -1082,21 +1085,22 @@ export default class fswap extends Exchange {
         return paySymbol + '/' + fillSymbol;
     }
 
+    // Only return the trades for add/remove liquidity
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        // Prepare request parameters
+        const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
+        const baseId = this.mapSymbolToAssetId (baseSymbol);
+        const quoteId = this.mapSymbolToAssetId (quoteSymbol);
         const request = {
-            'base': market['baseId'],
-            'quote': market['quoteId'],
+            'base': baseId,
+            'quote': quoteId,
             'limit': limit,
         };
         // Fetch the trades
         const response = await this.fswapPrivateGetTransactionsBaseQuoteMine (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'transactions', []);
-        const result = this.parseTrades (trades, market, since, limit);
-        return result;
+        // const trades = this.safeValue (data, 'transactions', []);
+        // const result = this.parseTrades (trades, symbol, since, limit);
+        return data;
     }
 
     parseTrade (trade: any, market: any): Trade {
@@ -1154,7 +1158,7 @@ export default class fswap extends Exchange {
         const members = [ this.options.MTGMember0, this.options.MTGMember1, this.options.MTGMember2, this.options.MTGMember3, this.options.MTGMember4, this.options.MTGMember5 ];
         const recipients = [ this.mixinBuildSafeTransactionRecipient (members, this.options.MTGThrehold, amount) ];
         const resp = await this.mixinPrivateGetSafeOutputs ({
-            'asset_id': asset_id,
+            'asset': asset_id,
         });
         const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
@@ -1193,7 +1197,6 @@ export default class fswap extends Exchange {
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order> {
-        await this.loadMarkets ();
         const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
         console.log (baseSymbol, quoteSymbol);
         let payAssetId = '';
@@ -1228,6 +1231,10 @@ export default class fswap extends Exchange {
         return resp;
     }
 
+    async fetchDepositAddress (code: string): Promise<DepositAddress> {
+        throw new Error (this.id + ' fetchDepositAddress() is not supported yet');
+    }
+
     async deposit (symbol: string, amount: number) {
         // const asset_id = this.mapSymbolToAssetId (symbol);
         // const resp = await this.safeTransfer (asset_id, amount.toString (), '');
@@ -1235,39 +1242,79 @@ export default class fswap extends Exchange {
         // return resp;
     }
 
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        throw new Error (this.id + ' withdraw() is not supported yet');
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
+        throw new Error (this.id + ' transfer() is not supported yet');
+    }
+
     sign (path, api = 'fswapPublic', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        // Construct the base URL
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        const isPrivate = api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy';
-        if (isPrivate) {
-            const requestID = this.uuid ();
-            let actualPath = '/' + path;
-            let signMethod = method;
-            let signParams = params;
+        if (api === 'fswapPrivate' || api === 'ccxtProxy') {
             this.checkRequiredCredentials ();
-            if (method === 'GET') {
-                url += '?' + this.urlencode (params);
-                actualPath = actualPath + '?' + this.urlencode (params);
-                signParams = '';
-            } else {
-                if (api === 'fswapPrivate' || api === 'ccxtProxy') {
-                    signMethod = 'GET';
-                    actualPath = '/me';
-                    signParams = '';
-                } else {
-                    body = this.json (params);
-                }
-            }
-            const jwtToken = this.signAuthenticationToken (signMethod, actualPath, signParams, requestID);
+            const requestID = this.uuid ();
+            const jwtToken = this.signAuthenticationToken ('GET', '/me', '', requestID);
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwtToken,
                 'X-Request-Id': requestID,
             };
-        } else {
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                if (method === 'GET') {
+                    url = url + '?' + this.urlencode (params);
+                } else if (method === 'POST') {
+                    body = this.json (params);
+                }
             }
+            console.log ('headers:', headers);
+            console.log ('url:', url);
+            console.log ('body:', body);
+            console.log ('method:', method);
+            console.log ('params:', params);
+        } else {
+            if (method === 'GET') {
+                if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
+                    this.checkRequiredCredentials ();
+                    if (Object.keys (params).length) {
+                        const encodedParams = this.urlencode (params);
+                        url = url + '?' + encodedParams;
+                    }
+                    const requestID = this.uuid ();
+                    const jwtToken = this.signAuthenticationToken (method, '/' + path, params, requestID);
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwtToken,
+                        'X-Request-Id': requestID,
+                    };
+                } else {
+                    if (Object.keys (params).length) {
+                        url = url + '?' + this.urlencode (params);
+                    }
+                }
+            } else if (method === 'POST') {
+                if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
+                    body = this.json (params);
+                    const requestID = this.uuid ();
+                    const jwtToken = this.signAuthenticationToken (method, '/' + path, params, requestID);
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + jwtToken,
+                        'X-Request-Id': requestID,
+                    };
+                } else {
+                    body = this.json (params);
+                }
+            }
+            console.log ('headers:', headers);
+            console.log ('url:', url);
+            console.log ('body:', body);
+            console.log ('method:', method);
+            console.log ('params:', params);
         }
+        // Return the constructed request object
         return { url, method, body, headers };
     }
 
