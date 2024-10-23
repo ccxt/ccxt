@@ -373,6 +373,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_post_position_update_user_leverage($params = array()) {
         return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
+    public function private_post_deposit_address_create($params = array()) {
+        return $this->request('deposit-address/create', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function private_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));
     }
@@ -1026,6 +1029,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privatePostPositionUpdateUserLeverage($params = array()) {
         return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostDepositAddressCreate($params = array()) {
+        return $this->request('deposit-address/create', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function privateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));

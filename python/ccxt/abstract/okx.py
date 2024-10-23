@@ -48,6 +48,7 @@ class ImplicitAPI:
     public_get_rubik_stat_taker_volume = publicGetRubikStatTakerVolume = Entry('rubik/stat/taker-volume', 'public', 'GET', {'cost': 4})
     public_get_rubik_stat_margin_loan_ratio = publicGetRubikStatMarginLoanRatio = Entry('rubik/stat/margin/loan-ratio', 'public', 'GET', {'cost': 4})
     public_get_rubik_stat_contracts_long_short_account_ratio = publicGetRubikStatContractsLongShortAccountRatio = Entry('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', {'cost': 4})
+    public_get_rubik_stat_contracts_long_short_account_ratio_contract = publicGetRubikStatContractsLongShortAccountRatioContract = Entry('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', {'cost': 4})
     public_get_rubik_stat_contracts_open_interest_volume = publicGetRubikStatContractsOpenInterestVolume = Entry('rubik/stat/contracts/open-interest-volume', 'public', 'GET', {'cost': 4})
     public_get_rubik_stat_option_open_interest_volume = publicGetRubikStatOptionOpenInterestVolume = Entry('rubik/stat/option/open-interest-volume', 'public', 'GET', {'cost': 4})
     public_get_rubik_stat_option_open_interest_volume_ratio = publicGetRubikStatOptionOpenInterestVolumeRatio = Entry('rubik/stat/option/open-interest-volume-ratio', 'public', 'GET', {'cost': 4})

@@ -241,6 +241,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatio",parameters);
     }
 
+    public async Task<object> publicGetRubikStatContractsLongShortAccountRatioContract (object parameters = null)
+    {
+        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatioContract",parameters);
+    }
+
     public async Task<object> publicGetRubikStatContractsOpenInterestVolume (object parameters = null)
     {
         return await this.callAsync ("publicGetRubikStatContractsOpenInterestVolume",parameters);

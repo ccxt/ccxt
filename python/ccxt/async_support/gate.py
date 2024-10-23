@@ -340,10 +340,17 @@ class gate(Exchange, ImplicitAPI):
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
                             'currency_discount_tiers': 20 / 15,
+                            'risk_units': 20 / 15,
+                            'unified_mode': 20 / 15,
+                            'loan_margin_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15,  # 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator': 20 / 15,
+                        },
+                        'put': {
+                            'unified_mode': 20 / 15,
                         },
                     },
                     'spot': {
@@ -645,6 +652,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'options': {
                 'sandboxMode': False,
+                'unifiedAccount': None,
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
@@ -905,6 +913,34 @@ class gate(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
+
+    async def load_unified_status(self, params={}):
+        """
+        returns unifiedAccount so the user can check if the unified account is enabled
+        :see: https://www.gate.io/docs/developers/apiv4/#get-account-detail
+        :returns boolean: True or False if the enabled unified account is enabled or not and sets the unifiedAccount option if it is None
+        """
+        unifiedAccount = self.safe_bool(self.options, 'unifiedAccount')
+        if unifiedAccount is None:
+            response = await self.privateAccountGetDetail(params)
+            #
+            #     {
+            #         "user_id": 10406147,
+            #         "ip_whitelist": [],
+            #         "currency_pairs": [],
+            #         "key": {
+            #             "mode": 1
+            #         },
+            #         "tier": 0,
+            #         "tier_expire_time": "0001-01-01T00:00:00Z",
+            #         "copy_trading_role": 0
+            #     }
+            #
+            result = self.safe_dict(response, 'key', {})
+            self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+
+    async def upgrade_unified_trade_account(self, params={}):
+        return await self.privateUnifiedPutUnifiedMode(params)
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -1550,6 +1586,8 @@ class gate(Exchange, ImplicitAPI):
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
+        if self.check_required_credentials(False):
+            await self.load_unified_status()
         response = await self.publicSpotGetCurrencies(params)
         #
         #    {
@@ -2574,10 +2612,14 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.symbol]: margin only - unified ccxt symbol
+        :param boolean [params.unifiedAccount]: default False, set to True for fetching the unified account balance
         """
         await self.load_markets()
+        await self.load_unified_status()
         symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, 'symbol')
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'fetchBalance', 'unifiedAccount')
         type, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request, requestParams = self.prepare_request(None, type, query)
         marginMode, requestQuery = self.get_margin_mode(False, requestParams)
@@ -2585,7 +2627,9 @@ class gate(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = None
-        if type == 'spot':
+        if isUnifiedAccount:
+            response = await self.privateUnifiedGetAccounts(self.extend(request, params))
+        elif type == 'spot':
             if marginMode == 'spot':
                 response = await self.privateSpotGetAccounts(self.extend(request, requestQuery))
             elif marginMode == 'margin':
@@ -2748,12 +2792,63 @@ class gate(Exchange, ImplicitAPI):
         #         "orders_limit": 10
         #     }
         #
+        # unified
+        #
+        #     {
+        #         "user_id": 10001,
+        #         "locked": False,
+        #         "balances": {
+        #             "ETH": {
+        #                 "available": "0",
+        #                 "freeze": "0",
+        #                 "borrowed": "0.075393666654",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "1016.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             },
+        #             "POINT": {
+        #                 "available": "9999999999.017023138734",
+        #                 "freeze": "0",
+        #                 "borrowed": "0",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "12016.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             },
+        #             "USDT": {
+        #                 "available": "0.00000062023",
+        #                 "freeze": "0",
+        #                 "borrowed": "0",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "16.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             }
+        #         },
+        #         "total": "230.94621713",
+        #         "borrowed": "161.66395521",
+        #         "total_initial_margin": "1025.0524665088",
+        #         "total_margin_balance": "3382495.944473949183",
+        #         "total_maintenance_margin": "205.01049330176",
+        #         "total_initial_margin_rate": "3299.827135672679",
+        #         "total_maintenance_margin_rate": "16499.135678363399",
+        #         "total_available_margin": "3381470.892007440383",
+        #         "unified_account_total": "3381470.892007440383",
+        #         "unified_account_total_liab": "0",
+        #         "unified_account_total_equity": "100016.1",
+        #         "leverage": "2"
+        #     }
+        #
         result: dict = {
             'info': response,
         }
         isolated = marginMode == 'margin'
         data = response
-        if 'balances' in data:  # True for cross_margin
+        if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
             balances = self.safe_value(data, 'balances', [])
             # inject currency and create an artificial balance object
