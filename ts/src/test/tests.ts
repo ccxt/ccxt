@@ -1027,17 +1027,17 @@ class testMainClass {
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 this.assertStaticError (sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
             } else {
-                const computedBool = (typeof sanitizedNewOutput === 'boolean');
-                const storedBool = (typeof sanitizedStoredOutput === 'boolean');
-                const computedString = (typeof sanitizedNewOutput === 'string');
-                const storedString = (typeof sanitizedStoredOutput === 'string');
-                const computedUndefined = (sanitizedNewOutput === undefined);
-                const storedUndefined = (sanitizedStoredOutput === undefined);
-                const shouldBeSame = (computedBool === storedBool) && (computedString === storedString) && (computedUndefined === storedUndefined);
+                const isComputedBool = (typeof sanitizedNewOutput === 'boolean');
+                const isStoredBool = (typeof sanitizedStoredOutput === 'boolean');
+                const isComputedString = (typeof sanitizedNewOutput === 'string');
+                const isStoredString = (typeof sanitizedStoredOutput === 'string');
+                const isComputedUndefined = (sanitizedNewOutput === undefined);
+                const isStoredUndefined = (sanitizedStoredOutput === undefined);
+                const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
                 this.assertStaticError (shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
-                const isBoolean = computedBool || storedBool;
-                const isString = computedString || storedString;
-                const isUndefined = computedUndefined || storedUndefined; // undefined is a perfetly valid value
+                const isBoolean = isComputedBool || isStoredBool;
+                const isString = isComputedString || isStoredString;
+                const isUndefined = isComputedUndefined || isStoredUndefined; // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined)  {
                     if (this.lang === 'C#') {
                         // tmp c# number comparsion
