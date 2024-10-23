@@ -375,6 +375,7 @@ class Exchange {
         'coinbaseadvanced',
         'coinbaseexchange',
         'coinbaseinternational',
+        'coincatch',
         'coincheck',
         'coinex',
         'coinlist',

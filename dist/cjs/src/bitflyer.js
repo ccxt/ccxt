@@ -35,6 +35,7 @@ class bitflyer extends bitflyer$1 {
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': true,
                 'fetchFundingRate': true,
+                'fetchFundingRates': false,
                 'fetchFundingRateHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
