@@ -131,6 +131,7 @@ interface kucoin {
     privatePostLendPurchaseUpdate (params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
     privatePostPositionUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddressCreate (params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;

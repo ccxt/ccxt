@@ -251,7 +251,7 @@ public partial class kucoin
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#create-deposit-address"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1181,7 +1181,7 @@ public partial class kucoin
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

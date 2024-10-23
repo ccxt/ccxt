@@ -1754,6 +1754,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "swap fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/mix/market/account-long-short?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot margin fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/margin/market/long-short-ratio?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
         ]
     }
 }

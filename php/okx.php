@@ -90,6 +90,8 @@ class okx extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
@@ -232,6 +234,7 @@ class okx extends Exchange {
                         'rubik/stat/margin/loan-ratio' => 4,
                         // long/short
                         'rubik/stat/contracts/long-short-account-ratio' => 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract' => 4,
                         'rubik/stat/contracts/open-interest-volume' => 4,
                         'rubik/stat/option/open-interest-volume' => 4,
                         // put/call
@@ -8355,5 +8358,76 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data');
         $positions = $this->parse_positions($data, $symbols, $params);
         return $this->filter_by_since_limit($positions, $since, $limit);
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetches the long short ratio history for a unified $market $symbol
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+         * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+         * @param {string} [$timeframe] the period for the ratio
+         * @param {int} [$since] the earliest time in ms to fetch ratios for
+         * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $until = $this->safe_string_2($params, 'until', 'end');
+        $params = $this->omit($params, 'until');
+        if ($until !== null) {
+            $request['end'] = $until;
+        }
+        if ($timeframe !== null) {
+            $request['period'] = $timeframe;
+        }
+        if ($since !== null) {
+            $request['begin'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicGetRubikStatContractsLongShortAccountRatioContract ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => [
+        //             ["1729323600000", "0.9398602814619824"],
+        //             ["1729323300000", "0.9398602814619824"],
+        //             ["1729323000000", "0.9398602814619824"],
+        //         ],
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $result[] = array(
+                'timestamp' => $this->safe_string($entry, 0),
+                'longShortRatio' => $this->safe_string($entry, 1),
+            );
+        }
+        return $this->parse_long_short_ratio_history($result, $market);
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'info' => $info,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
+        );
     }
 }

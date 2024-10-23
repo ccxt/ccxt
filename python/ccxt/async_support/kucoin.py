@@ -308,6 +308,7 @@ class kucoin(Exchange, ImplicitAPI):
                         # ws
                         'bullet-private': 10,  # 10SW
                         'position/update-user-leverage': 5,
+                        'deposit-address/create': 20,
                     },
                     'delete': {
                         # account
@@ -727,6 +728,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'accounts/sub-transfer': 'v2',
                             'accounts/inner-transfer': 'v2',
                             'transfer-out': 'v3',
+                            'deposit-address/create': 'v3',
                             # spot trading
                             'oco/order': 'v3',
                             # margin trading
@@ -738,6 +740,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'redeem': 'v3',
                             'lend/purchase/update': 'v3',
                             'position/update-user-leverage': 'v3',
+                            'withdrawals': 'v3',
                         },
                         'DELETE': {
                             # account
@@ -803,7 +806,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'TLOS': 'tlos',  # tlosevm is different
                     'CFX': 'cfx',
                     'ACA': 'aca',
-                    'OPTIMISM': 'optimism',
+                    'OP': 'optimism',
                     'ONT': 'ont',
                     'GLMR': 'glmr',
                     'CSPR': 'cspr',
@@ -1863,7 +1866,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     async def create_deposit_address(self, code: str, params={}):
         """
-        :see: https://docs.kucoin.com/#create-deposit-address
+        :see: https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1878,11 +1881,23 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode).lower()
-        response = await self.privatePostDepositAddresses(self.extend(request, params))
+            request['chain'] = self.network_code_to_id(networkCode)  # docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
+        response = await self.privatePostDepositAddressCreate(self.extend(request, params))
         # {"code":"260000","msg":"Deposit address already exists."}
-        # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
-        # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        #
+        #   {
+        #     "code": "200000",
+        #     "data": {
+        #       "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+        #       "memo": null,
+        #       "chainId": "bsc",
+        #       "to": "MAIN",
+        #       "expirationDate": 0,
+        #       "currency": "BNB",
+        #       "chainName": "BEP20"
+        #     }
+        #   }
+        #
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
@@ -1932,7 +1947,7 @@ class kucoin(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': code,
-            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chain')),
+            'network': self.network_id_to_code(self.safe_string(depositAddress, 'chainId')),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
         }
@@ -3239,7 +3254,7 @@ class kucoin(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw
+        :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -3253,7 +3268,8 @@ class kucoin(Exchange, ImplicitAPI):
         currency = self.currency(code)
         request: dict = {
             'currency': currency['id'],
-            'address': address,
+            'toAddress': address,
+            'withdrawType': 'ADDRESS',
             # 'memo': tag,
             # 'isInner': False,  # internal transfer or external withdrawal
             # 'remark': 'optional',
@@ -3265,15 +3281,14 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode).lower()
-        await self.load_currency_precision(currency, networkCode)
-        request['amount'] = self.currency_to_precision(code, amount, networkCode)
+        request['amount'] = float(self.currency_to_precision(code, amount, networkCode))
         includeFee = None
         includeFee, params = self.handle_option_and_params(params, 'withdraw', 'includeFee', False)
         if includeFee:
             request['feeDeductType'] = 'INTERNAL'
         response = await self.privatePostWithdrawals(self.extend(request, params))
         #
-        # https://github.com/ccxt/ccxt/issues/5558
+        # the id is inside "data"
         #
         #     {
         #         "code":  200000,
@@ -3284,51 +3299,6 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
-
-    async def load_currency_precision(self, currency, networkCode: Str = None):
-        # might not have network specific precisions defined in fetchCurrencies(because of webapi failure)
-        # we should check and refetch precision once-per-instance for that specific currency & network
-        # so avoids thorwing exceptions and burden to users
-        # Note: self needs to be executed only if networkCode was provided
-        if networkCode is not None:
-            networks = currency['networks']
-            network = self.safe_dict(networks, networkCode)
-            if self.safe_number(network, 'precision') is not None:
-                # if precision exists, no need to refetch
-                return
-            # otherwise try to fetch and store in instance
-            request: dict = {
-                'currency': currency['id'],
-                'chain': self.network_code_to_id(networkCode).lower(),
-            }
-            response = await self.privateGetWithdrawalsQuotas(request)
-            #
-            #    {
-            #        "code": "200000",
-            #        "data": {
-            #            "currency": "USDT",
-            #            "limitBTCAmount": "14.24094850",
-            #            "usedBTCAmount": "0.00000000",
-            #            "quotaCurrency": "USDT",
-            #            "limitQuotaCurrencyAmount": "999999.00000000",
-            #            "usedQuotaCurrencyAmount": "0",
-            #            "remainAmount": "999999.0000",
-            #            "availableAmount": "10.77545071",
-            #            "withdrawMinFee": "1",
-            #            "innerWithdrawMinFee": "0",
-            #            "withdrawMinSize": "10",
-            #            "isWithdrawEnabled": True,
-            #            "precision": 4,
-            #            "chain": "EOS",
-            #            "reason": null,
-            #            "lockedAmount": "0"
-            #        }
-            #    }
-            #
-            data = self.safe_dict(response, 'data', {})
-            precision = self.parse_number(self.parse_precision(self.safe_string(data, 'precision')))
-            code = currency['code']
-            self.currencies[code]['networks'][networkCode]['precision'] = precision
 
     def parse_transaction_status(self, status: Str):
         statuses: dict = {

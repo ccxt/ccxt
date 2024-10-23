@@ -1096,88 +1096,42 @@
                 }
             }
         ],
-        "fetchDepositAddress": [
+        "createDepositAddress":[
             {
                 "description": "with network",
-                "method": "fetchDepositAddress",
+                "method": "createDepositAddress",
                 "input": [
-                  "USDT",
+                  "BNB",
                   {
-                    "networkCode": "ERC20"
+                    "networkCode": "BEP20"
                   }
                 ],
                 "httpResponse": {
                   "code": "200000",
-                  "data": [
-                    {
-                      "address": "0xe2ea159ddf261ff8c18f7fc9ae4f6a25fd51232d",
-                      "memo": "",
-                      "chainId": "eth",
-                      "to": "MAIN",
-                      "expirationDate": 0,
-                      "currency": "USDT",
-                      "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                      "chainName": "ERC20"
-                    }
-                  ]
+                  "data": {
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
+                    "to": "MAIN",
+                    "expirationDate": 0,
+                    "currency": "BNB",
+                    "chainName": "BEP20"
+                  }
                 },
                 "parsedResponse": {
                   "info": {
-                    "address": "0xe2ea159ddf261ff8c18f7fc9ae4f6a25fd51232d",
-                    "memo": "",
-                    "chainId": "eth",
+                    "address": "0x2336d1834faab10b2dac44e468f2627138417431",
+                    "memo": null,
+                    "chainId": "bsc",
                     "to": "MAIN",
                     "expirationDate": 0,
-                    "currency": "USDT",
-                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "chainName": "ERC20"
+                    "currency": "BNB",
+                    "chainName": "BEP20"
                   },
-                  "currency": "USDT",
-                  "network": "ERC20",
-                  "address": "0xe2ea159ddf261ff8c18f7fc9ae4f6a25fd51232d",
+                  "currency": "BNB",
+                  "network": "BEP20",
+                  "address": "0x2336d1834faab10b2dac44e468f2627138417431",
                   "tag": null
-                }
-            }
-        ],
-        "fetchDepositAddressesByNetwork": [
-            {
-                "description": "default",
-                "method": "fetchDepositAddressesByNetwork",
-                "input": [
-                  "LTC"
-                ],
-                "httpResponse": {
-                  "code": "200000",
-                  "data": [
-                    {
-                      "address": "MA2x2wmbGprWn1pUXxjimww2RUK4LbPVEf",
-                      "memo": "",
-                      "chainId": "ltc",
-                      "to": "MAIN",
-                      "expirationDate": 0,
-                      "currency": "LTC",
-                      "contractAddress": "",
-                      "chainName": "LTC"
-                    }
-                  ]
-                },
-                "parsedResponse": {
-                  "LTC": {
-                    "info": {
-                      "address": "MA2x2wmbGprWn1pUXxjimww2RUK4LbPVEf",
-                      "memo": "",
-                      "chainId": "ltc",
-                      "to": "MAIN",
-                      "expirationDate": 0,
-                      "currency": "LTC",
-                      "contractAddress": "",
-                      "chainName": "LTC"
-                    },
-                    "currency": "LTC",
-                    "network": "LTC",
-                    "address": "MA2x2wmbGprWn1pUXxjimww2RUK4LbPVEf",
-                    "tag": null
-                  }
                 }
             }
         ]

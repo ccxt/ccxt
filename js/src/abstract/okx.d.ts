@@ -47,6 +47,7 @@ interface Exchange {
     publicGetRubikStatTakerVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatMarginLoanRatio(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
+    publicGetRubikStatContractsLongShortAccountRatioContract(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolumeRatio(params?: {}): Promise<implicitReturnType>;

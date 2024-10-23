@@ -62,7 +62,6 @@ export default class kucoin extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    loadCurrencyPrecision(currency: any, networkCode?: Str): Promise<void>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
