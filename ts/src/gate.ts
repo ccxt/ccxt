@@ -99,6 +99,7 @@ export default class gate extends Exchange {
                 'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -6329,6 +6330,78 @@ export default class gate extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchBorrowInterest
+         * @description fetch the interest owed by the user for borrowing currency for margin trading
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+         * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+         * @param {int} [since] the earliest time in ms to fetch borrow interest for
+         * @param {int} [limit] the maximum number of structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+         * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+         */
+        await this.loadMarkets ();
+        await this.loadUnifiedStatus ();
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'unifiedAccount');
+        let request: Dict = {};
+        [ request, params ] = this.handleUntilOption ('to', request, params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
+        if (isUnifiedAccount) {
+            response = await this.privateUnifiedGetInterestRecords (this.extend (request, params));
+        } else if (marginMode === 'isolated') {
+            if (market !== undefined) {
+                request['currency_pair'] = market['id'];
+            }
+            response = await this.privateMarginGetUniInterestRecords (this.extend (request, params));
+        } else if (marginMode === 'cross') {
+            response = await this.privateMarginGetCrossInterestRecords (this.extend (request, params));
+        }
+        const interest = this.parseBorrowInterests (response, market);
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info: Dict, market: Market = undefined) {
+        const marketId = this.safeString (info, 'currency_pair');
+        market = this.safeMarket (marketId, market);
+        const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
+        const timestamp = this.safeInteger (info, 'create_time');
+        return {
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': this.safeString (market, 'symbol'),
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'marginMode': marginMode,
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'actual_rate'),
+            'amountBorrowed': undefined,
         };
     }
 
