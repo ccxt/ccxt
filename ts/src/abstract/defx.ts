@@ -33,8 +33,47 @@ interface Exchange {
     v1PublicGetExplorerSearch (params?: {}): Promise<implicitReturnType>;
     v1PublicGetExplorerTransactions (params?: {}): Promise<implicitReturnType>;
     v1PublicGetExplorerBlocks (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiOrderOrderId (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiOrders (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiOrdersOcoParentOrderId (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiTrades (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiPositionActive (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersMetadataLeverage (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersMetadataFeeMultiplier (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersMetadataSlippage (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersReferral (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersApikeys (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetConnectionSignatureMessageEvm (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiUsersProfileWallets (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiNotifications (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetApiWalletBalance (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetApiWalletTransactions (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiAnalyticsUserOverview (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiAnalyticsUserPnl (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiAnalyticsPointsOverview (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiAnalyticsPointsHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiOrder (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiPositionOco (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersSocketListenKeys (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersMetadataLeverage (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersMetadataFeeMultiplier (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersMetadataSlippage (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersReferralRecordReferralSignup (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersApikeys (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiUsersProfileWallets (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiTransfersWithdrawal (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiTransfersBridgeWithdrawa (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutApiPositionUpdatePositionMargin (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutApiUsersSocketListenKeysListenKey (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutApiUsersApikeysAccessKeyStatus (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePutApiUsersReferral (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePatchApiUsersApikeysAccessKey (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiOrdersAllOpen (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiOrderOrderId (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiPositionPositionId (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiPositionAll (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiUsersSocketListenKeysListenKey (params?: {}): Promise<implicitReturnType>;
+    v1PrivateDeleteApiUsersApikeysAccessKey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
