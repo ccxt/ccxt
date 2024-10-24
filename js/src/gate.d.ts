@@ -198,6 +198,18 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    parseBorrowInterest(info: Dict, market?: Market): {
+        info: Dict;
+        timestamp: number;
+        datetime: string;
+        symbol: string;
+        currency: string;
+        marginMode: string;
+        interest: number;
+        interestRate: number;
+        amountBorrowed: any;
+    };
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

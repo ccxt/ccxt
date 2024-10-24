@@ -1285,6 +1285,60 @@ public partial class gate
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
         return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
+    /// <summary>
+    /// fetch the interest owed by the user for borrowing currency for margin trading
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account"/>  <br/>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol when fetching interest in isolated markets
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch borrow interest for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// boolean : set to true for fetching borrow interest in the unified account
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

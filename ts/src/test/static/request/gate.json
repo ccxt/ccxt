@@ -1586,6 +1586,36 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch the isolated borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=usdt&currency_pair=BTC_USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "fetch the borrow interest of the unified account",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=usdt",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
+            }
         ]
     }
 }
