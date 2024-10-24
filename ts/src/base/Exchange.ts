@@ -1929,7 +1929,7 @@ export default class Exchange {
     cleanRest () {
         this.ids = [];
         this.markets = {};
-        this.markets_by_id = this.createSafeDictionary ();
+        this.markets_by_id = {};
         this.symbols = [];
         this.codes = [];
         this.currencies = this.createSafeDictionary ();
