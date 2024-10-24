@@ -791,6 +791,19 @@
                 ]
             },
             {
+                "description": "inverse balance should use unified when account is > UTA 1.0",
+                "method": "fetchBalance",
+                "options": {
+                    "unifiedMarginStatus": 5
+                },
+                "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
+                "input": [
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
                 "description": "fetch funding balance using options",
                 "method": "fetchBalance",
                 "options": {
@@ -821,18 +834,6 @@
                 "input": [
                   {
                     "type": "swap",
-                    "subType": "inverse"
-                  }
-                ]
-            },
-            {
-                "description": "inverse balance should use unified when account is > UTA 1.0",
-                "method": "fetchBalance",
-                "options": {"unifiedMarginStatus":5},
-                "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
-                "input": [
-                  {
-                    "unifiedMarginStatus": 5,
                     "subType": "inverse"
                   }
                 ]

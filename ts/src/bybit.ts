@@ -3191,8 +3191,7 @@ export default class bybit extends Exchange {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            let unifiedMarginStatus = 3;
-            [ unifiedMarginStatus, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'unifiedMarginStatus', unifiedMarginStatus);
+            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 3);
             if (unifiedMarginStatus < 5) {
                 // it's not uta.20 where inverse are unified
                 if (isInverse) {
