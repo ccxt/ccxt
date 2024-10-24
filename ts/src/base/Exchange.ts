@@ -1928,14 +1928,14 @@ export default class Exchange {
 
     cleanRest () {
         this.ids = [];
-        this.markets = this.createSafeDictionary ();
+        this.markets = {};
         this.markets_by_id = this.createSafeDictionary ();
         this.symbols = [];
         this.codes = [];
         this.currencies = this.createSafeDictionary ();
         this.currencies_by_id = this.createSafeDictionary ();
-        this.baseCurrencies = this.createSafeDictionary ();
-        this.quoteCurrencies = this.createSafeDictionary ();
+        this.baseCurrencies = {};
+        this.quoteCurrencies = {};
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
