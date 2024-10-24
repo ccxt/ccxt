@@ -1385,7 +1385,8 @@ export default class Exchange {
     }
 
     async close () {
-        // [WS cleanup]
+        // This method is language specific cleanup for WS & REST
+        // [WS]
         const clients = Object.values (this.clients || {});
         const closedClients = [];
         for (let i = 0; i < clients.length; i++) {
@@ -1398,7 +1399,7 @@ export default class Exchange {
             const client = clients[i] as WsClient;
             delete this.clients[client.url];
         }
-        // [REST cleanup]
+        // [REST]
         // todo
         return;
     }
@@ -1925,20 +1926,41 @@ export default class Exchange {
         };
     }
 
-    async resetData () {
+    cleanRest () {
         this.ids = [];
-        this.markets = {};
-        this.markets_by_id = {};
+        this.markets = this.createSafeDictionary ();
+        this.markets_by_id = this.createSafeDictionary ();
         this.symbols = [];
         this.codes = [];
-        this.currencies = {};
-        this.currencies_by_id = {};
-        this.baseCurrencies = {};
-        this.quoteCurrencies = {};
+        this.currencies = this.createSafeDictionary ();
+        this.currencies_by_id = this.createSafeDictionary ();
+        this.baseCurrencies = this.createSafeDictionary ();
+        this.quoteCurrencies = this.createSafeDictionary ();
         this.last_http_response = undefined;
         this.last_json_response = undefined;
         this.last_response_headers = undefined;
         this.last_request_headers = undefined;
+    }
+
+    cleanWs () {
+        this.balance = this.createSafeDictionary ();
+        this.orderbooks = this.createSafeDictionary ();
+        this.tickers = this.createSafeDictionary ();
+        this.liquidations = this.createSafeDictionary ();
+        this.orders = undefined;
+        this.trades = this.createSafeDictionary ();
+        this.transactions = this.createSafeDictionary ();
+        this.ohlcvs = this.createSafeDictionary ();
+        this.myLiquidations = this.createSafeDictionary ();
+        this.myTrades = undefined;
+        this.positions = undefined;
+    }
+
+    async clean () {
+        // this method can be used as a successor of `.close()`
+        this.cleanRest ();
+        await this.close ();
+        this.cleanWs ();
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
