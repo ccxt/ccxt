@@ -1309,7 +1309,7 @@ export default class oxfun extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'marketCode');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info: Dict[], market: Market = undefined) {
         //
         //     {
         //         marketCode: 'SOL-USD-SWAP-LIN',
