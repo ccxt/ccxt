@@ -50,10 +50,13 @@ class okcoin extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true, // see below
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -2144,7 +2147,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -2228,15 +2231,15 @@ class okcoin extends Exchange {
         //
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -2259,7 +2262,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network

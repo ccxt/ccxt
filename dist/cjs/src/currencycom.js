@@ -1850,11 +1850,11 @@ class currencycom extends currencycom$1 {
         this.checkAddress(address);
         currency = this.safeCurrency(undefined, currency);
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

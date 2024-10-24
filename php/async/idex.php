@@ -1788,7 +1788,7 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
-    public function fetch_deposit_address(?string $code = null, $params = array ()) {
+    public function fetch_deposit_address(?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the Polygon address of the wallet
@@ -1818,7 +1818,7 @@ class idex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    array(
         //        array(
@@ -1840,9 +1840,9 @@ class idex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => null,
+            'network' => 'MATIC',
             'address' => $address,
             'tag' => null,
-            'network' => 'MATIC',
         );
     }
 

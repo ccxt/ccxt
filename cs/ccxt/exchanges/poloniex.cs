@@ -33,11 +33,18 @@ public partial class poloniex : Exchange
                 { "fetchClosedOrder", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
@@ -1953,11 +1960,11 @@ public partial class poloniex : Exchange
             }
         }
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", response },
         };
     }
 

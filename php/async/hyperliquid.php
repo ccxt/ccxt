@@ -656,9 +656,9 @@ class hyperliquid extends Exchange {
                     $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
                     $account = $this->account();
                     $total = $this->safe_string($balance, 'total');
-                    $free = $this->safe_string($balance, 'hold');
+                    $used = $this->safe_string($balance, 'hold');
                     $account['total'] = $total;
-                    $account['used'] = $free;
+                    $account['used'] = $used;
                     $spotBalances[$code] = $account;
                 }
                 return $this->safe_balance($spotBalances);
@@ -667,8 +667,8 @@ class hyperliquid extends Exchange {
             $result = array(
                 'info' => $response,
                 'USDC' => array(
-                    'total' => $this->safe_float($data, 'accountValue'),
-                    'used' => $this->safe_float($data, 'totalMarginUsed'),
+                    'total' => $this->safe_number($data, 'accountValue'),
+                    'free' => $this->safe_number($response, 'withdrawable'),
                 ),
             );
             $timestamp = $this->safe_integer($response, 'time');
@@ -2020,6 +2020,10 @@ class hyperliquid extends Exchange {
         $statuses = array(
             'triggered' => 'open',
             'filled' => 'closed',
+            'open' => 'open',
+            'canceled' => 'canceled',
+            'rejected' => 'rejected',
+            'marginCanceled' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2263,15 +2267,19 @@ class hyperliquid extends Exchange {
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
         $leverage = $this->safe_dict($entry, 'leverage', array());
-        $isIsolated = ($this->safe_string($leverage, 'type') === 'isolated');
-        $quantity = $this->safe_number($leverage, 'rawUsd');
+        $marginMode = $this->safe_string($leverage, 'type');
+        $isIsolated = ($marginMode === 'isolated');
+        $rawSize = $this->safe_string($entry, 'szi');
+        $size = $rawSize;
         $side = null;
-        if ($quantity !== null) {
-            $side = ($quantity > 0) ? 'short' : 'long';
+        if ($size !== null) {
+            $side = Precise::string_gt($rawSize, '0') ? 'long' : 'short';
+            $size = Precise::string_abs($size);
         }
-        $unrealizedPnl = $this->safe_number($entry, 'unrealizedPnl');
-        $initialMargin = $this->safe_number($entry, 'marginUsed');
-        $percentage = $unrealizedPnl / $initialMargin * 100;
+        $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
+        $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
+        $initialMargin = $this->safe_string($entry, 'marginUsed');
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2281,21 +2289,21 @@ class hyperliquid extends Exchange {
             'isolated' => $isIsolated,
             'hedged' => null,
             'side' => $side,
-            'contracts' => $this->safe_number($entry, 'szi'),
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
-            'collateral' => null,
+            'collateral' => $this->safe_number($entry, 'marginUsed'),
             'initialMargin' => $initialMargin,
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
-            'unrealizedPnl' => $unrealizedPnl,
+            'unrealizedPnl' => $this->parse_number($rawUnrealizedPnl),
             'liquidationPrice' => $this->safe_number($entry, 'liquidationPx'),
-            'marginMode' => null,
-            'percentage' => $percentage,
+            'marginMode' => $marginMode,
+            'percentage' => $this->parse_number($percentage),
         ));
     }
 

@@ -1287,11 +1287,12 @@ class bitmart extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -3356,7 +3357,7 @@ class bitmart extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
@@ -3398,7 +3399,7 @@ class bitmart extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null): array {
         //
         //    {
         //        $currency => 'ETH',
@@ -3426,9 +3427,9 @@ class bitmart extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => $network,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'address_memo'),
-            'network' => $network,
         );
     }
 

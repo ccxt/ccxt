@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, LongShortRatio, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -17,6 +17,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import ManualInteractionNeeded
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -118,10 +119,13 @@ class okx(Exchange, ImplicitAPI):
                 'fetchLedgerEntry': None,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
+                'fetchMarkPrice': True,
                 'fetchMarkPrices': True,
                 'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
@@ -259,6 +263,7 @@ class okx(Exchange, ImplicitAPI):
                         'rubik/stat/margin/loan-ratio': 4,
                         # long/short
                         'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
                         'rubik/stat/option/open-interest-volume': 4,
                         # put/call
@@ -377,6 +382,9 @@ class okx(Exchange, ImplicitAPI):
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
+                        'account/spot-manual-borrow-repay': 10,
+                        'account/set-auto-repay': 4,
+                        'account/spot-borrow-repay-history': 4,
                         # subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -908,6 +916,11 @@ class okx(Exchange, ImplicitAPI):
                     '59301': ExchangeError,  # Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError,  # Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401': ExchangeError,  # Holdings already reached the limit
+                    '59410': OperationRejected,  # You can only borrow self crypto if it supports borrowing and borrowing is enabled.
+                    '59411': InsufficientFunds,  # Manual borrowing failed. Your account's free margin is insufficient
+                    '59412': OperationRejected,  # Manual borrowing failed. The amount exceeds your borrowing limit.
+                    '59413': OperationRejected,  # You didn't borrow self crypto. No repayment needed.
+                    '59414': BadRequest,  # Manual borrowing failed. The minimum borrowing limit is {param0}.needed.
                     '59500': ExchangeError,  # Only the APIKey of the main account has permission
                     '59501': ExchangeError,  # Only 50 APIKeys can be created per account
                     '59502': ExchangeError,  # Note name cannot be duplicate with the currently created APIKey note name
@@ -1813,6 +1826,16 @@ class okx(Exchange, ImplicitAPI):
         #         "sodUtc0": "0.07872",
         #         "sodUtc8": "0.07345"
         #     }
+        #     {
+        #          instId: 'LTC-USDT',
+        #          idxPx: '65.74',
+        #          open24h: '65.37',
+        #          high24h: '66.15',
+        #          low24h: '64.97',
+        #          sodUtc0: '65.68',
+        #          sodUtc8: '65.54',
+        #          ts: '1728467346900'
+        #     },
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'instId')
@@ -1846,6 +1869,7 @@ class okx(Exchange, ImplicitAPI):
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'markPrice': self.safe_string(ticker, 'markPx'),
+            'indexPrice': self.safe_string(ticker, 'idxPx'),
             'info': ticker,
         }, market)
 
@@ -1946,6 +1970,37 @@ class okx(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
 
+    def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches mark price for the market
+        :see: https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'instId': market['id'],
+        }
+        response = self.publicGetPublicMarkPrice(self.extend(request, params))
+        #
+        # {
+        #     "code": "0",
+        #     "data": [
+        #         {
+        #             "instId": "ETH-USDT",
+        #             "instType": "MARGIN",
+        #             "markPx": "2403.98",
+        #             "ts": "1728578500703"
+        #         }
+        #     ],
+        #     "msg": ""
+        # }
+        #
+        data = self.safe_list(response, 'data')
+        return self.parse_ticker(self.safe_dict(data, 0), market)
+
     def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -1966,7 +2021,7 @@ class okx(Exchange, ImplicitAPI):
             defaultUnderlying = self.safe_string(self.options, 'defaultUnderlying', 'BTC-USD')
             currencyId = self.safe_string_2(params, 'uly', 'marketId', defaultUnderlying)
             if currencyId is None:
-                raise ArgumentsRequired(self.id + ' fetchTickers() requires an underlying uly or marketId parameter for options markets')
+                raise ArgumentsRequired(self.id + ' fetchMarkPrices() requires an underlying uly or marketId parameter for options markets')
             else:
                 request['uly'] = currencyId
         response = self.publicGetPublicMarkPrice(self.extend(request, params))
@@ -4424,7 +4479,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -4512,14 +4567,14 @@ class okx(Exchange, ImplicitAPI):
         networkCode = self.network_id_to_code(network, code)
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
@@ -4559,7 +4614,7 @@ class okx(Exchange, ImplicitAPI):
         parsed = self.parse_deposit_addresses(filtered, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
@@ -6187,15 +6242,6 @@ class okx(Exchange, ImplicitAPI):
             borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
         return borrowRateHistories
 
-    def parse_borrow_rate_history(self, response, code, since, limit):
-        result = []
-        for i in range(0, len(response)):
-            item = response[i]
-            borrowRate = self.parse_borrow_rate(item)
-            result.append(borrowRate)
-        sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_currency_since_limit(sorted, code, since, limit)
-
     def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
@@ -6784,6 +6830,7 @@ class okx(Exchange, ImplicitAPI):
         #         "instType": "OPTION",
         #         "oi": "300",
         #         "oiCcy": "3",
+        #         "oiUsd": "3",
         #         "ts": "1684551166251"
         #     }
         #
@@ -6806,7 +6853,7 @@ class okx(Exchange, ImplicitAPI):
         else:
             baseVolume = self.safe_number(interest, 'oiCcy')
             openInterestAmount = self.safe_number(interest, 'oi')
-            openInterestValue = self.safe_number(interest, 'oiCcy')
+            openInterestValue = self.safe_number(interest, 'oiUsd')
         return self.safe_open_interest({
             'symbol': self.safe_symbol(id),
             'baseVolume': baseVolume,  # deprecated
@@ -7885,3 +7932,66 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         positions = self.parse_positions(data, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
+
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest ratio to fetch
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'instId': market['id'],
+        }
+        until = self.safe_string_2(params, 'until', 'end')
+        params = self.omit(params, 'until')
+        if until is not None:
+            request['end'] = until
+        if timeframe is not None:
+            request['period'] = timeframe
+        if since is not None:
+            request['begin'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetRubikStatContractsLongShortAccountRatioContract(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             ["1729323600000", "0.9398602814619824"],
+        #             ["1729323300000", "0.9398602814619824"],
+        #             ["1729323000000", "0.9398602814619824"],
+        #         ],
+        #         "msg": ""
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        result = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            result.append({
+                'timestamp': self.safe_string(entry, 0),
+                'longShortRatio': self.safe_string(entry, 1),
+            })
+        return self.parse_long_short_ratio_history(result, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        timestamp = self.safe_integer(info, 'timestamp')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        return {
+            'info': info,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.safe_number(info, 'longShortRatio'),
+        }

@@ -62,6 +62,8 @@ class hashkey extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -1744,7 +1746,7 @@ class hashkey extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
@@ -1782,7 +1784,7 @@ class hashkey extends Exchange {
         return $depositAddress;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "canDeposit" => true,
@@ -1802,11 +1804,11 @@ class hashkey extends Exchange {
             $tag = null;
         }
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 

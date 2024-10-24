@@ -1415,6 +1415,16 @@
                 "input": []
               }
         ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://www.okx.com/api/v5/public/mark-price?instId=ETH-USDT-SWAP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+              }
+        ],
         "fetchTickers": [
             {
                 "description": "spot tickers",
@@ -1560,6 +1570,16 @@
                 "description": "linear swap fetch the funding interval",
                 "method": "fetchFundingInterval",
                 "url": "https://www.okx.com/api/v5/public/funding-rate?instId=BTC-USDT-SWAP",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "swap fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://www.okx.com/api/v5/rubik/stat/contracts/long-short-account-ratio-contract?instId=BTC-USDT-SWAP",
                 "input": [
                   "BTC/USDT:USDT"
                 ]

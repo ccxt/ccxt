@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -3716,7 +3716,7 @@ export default class coinbase extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100) as Trade[];
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250) as Trade[];
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -3963,7 +3963,7 @@ export default class coinbase extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name coinbase#fetchDepositAddress
@@ -4035,10 +4035,10 @@ export default class coinbase extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const addressStructures = this.parseDepositAddresses (data, undefined, false);
-        return this.indexBy (addressStructures, 'network');
+        return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4093,10 +4093,10 @@ export default class coinbase extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (marketId, currency),
+            'network': this.networkIdToCode (networkId, code),
             'address': address,
             'tag': this.safeString (addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode (networkId, code),
-        };
+        } as DepositAddress;
     }
 
     async deposit (code: string, amount: number, id: string, params = {}) {

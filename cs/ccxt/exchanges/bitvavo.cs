@@ -40,6 +40,8 @@ public partial class bitvavo : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -439,10 +441,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
 
-    public virtual object parseCurrencies(object currencies)
+    public virtual object parseCurrenciesCustom(object currencies)
     {
         //
         //     [
@@ -1083,11 +1085,11 @@ public partial class bitvavo : Exchange
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

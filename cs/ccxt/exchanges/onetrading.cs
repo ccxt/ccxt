@@ -44,6 +44,7 @@ public partial class onetrading : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -1027,11 +1028,11 @@ public partial class onetrading : Exchange
         object tag = this.safeString(depositAddress, "destination_tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

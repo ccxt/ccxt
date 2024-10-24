@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -93,7 +93,7 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -242,6 +242,7 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2161,8 +2162,10 @@ class mexc(Exchange, ImplicitAPI):
         order = self.parse_order(response, market)
         order['side'] = side
         order['type'] = type
-        order['price'] = price
-        order['amount'] = amount
+        if self.safe_string(order, 'price') is None:
+            order['price'] = price
+        if self.safe_string(order, 'amount') is None:
+            order['amount'] = amount
         return order
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
@@ -4220,7 +4223,7 @@ class mexc(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        coin: "USDT",
@@ -4234,14 +4237,14 @@ class mexc(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'netWork')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.network_id_to_code(networkId),
-            'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
@@ -4323,7 +4326,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return self.parse_deposit_address(response, currency)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network

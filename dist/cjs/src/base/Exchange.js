@@ -1419,6 +1419,8 @@ class Exchange {
                 'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
+                'fetchLongShortRatio': undefined,
+                'fetchLongShortRatioHistory': undefined,
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
@@ -2078,6 +2080,19 @@ class Exchange {
     async fetchTradingLimits(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTradingLimits() is not supported yet');
     }
+    parseCurrency(rawCurrency) {
+        throw new errors.NotSupported(this.id + ' parseCurrency() is not supported yet');
+    }
+    parseCurrencies(rawCurrencies) {
+        const result = {};
+        const arr = this.toArray(rawCurrencies);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrency(arr[i]);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
     parseMarket(market) {
         throw new errors.NotSupported(this.id + ' parseMarket() is not supported yet');
     }
@@ -2198,6 +2213,12 @@ class Exchange {
     }
     async setMargin(symbol, amount, params = {}) {
         throw new errors.NotSupported(this.id + ' setMargin() is not supported yet');
+    }
+    async fetchLongShortRatio(symbol, timeframe = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLongShortRatio() is not supported yet');
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchLongShortRatioHistory() is not supported yet');
     }
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -5499,7 +5520,7 @@ class Exchange {
             result = this.filterByArray(result, 'currency', codes, false);
         }
         if (indexed) {
-            return this.indexBy(result, 'currency');
+            result = this.filterByArray(result, 'currency', undefined, indexed);
         }
         return result;
     }
@@ -5510,6 +5531,19 @@ class Exchange {
             interests.push(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+    parseBorrowRate(info, currency = undefined) {
+        throw new errors.NotSupported(this.id + ' parseBorrowRate() is not supported yet');
+    }
+    parseBorrowRateHistory(response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate(item);
+            result.push(borrowRate);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
     parseIsolatedBorrowRates(info) {
         const result = {};
@@ -5545,6 +5579,19 @@ class Exchange {
             result[parsed['symbol']] = parsed;
         }
         return result;
+    }
+    parseLongShortRatio(info, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
+    }
+    parseLongShortRatioHistory(response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push(this.parseLongShortRatio(entry, market));
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     handleTriggerAndParams(params) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
@@ -6152,6 +6199,8 @@ class Exchange {
         let i = 0;
         let errors = 0;
         let result = [];
+        const timeframe = this.safeString(params, 'timeframe');
+        params = this.omit(params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
             try {
                 if (cursorValue !== undefined) {
@@ -6166,6 +6215,9 @@ class Exchange {
                 }
                 else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
+                }
+                else if (method === 'fetchOpenInterestHistory') {
+                    response = await this[method](symbol, timeframe, since, maxEntriesPerRequest, params);
                 }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);

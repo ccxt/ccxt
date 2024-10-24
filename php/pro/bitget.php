@@ -1172,7 +1172,7 @@ class bitget extends \ccxt\async\bitget {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchOrders', $market, $params, 'linear');
             if (($type === 'spot' || $type === 'margin') && ($symbol === null)) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
+                $marketId = 'default';
             }
             if (($productType === null) && ($type !== 'spot') && ($symbol === null)) {
                 $messageHash = $messageHash . ':' . $subType;
@@ -1184,7 +1184,11 @@ class bitget extends \ccxt\async\bitget {
                 $messageHash = $messageHash . ':usdcfutures'; // non unified $channel
             }
             $instType = null;
-            list($instType, $params) = $this->get_inst_type($market, $params);
+            if ($market === null && $type === 'spot') {
+                $instType = 'SPOT';
+            } else {
+                list($instType, $params) = $this->get_inst_type($market, $params);
+            }
             if ($type === 'spot') {
                 $subscriptionHash = $subscriptionHash . ':' . $symbol;
             }
@@ -1554,8 +1558,14 @@ class bitget extends \ccxt\async\bitget {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . ':' . $symbol;
             }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
             $instType = null;
-            list($instType, $params) = $this->get_inst_type($market, $params);
+            if ($market === null && $type === 'spot') {
+                $instType = 'SPOT';
+            } else {
+                list($instType, $params) = $this->get_inst_type($market, $params);
+            }
             $subscriptionHash = 'fill:' . $instType;
             $args = array(
                 'instType' => $instType,

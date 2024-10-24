@@ -1,5 +1,5 @@
 import Exchange from './abstract/ndax.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class ndax
  * @augments Exchange
@@ -35,27 +35,9 @@ export default class ndax extends Exchange {
     fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatusByType(status: any, type?: any): string;

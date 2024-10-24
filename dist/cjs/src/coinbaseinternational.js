@@ -1388,12 +1388,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         //        ...
         //    ]
         //
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency(currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
+        return this.parseCurrencies(currencies);
     }
     parseCurrency(currency) {
         //
@@ -1409,7 +1404,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
         const id = this.safeString(currency, 'asset_name');
         const code = this.safeCurrencyCode(id);
         const statusId = this.safeString(currency, 'status');
-        return {
+        return this.safeCurrencyStructure({
             'id': id,
             'name': code,
             'code': code,
@@ -1422,7 +1417,7 @@ class coinbaseinternational extends coinbaseinternational$1 {
             'fee': undefined,
             'fees': undefined,
             'limits': this.limits,
-        };
+        });
     }
     async fetchTickers(symbols = undefined, params = {}) {
         /**

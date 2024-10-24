@@ -51,6 +51,7 @@ class onetrading extends onetrading$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1033,11 +1034,11 @@ class onetrading extends onetrading$1 {
         const tag = this.safeString(depositAddress, 'destination_tag');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async createDepositAddress(code, params = {}) {

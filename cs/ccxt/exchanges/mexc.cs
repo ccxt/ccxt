@@ -72,7 +72,7 @@ public partial class mexc : Exchange
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", null },
+                { "fetchFundingRates", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -217,6 +217,7 @@ public partial class mexc : Exchange
                             { "rebate/affiliate/commission/detail", 1 },
                             { "mxDeduct/enable", 1 },
                             { "userDataStream", 1 },
+                            { "selfSymbols", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 1 },
@@ -2137,8 +2138,14 @@ public partial class mexc : Exchange
         object order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["side"] = side;
         ((IDictionary<string,object>)order)["type"] = type;
-        ((IDictionary<string,object>)order)["price"] = price;
-        ((IDictionary<string,object>)order)["amount"] = amount;
+        if (isTrue(isEqual(this.safeString(order, "price"), null)))
+        {
+            ((IDictionary<string,object>)order)["price"] = price;
+        }
+        if (isTrue(isEqual(this.safeString(order, "amount"), null)))
+        {
+            ((IDictionary<string,object>)order)["amount"] = amount;
+        }
         return order;
     }
 
@@ -4450,11 +4457,11 @@ public partial class mexc : Exchange
         object networkId = this.safeString(depositAddress, "netWork");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(networkId) },
-            { "info", depositAddress },
         };
     }
 

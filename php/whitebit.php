@@ -46,6 +46,8 @@ class whitebit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -1835,7 +1837,7 @@ class whitebit extends Exchange {
         return $this->parse_trades($data, $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this $account
          * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-$address
@@ -1901,11 +1903,11 @@ class whitebit extends Exchange {
         $tag = $this->safe_string($account, 'memo');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 

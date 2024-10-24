@@ -461,6 +461,21 @@ public partial class gateio : gate
         return await this.callAsync ("privateUnifiedGetCurrencyDiscountTiers",parameters);
     }
 
+    public async Task<object> privateUnifiedGetRiskUnits (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetRiskUnits",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetUnifiedMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetUnifiedMode",parameters);
+    }
+
+    public async Task<object> privateUnifiedGetLoanMarginTiers (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedGetLoanMarginTiers",parameters);
+    }
+
     public async Task<object> privateUnifiedPostAccountMode (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostAccountMode",parameters);
@@ -469,6 +484,16 @@ public partial class gateio : gate
     public async Task<object> privateUnifiedPostLoans (object parameters = null)
     {
         return await this.callAsync ("privateUnifiedPostLoans",parameters);
+    }
+
+    public async Task<object> privateUnifiedPostPortfolioCalculator (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPostPortfolioCalculator",parameters);
+    }
+
+    public async Task<object> privateUnifiedPutUnifiedMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUnifiedPutUnifiedMode",parameters);
     }
 
     public async Task<object> privateSpotGetFee (object parameters = null)

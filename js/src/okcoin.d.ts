@@ -1,5 +1,5 @@
 import Exchange from './abstract/okcoin.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class okcoin
  * @augments Exchange
@@ -33,15 +33,9 @@ export default class okcoin extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    };
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;

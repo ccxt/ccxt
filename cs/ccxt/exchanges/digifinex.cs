@@ -41,6 +41,8 @@ public partial class digifinex : Exchange
                 { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -2874,9 +2876,9 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
         };
     }
 
@@ -3363,7 +3365,7 @@ public partial class digifinex : Exchange
         return this.parseBorrowRates(result, "currency");
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {

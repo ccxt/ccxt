@@ -10,6 +10,7 @@ use Ratchet\RFC6455\Messaging\CloseFrameChecker;
 use Ratchet\RFC6455\Messaging\MessageInterface;
 use Ratchet\RFC6455\Messaging\FrameInterface;
 use Ratchet\RFC6455\Messaging\Frame;
+use Ratchet\RFC6455\Handshake\PermessageDeflateOptions;
 
 class WebSocket implements EventEmitterInterface {
     use EventEmitterTrait;
@@ -65,6 +66,13 @@ class WebSocket implements EventEmitterInterface {
         };
 
         $reusableUAException = new \UnderflowException;
+        $permessageDeflateOptions = PermessageDeflateOptions::fromRequestOrResponse($request);
+        $sender = null;
+        $permessageDeflateOption = null;
+        if (count($permessageDeflateOptions) > 1) {
+            $sender = [$stream, 'write'];
+            $permessageDeflateOption = $permessageDeflateOptions[0];
+        }
 
         $streamer = new MessageBuffer(
             new CloseFrameChecker,
@@ -100,7 +108,11 @@ class WebSocket implements EventEmitterInterface {
             false,
             function() use ($reusableUAException) {
                 return $reusableUAException;
-            }
+            },
+            null,
+            null,
+            $sender,
+            $permessageDeflateOption
         );
 
         $stream->on('data', [$streamer, 'onData']);

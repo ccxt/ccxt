@@ -45,6 +45,8 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1143,12 +1145,11 @@ class wavesexchange extends wavesexchange$1 {
                 const responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 const addressInner = this.safeString(response, 'address');
                 return {
-                    'address': addressInner,
-                    'code': code,
+                    'info': responseInner,
                     'currency': code,
                     'network': network,
+                    'address': addressInner,
                     'tag': undefined,
-                    'info': responseInner,
                 };
             }
             else {
@@ -1189,12 +1190,11 @@ class wavesexchange extends wavesexchange$1 {
         const addresses = this.safeValue(response, 'deposit_addresses');
         const address = this.safeString(addresses, 0);
         return {
-            'address': address,
-            'code': code,
-            'currency': code,
-            'tag': undefined,
-            'network': unifiedNetwork,
             'info': response,
+            'currency': code,
+            'network': unifiedNetwork,
+            'address': address,
+            'tag': undefined,
         };
     }
     async getMatcherPublicKey() {

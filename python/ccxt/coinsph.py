@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinsph import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1740,7 +1740,7 @@ class coinsph(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://coins-docs.github.io/rest-api/#deposit-address-user_data
@@ -1770,7 +1770,7 @@ class coinsph(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "ETH",
@@ -1781,11 +1781,11 @@ class coinsph(Exchange, ImplicitAPI):
         currencyId = self.safe_string(depositAddress, 'coin')
         parsedCurrency = self.safe_currency_code(currencyId, currency)
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': None,
             'address': self.safe_string(depositAddress, 'address'),
             'tag': self.safe_string(depositAddress, 'addressTag'),
-            'network': None,
-            'info': depositAddress,
         }
 
     def url_encode_query(self, query={}):

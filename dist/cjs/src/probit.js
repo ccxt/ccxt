@@ -46,6 +46,7 @@ class probit extends probit$1 {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1307,11 +1308,11 @@ class probit extends probit$1 {
         const network = this.safeString(depositAddress, 'platform_id');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

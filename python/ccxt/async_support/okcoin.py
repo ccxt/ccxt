@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okcoin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,10 +66,13 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,  # see below
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -2016,7 +2019,7 @@ class okcoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -2099,14 +2102,14 @@ class okcoin(Exchange, ImplicitAPI):
         #
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
@@ -2125,7 +2128,7 @@ class okcoin(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + networkCode + ' deposit address for ' + code)
         return result
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address

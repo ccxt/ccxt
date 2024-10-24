@@ -48,6 +48,8 @@ class digifinex extends digifinex$1 {
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -2741,9 +2743,9 @@ class digifinex extends digifinex$1 {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
         };
     }
     async fetchDepositAddress(code, params = {}) {

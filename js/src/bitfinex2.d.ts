@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex2.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class bitfinex2
  * @augments Exchange
@@ -49,20 +49,8 @@ export default class bitfinex2 extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchTradingFees(params?: {}): Promise<TradingFees>;

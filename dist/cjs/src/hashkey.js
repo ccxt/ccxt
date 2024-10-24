@@ -65,6 +65,8 @@ class hashkey extends hashkey$1 {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1815,11 +1817,11 @@ class hashkey extends hashkey$1 {
             tag = undefined;
         }
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

@@ -2523,11 +2523,11 @@ public partial class ascendex : Exchange
         object chainName = this.safeString(depositAddress, "blockchain");
         object network = this.networkIdToCode(chainName, code);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 

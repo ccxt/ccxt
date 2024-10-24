@@ -141,6 +141,8 @@ public partial class Exchange
                 { "fetchLeverages", null },
                 { "fetchLeverageTiers", null },
                 { "fetchLiquidations", null },
+                { "fetchLongShortRatio", null },
+                { "fetchLongShortRatioHistory", null },
                 { "fetchMarginMode", null },
                 { "fetchMarginModes", null },
                 { "fetchMarketLeverageTiers", null },
@@ -999,6 +1001,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTradingLimits() is not supported yet")) ;
     }
 
+    public virtual object parseCurrency(object rawCurrency)
+    {
+        throw new NotSupported ((string)add(this.id, " parseCurrency() is not supported yet")) ;
+    }
+
+    public virtual object parseCurrencies(object rawCurrencies)
+    {
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(rawCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseCurrency(getValue(arr, i));
+            object code = getValue(parsed, "code");
+            ((IDictionary<string,object>)result)[(string)code] = parsed;
+        }
+        return result;
+    }
+
     public virtual object parseMarket(object market)
     {
         throw new NotSupported ((string)add(this.id, " parseMarket() is not supported yet")) ;
@@ -1212,6 +1232,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchLongShortRatio(object symbol, object timeframe = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLongShortRatio() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLongShortRatioHistory() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
@@ -5614,7 +5646,7 @@ public partial class Exchange
         }
         if (isTrue(indexed))
         {
-            return this.indexBy(result, "currency");
+            result = this.filterByArray(result, "currency", null, indexed);
         }
         return result;
     }
@@ -5628,6 +5660,24 @@ public partial class Exchange
             ((IList<object>)interests).Add(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+
+    public virtual object parseBorrowRate(object info, object currency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseBorrowRate() is not supported yet")) ;
+    }
+
+    public virtual object parseBorrowRateHistory(object response, object code, object since, object limit)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object item = getValue(response, i);
+            object borrowRate = this.parseBorrowRate(item);
+            ((IList<object>)result).Add(borrowRate);
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
     public virtual object parseIsolatedBorrowRates(object info)
@@ -5676,6 +5726,24 @@ public partial class Exchange
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
         }
         return result;
+    }
+
+    public virtual object parseLongShortRatio(object info, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseLongShortRatio() is not supported yet")) ;
+    }
+
+    public virtual object parseLongShortRatioHistory(object response, object market = null, object since = null, object limit = null)
+    {
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            ((IList<object>)rates).Add(this.parseLongShortRatio(entry, market));
+        }
+        object sorted = this.sortBy(rates, "timestamp");
+        object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object handleTriggerAndParams(object parameters)
@@ -6467,6 +6535,8 @@ public partial class Exchange
         object i = 0;
         object errors = 0;
         object result = new List<object>() {};
+        object timeframe = this.safeString(parameters, "timeframe");
+        parameters = this.omit(parameters, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         while (isLessThan(i, maxCalls))
         {
             try
@@ -6486,6 +6556,9 @@ public partial class Exchange
                 } else if (isTrue(isTrue(isEqual(method, "getLeverageTiersPaginated")) || isTrue(isEqual(method, "fetchPositions"))))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
+                } else if (isTrue(isEqual(method, "fetchOpenInterestHistory")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, maxEntriesPerRequest, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));

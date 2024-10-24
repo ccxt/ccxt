@@ -2643,7 +2643,7 @@ class bitmex extends Exchange {
         return $this->privatePostPositionIsolate ($this->extend($request, $params));
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
@@ -2669,11 +2669,11 @@ class bitmex extends Exchange {
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => str_replace('"', '', $response->replace ('"', '')), // Done twice because some languages only replace the first instance
             'tag' => null,
-            'network' => $networkCode,
-            'info' => $response,
         );
     }
 

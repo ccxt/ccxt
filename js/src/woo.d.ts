@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -53,13 +53,7 @@ export default class woo extends Exchange {
     };
     fetchBalance(params?: {}): Promise<Balances>;
     parseBalance(response: any): Balances;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;

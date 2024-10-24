@@ -1193,7 +1193,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
          * fetch deposit $addresses for multiple currencies and chain types
          * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
@@ -1267,8 +1267,8 @@ class indodax extends Exchange {
                 $result[$code] = array(
                     'info' => array(),
                     'currency' => $code,
-                    'address' => $address,
                     'network' => $network,
+                    'address' => $address,
                     'tag' => null,
                 );
             }

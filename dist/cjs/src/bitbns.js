@@ -34,6 +34,8 @@ class bitbns extends bitbns$1 {
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1147,11 +1149,11 @@ class bitbns extends bitbns$1 {
         const tag = this.safeString(data, 'tag');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     nonce() {

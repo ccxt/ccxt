@@ -662,9 +662,9 @@ public partial class hyperliquid : Exchange
                 object code = this.safeCurrencyCode(this.safeString(balance, "coin"));
                 object account = this.account();
                 object total = this.safeString(balance, "total");
-                object free = this.safeString(balance, "hold");
+                object used = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
-                ((IDictionary<string,object>)account)["used"] = free;
+                ((IDictionary<string,object>)account)["used"] = used;
                 ((IDictionary<string,object>)spotBalances)[(string)code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -673,8 +673,8 @@ public partial class hyperliquid : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "USDC", new Dictionary<string, object>() {
-                { "total", this.safeFloat(data, "accountValue") },
-                { "used", this.safeFloat(data, "totalMarginUsed") },
+                { "total", this.safeNumber(data, "accountValue") },
+                { "free", this.safeNumber(response, "withdrawable") },
             } },
         };
         object timestamp = this.safeInteger(response, "time");
@@ -2158,6 +2158,10 @@ public partial class hyperliquid : Exchange
         object statuses = new Dictionary<string, object>() {
             { "triggered", "open" },
             { "filled", "closed" },
+            { "open", "open" },
+            { "canceled", "canceled" },
+            { "rejected", "rejected" },
+            { "marginCanceled", "canceled" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -2419,16 +2423,20 @@ public partial class hyperliquid : Exchange
         market = this.safeMarket(marketId, null);
         object symbol = getValue(market, "symbol");
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
-        object isIsolated = (isEqual(this.safeString(leverage, "type"), "isolated"));
-        object quantity = this.safeNumber(leverage, "rawUsd");
+        object marginMode = this.safeString(leverage, "type");
+        object isIsolated = (isEqual(marginMode, "isolated"));
+        object rawSize = this.safeString(entry, "szi");
+        object size = rawSize;
         object side = null;
-        if (isTrue(!isEqual(quantity, null)))
+        if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue((isGreaterThan(quantity, 0)))) ? "short" : "long";
+            side = ((bool) isTrue(Precise.stringGt(rawSize, "0"))) ? "long" : "short";
+            size = Precise.stringAbs(size);
         }
-        object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
-        object initialMargin = this.safeNumber(entry, "marginUsed");
-        object percentage = multiply(divide(unrealizedPnl, initialMargin), 100);
+        object rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
+        object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        object initialMargin = this.safeString(entry, "marginUsed");
+        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2438,21 +2446,21 @@ public partial class hyperliquid : Exchange
             { "isolated", isIsolated },
             { "hedged", null },
             { "side", side },
-            { "contracts", this.safeNumber(entry, "szi") },
+            { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
-            { "collateral", null },
+            { "collateral", this.safeNumber(entry, "marginUsed") },
             { "initialMargin", initialMargin },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
-            { "unrealizedPnl", unrealizedPnl },
+            { "unrealizedPnl", this.parseNumber(rawUnrealizedPnl) },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
-            { "marginMode", null },
-            { "percentage", percentage },
+            { "marginMode", marginMode },
+            { "percentage", this.parseNumber(percentage) },
         });
     }
 

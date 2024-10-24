@@ -747,7 +747,7 @@ class independentreserve extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
@@ -772,7 +772,7 @@ class independentreserve extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag => '3307446684',
@@ -786,9 +786,9 @@ class independentreserve extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'Tag'),
-            'network' => null,
         );
     }
 

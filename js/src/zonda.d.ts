@@ -1,5 +1,5 @@
 import Exchange from './abstract/zonda.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class zonda
  * @augments Exchange
@@ -27,21 +27,9 @@ export default class zonda extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     isFiat(currency: string): boolean;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;

@@ -1284,8 +1284,8 @@ class indodax extends indodax$1 {
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'address': address,
                     'network': network,
+                    'address': address,
                     'tag': undefined,
                 };
             }

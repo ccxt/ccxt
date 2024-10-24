@@ -1,5 +1,5 @@
 import Exchange from './abstract/mexc.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 /**
  * @class mexc
  * @augments Exchange
@@ -70,22 +70,10 @@ export default class mexc extends Exchange {
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: string;
-        info: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;

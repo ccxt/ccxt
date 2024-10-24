@@ -47,8 +47,13 @@ class bigone extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -1816,7 +1821,7 @@ class bigone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1861,11 +1866,11 @@ class bigone extends Exchange {
             $tag = $this->safe_string($addressObject, 'memo');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $this->network_id_to_code($selectedNetworkId),
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $this->network_id_to_code($selectedNetworkId),
-                'info' => $response,
             );
         }) ();
     }

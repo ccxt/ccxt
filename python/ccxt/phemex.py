@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -64,6 +64,8 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
@@ -80,6 +82,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -3145,7 +3148,7 @@ class phemex(Exchange, ImplicitAPI):
             data = self.safe_value(data, 'rows', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -3157,9 +3160,9 @@ class phemex(Exchange, ImplicitAPI):
         request: dict = {
             'currency': currency['id'],
         }
-        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetworks = self.safe_dict(self.options, 'defaultNetworks')
         defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_upper(params, 'network', defaultNetwork)
         network = self.safe_string(networks, network, network)
         if network is None:
@@ -3182,11 +3185,11 @@ class phemex(Exchange, ImplicitAPI):
         tag = self.safe_string(data, 'tag')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -4491,6 +4494,77 @@ class phemex(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a trading pair
+        :see: https://phemex-docs.github.io/#query-24-hours-ticker
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest is only supported for contract markets.')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.v2GetMdV2Ticker24hr(self.extend(request, params))
+        #
+        #    {
+        #        error: null,
+        #        id: '0',
+        #        result: {
+        #          closeRp: '67550.1',
+        #          fundingRateRr: '0.0001',
+        #          highRp: '68400',
+        #          indexPriceRp: '67567.15389794',
+        #          lowRp: '66096.4',
+        #          markPriceRp: '67550.1',
+        #          openInterestRv: '1848.1144186',
+        #          openRp: '66330',
+        #          predFundingRateRr: '0.0001',
+        #          symbol: 'BTCUSDT',
+        #          timestamp: '1729114315443343001',
+        #          turnoverRv: '228863389.3237532',
+        #          volumeRq: '3388.5600312'
+        #        }
+        #    }
+        #
+        result = self.safe_dict(response, 'result')
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #    {
+        #        closeRp: '67550.1',
+        #        fundingRateRr: '0.0001',
+        #        highRp: '68400',
+        #        indexPriceRp: '67567.15389794',
+        #        lowRp: '66096.4',
+        #        markPriceRp: '67550.1',
+        #        openInterestRv: '1848.1144186',
+        #        openRp: '66330',
+        #        predFundingRateRr: '0.0001',
+        #        symbol: 'BTCUSDT',
+        #        timestamp: '1729114315443343001',
+        #        turnoverRv: '228863389.3237532',
+        #        volumeRq: '3388.5600312'
+        #    }
+        #
+        timestamp = self.safe_integer(interest, 'timestamp') / 1000000
+        id = self.safe_string(interest, 'symbol')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_symbol(id, market),
+            'baseVolume': self.safe_string(interest, 'volumeRq'),
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': self.safe_string(interest, 'openInterestRv'),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }, market)
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

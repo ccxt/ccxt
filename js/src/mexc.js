@@ -82,7 +82,7 @@ export default class mexc extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -231,6 +231,7 @@ export default class mexc extends Exchange {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2274,8 +2275,12 @@ export default class mexc extends Exchange {
         const order = this.parseOrder(response, market);
         order['side'] = side;
         order['type'] = type;
-        order['price'] = price;
-        order['amount'] = amount;
+        if (this.safeString(order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString(order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
         return order;
     }
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
@@ -4534,11 +4539,11 @@ export default class mexc extends Exchange {
         const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {

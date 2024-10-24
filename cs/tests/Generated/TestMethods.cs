@@ -32,9 +32,9 @@ public partial class testMainClass
 
     public virtual void parseCliArgsAndProps()
     {
-        this.responseTests = getCliArgValue("--responseTests");
+        this.responseTests = isTrue(getCliArgValue("--responseTests")) || isTrue(getCliArgValue("--response"));
         this.idTests = getCliArgValue("--idTests");
-        this.requestTests = getCliArgValue("--requestTests");
+        this.requestTests = isTrue(getCliArgValue("--requestTests")) || isTrue(getCliArgValue("--request"));
         this.info = getCliArgValue("--info");
         this.verbose = getCliArgValue("--verbose");
         this.debug = getCliArgValue("--debug");
@@ -77,6 +77,7 @@ public partial class testMainClass
             { "symbol", symbolArgv },
             { "method", methodArgv },
             { "isWs", this.wsTests },
+            { "useProxy", getCliArgValue("--useProxy") },
         }, newLine);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
@@ -1259,7 +1260,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
     }
@@ -1282,7 +1283,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -1567,7 +1568,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2211,6 +2212,27 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testCoincatch()
+    {
+        Exchange exchange = this.initOfflineExchange("coincatch");
+        object reqHeaders = null;
+        object id = "47cfy";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

@@ -52,6 +52,8 @@ class deribit extends deribit$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
@@ -1078,11 +1080,11 @@ class deribit extends deribit$1 {
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
         };
     }
     parseTicker(ticker, market = undefined) {

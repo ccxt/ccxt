@@ -1,5 +1,5 @@
 import Exchange from './abstract/bit2c.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress } from './base/types.js';
 /**
  * @class bit2c
  * @augments Exchange
@@ -22,20 +22,8 @@ export default class bit2c extends Exchange {
     removeCommaFromValue(str: any): string;
     parseTrade(trade: Dict, market?: Market): Trade;
     isFiat(code: any): boolean;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
-        info: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     nonce(): number;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
