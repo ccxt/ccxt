@@ -5,10 +5,10 @@ import Exchange from './abstract/defx.js';
 // import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported } from './base/errors.js';
-import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate } from './base/types.js';
+import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -189,6 +189,8 @@ export default class defx extends Exchange {
                     },
                     'private': {
                         'get': {
+                            'api/wallet/balance': 1,
+                            'api/wallet/transactions': 1,
                         },
                         'post': {
                         },
@@ -1013,6 +1015,45 @@ export default class defx extends Exchange {
         } as FundingRate;
     }
 
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name defx#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://api-docs.defx.com/#26414338-14f7-40a1-b246-f8ea8571493f
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetApiWalletBalance (params);
+        //
+        // {
+        //     "assets": [
+        //       {
+        //         "asset": "USDC",
+        //         "balance": "0.000"
+        //       }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'assets');
+        return this.parseBalance (data);
+    }
+
+    parseBalance (balances): Balances {
+        const result: Dict = {
+            'info': balances,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1030,6 +1071,23 @@ export default class defx extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else {
+            this.checkRequiredCredentials ();
+            url += 'auth/' + pathWithParams;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+            const nonce = this.milliseconds ();
+            let payload = nonce + this.urlencode (params);
+            if (body !== undefined) {
+                payload += this.json (body);
+            }
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
+            headers = {
+                'X-DEFX-APIKEY': this.apiKey,
+                'X-DEFX-TIMESTAMP': nonce,
+                'X-DEFX-SIGNATURE': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

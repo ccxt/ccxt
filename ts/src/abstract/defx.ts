@@ -33,6 +33,8 @@ interface Exchange {
     v1PublicGetExplorerSearch (params?: {}): Promise<implicitReturnType>;
     v1PublicGetExplorerTransactions (params?: {}): Promise<implicitReturnType>;
     v1PublicGetExplorerBlocks (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiWalletBalance (params?: {}): Promise<implicitReturnType>;
+    v1PrivateGetApiWalletTransactions (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
