@@ -654,6 +654,8 @@ public partial class Exchange
 
     public async Task Close()
     {
+        // This is the language-specific method to cleanup WS & REST resources
+        // [WS]
         var tasks = new List<Task>();
         if (this.clients.Keys.Count > 0)
         {
@@ -666,6 +668,8 @@ public partial class Exchange
             }
             await Task.WhenAll(tasks);
         }
+        // [REST]
+        // todo
     }
 
     public async Task close()
