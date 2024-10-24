@@ -141,6 +141,13 @@
             }
         }
     },
+    "bit2me": {
+        "skipMethods": {
+            "ticker": {
+                "baseVolume": "quoteVolume >= baseVolume * low is failing"
+            }
+        }
+    },
     "tokocrypto": {
         "httpsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
