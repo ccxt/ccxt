@@ -459,8 +459,11 @@ export default class vertex extends Exchange {
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : true;
         const contractSize = (spot) ? undefined : this.parseNumber ('1');
+        const id = this.safeString (market, 'product_id');
+        const ticker_id = baseId + '_' + quoteId;
+        this.options['productIdByTicker'][ticker_id] = id;
         return {
-            'id': this.safeString (market, 'product_id'),
+            'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -552,6 +555,7 @@ export default class vertex extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const markets = this.safeDict (data, 'symbols', {});
         const symbols = Object.keys (markets);
+        this.options['productIdByTicker'] = {};
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1433,13 +1437,15 @@ export default class vertex extends Exchange {
         //         "price_change_percent_24h": -0.6348599635253989
         //     }
         //
-        const base = this.safeString (ticker, 'base_currency');
-        const quote = this.safeString (ticker, 'quote_currency');
-        let marketId = base + '/' + quote;
-        if (base.indexOf ('PERP') > 0) {
-            marketId = marketId.replace ('-PERP', '') + ':USDC';
+        const tickerId = this.safeString (ticker, 'ticker_id');
+        const productId = this.safeString (this.options['productIdByTicker'], tickerId);
+        if (productId !== undefined) {
+            // if product-id is found, then get market for it
+            market = this.safeMarket (productId, market);
+        } else {
+            // else, create a safe market from ticker-id, as we don't have any other known info
+            market = this.safeMarket (tickerId, market);
         }
-        market = this.market (marketId);
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': market['symbol'],
