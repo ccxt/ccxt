@@ -1142,7 +1142,7 @@ export default class kucoin extends Exchange {
         }
         if (credentialsSet) {
             // load migration status for account
-            await this.loadMigrationStatus ();
+            promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
         const symbolsData = this.safeList (responses[0], 'data');
