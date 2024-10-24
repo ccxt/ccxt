@@ -6166,38 +6166,49 @@ export default class gate extends Exchange {
          * @name gate#repayCrossMargin
          * @description repay cross margin borrowed margin and interest
          * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+         * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
+        await this.loadUnifiedStatus ();
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        let response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "id": "17",
-        //             "create_time": 1620381696159,
-        //             "update_time": 1620381696159,
-        //             "currency": "EOS",
-        //             "amount": "110.553635",
-        //             "text": "web",
-        //             "status": 2,
-        //             "repaid": "110.506649705159",
-        //             "repaid_interest": "0.046985294841",
-        //             "unpaid_interest": "0.0000074393366667"
-        //         }
-        //     ]
-        //
-        response = this.safeValue (response, 0);
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'repayCrossMargin', 'unifiedAccount');
+        let response = undefined;
+        if (isUnifiedAccount) {
+            request['type'] = 'repay';
+            response = await this.privateUnifiedPostLoans (this.extend (request, params));
+        } else {
+            response = await this.privateMarginPostCrossRepayments (this.extend (request, params));
+            response = this.safeDict (response, 0);
+            //
+            //     [
+            //         {
+            //             "id": "17",
+            //             "create_time": 1620381696159,
+            //             "update_time": 1620381696159,
+            //             "currency": "EOS",
+            //             "amount": "110.553635",
+            //             "text": "web",
+            //             "status": 2,
+            //             "repaid": "110.506649705159",
+            //             "repaid_interest": "0.046985294841",
+            //             "unpaid_interest": "0.0000074393366667"
+            //         }
+            //     ]
+            //
+        }
         return this.parseMarginLoan (response, currency);
     }
 
@@ -6253,34 +6264,45 @@ export default class gate extends Exchange {
          * @name gate#borrowMargin
          * @description create a loan to borrow margin
          * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets ();
+        await this.loadUnifiedStatus ();
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'].toUpperCase (), // todo: currencies have network-junctions
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privateMarginPostCrossLoans (this.extend (request, params));
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
+        let isUnifiedAccount = false;
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams (params, 'borrowCrossMargin', 'unifiedAccount');
+        let response = undefined;
+        if (isUnifiedAccount) {
+            request['type'] = 'borrow';
+            response = await this.privateUnifiedPostLoans (this.extend (request, params));
+        } else {
+            response = await this.privateMarginPostCrossLoans (this.extend (request, params));
+            //
+            //     {
+            //         "id": "17",
+            //         "create_time": 1620381696159,
+            //         "update_time": 1620381696159,
+            //         "currency": "EOS",
+            //         "amount": "110.553635",
+            //         "text": "web",
+            //         "status": 2,
+            //         "repaid": "110.506649705159",
+            //         "repaid_interest": "0.046985294841",
+            //         "unpaid_interest": "0.0000074393366667"
+            //     }
+            //
+        }
         return this.parseMarginLoan (response, currency);
     }
 

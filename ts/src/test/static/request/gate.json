@@ -1510,6 +1510,19 @@
                     1
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "unified borrow margin",
+                "method": "borrowCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/unified/loans",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"borrow\"}"
             }
         ],
         "repayCrossMargin": [
@@ -1522,6 +1535,19 @@
                     1
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "unified repay margin",
+                "method": "repayCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/unified/loans",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"repay\"}"
             }
         ],
         "borrowIsolatedMargin": [
