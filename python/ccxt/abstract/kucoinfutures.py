@@ -124,6 +124,7 @@ class ImplicitAPI:
     private_post_lend_purchase_update = privatePostLendPurchaseUpdate = Entry('lend/purchase/update', 'private', 'POST', {'cost': 10})
     private_post_bullet_private = privatePostBulletPrivate = Entry('bullet-private', 'private', 'POST', {'cost': 10})
     private_post_position_update_user_leverage = privatePostPositionUpdateUserLeverage = Entry('position/update-user-leverage', 'private', 'POST', {'cost': 5})
+    private_post_deposit_address_create = privatePostDepositAddressCreate = Entry('deposit-address/create', 'private', 'POST', {'cost': 20})
     private_delete_sub_api_key = privateDeleteSubApiKey = Entry('sub/api-key', 'private', 'DELETE', {'cost': 45})
     private_delete_withdrawals_withdrawalid = privateDeleteWithdrawalsWithdrawalId = Entry('withdrawals/{withdrawalId}', 'private', 'DELETE', {'cost': 30})
     private_delete_hf_orders_orderid = privateDeleteHfOrdersOrderId = Entry('hf/orders/{orderId}', 'private', 'DELETE', {'cost': 1})

@@ -63,6 +63,7 @@ export default class alpaca extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,

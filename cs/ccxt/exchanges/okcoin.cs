@@ -42,6 +42,7 @@ public partial class okcoin : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchLedger", true },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },

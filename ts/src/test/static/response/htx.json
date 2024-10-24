@@ -615,6 +615,99 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            },
+            {
+                "description": "spot order with correct cost",
+                "method": "fetchOrder",
+                "input": [
+                  "1168150634634374",
+                  "LTC/USDT"
+                ],
+                "httpResponse": {
+                  "status": "ok",
+                  "data": {
+                    "id": "1168150634634374",
+                    "symbol": "ltcusdt",
+                    "account-id": "44234548",
+                    "client-order-id": "101",
+                    "amount": "1494.8",
+                    "market-amount": "0",
+                    "ice-amount": "0",
+                    "is-ice": false,
+                    "price": "0",
+                    "created-at": "1729260739570",
+                    "type": "buy-market",
+                    "field-amount": "4131.9039",
+                    "field-cash-amount": "844.80533188",
+                    "field-fees": "3.71871351",
+                    "finished-at": "1729260739864",
+                    "updated-at": "1729260739864",
+                    "source": "spot-api",
+                    "state": "partial-canceled",
+                    "canceled-at": "1729260739574",
+                    "canceled-source": "410",
+                    "canceled-source-desc": "Market order circuit-breaker"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "1168150634634374",
+                    "symbol": "ltcusdt",
+                    "account-id": "44234548",
+                    "client-order-id": "101",
+                    "amount": "1494.8",
+                    "market-amount": "0",
+                    "ice-amount": "0",
+                    "is-ice": false,
+                    "price": "0",
+                    "created-at": "1729260739570",
+                    "type": "buy-market",
+                    "field-amount": "4131.9039",
+                    "field-cash-amount": "844.80533188",
+                    "field-fees": "3.71871351",
+                    "finished-at": "1729260739864",
+                    "updated-at": "1729260739864",
+                    "source": "spot-api",
+                    "state": "partial-canceled",
+                    "canceled-at": "1729260739574",
+                    "canceled-source": "410",
+                    "canceled-source-desc": "Market order circuit-breaker"
+                  },
+                  "id": "1168150634634374",
+                  "clientOrderId": "101",
+                  "timestamp": 1729260739570,
+                  "datetime": "2024-10-18T14:12:19.570Z",
+                  "lastTradeTimestamp": null,
+                  "symbol": "LTC/USDT",
+                  "type": "market",
+                  "timeInForce": "IOC",
+                  "postOnly": null,
+                  "side": "buy",
+                  "price": 0.20445909496588244,
+                  "stopPrice": null,
+                  "triggerPrice": null,
+                  "average": 0.20445909496588244,
+                  "cost": 844.80533188,
+                  "amount": null,
+                  "filled": 4131.9039,
+                  "remaining": 0,
+                  "status": "canceled",
+                  "reduceOnly": null,
+                  "fee": {
+                    "cost": "3.71871351",
+                    "currency": "LTC"
+                  },
+                  "trades": [],
+                  "fees": [
+                    {
+                      "cost": 3.71871351,
+                      "currency": "LTC"
+                    }
+                  ],
+                  "lastUpdateTimestamp": null,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
             }
         ],
         "fetchTrades": [

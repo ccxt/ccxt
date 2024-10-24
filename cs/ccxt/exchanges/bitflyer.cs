@@ -27,6 +27,9 @@ public partial class bitflyer : Exchange
                 { "fetchBalance", true },
                 { "fetchClosedOrders", "emulated" },
                 { "fetchDeposits", true },
+                { "fetchFundingRate", true },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
@@ -56,7 +59,7 @@ public partial class bitflyer : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats"} },
+                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"} },
@@ -1082,6 +1085,65 @@ public partial class bitflyer : Exchange
             { "comment", null },
             { "internal", null },
             { "fee", fee },
+        };
+    }
+
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitflyer#fetchFundingRate
+        * @description fetch the current funding rate
+        * @see https://lightning.bitflyer.com/docs#funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "product_code", getValue(market, "id") },
+        };
+        object response = await this.publicGetGetfundingrate(this.extend(request, parameters));
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        return this.parseFundingRate(response, market);
+    }
+
+    public override object parseFundingRate(object contract, object market = null)
+    {
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        object nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
+        object nextFundingTimestamp = this.parse8601(nextFundingDatetime);
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeString(market, "symbol") },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", null },
+            { "fundingTimestamp", null },
+            { "fundingDatetime", null },
+            { "nextFundingRate", this.safeNumber(contract, "current_funding_rate") },
+            { "nextFundingTimestamp", nextFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

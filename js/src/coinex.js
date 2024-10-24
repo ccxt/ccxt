@@ -48,6 +48,8 @@ export default class coinex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'closeAllPositions': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -1775,7 +1777,7 @@ export default class coinex extends Exchange {
         //         "stop_id": 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
+        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         //
         //     {
         //         "amount": "0.0001",
@@ -5697,6 +5699,66 @@ export default class coinex extends Exchange {
         const records = this.safeList(response, 'data', []);
         const positions = this.parsePositions(records);
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+    async closePosition(symbol, side = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#closePosition
+         * @description closes an open position for a market
+         * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} [side] buy or sell, not used by coinex
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.type required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+         * @param {string} [params.price] the price to fulfill the order, ignored in market orders
+         * @param {string} [params.amount] the amount to trade in units of the base currency
+         * @param {string} [params.clientOrderId] the client id of the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const type = this.safeString(params, 'type', 'market');
+        const request = {
+            'market': market['id'],
+            'market_type': 'FUTURES',
+            'type': type,
+        };
+        const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_id'] = clientOrderId;
+        }
+        params = this.omit(params, 'clientOrderId');
+        const response = await this.v2PrivatePostFuturesClosePosition(this.extend(request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0001",
+        //             "client_id": "",
+        //             "created_at": 1729666043969,
+        //             "fee": "0.00335858",
+        //             "fee_ccy": "USDT",
+        //             "filled_amount": "0.0001",
+        //             "filled_value": "6.717179",
+        //             "last_filled_amount": "0.0001",
+        //             "last_filled_price": "67171.79",
+        //             "maker_fee_rate": "0",
+        //             "market": "BTCUSDT",
+        //             "market_type": "FUTURES",
+        //             "order_id": 155477479761,
+        //             "price": "0",
+        //             "realized_pnl": "-0.001823",
+        //             "side": "sell",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "market",
+        //             "unfilled_amount": "0",
+        //             "updated_at": 1729666043969
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
     }
     handleMarginModeAndParams(methodName, params = {}, defaultValue = undefined) {
         /**

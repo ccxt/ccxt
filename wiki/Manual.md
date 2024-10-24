@@ -70,7 +70,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 104 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                    | name                                                                                         | ver                                                                                                                                              | type | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -112,6 +112,7 @@ The CCXT library currently supports the following 103 cryptocurrency exchange ma
 | [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                       | coinbase              | [Coinbase Advanced](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.coinbase.com/api/v2)                                             | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseexchange](https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e)](https://coinbase.com/)                                                                  | coinbaseexchange      | [Coinbase Exchange](https://coinbase.com/)                                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.cloud.coinbase.com/exchange/docs/)                                     | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseinternational](https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625)](https://international.coinbase.com)                                                | coinbaseinternational | [Coinbase International](https://international.coinbase.com)                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.cloud.coinbase.com/intx/docs)                                          | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coincatch](https://github.com/user-attachments/assets/3d49065f-f05d-4573-88a2-1b5201ec6ff3)](https://partner.coincatch.cc/bg/92hy70391729607848548)                                           | coincatch             | [CoinCatch](https://partner.coincatch.cc/bg/92hy70391729607848548)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coincatch.github.io/github.io/en/)                                          | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                      | coincheck             | [coincheck](https://coincheck.com)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                       | cex  |                                                                                                                             |                                                                              |
 | [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                              | coinex                | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.coinex.com/api/v2)                                                     | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinlist](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/281108917-eff2ae1d-ce8a-4b2a-950d-8678b12da965.jpg)](https://coinlist.co)                                      | coinlist              | [Coinlist](https://coinlist.co)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://trade-docs.coinlist.co)                                                     | cex  |                                                                                                                             |                                                                              |
@@ -1752,6 +1753,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchFundingRateHistory (symbol, since, limit, params)`
 - `fetchFundingRateInterval (symbol, params)`
 - `fetchFundingRateIntervals (symbols, params)`
+- `fetchLongShortRatio (symbol, params)`
 - ...
 
 ```text
@@ -3439,6 +3441,58 @@ Returns
     'percentage': 11.86,                        // the 24 hour price change as a percentage
     'baseVolume': 100.86,                       // the volume in units of the base currency
     'quoteVolume': 23772.86,                    // the volume in units of the quote currency
+}
+```
+
+## Long Short Ratio
+
+*contract only*
+
+Use the `fetchLongShortRatio` method to fetch the current long short ratio of a symbol and use the `fetchLongShortRatioHistory` to fetch the history of long short ratios for a symbol.
+
+- `fetchLongShortRatio (symbol, period)` for the current ratio of a single market symbol
+- `fetchLongShortRatioHistory (symbol, period, since, limit)` for the history of ratios of a single market symbol
+
+```javascript
+fetchLongShortRatio (symbol, period = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a [long short ratio structure](#long-short-ratio-structure)
+
+```javascript
+fetchLongShortRatioHistory (symbol = undefined, period = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
+- **since** (Integer) Timestamp for the earliest ratio (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of ratios to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [long short ratio structures](#long-short-ratio-structure)
+
+### Long Short Ratio Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT',
+    timestamp: 1645833600000,
+    datetime: '2022-02-26T00:00:00.000Z',
+    timeframe: '24h',
+    longShortRatio: 0.000072,
 }
 ```
 
@@ -5901,17 +5955,31 @@ Returns
 
 *margin only*
 
-To borrow and repay currency as a margin loan use `borrowMargin` and `repayMargin`.
+To borrow and repay currency as a margin loan use `borrowCrossMargin`, `borrowIsolatedMargin`, `repayCrossMargin` and `repayIsolatedMargin`.
 
 ```javascript
-borrowMargin (code, amount, symbol = undefined, params = {})
-repayMargin (code, amount, symbol = undefined, params = {})
+borrowCrossMargin (code, amount, params = {})
+repayCrossMargin (code, amount, params = {})
 ```
 Parameters
 
 - **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
 - **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
-- **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
+
+Returns
+
+- A [margin loan structure](#margin-loan-structure)
+
+```javascript
+borrowIsolatedMargin (symbol, code, amount, params = {})
+repayIsolatedMargin (symbol, code, amount, params = {})
+```
+Parameters
+
+- **symbol** (String) *required* The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
 
 Returns

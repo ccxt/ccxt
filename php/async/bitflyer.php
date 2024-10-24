@@ -37,6 +37,9 @@ class bitflyer extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -76,6 +79,7 @@ class bitflyer extends Exchange {
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ),
                 ),
                 'private' => array(
@@ -1047,6 +1051,62 @@ class bitflyer extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => $fee,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://lightning.bitflyer.com/docs#funding-rate
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_code' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetfundingrate ($this->extend($request, $params)));
+            //
+            //    {
+            //        "current_funding_rate" => -0.003750000000
+            //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+            //    }
+            //
+            return $this->parse_funding_rate($response, $market);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //    {
+        //        "current_funding_rate" => -0.003750000000
+        //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+        //    }
+        //
+        $nextFundingDatetime = $this->safe_string($contract, 'next_funding_rate_settledate');
+        $nextFundingTimestamp = $this->parse8601($nextFundingDatetime);
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => null,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 'current_funding_rate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

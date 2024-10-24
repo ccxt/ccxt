@@ -145,6 +145,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_rubik_stat_contracts_long_short_account_ratio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_rubik_stat_contracts_long_short_account_ratio_contract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_rubik_stat_contracts_open_interest_volume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1128,6 +1131,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function publicGetRubikStatContractsLongShortAccountRatio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function publicGetRubikStatContractsLongShortAccountRatioContract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
     public function publicGetRubikStatContractsOpenInterestVolume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
