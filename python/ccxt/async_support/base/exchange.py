@@ -119,13 +119,14 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
-        # [WS cleanup]
+        # This is the language-specific method to cleanup WS & REST resources
+        # [WS]
         await self.ws_close()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
             self.session = None
-        # [REST cleanup]
+        # [REST]
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
@@ -532,6 +533,11 @@ class Exchange(BaseExchange):
         if n == 0:
             return '0e-00'
         return format(n, 'g')
+
+    async def clean(self):
+        self.clean_rest()
+        await self.close()
+        self.clean_ws()
 
     # ########################################################################
     # ########################################################################

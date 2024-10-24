@@ -433,11 +433,7 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
     def __del__(self):
-        if self.session:
-            try:
-                self.session.close()
-            except Exception as e:
-                pass
+        self.close()
 
     def __repr__(self):
         return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
@@ -1736,6 +1732,14 @@ class Exchange(object):
 
     def rand_number(self, size):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
+
+    def close(self):
+        # This is the language-specific method to cleanup WS & REST resources
+        if self.session:
+            try:
+                self.session.close()
+            except Exception as e:
+                pass
 
     # ########################################################################
     # ########################################################################
