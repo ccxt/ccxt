@@ -975,8 +975,8 @@ export default class bigone extends Exchange {
     }
 
     parseContractOrderBook (orderbook: object, symbol: string, limit: Int = undefined): OrderBook {
-        const responseBids = this.safeValue (orderbook, 'bids');
-        const responseAsks = this.safeValue (orderbook, 'asks');
+        const responseBids = this.safeDict (orderbook, 'bids');
+        const responseAsks = this.safeDict (orderbook, 'asks');
         const bids = this.parseContractBidsAsks (responseBids);
         const asks = this.parseContractBidsAsks (responseAsks);
         return {
