@@ -76,6 +76,7 @@ const manualOverrides = {
         "post": {
             "order": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
             "batchOrders": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+            'convert/getQuote': 50,
         },
         "put": {
             "order": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order

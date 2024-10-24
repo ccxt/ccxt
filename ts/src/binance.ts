@@ -981,7 +981,7 @@ export default class binance extends Exchange {
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'feeBurn': 1 * 5,
-                        'convert/getQuote': https://developers.binance.com/docs/derivatives/usds-margined-futures/convert/Send-quote-request * 5,
+                        'convert/getQuote': 50 * 5,
                         'convert/acceptQuote': 200 * 5,
                     },
                     'put': {
