@@ -4,7 +4,7 @@ import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { eddsa } from './base/functions.js';
-import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
+import { Balances, Currencies, DepositAddress, DepositAddressResponse, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { base64 } from './static_dependencies/scure-base/index.js';
@@ -30,7 +30,6 @@ export default class fswap extends Exchange {
                 'option': false,
                 'createOrder': true,
                 'cancelOrder': false,
-                'deposit': true,
                 'withdraw': true,
                 'fetchOrder': true,
                 'fetchTicker': true,
@@ -42,6 +41,7 @@ export default class fswap extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
+                'createDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://mixin-images.zeromesh.net/A2jrSrBJzt0QA4uxeLVlgt67uaXKt8NvBhGzNeLOxxZfwRMz2FjlcMfmM5ZFoXXiynj_6vzsxZiLVloxW478pIdBnLWBJJ8SJu8y=s256',
@@ -85,7 +85,6 @@ export default class fswap extends Exchange {
                     'get': {
                         'safe/outputs': 1,
                         'safe/snapshots': 1,
-                        'safe/deposit/entries': 1,
                     },
                     'post': {
                         'safe/keys': 1,
@@ -1232,14 +1231,33 @@ export default class fswap extends Exchange {
     }
 
     async fetchDepositAddress (code: string): Promise<DepositAddress> {
-        throw new Error (this.id + ' fetchDepositAddress() is not supported yet');
-    }
-
-    async deposit (symbol: string, amount: number) {
-        // const asset_id = this.mapSymbolToAssetId (symbol);
-        // const resp = await this.safeTransfer (asset_id, amount.toString (), '');
-        // Placeholder for deposit logic
-        // return resp;
+        try {
+            const assetId = this.mapSymbolToAssetId (code);
+            const resp = await this.mixinPrivatePostSafeDepositEntries ({
+                'chain_id': assetId,
+            });
+            if (resp.error) {
+                const error = resp.error;
+                throw new Error (`Error ${error.code}: ${error.description} - ${error.extra.field}: ${error.extra.reason}`);
+            }
+            const data = this.safeValue (resp, 'data', []);
+            if (data.length === 0) {
+                throw new Error ('No deposit address found');
+            }
+            const entry = this.safeValue (data, 0, {});
+            const network = this.safeString (entry, 'chain_id');
+            const address = this.safeString (entry, 'destination');
+            const tag = this.safeString (entry, 'tag');
+            return {
+                'info': entry,
+                'currency': code,
+                'network': network,
+                'address': address,
+                'tag': tag,
+            };
+        } catch (error) {
+            throw new Error ('Error fetching deposit address: ' + error);
+        }
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {

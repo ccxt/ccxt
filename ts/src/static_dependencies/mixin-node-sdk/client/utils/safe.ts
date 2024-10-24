@@ -259,15 +259,10 @@ export const buildSafeTransaction = (utxos: SafeUtxoOutput[], rs: SafeTransactio
 };
 
 export const signSafeTransaction = (tx: SafeTransaction, views: string[], privateKey: string, index = 0) => {
-  console.log ('signSafeTransaction tx:', tx);
   const raw = encodeSafeTransaction(tx);
-  console.log ('signSafeTransaction raw:', raw);
   const msg = blake3Hash(Buffer.from(raw, 'hex'));
-  console.log ('signSafeTransaction msg:', msg);
   const spenty = sha512Hash(Buffer.from(privateKey.slice(0, 64), 'hex'));
-  console.log ('signSafeTransaction spenty:', spenty);
   const y = ed.setBytesWithClamping(spenty.subarray(0, 32));
-  console.log ('signSafeTransaction y:', y);
   const signaturesMap = [];
   for (let i = 0; i < tx.inputs.length; i++) {
     const viewBuffer = Buffer.from(views[i], 'hex');

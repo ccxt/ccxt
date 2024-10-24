@@ -23,7 +23,6 @@ interface Exchange {
     fswapPrivatePostActions (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeOutputs (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeSnapshots (params?: {}): Promise<implicitReturnType>;
-    mixinPrivateGetSafeDepositEntries (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeKeys (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeTransactionRequests (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeTransactions (params?: {}): Promise<implicitReturnType>;
