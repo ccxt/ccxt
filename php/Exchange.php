@@ -117,6 +117,7 @@ class Exchange {
     );
     public $headers = array();
     public $origin = '*'; // CORS origin
+    public $MAX_VALUE = PHP_INT_MAX;
     //
 
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1133,14 +1134,6 @@ class Exchange {
             }
         }
 
-        $this->tokenBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1.0,
-            'cost' => 1.0,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        );
-
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
                 throw new ExchangeError($this->id . ' warning! The glue symbol for HTTP queries ' .
@@ -1151,16 +1144,7 @@ class Exchange {
             }
         }
 
-        if ($this->markets) {
-            $this->set_markets($this->markets);
-        }
-
         $this->after_construct();
-
-        $is_sandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', False);
-        if ($is_sandbox) {
-            $this->set_sandbox_mode($is_sandbox);
-        }
     }
 
     public static function underscore($camelcase) {
@@ -1363,6 +1347,10 @@ class Exchange {
 
     public function packb($data) {
         return MessagePack::pack($data);
+    }
+
+    public function init_throttler() {
+        // stub in sync
     }
 
     public function throttle($cost = null) {
