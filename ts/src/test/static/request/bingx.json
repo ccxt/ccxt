@@ -1310,7 +1310,7 @@
             {
                 "description": "Inverse swap set the margin mode",
                 "method": "setMarginMode",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",        
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",
                 "input": [
                   "cross",
                   "SOL/USD:SOL"
@@ -1472,10 +1472,21 @@
                 "method": "fetchOHLCV",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/market/klines?interval=1m&limit=3&symbol=BTC-USD&timestamp=1720124710777",
                 "input": [
-                  "BTC/USD:BTC",
-                  "1m",
-                  null,
-                  3
+                    "BTC/USD:BTC",
+                    "1m",
+                    null,
+                    3
+                ]
+            },
+            {
+                "description": "fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&limit=2&symbol=ETH-USDT&timestamp=1729766774112",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    2
                 ]
             }
         ],
