@@ -459,11 +459,8 @@ export default class vertex extends Exchange {
         const isInverse = (spot) ? undefined : false;
         const isLinear = (spot) ? undefined : true;
         const contractSize = (spot) ? undefined : this.parseNumber ('1');
-        const id = this.safeString (market, 'product_id');
-        const ticker_id = baseId + '_' + quoteId;
-        this.options['productIdByTicker'][ticker_id] = id;
         return {
-            'id': id,
+            'id': this.safeString (market, 'product_id'),
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -555,7 +552,6 @@ export default class vertex extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const markets = this.safeDict (data, 'symbols', {});
         const symbols = Object.keys (markets);
-        this.options['productIdByTicker'] = {};
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1471,6 +1467,19 @@ export default class vertex extends Exchange {
         }, market);
     }
 
+    loadTickerIdMappings () {
+        if (this.safeDict (this.options, 'productIdByTicker') === undefined) {
+            this.options['productIdByTicker'] = {};
+            const keys = Object.keys (this.markets);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const market = this.markets[key];
+                const ticker_id = this.safeString (market, 'baseId') + '_' + this.safeString (market, 'quoteId');
+                this.options['productIdByTicker'][ticker_id] = this.safeString (market, 'id');
+            }
+        }
+    }
+
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -1482,6 +1491,7 @@ export default class vertex extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
+        this.loadTickerIdMappings ();
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const request = {};
         const response = await this.v2ArchiveGetTickers (this.extend (request, params));
