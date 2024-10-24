@@ -1510,45 +1510,45 @@
                   }
                 },
                 "parsedResponse": {
-                  "symbol": "BTC/USDT:USDT",
-                  "timestamp": 1711491283474,
-                  "datetime": "2024-03-26T22:14:43.474Z",
-                  "high": 71619.4,
-                  "low": 69320.3,
-                  "bid": 69942.2,
-                  "bidVolume": 1.3346,
-                  "ask": 69943,
-                  "askVolume": 1.5921,
-                  "vwap": 70600.03171349873,
-                  "open": 70331,
-                  "close": 69938.9,
-                  "last": 69938.9,
-                  "previousClose": null,
-                  "change": -392.1,
-                  "percentage": -0.56,
-                  "average": 70134.9,
-                  "baseVolume": 74183.8679,
-                  "quoteVolume": 5237383426.37,
-                  "markPrice":  null,
-                  "indexPrice": null,
-                  "info": {
-                    "symbol": "BTC-USDT",
-                    "priceChange": "-392.1",
-                    "priceChangePercent": "-0.56",
-                    "lastPrice": "69938.9",
-                    "lastQty": "0.3018",
-                    "highPrice": "71619.4",
-                    "lowPrice": "69320.3",
-                    "volume": "74183.8679",
-                    "quoteVolume": "5237383426.37",
-                    "openPrice": "70331.0",
-                    "openTime": "1711491305590",
-                    "closeTime": "1711491283474",
-                    "askPrice": "69943.0",
-                    "askQty": "1.5921",
-                    "bidPrice": "69942.2",
-                    "bidQty": "1.3346"
-                  }
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1711491283474,
+                    "datetime": "2024-03-26T22:14:43.474Z",
+                    "high": 71619.4,
+                    "low": 69320.3,
+                    "bid": 69942.2,
+                    "bidVolume": 1.3346,
+                    "ask": 69943,
+                    "askVolume": 1.5921,
+                    "vwap": 70600.03171349873,
+                    "open": 70331,
+                    "close": 69938.9,
+                    "last": 69938.9,
+                    "previousClose": null,
+                    "change": -392.1,
+                    "percentage": -0.56,
+                    "average": 70134.9,
+                    "baseVolume": 74183.8679,
+                    "quoteVolume": 5237383426.37,
+                    "markPrice":  null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "priceChange": "-392.1",
+                        "priceChangePercent": "-0.56",
+                        "lastPrice": "69938.9",
+                        "lastQty": "0.3018",
+                        "highPrice": "71619.4",
+                        "lowPrice": "69320.3",
+                        "volume": "74183.8679",
+                        "quoteVolume": "5237383426.37",
+                        "openPrice": "70331.0",
+                        "openTime": "1711491305590",
+                        "closeTime": "1711491283474",
+                        "askPrice": "69943.0",
+                        "askQty": "1.5921",
+                        "bidPrice": "69942.2",
+                        "bidQty": "1.3346"
+                    }
                 }
             }
         ],
@@ -1586,6 +1586,60 @@
                         73237.66,
                         73413.77,
                         85.04
+                    ]
+                ]
+            },
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "timestamp": "1729766774306",
+                    "data": [
+                        [
+                            1729766760000,
+                            2526.93,
+                            2527.5,
+                            2526.92,
+                            2527.45,
+                            2.897404,
+                            1729766819999,
+                            7321.71
+                            ],
+                            [
+                            1729766700000,
+                            2526.48,
+                            2526.94,
+                            2526.48,
+                            2526.92,
+                            6.216683,
+                            1729766759999,
+                            15708.56
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1729766700000,
+                        2526.48,
+                        2526.94,
+                        2526.48,
+                        2526.92,
+                        6.216683
+                    ],
+                    [
+                        1729766760000,
+                        2526.93,
+                        2527.5,
+                        2526.92,
+                        2527.45,
+                        2.897404
                     ]
                 ]
             }

@@ -278,9 +278,10 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://big.one/api/contract/v2/depth@BTCUSDT/snapshot",
+                "url": "https://big.one/api/contract/v2/depth@ETHUSDT/snapshot",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "ETH/USDT:USDT",
+                    1
                 ]
             }
         ],
