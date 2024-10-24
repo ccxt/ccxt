@@ -118,6 +118,7 @@ class gate(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
@@ -5911,6 +5912,68 @@ class gate(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+        :see: https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+        :param str [code]: unified currency code
+        :param str [symbol]: unified market symbol when fetching interest in isolated markets
+        :param int [since]: the earliest time in ms to fetch borrow interest for
+        :param int [limit]: the maximum number of structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unifiedAccount]: set to True for fetching borrow interest in the unified account
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        """
+        await self.load_markets()
+        await self.load_unified_status()
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'fetchBorrowInterest', 'unifiedAccount')
+        request: dict = {}
+        request, params = self.handle_until_option('to', request, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
+        if isUnifiedAccount:
+            response = await self.privateUnifiedGetInterestRecords(self.extend(request, params))
+        elif marginMode == 'isolated':
+            if market is not None:
+                request['currency_pair'] = market['id']
+            response = await self.privateMarginGetUniInterestRecords(self.extend(request, params))
+        elif marginMode == 'cross':
+            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))
+        interest = self.parse_borrow_interests(response, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info: dict, market: Market = None):
+        marketId = self.safe_string(info, 'currency_pair')
+        market = self.safe_market(marketId, market)
+        marginMode = 'isolated' if (marketId is not None) else 'cross'
+        timestamp = self.safe_integer(info, 'create_time')
+        return {
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': self.safe_string(market, 'symbol'),
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'marginMode': marginMode,
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'actual_rate'),
+            'amountBorrowed': None,
         }
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):

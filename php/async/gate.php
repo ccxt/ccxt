@@ -108,6 +108,7 @@ class gate extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -6348,6 +6349,78 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
+            /**
+             * fetch the $interest owed by the user for borrowing $currency for margin trading
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records
+             * @see https://www.gate.io/docs/developers/apiv4/en/#$interest-records-for-the-cross-margin-account
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records-2
+             * @param {string} [$code] unified $currency $code
+             * @param {string} [$symbol] unified $market $symbol when fetching $interest in isolated markets
+             * @param {int} [$since] the earliest time in ms to fetch borrow $interest for
+             * @param {int} [$limit] the maximum number of structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->unifiedAccount] set to true for fetching borrow $interest in the unified account
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
+            $isUnifiedAccount = false;
+            list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBorrowInterest', 'unifiedAccount');
+            $request = array();
+            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
+            if ($isUnifiedAccount) {
+                $response = Async\await($this->privateUnifiedGetInterestRecords ($this->extend($request, $params)));
+            } elseif ($marginMode === 'isolated') {
+                if ($market !== null) {
+                    $request['currency_pair'] = $market['id'];
+                }
+                $response = Async\await($this->privateMarginGetUniInterestRecords ($this->extend($request, $params)));
+            } elseif ($marginMode === 'cross') {
+                $response = Async\await($this->privateMarginGetCrossInterestRecords ($this->extend($request, $params)));
+            }
+            $interest = $this->parse_borrow_interests($response, $market);
+            return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+        }) ();
+    }
+
+    public function parse_borrow_interest(array $info, ?array $market = null) {
+        $marketId = $this->safe_string($info, 'currency_pair');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
+        $timestamp = $this->safe_integer($info, 'create_time');
+        return array(
+            'info' => $info,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'marginMode' => $marginMode,
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'actual_rate'),
+            'amountBorrowed' => null,
         );
     }
 
