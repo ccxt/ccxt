@@ -1,0 +1,25 @@
+{
+  "exchange": "cube",
+  "skipKeys": ["clientOrderId", "marketId"],
+  "outputType": "json",
+  "methods": {
+    "fetchCurrencies": [{
+      "description": "Fetches all available currencies on an exchange",
+      "method": "fetchCurrencies",
+      "url": "https://api.cube.exchange/ir/v0/markets",
+      "input": []
+    }],
+    "fetchMarkets": [{
+      "description": "Retrieves data on all markets for cube",
+      "method": "fetchMarkets",
+      "url": "https://api.cube.exchange/ir/v0/markets",
+      "input": []
+    }],
+    "fetchStatus": [{
+      "description": "The latest known information on the availability of the exchange API",
+      "method": "fetchStatus",
+      "url": "https://api.cube.exchange/ir/v0/markets",
+      "input": []
+    }]
+  }
+}
