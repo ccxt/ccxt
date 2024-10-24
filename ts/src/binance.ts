@@ -1243,7 +1243,7 @@ export default class binance extends Exchange {
                         'cm/adlQuantile': 5 * 2,
                         'um/trade/asyn': 1500 * 2,
                         'um/trade/asyn/id': 10 * 2,
-                        'um/order/asyn/': 300,
+                        'um/order/asyn': 1500 * 2,
                         'um/order/asyn/id': 10 * 2,
                         'um/income/asyn': 1500 * 2,
                         'um/income/asyn/id': 10 * 2,
@@ -1255,7 +1255,6 @@ export default class binance extends Exchange {
                         'cm/accountConfig': 1,
                         'cm/symbolConfig': 1,
                         'apiReferral/ifNewUser': 100 * 2,
-                        'um/order/asyn': 1500 * 2,
                         'apiReferral/userCustomization': 100 * 2,
                     },
                     'post': {
