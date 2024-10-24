@@ -2232,8 +2232,8 @@ class kucoinfutures extends kucoin {
         $amount = $this->safe_string($order, 'size');
         $filled = $this->safe_string($order, 'filledSize');
         $cost = $this->safe_string($order, 'filledValue');
-        $average = null;
-        if (Precise::string_gt($filled, '0')) {
+        $average = $this->safe_string($order, 'avgDealPrice');
+        if (($average === null) && Precise::string_gt($filled, '0')) {
             $contractSize = $this->safe_string($market, 'contractSize');
             if ($market['linear']) {
                 $average = Precise::string_div($cost, Precise::string_mul($contractSize, $filled));

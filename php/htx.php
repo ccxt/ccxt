@@ -1624,6 +1624,10 @@ class htx extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for huobi
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1652,7 +1656,19 @@ class htx extends Exchange {
         return $allMarkets;
     }
 
-    public function fetch_markets_by_type_and_sub_type($type, $subType, $params = array ()) {
+    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array ()) {
+        /**
+         * @ignore
+         * retrieves data on all $markets of a certain $type and/or subtype
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-$symbol-v1-deprecated
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-$contract-info
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-$swap-info
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-$swap-info
+         * @param {string} [$type] 'spot', 'swap' or 'future'
+         * @param {string} [$subType] 'linear' or 'inverse'
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market data
+         */
         $isSpot = ($type === 'spot');
         $request = array();
         $response = null;
@@ -3116,7 +3132,15 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_account_id_by_type($type, $marginMode = null, $symbol = null, $params = array ()) {
+    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array ()) {
+        /**
+         * fetch all the $accounts by a $type and marginModeassociated with a profile
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-$accounts-of-the-current-user
+         * @param {string} $type 'spot', 'swap' or 'future
+         * @param {string} [$marginMode] 'cross' or 'isolated'
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
+         */
         $accounts = $this->load_accounts();
         $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
         if ($accountId !== null) {
@@ -4959,12 +4983,7 @@ class htx extends Exchange {
         $cost = null;
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
-            // for $market orders $amount is in quote currency, meaning it is the $cost
-            if ($side === 'sell') {
-                $cost = $this->safe_string($order, 'field-cash-amount');
-            } else {
-                $cost = $this->safe_string($order, 'amount');
-            }
+            $cost = $this->safe_string($order, 'field-cash-amount');
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
             $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo here

@@ -5217,7 +5217,7 @@ class bingx extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -5226,6 +5226,8 @@ class bingx extends Exchange {
          * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+        $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
         $walletType = $this->safe_integer($params, 'walletType');
@@ -5244,6 +5246,9 @@ class bingx extends Exchange {
         $network = $this->safe_string_upper($params, 'network');
         if ($network !== null) {
             $request['network'] = $this->network_code_to_id($network);
+        }
+        if ($tag !== null) {
+            $request['addressTag'] = $tag;
         }
         $params = $this->omit($params, array( 'walletType', 'network' ));
         $response = $this->walletsV1PrivatePostCapitalWithdrawApply ($this->extend($request, $params));

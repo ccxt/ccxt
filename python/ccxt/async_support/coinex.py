@@ -59,6 +59,8 @@ class coinex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
+                'closeAllPositions': False,
+                'closePosition': True,
                 'createDepositAddress': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrderWithCost': False,
@@ -1730,7 +1732,7 @@ class coinex(Exchange, ImplicitAPI):
         #         "stop_id": 117180138153
         #     }
         #
-        # Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
+        # Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         #
         #     {
         #         "amount": "0.0001",
@@ -5363,6 +5365,63 @@ class coinex(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'data', [])
         positions = self.parse_positions(records)
         return self.filter_by_symbol_since_limit(positions, symbol, since, limit)
+
+    async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
+        """
+        closes an open position for a market
+        :see: https://docs.coinex.com/api/v2/futures/position/http/close-position
+        :param str symbol: unified CCXT market symbol
+        :param str [side]: buy or sell, not used by coinex
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['type']: required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+        :param str [params.price]: the price to fulfill the order, ignored in market orders
+        :param str [params.amount]: the amount to trade in units of the base currency
+        :param str [params.clientOrderId]: the client id of the order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type = self.safe_string(params, 'type', 'market')
+        request: dict = {
+            'market': market['id'],
+            'market_type': 'FUTURES',
+            'type': type,
+        }
+        clientOrderId = self.safe_string_2(params, 'client_id', 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_id'] = clientOrderId
+        params = self.omit(params, 'clientOrderId')
+        response = await self.v2PrivatePostFuturesClosePosition(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "amount": "0.0001",
+        #             "client_id": "",
+        #             "created_at": 1729666043969,
+        #             "fee": "0.00335858",
+        #             "fee_ccy": "USDT",
+        #             "filled_amount": "0.0001",
+        #             "filled_value": "6.717179",
+        #             "last_filled_amount": "0.0001",
+        #             "last_filled_price": "67171.79",
+        #             "maker_fee_rate": "0",
+        #             "market": "BTCUSDT",
+        #             "market_type": "FUTURES",
+        #             "order_id": 155477479761,
+        #             "price": "0",
+        #             "realized_pnl": "-0.001823",
+        #             "side": "sell",
+        #             "taker_fee_rate": "0.0005",
+        #             "type": "market",
+        #             "unfilled_amount": "0",
+        #             "updated_at": 1729666043969
+        #         },
+        #         "message": "OK"
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
 
     def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """

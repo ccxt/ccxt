@@ -1627,6 +1627,10 @@ class htx(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for huobi
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1650,7 +1654,19 @@ class htx(Exchange, ImplicitAPI):
             allMarkets = self.array_concat(allMarkets, promises[i])
         return allMarkets
 
-    def fetch_markets_by_type_and_sub_type(self, type, subType, params={}):
+    def fetch_markets_by_type_and_sub_type(self, type: Str, subType: Str, params={}):
+        """
+         * @ignore
+        retrieves data on all markets of a certain type and/or subtype
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        :see: https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+        :param str [type]: 'spot', 'swap' or 'future'
+        :param str [subType]: 'linear' or 'inverse'
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
         isSpot = (type == 'spot')
         request: dict = {}
         response = None
@@ -3014,7 +3030,15 @@ class htx(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    def fetch_account_id_by_type(self, type, marginMode=None, symbol=None, params={}):
+    def fetch_account_id_by_type(self, type: str, marginMode: Str = None, symbol: Str = None, params={}):
+        """
+        fetch all the accounts by a type and marginModeassociated with a profile
+        :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+        :param str type: 'spot', 'swap' or 'future
+        :param str [marginMode]: 'cross' or 'isolated'
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        """
         accounts = self.load_accounts()
         accountId = self.safe_value_2(params, 'accountId', 'account-id')
         if accountId is not None:
@@ -4755,11 +4779,7 @@ class htx(Exchange, ImplicitAPI):
         cost = None
         amount = None
         if (type is not None) and (type.find('market') >= 0):
-            # for market orders amount is in quote currency, meaning it is the cost
-            if side == 'sell':
-                cost = self.safe_string(order, 'field-cash-amount')
-            else:
-                cost = self.safe_string(order, 'amount')
+            cost = self.safe_string(order, 'field-cash-amount')
         else:
             amount = self.safe_string_2(order, 'volume', 'amount')
             cost = self.safe_string_n(order, ['filled-cash-amount', 'field-cash-amount', 'trade_turnover'])  # same typo here

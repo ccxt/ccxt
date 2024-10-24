@@ -505,6 +505,14 @@ export interface Leverage {
     longLeverage: number;
     shortLeverage: number;
 }
+export interface LongShortRatio {
+    info: any;
+    symbol: string;
+    timestamp?: number;
+    datetime?: string;
+    timeframe?: string;
+    longShortRatio: number;
+}
 export interface MarginModification {
     'info': any;
     'symbol': string;

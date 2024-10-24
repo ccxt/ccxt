@@ -108,6 +108,7 @@ class gate extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -330,10 +331,17 @@ class gate extends Exchange {
                             'interest_records' => 20 / 15,
                             'estimate_rate' => 20 / 15,
                             'currency_discount_tiers' => 20 / 15,
+                            'risk_units' => 20 / 15,
+                            'unified_mode' => 20 / 15,
+                            'loan_margin_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator' => 20 / 15,
+                        ),
+                        'put' => array(
+                            'unified_mode' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
@@ -635,6 +643,7 @@ class gate extends Exchange {
             ),
             'options' => array(
                 'sandboxMode' => false,
+                'unifiedAccount' => null,
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
@@ -896,6 +905,41 @@ class gate extends Exchange {
     public function set_sandbox_mode(bool $enable) {
         parent::set_sandbox_mode($enable);
         $this->options['sandboxMode'] = $enable;
+    }
+
+    public function load_unified_status($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * returns $unifiedAccount so the user can check if the unified account is enabled
+             * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+             * @return {boolean} true or false if the enabled unified account is enabled or not and sets the $unifiedAccount option if it is null
+             */
+            $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
+            if ($unifiedAccount === null) {
+                $response = Async\await($this->privateAccountGetDetail ($params));
+                //
+                //     {
+                //         "user_id" => 10406147,
+                //         "ip_whitelist" => array(),
+                //         "currency_pairs" => array(),
+                //         "key" => array(
+                //             "mode" => 1
+                //         ),
+                //         "tier" => 0,
+                //         "tier_expire_time" => "0001-01-01T00:00:00Z",
+                //         "copy_trading_role" => 0
+                //     }
+                //
+                $result = $this->safe_dict($response, 'key', array());
+                $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+            }
+        }) ();
+    }
+
+    public function upgrade_unified_trade_account($params = array ()) {
+        return Async\async(function () use ($params) {
+            return Async\await($this->privateUnifiedPutUnifiedMode ($params));
+        }) ();
     }
 
     public function create_expired_option_market(string $symbol) {
@@ -1591,6 +1635,9 @@ class gate extends Exchange {
             $apiBackup = $this->safe_value($this->urls, 'apiBackup');
             if ($apiBackup !== null) {
                 return null;
+            }
+            if ($this->check_required_credentials(false)) {
+                Async\await($this->load_unified_status());
             }
             $response = Async\await($this->publicSpotGetCurrencies ($params));
             //
@@ -2702,10 +2749,14 @@ class gate extends Exchange {
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->symbol] margin only - unified ccxt $symbol
+             * @param {boolean} [$params->unifiedAccount] default false, set to true for fetching the unified account balance
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $symbol = $this->safe_string($params, 'symbol');
             $params = $this->omit($params, 'symbol');
+            $isUnifiedAccount = false;
+            list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'unifiedAccount');
             list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             list($request, $requestParams) = $this->prepare_request(null, $type, $query);
             list($marginMode, $requestQuery) = $this->get_margin_mode(false, $requestParams);
@@ -2714,7 +2765,9 @@ class gate extends Exchange {
                 $request['currency_pair'] = $market['id'];
             }
             $response = null;
-            if ($type === 'spot') {
+            if ($isUnifiedAccount) {
+                $response = Async\await($this->privateUnifiedGetAccounts ($this->extend($request, $params)));
+            } elseif ($type === 'spot') {
                 if ($marginMode === 'spot') {
                     $response = Async\await($this->privateSpotGetAccounts ($this->extend($request, $requestQuery)));
                 } elseif ($marginMode === 'margin') {
@@ -2880,12 +2933,63 @@ class gate extends Exchange {
             //         "orders_limit" => 10
             //     }
             //
+            // unified
+            //
+            //     {
+            //         "user_id" => 10001,
+            //         "locked" => false,
+            //         "balances" => {
+            //             "ETH" => array(
+            //                 "available" => "0",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0.075393666654",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "1016.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             ),
+            //             "POINT" => array(
+            //                 "available" => "9999999999.017023138734",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "12016.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             ),
+            //             "USDT" => array(
+            //                 "available" => "0.00000062023",
+            //                 "freeze" => "0",
+            //                 "borrowed" => "0",
+            //                 "negative_liab" => "0",
+            //                 "futures_pos_liab" => "0",
+            //                 "equity" => "16.1",
+            //                 "total_freeze" => "0",
+            //                 "total_liab" => "0"
+            //             }
+            //         ),
+            //         "total" => "230.94621713",
+            //         "borrowed" => "161.66395521",
+            //         "total_initial_margin" => "1025.0524665088",
+            //         "total_margin_balance" => "3382495.944473949183",
+            //         "total_maintenance_margin" => "205.01049330176",
+            //         "total_initial_margin_rate" => "3299.827135672679",
+            //         "total_maintenance_margin_rate" => "16499.135678363399",
+            //         "total_available_margin" => "3381470.892007440383",
+            //         "unified_account_total" => "3381470.892007440383",
+            //         "unified_account_total_liab" => "0",
+            //         "unified_account_total_equity" => "100016.1",
+            //         "leverage" => "2"
+            //     }
+            //
             $result = array(
                 'info' => $response,
             );
             $isolated = $marginMode === 'margin';
             $data = $response;
-            if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
+            if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
                 $flatBalances = array();
                 $balances = $this->safe_value($data, 'balances', array());
                 // inject currency and create an artificial balance object
@@ -6245,6 +6349,78 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
+            /**
+             * fetch the $interest owed by the user for borrowing $currency for margin trading
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records
+             * @see https://www.gate.io/docs/developers/apiv4/en/#$interest-records-for-the-cross-margin-account
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records-2
+             * @param {string} [$code] unified $currency $code
+             * @param {string} [$symbol] unified $market $symbol when fetching $interest in isolated markets
+             * @param {int} [$since] the earliest time in ms to fetch borrow $interest for
+             * @param {int} [$limit] the maximum number of structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->unifiedAccount] set to true for fetching borrow $interest in the unified account
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
+            $isUnifiedAccount = false;
+            list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBorrowInterest', 'unifiedAccount');
+            $request = array();
+            list($request, $params) = $this->handle_until_option('to', $request, $params);
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
+            if ($isUnifiedAccount) {
+                $response = Async\await($this->privateUnifiedGetInterestRecords ($this->extend($request, $params)));
+            } elseif ($marginMode === 'isolated') {
+                if ($market !== null) {
+                    $request['currency_pair'] = $market['id'];
+                }
+                $response = Async\await($this->privateMarginGetUniInterestRecords ($this->extend($request, $params)));
+            } elseif ($marginMode === 'cross') {
+                $response = Async\await($this->privateMarginGetCrossInterestRecords ($this->extend($request, $params)));
+            }
+            $interest = $this->parse_borrow_interests($response, $market);
+            return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+        }) ();
+    }
+
+    public function parse_borrow_interest(array $info, ?array $market = null) {
+        $marketId = $this->safe_string($info, 'currency_pair');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
+        $timestamp = $this->safe_integer($info, 'create_time');
+        return array(
+            'info' => $info,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'marginMode' => $marginMode,
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'actual_rate'),
+            'amountBorrowed' => null,
         );
     }
 

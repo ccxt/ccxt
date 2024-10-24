@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.20'
+__version__ = '4.4.23'
 
 # -----------------------------------------------------------------------------
 
@@ -1910,6 +1910,8 @@ class Exchange(object):
                 'fetchLeverages': None,
                 'fetchLeverageTiers': None,
                 'fetchLiquidations': None,
+                'fetchLongShortRatio': None,
+                'fetchLongShortRatioHistory': None,
                 'fetchMarginMode': None,
                 'fetchMarginModes': None,
                 'fetchMarketLeverageTiers': None,
@@ -2620,6 +2622,12 @@ class Exchange(object):
 
     def set_margin(self, symbol: str, amount: float, params={}):
         raise NotSupported(self.id + ' setMargin() is not supported yet')
+
+    def fetch_long_short_ratio(self, symbol: str, timeframe: Str = None, params={}):
+        raise NotSupported(self.id + ' fetchLongShortRatio() is not supported yet')
+
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchLongShortRatioHistory() is not supported yet')
 
     def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}):
         """
@@ -5445,6 +5453,18 @@ class Exchange(object):
             interests.append(self.parse_borrow_interest(row, market))
         return interests
 
+    def parse_borrow_rate(self, info, currency: Currency = None):
+        raise NotSupported(self.id + ' parseBorrowRate() is not supported yet')
+
+    def parse_borrow_rate_history(self, response, code: Str, since: Int, limit: Int):
+        result = []
+        for i in range(0, len(response)):
+            item = response[i]
+            borrowRate = self.parse_borrow_rate(item)
+            result.append(borrowRate)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_currency_since_limit(sorted, code, since, limit)
+
     def parse_isolated_borrow_rates(self, info: Any):
         result = {}
         for i in range(0, len(info)):
@@ -5476,6 +5496,18 @@ class Exchange(object):
             parsed = self.parse_funding_rate(response[i], market)
             result[parsed['symbol']] = parsed
         return result
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None):
+        raise NotSupported(self.id + ' parseLongShortRatio() is not supported yet')
+
+    def parse_long_short_ratio_history(self, response, market=None, since: Int = None, limit: Int = None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_long_short_ratio(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def handle_trigger_and_params(self, params):
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
