@@ -7,7 +7,7 @@
     ],
     "outputType": "json",
     "options": {
-        "hfMigrated": false  
+        "hf": false  
     },
     "methods": {
         "createOrder": [
