@@ -1101,7 +1101,7 @@ class binance extends Exchange {
                         'cm/adlQuantile' => 5,
                         'um/trade/asyn' => 300,
                         'um/trade/asyn/id' => 2,
-                        'um/order/asyn/' => 300,
+                        'um/order/asyn' => 300,
                         'um/order/asyn/id' => 2,
                         'um/income/asyn' => 300,
                         'um/income/asyn/id' => 2,
