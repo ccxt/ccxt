@@ -1636,6 +1636,10 @@ class htx extends htx$1 {
          * @method
          * @name htx#fetchMarkets
          * @description retrieves data on all markets for huobi
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -1666,6 +1670,20 @@ class htx extends htx$1 {
         return allMarkets;
     }
     async fetchMarketsByTypeAndSubType(type, subType, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name htx#fetchMarketsByTypeAndSubType
+         * @description retrieves data on all markets of a certain type and/or subtype
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+         * @param {string} [type] 'spot', 'swap' or 'future'
+         * @param {string} [subType] 'linear' or 'inverse'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
         const isSpot = (type === 'spot');
         const request = {};
         let response = undefined;
@@ -3188,6 +3206,16 @@ class htx extends htx$1 {
         };
     }
     async fetchAccountIdByType(type, marginMode = undefined, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name htx#fetchAccountIdByType
+         * @description fetch all the accounts by a type and marginModeassociated with a profile
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+         * @param {string} type 'spot', 'swap' or 'future
+         * @param {string} [marginMode] 'cross' or 'isolated'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
         const accounts = await this.loadAccounts();
         const accountId = this.safeValue2(params, 'accountId', 'account-id');
         if (accountId !== undefined) {
@@ -5085,13 +5113,7 @@ class htx extends htx$1 {
         let cost = undefined;
         let amount = undefined;
         if ((type !== undefined) && (type.indexOf('market') >= 0)) {
-            // for market orders amount is in quote currency, meaning it is the cost
-            if (side === 'sell') {
-                cost = this.safeString(order, 'field-cash-amount');
-            }
-            else {
-                cost = this.safeString(order, 'amount');
-            }
+            cost = this.safeString(order, 'field-cash-amount');
         }
         else {
             amount = this.safeString2(order, 'volume', 'amount');

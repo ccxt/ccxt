@@ -54,7 +54,7 @@ class HMAC extends utils.Hash {
     }
     _cloneInto(to) {
         // Create new instance without calling constructor since key already in state and we don't know it.
-        to || (to = Object.create(Object.getPrototypeOf(this), {}));
+        to ||= Object.create(Object.getPrototypeOf(this), {});
         const { oHash, iHash, finished, destroyed, blockLen, outputLen } = this;
         to = to;
         to.finished = finished;

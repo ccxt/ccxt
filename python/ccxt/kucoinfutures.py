@@ -2103,8 +2103,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filledSize')
         cost = self.safe_string(order, 'filledValue')
-        average = None
-        if Precise.string_gt(filled, '0'):
+        average = self.safe_string(order, 'avgDealPrice')
+        if (average is None) and Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
                 average = Precise.string_div(cost, Precise.string_mul(contractSize, filled))

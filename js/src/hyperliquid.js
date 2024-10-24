@@ -645,9 +645,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
-                const free = this.safeString(balance, 'hold');
+                const used = this.safeString(balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -656,8 +656,8 @@ export default class hyperliquid extends Exchange {
         const result = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat(data, 'accountValue'),
-                'used': this.safeFloat(data, 'totalMarginUsed'),
+                'total': this.safeNumber(data, 'accountValue'),
+                'free': this.safeNumber(response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger(response, 'time');
@@ -2230,14 +2230,17 @@ export default class hyperliquid extends Exchange {
         const leverage = this.safeDict(entry, 'leverage', {});
         const marginMode = this.safeString(leverage, 'type');
         const isIsolated = (marginMode === 'isolated');
-        const size = this.safeNumber(entry, 'szi');
+        const rawSize = this.safeString(entry, 'szi');
+        let size = rawSize;
         let side = undefined;
         if (size !== undefined) {
-            side = (size > 0) ? 'long' : 'short';
+            side = Precise.stringGt(rawSize, '0') ? 'long' : 'short';
+            size = Precise.stringAbs(size);
         }
-        const unrealizedPnl = this.safeNumber(entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber(entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString(entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        const initialMargin = this.safeString(entry, 'marginUsed');
+        const percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2247,7 +2250,7 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': size,
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(entry, 'entryPx'),
             'markPrice': undefined,
@@ -2258,10 +2261,10 @@ export default class hyperliquid extends Exchange {
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber(entry, 'liquidationPx'),
             'marginMode': marginMode,
-            'percentage': percentage,
+            'percentage': this.parseNumber(percentage),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

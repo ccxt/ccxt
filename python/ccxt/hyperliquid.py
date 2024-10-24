@@ -638,17 +638,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(self.safe_string(balance, 'coin'))
                 account = self.account()
                 total = self.safe_string(balance, 'total')
-                free = self.safe_string(balance, 'hold')
+                used = self.safe_string(balance, 'hold')
                 account['total'] = total
-                account['used'] = free
+                account['used'] = used
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
         result: dict = {
             'info': response,
             'USDC': {
-                'total': self.safe_float(data, 'accountValue'),
-                'used': self.safe_float(data, 'totalMarginUsed'),
+                'total': self.safe_number(data, 'accountValue'),
+                'free': self.safe_number(response, 'withdrawable'),
             },
         }
         timestamp = self.safe_integer(response, 'time')
@@ -2112,13 +2112,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         leverage = self.safe_dict(entry, 'leverage', {})
         marginMode = self.safe_string(leverage, 'type')
         isIsolated = (marginMode == 'isolated')
-        size = self.safe_number(entry, 'szi')
+        rawSize = self.safe_string(entry, 'szi')
+        size = rawSize
         side = None
         if size is not None:
-            side = 'long' if (size > 0) else 'short'
-        unrealizedPnl = self.safe_number(entry, 'unrealizedPnl')
-        initialMargin = self.safe_number(entry, 'marginUsed')
-        percentage = unrealizedPnl / initialMargin * 100
+            side = 'long' if Precise.string_gt(rawSize, '0') else 'short'
+            size = Precise.string_abs(size)
+        rawUnrealizedPnl = self.safe_string(entry, 'unrealizedPnl')
+        absRawUnrealizedPnl = Precise.string_abs(rawUnrealizedPnl)
+        initialMargin = self.safe_string(entry, 'marginUsed')
+        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, initialMargin), '100')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2128,7 +2131,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isolated': isIsolated,
             'hedged': None,
             'side': side,
-            'contracts': size,
+            'contracts': self.parse_number(size),
             'contractSize': None,
             'entryPrice': self.safe_number(entry, 'entryPx'),
             'markPrice': None,
@@ -2139,10 +2142,10 @@ class hyperliquid(Exchange, ImplicitAPI):
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': self.parse_number(rawUnrealizedPnl),
             'liquidationPrice': self.safe_number(entry, 'liquidationPx'),
             'marginMode': marginMode,
-            'percentage': percentage,
+            'percentage': self.parse_number(percentage),
         })
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):

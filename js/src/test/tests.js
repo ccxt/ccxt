@@ -40,9 +40,9 @@ class testMainClass {
         this.proxyTestFileName = "proxies";
     }
     parseCliArgsAndProps() {
-        this.responseTests = getCliArgValue('--responseTests');
+        this.responseTests = getCliArgValue('--responseTests') || getCliArgValue('--response');
         this.idTests = getCliArgValue('--idTests');
-        this.requestTests = getCliArgValue('--requestTests');
+        this.requestTests = getCliArgValue('--requestTests') || getCliArgValue('--request');
         this.info = getCliArgValue('--info');
         this.verbose = getCliArgValue('--verbose');
         this.debug = getCliArgValue('--debug');
@@ -1128,7 +1128,7 @@ class testMainClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1147,7 +1147,7 @@ class testMainClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse(exchange, undefined); // reset state
@@ -1381,7 +1381,8 @@ class testMainClass {
             this.testXT(),
             this.testVertex(),
             this.testParadex(),
-            this.testHashkey()
+            this.testHashkey(),
+            this.testCoincatch()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1897,6 +1898,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testCoincatch() {
+        const exchange = this.initOfflineExchange('coincatch');
+        let reqHeaders = undefined;
+        const id = "47cfy";
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

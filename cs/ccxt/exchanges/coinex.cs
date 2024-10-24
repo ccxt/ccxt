@@ -28,6 +28,8 @@ public partial class coinex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "closeAllPositions", false },
+                { "closePosition", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -1714,7 +1716,7 @@ public partial class coinex : Exchange
         //         "stop_id": 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
+        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         //
         //     {
         //         "amount": "0.0001",
@@ -4918,6 +4920,70 @@ public partial class coinex : Exchange
         object records = this.safeList(response, "data", new List<object>() {});
         object positions = this.parsePositions(records);
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
+    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#closePosition
+        * @description closes an open position for a market
+        * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+        * @param {string} symbol unified CCXT market symbol
+        * @param {string} [side] buy or sell, not used by coinex
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} params.type required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+        * @param {string} [params.price] the price to fulfill the order, ignored in market orders
+        * @param {string} [params.amount] the amount to trade in units of the base currency
+        * @param {string} [params.clientOrderId] the client id of the order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = this.safeString(parameters, "type", "market");
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+            { "market_type", "FUTURES" },
+            { "type", type },
+        };
+        object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
+        }
+        parameters = this.omit(parameters, "clientOrderId");
+        object response = await this.v2PrivatePostFuturesClosePosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0001",
+        //             "client_id": "",
+        //             "created_at": 1729666043969,
+        //             "fee": "0.00335858",
+        //             "fee_ccy": "USDT",
+        //             "filled_amount": "0.0001",
+        //             "filled_value": "6.717179",
+        //             "last_filled_amount": "0.0001",
+        //             "last_filled_price": "67171.79",
+        //             "maker_fee_rate": "0",
+        //             "market": "BTCUSDT",
+        //             "market_type": "FUTURES",
+        //             "order_id": 155477479761,
+        //             "price": "0",
+        //             "realized_pnl": "-0.001823",
+        //             "side": "sell",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "market",
+        //             "unfilled_amount": "0",
+        //             "updated_at": 1729666043969
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)

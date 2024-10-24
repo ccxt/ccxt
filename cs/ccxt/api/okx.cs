@@ -241,6 +241,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatio",parameters);
     }
 
+    public async Task<object> publicGetRubikStatContractsLongShortAccountRatioContract (object parameters = null)
+    {
+        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatioContract",parameters);
+    }
+
     public async Task<object> publicGetRubikStatContractsOpenInterestVolume (object parameters = null)
     {
         return await this.callAsync ("publicGetRubikStatContractsOpenInterestVolume",parameters);
@@ -764,6 +769,21 @@ public partial class okx : Exchange
     public async Task<object> privateGetAccountFixedLoanBorrowingOrdersList (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
+    }
+
+    public async Task<object> privateGetAccountSpotManualBorrowRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotManualBorrowRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSetAutoRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSetAutoRepay",parameters);
+    }
+
+    public async Task<object> privateGetAccountSpotBorrowRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountSpotBorrowRepayHistory",parameters);
     }
 
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)

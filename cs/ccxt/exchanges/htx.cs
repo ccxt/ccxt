@@ -1574,6 +1574,10 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchMarkets
         * @description retrieves data on all markets for huobi
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -1613,6 +1617,20 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name htx#fetchMarketsByTypeAndSubType
+        * @description retrieves data on all markets of a certain type and/or subtype
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+        * @param {string} [type] 'spot', 'swap' or 'future'
+        * @param {string} [subType] 'linear' or 'inverse'
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of objects representing market data
+        */
         parameters ??= new Dictionary<string, object>();
         object isSpot = (isEqual(type, "spot"));
         object request = new Dictionary<string, object>() {};
@@ -3178,6 +3196,16 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name htx#fetchAccountIdByType
+        * @description fetch all the accounts by a type and marginModeassociated with a profile
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+        * @param {string} type 'spot', 'swap' or 'future
+        * @param {string} [marginMode] 'cross' or 'isolated'
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+        */
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
         object accountId = this.safeValue2(parameters, "accountId", "account-id");
@@ -5197,14 +5225,7 @@ public partial class htx : Exchange
         object amount = null;
         if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))))
         {
-            // for market orders amount is in quote currency, meaning it is the cost
-            if (isTrue(isEqual(side, "sell")))
-            {
-                cost = this.safeString(order, "field-cash-amount");
-            } else
-            {
-                cost = this.safeString(order, "amount");
-            }
+            cost = this.safeString(order, "field-cash-amount");
         } else
         {
             amount = this.safeString2(order, "volume", "amount");

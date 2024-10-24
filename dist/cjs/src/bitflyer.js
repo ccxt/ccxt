@@ -34,6 +34,9 @@ class bitflyer extends bitflyer$1 {
                 'fetchBalance': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -73,6 +76,7 @@ class bitflyer extends bitflyer$1 {
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ],
                 },
                 'private': {
@@ -1021,6 +1025,60 @@ class bitflyer extends bitflyer$1 {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
+        };
+    }
+    async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitflyer#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://lightning.bitflyer.com/docs#funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'product_code': market['id'],
+        };
+        const response = await this.publicGetGetfundingrate(this.extend(request, params));
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        return this.parseFundingRate(response, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        const nextFundingDatetime = this.safeString(contract, 'next_funding_rate_settledate');
+        const nextFundingTimestamp = this.parse8601(nextFundingDatetime);
+        return {
+            'info': contract,
+            'symbol': this.safeString(market, 'symbol'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': undefined,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber(contract, 'current_funding_rate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

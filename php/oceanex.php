@@ -47,6 +47,8 @@ class oceanex extends Exchange {
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,

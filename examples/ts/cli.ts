@@ -37,7 +37,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
     , isOption = process.argv.includes ('--option')
-    , shouldCreateRequestReport = process.argv.includes ('--report')
+    , shouldCreateRequestReport = process.argv.includes ('--report') || process.argv.includes ('--request')
     , shouldCreateResponseReport = process.argv.includes ('--response')
     , shouldCreateBoth = process.argv.includes ('--static')
     , raw = process.argv.includes ('--raw')
@@ -236,7 +236,8 @@ const printHumanReadable = (exchange, result) => {
                     return String (x)
                 }
             })
-            log (result.length > 0 ? configuredAsTable (result.map (element => {
+            log (result.length > 0 ? configuredAsTable (result.map (rawElement => {
+                const element = Object.assign ({}, rawElement)
                 let keys = Object.keys (element)
                 delete element['info']
                 keys.forEach (key => {

@@ -2,6 +2,9 @@
     "exchange": "gate",
     "skipKeys": ["text"],
     "outputType": "json",
+    "options": {
+        "unifiedAccount": false
+    },
     "methods": {
         "createOrder": [
             {
@@ -675,6 +678,16 @@
                 "input": [
                     {
                         "type": "option"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch the unified account balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/unified/accounts",
+                "input": [
+                    {
+                        "unifiedAccount": true
                     }
                 ]
             }
@@ -1598,6 +1611,36 @@
                 "url": "https://api.gateio.ws/api/v4/options/contracts?underlying=BTC_USDT",
                 "input": [
                   "BTC"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch the isolated borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=usdt&currency_pair=BTC_USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "fetch the borrow interest of the unified account",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=usdt",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
                 ]
             }
         ]

@@ -62,7 +62,6 @@ export default class kucoin extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    loadCurrencyPrecision(currency: any, networkCode?: Str): Promise<void>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -76,7 +75,6 @@ export default class kucoin extends Exchange {
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;
