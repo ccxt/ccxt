@@ -790,6 +790,9 @@ class testMainClass {
             // 'transfer': [ ],
             // 'withdraw': [ ],
         };
+        if (getCliArgValue ('--fundedTests')) {
+            tests['createOrder'] = [ symbol ];
+        }
         if (this.wsTests) {
             tests = {
                 // @ts-ignore
