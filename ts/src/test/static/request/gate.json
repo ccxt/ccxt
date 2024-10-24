@@ -410,6 +410,20 @@
                 ]
             },
             {
+                "description": "swap & trigger",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders?contract=BTC_USDT&status=open",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true,
+                    "type": "swap"
+                  }
+                ]
+            },
+            {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=LTC_USDT&status=open",
@@ -449,6 +463,19 @@
                 "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",  
                 "input": [
                   "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            },
+            {
+                "description": "swap & trigger",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders?contract=BTC_USDT&status=finished",
+                "input": [
+                  "BTC/USDT:USDT",
                   null,
                   null,
                   {
