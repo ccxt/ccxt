@@ -28,6 +28,8 @@ interface Exchange {
     mixinPrivatePostSafeTransactions (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeDepositEntries (params?: {}): Promise<implicitReturnType>;
     ccxtProxyPost4swapPreorder (params?: {}): Promise<implicitReturnType>;
+    ccxtProxyPost4swapAddLiquidity (params?: {}): Promise<implicitReturnType>;
+    ccxtProxyPost4swapRemoveLiquidity (params?: {}): Promise<implicitReturnType>;
     ccxtProxyPostMixinEncodetx (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}

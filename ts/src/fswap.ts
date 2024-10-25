@@ -3,8 +3,8 @@
 import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
-import { eddsa } from './base/functions.js';
-import { Balances, Currencies, DepositAddress, DepositAddressResponse, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
+import { eddsa, TRUNCATE } from './base/functions.js';
+import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { base64 } from './static_dependencies/scure-base/index.js';
@@ -96,6 +96,8 @@ export default class fswap extends Exchange {
                 'ccxtProxy': {
                     'post': {
                         '4swap/preorder': 1,
+                        '4swap/add_liquidity': 1,
+                        '4swap/remove_liquidity': 1,
                         'mixin/encodetx': 1,
                     },
                 },
@@ -147,6 +149,8 @@ export default class fswap extends Exchange {
                 'MTGMember4': 'd469485e-5812-466d-a156-93bee313b6a1',
                 'MTGMember5': 'd68ca71f-0e2c-458a-bb9c-1d6c2eed2497',
                 'MTGThrehold': 4,
+                'AddLiquidityDuration': 3600,
+                'AddLiquiditySlippage': 0.01,
                 'AssetMap': {
                     'c94ac88f-4671-3976-b60a-09064f1811e8': 'XIN',
                     'f5ef6b5d-cc5a-3d90-b2c0-a2fd386e7a3c': 'BOX',
@@ -214,6 +218,7 @@ export default class fswap extends Exchange {
                     '8e4117c0-5e43-3c2f-81d3-15e3d3ac1b46': 'sBNB-pUSD',
                     '83c8bfca-78ee-3845-9e6c-e3d69e7b381c': 'WBTC',
                     '159648dc-eba7-3d0e-82ea-06995bee0537': 'sBTC-wBTC',
+                    '1bb50f7a-24c6-390e-91a7-ba510039b63c': 'sBTC-USDT',
                     'bc129ce0-6231-3a88-94bb-c9353abc24ae': 'sXIN-MOB',
                     '4763c636-1d6b-3c74-8cba-17634f0fcad2': 'sETH-pUSD',
                     'c996abc9-d94e-4494-b1cf-2a3fd3ac5714': 'ZEC',
@@ -430,6 +435,7 @@ export default class fswap extends Exchange {
                     'sIQ-XIN': '6a927361-72da-36e8-939a-f1149e9a6286',
                     'ONE': '2566bf58-c4de-3479-8c55-c137bb7fe2ae',
                     'sONE-XIN': 'f5c24d3c-f0b2-3e3a-aea6-83f9e92335f2',
+                    'sBTC-USDT': '1bb50f7a-24c6-390e-91a7-ba510039b63c',
                     'sUSDT-EOS': 'ef25abf1-72c0-3191-bccd-4532cb8557a4',
                     'sIQ-EOS': '0d8b8f42-a958-3e66-961f-b59c25b67cc1',
                     'sONE-EOS': '4c0a42a3-356b-3ae3-a17c-9377646efb04',
@@ -665,7 +671,7 @@ export default class fswap extends Exchange {
         // @method
         // @name fswap#fetchMarkets
         // @description retrieves data on all markets for fswap
-        // @see https://developers.pando.im/references/4swap/api.html#read-pairs
+        // @see https://developers.pando.im/references/4swap/api.html#read-pairs-cmc-compatible-version
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @returns {object[]} an array of objects representing market data
         //
@@ -901,8 +907,9 @@ export default class fswap extends Exchange {
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @returns {object} a balance structure
         //
-        const response = await this.mixinPrivateGetSafeOutputs (params);
-        console.log ('fetchBalance response:', response);
+        const response = await this.mixinPrivateGetSafeOutputs (this.extend ({
+            'state': 'unspent',
+        }, params));
         const outputs = this.safeValue (response, 'data', {});
         return this.parseBalance (outputs);
     }
@@ -1158,7 +1165,9 @@ export default class fswap extends Exchange {
         const recipients = [ this.mixinBuildSafeTransactionRecipient (members, this.options.MTGThrehold, amount) ];
         const resp = await this.mixinPrivateGetSafeOutputs ({
             'asset': asset_id,
+            'state': 'unspent',
         });
+        console.log ('getSafeTx safeOutputs resp:', resp);
         const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
@@ -1196,6 +1205,19 @@ export default class fswap extends Exchange {
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order> {
+        if (type === 'spot') {
+            return await this.createSwapOrder (symbol, side, amount, price, params);
+        } else if (type === 'add_liquidity') {
+            // Side determines which asset to add
+            // e.g. symbol is BTC/USDT, side is buy, payment asset is USDT, amount is the amount of USDT
+            // opposite asset is BTC, amount of BTC will be calculated automatically
+            return await this.createAddLiquidityOrder (symbol, side, amount, params);
+        } else if (type === 'remove_liquidity') {
+            return await this.createRemoveLiquidityOrder (symbol, amount, params);
+        }
+    }
+
+    async createSwapOrder (symbol: string, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order> {
         const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
         console.log (baseSymbol, quoteSymbol);
         let payAssetId = '';
@@ -1230,9 +1252,166 @@ export default class fswap extends Exchange {
         return resp;
     }
 
+    async createAddLiquidityOrder (symbol: string, side: OrderSide, amount: number, params?: {}): Promise<Order> {
+        await this.loadMarkets ();
+        const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
+        const baseId = this.mapSymbolToAssetId (baseSymbol);
+        const quoteId = this.mapSymbolToAssetId (quoteSymbol);
+        let followID = this.safeString (params, 'followID');
+        let slippage = this.safeNumber (params, 'slippage');
+        let expireDuration = this.safeNumber (params, 'expireDuration');
+        if (!followID) {
+            followID = this.uuid ();
+        }
+        if (!slippage) {
+            slippage = this.options.AddLiquiditySlippage;
+        }
+        if (!expireDuration) {
+            expireDuration = this.options.AddLiquidityDuration;
+        }
+        const baseResp = await this.ccxtProxyPost4swapAddLiquidity (this.extend ({
+            'followID': followID,
+            'oppositeAsset': quoteId,
+            'slippage': slippage,
+            'expireDuration': expireDuration,
+        }, params));
+        console.log ('baseResp:', baseResp);
+        const baseMemo = this.safeString (baseResp, 'memo');
+        const followIDBase = this.safeString (baseResp, 'followID');
+        console.log ('baseMemo:', baseMemo);
+        console.log ('followIDBase:', followIDBase);
+        const quoteResp = await this.ccxtProxyPost4swapAddLiquidity (this.extend ({
+            'followID': followID,
+            'oppositeAsset': baseId,
+            'slippage': slippage,
+            'expireDuration': expireDuration,
+        }, params));
+        console.log ('quoteResp:', quoteResp);
+        const quoteMemo = this.safeString (quoteResp, 'memo');
+        const followIDQuote = this.safeString (quoteResp, 'followID');
+        console.log ('quoteMemo:', quoteMemo);
+        console.log ('followIDQuote:', followIDQuote);
+        let quoteAmount = '';
+        if (side === 'buy') {
+            // BTC/USDT, pay USDT, opposite BTC
+            quoteAmount = amount.toString ();
+        }
+        if (side === 'sell') {
+            // BTC/USDT, pay BTC, opposite USDT
+            quoteAmount = this.calculateTokenYAmount (amount.toString (), baseId, quoteId);
+        }
+        const addBaseResp = await this.safeTransfer (baseId, amount.toString (), baseMemo);
+        const addQuoteResp = await this.safeTransfer (quoteId, quoteAmount, quoteMemo);
+        const order: Order = {
+            'id': followID,
+            'clientOrderId': undefined,
+            'datetime': new Date ().toISOString (),
+            'timestamp': Date.now (),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': 'open',
+            'symbol': symbol,
+            'type': 'add_liquidity',
+            'timeInForce': undefined,
+            'side': side,
+            'price': undefined,
+            'average': undefined,
+            'amount': amount,
+            'filled': 0,
+            'remaining': amount,
+            'cost': 0,
+            'trades': [],
+            'fee': {
+                'cost': 0,
+                'currency': baseSymbol,
+            },
+            'reduceOnly': false,
+            'postOnly': false,
+            'info': { addBaseResp, addQuoteResp },
+        };
+        return order;
+    }
+
+    async createRemoveLiquidityOrder (symbol: string, amount: number, params?: {}): Promise<Order> {
+        // Map symbol to lp token asset id
+        const lpTokenAssetId = this.getLpTokenAssetIdBySymbol (symbol);
+        if (!lpTokenAssetId) {
+            throw new Error ('Unable to find lp token asset id for ' + symbol);
+        }
+        // Request proxy /fswap/remove_liquidity to get memo
+        const followID = this.uuid ();
+        const rmMemoResp = await this.ccxtProxyPost4swapRemoveLiquidity (this.extend ({
+            'followID': followID,
+        }, params));
+        console.log ('rmMemoResp:', rmMemoResp);
+        // Send lp token to fswap
+        const removeLiquidityMemo = this.safeString (rmMemoResp, 'memo');
+        const removeLiquidityResp = await this.safeTransfer (lpTokenAssetId, amount.toString (), removeLiquidityMemo);
+        console.log ('removeLiquidityResp:', removeLiquidityResp);
+        const order: Order = {
+            'id': followID,
+            'clientOrderId': undefined,
+            'datetime': new Date ().toISOString (),
+            'timestamp': Date.now (),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': 'open',
+            'symbol': symbol,
+            'type': 'remove_liquidity',
+            'timeInForce': undefined,
+            'side': 'sell',
+            'price': undefined,
+            'average': undefined,
+            'amount': amount,
+            'filled': 0,
+            'remaining': amount,
+            'cost': 0,
+            'trades': [],
+            'fee': {
+                'cost': 0,
+                'currency': lpTokenAssetId,
+            },
+            'reduceOnly': false,
+            'postOnly': false,
+            'info': { removeLiquidityResp },
+        };
+        return order;
+    }
+
+    getLpTokenAssetIdBySymbol (symbol: string) {
+        const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
+        const lpTokenSymbolOne = 's' + baseSymbol + '-' + quoteSymbol;
+        const lpTokenSymbolTwo = 's' + quoteSymbol + '-' + baseSymbol;
+        let lpTokenAssetId = '';
+        if (this.mapSymbolToAssetId (lpTokenSymbolOne)) {
+            lpTokenAssetId = this.mapSymbolToAssetId (lpTokenSymbolOne);
+        }
+        if (this.mapSymbolToAssetId (lpTokenSymbolTwo)) {
+            lpTokenAssetId = this.mapSymbolToAssetId (lpTokenSymbolTwo);
+        }
+        return lpTokenAssetId;
+    }
+
+    calculateTokenYAmount (
+        tokenXAmount: string,
+        tokenXReserve: string,
+        tokenYReserve: string
+    ) {
+        const xAmount = new Precise (tokenXAmount);
+        const xReserve = new Precise (tokenXReserve);
+        const yReserve = new Precise (tokenYReserve);
+        // Calculate the amount of token Y based on the reserve ratio
+        const yAmount = xAmount.mul (yReserve).div (xReserve);
+        // Return the amount of token Y as a string with 8 decimal places
+        return this.decimalToPrecision (yAmount.toString (), TRUNCATE, 8);
+    }
+
     async fetchDepositAddress (code: string): Promise<DepositAddress> {
         try {
             const assetId = this.mapSymbolToAssetId (code);
+            if (!assetId) {
+                throw new Error ('Unable to find asset id for ' + code);
+            }
             const resp = await this.mixinPrivatePostSafeDepositEntries ({
                 'chain_id': assetId,
             });
@@ -1261,7 +1440,7 @@ export default class fswap extends Exchange {
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        throw new Error (this.id + ' withdraw() is not supported yet');
+        return undefined;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
@@ -1296,12 +1475,13 @@ export default class fswap extends Exchange {
             if (method === 'GET') {
                 if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
                     this.checkRequiredCredentials ();
+                    let encodedParams = '';
                     if (Object.keys (params).length) {
-                        const encodedParams = this.urlencode (params);
-                        url = url + '?' + encodedParams;
+                        encodedParams = '?' + this.urlencode (params);
+                        url = url + encodedParams;
                     }
                     const requestID = this.uuid ();
-                    const jwtToken = this.signAuthenticationToken (method, '/' + path, params, requestID);
+                    const jwtToken = this.signAuthenticationToken (method, '/' + path, encodedParams, requestID);
                     headers = {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + jwtToken,
@@ -1376,6 +1556,7 @@ export default class fswap extends Exchange {
         if (data === '{}') {
             data = '';
         }
+        console.log ('signAuthenticationToken data:', data);
         const iat = Math.floor (Date.now () / 1000);
         const exp = iat + 3600;
         const sig = this.hash (new TextEncoder ().encode (method + uri + data), sha256, 'hex');
