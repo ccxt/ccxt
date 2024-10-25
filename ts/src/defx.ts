@@ -7,8 +7,8 @@ import Exchange from './abstract/defx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
-import { NotSupported } from './base/errors.js';
-import type { Dict, int, Strings, Int, Market, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
+import { NotSupported, ArgumentsRequired } from './base/errors.js';
+import type { Dict, int, Num, Strings, Int, Market, OrderType, OrderSide, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1097,6 +1097,107 @@ export default class defx extends Exchange {
         return this.safeBalance (result);
     }
 
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#createOrder
+         * @description create a trade order
+         * @see https://api-docs.defx.com/#ba222d88-8856-4d3c-87a9-7cec07bb2622
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
+        params = this.omit (params, [ 'reduceOnly', 'reduce_only' ]);
+        const orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': orderSide,
+            'type': orderType,
+        };
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        const isMarket = orderType === 'MARKET';
+        const isLimit = orderType === 'LIMIT';
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            // GTC, IOC, FOK, AON
+            request['timeInForce'] = timeInForce;
+        } else {
+            if (isLimit) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for limit orders');
+            }
+        }
+        if (reduceOnly) {
+            request['reduceOnly'] = reduceOnly;
+        }
+        const isPriceRequired = isLimit;
+        if (isPriceRequired && price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for ' + type + ' orders');
+        }
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        if (stopPrice !== undefined || takeProfitPrice !== undefined) {
+            request['workingType'] = 'MARK_PRICE';
+            if (takeProfitPrice !== undefined) {
+                request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                if (isMarket) {
+                    request['type'] = 'TAKE_PROFIT_MARKET';
+                } else {
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                }
+            } else {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+                if (isMarket) {
+                    request['type'] = 'STOP_MARKET';
+                } else {
+                    request['type'] = 'STOP_LIMIT';
+                }
+            }
+        }
+        if (isPriceRequired && price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        request['quantity'] = this.amountToPrecision (symbol, amount);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'takeProfitPrice' ]);
+        const response = await this.v1PrivatePostApiOrder (this.extend (request, params))
+        //
+        // {
+        //     "success": true,
+        //     "data": {
+        //       "orderId": "",
+        //       "clientOrderId": "",
+        //       "cumulativeQty": "",
+        //       "cumulativeQuote": "",
+        //       "executedQty": "",
+        //       "avgPrice": "",
+        //       "origQty": "",
+        //       "price": "",
+        //       "reduceOnly": true,
+        //       "side": "",
+        //       "status": "",
+        //       "symbol": "",
+        //       "timeInForce": "",
+        //       "type": "",
+        //       "workingType": ""
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1116,21 +1217,26 @@ export default class defx extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            headers = {};
             url += 'auth/' + pathWithParams;
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
-            const nonce = this.milliseconds ();
-            let payload = nonce + this.urlencode (params);
-            if (body !== undefined) {
-                payload += this.json (body);
+            const nonce = this.milliseconds ().toString ();
+            let payload = nonce;
+            if (method === 'GET') {
+                payload += this.urlencode (params);
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
+            } else {
+                if (params !== undefined) {
+                    body = this.json (params);
+                    payload += body;
+                }
+                headers['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
-            headers = {
-                'X-DEFX-APIKEY': this.apiKey,
-                'X-DEFX-TIMESTAMP': nonce,
-                'X-DEFX-SIGNATURE': signature,
-            };
+            headers['X-DEFX-APIKEY'] = this.apiKey;
+            headers['X-DEFX-TIMESTAMP'] = nonce;
+            headers['X-DEFX-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
