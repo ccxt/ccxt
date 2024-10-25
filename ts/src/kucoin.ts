@@ -1345,7 +1345,7 @@ export default class kucoin extends Exchange {
             }
             // kucoin has determined 'fiat' currencies with below logic
             const isFiat = (rawPrecision === '2') && (chainsLength === 0);
-            result[code] = this.safeCurrencyResult ({
+            result[code] = this.safeCurrencyItem ({
                 'id': id,
                 'name': name,
                 'code': code,
@@ -1363,7 +1363,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    safeCurrencyResult (currency: object): CurrencyInterface {
+    safeCurrencyItem (currency: object): CurrencyInterface {
         // derive from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
         const keys: string [] = Object.keys (networks);
