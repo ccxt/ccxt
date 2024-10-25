@@ -749,7 +749,7 @@ class ImplicitAPI:
     papi_get_cm_adlquantile = papiGetCmAdlQuantile = Entry('cm/adlQuantile', 'papi', 'GET', {'cost': 5})
     papi_get_um_trade_asyn = papiGetUmTradeAsyn = Entry('um/trade/asyn', 'papi', 'GET', {'cost': 300})
     papi_get_um_trade_asyn_id = papiGetUmTradeAsynId = Entry('um/trade/asyn/id', 'papi', 'GET', {'cost': 2})
-    papi_get_um_order_asyn = papiGetUmOrderAsyn = Entry('um/order/asyn/', 'papi', 'GET', {'cost': 300})
+    papi_get_um_order_asyn = papiGetUmOrderAsyn = Entry('um/order/asyn', 'papi', 'GET', {'cost': 300})
     papi_get_um_order_asyn_id = papiGetUmOrderAsynId = Entry('um/order/asyn/id', 'papi', 'GET', {'cost': 2})
     papi_get_um_income_asyn = papiGetUmIncomeAsyn = Entry('um/income/asyn', 'papi', 'GET', {'cost': 300})
     papi_get_um_income_asyn_id = papiGetUmIncomeAsynId = Entry('um/income/asyn/id', 'papi', 'GET', {'cost': 2})

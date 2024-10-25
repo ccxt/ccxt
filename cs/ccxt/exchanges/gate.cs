@@ -93,6 +93,7 @@ public partial class gate : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -6850,6 +6851,95 @@ public partial class gate : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
+        };
+    }
+
+    public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchBorrowInterest
+        * @description fetch the interest owed by the user for borrowing currency for margin trading
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+        * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+        * @param {string} [code] unified currency code
+        * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+        * @param {int} [since] the earliest time in ms to fetch borrow interest for
+        * @param {int} [limit] the maximum number of structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "isolated")))
+        {
+            if (isTrue(!isEqual(market, null)))
+            {
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            }
+            response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "cross")))
+        {
+            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
+        }
+        object interest = this.parseBorrowInterests(response, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+
+    public override object parseBorrowInterest(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "currency_pair");
+        market = this.safeMarket(marketId, market);
+        object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
+        object timestamp = this.safeInteger(info, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", this.safeString(market, "symbol") },
+            { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
+            { "marginMode", marginMode },
+            { "interest", this.safeNumber(info, "interest") },
+            { "interestRate", this.safeNumber(info, "actual_rate") },
+            { "amountBorrowed", null },
         };
     }
 

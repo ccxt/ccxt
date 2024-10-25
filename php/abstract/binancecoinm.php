@@ -2093,7 +2093,7 @@ abstract class binancecoinm extends \ccxt\binance {
         return $this->request('um/trade/asyn/id', 'papi', 'GET', $params, null, null, array("cost" => 2));
     }
     public function papi_get_um_order_asyn($params = array()) {
-        return $this->request('um/order/asyn/', 'papi', 'GET', $params, null, null, array("cost" => 300));
+        return $this->request('um/order/asyn', 'papi', 'GET', $params, null, null, array("cost" => 300));
     }
     public function papi_get_um_order_asyn_id($params = array()) {
         return $this->request('um/order/asyn/id', 'papi', 'GET', $params, null, null, array("cost" => 2));
@@ -4316,7 +4316,7 @@ abstract class binancecoinm extends \ccxt\binance {
         return $this->request('um/trade/asyn/id', 'papi', 'GET', $params, null, null, array("cost" => 2));
     }
     public function papiGetUmOrderAsyn($params = array()) {
-        return $this->request('um/order/asyn/', 'papi', 'GET', $params, null, null, array("cost" => 300));
+        return $this->request('um/order/asyn', 'papi', 'GET', $params, null, null, array("cost" => 300));
     }
     public function papiGetUmOrderAsynId($params = array()) {
         return $this->request('um/order/asyn/id', 'papi', 'GET', $params, null, null, array("cost" => 2));
