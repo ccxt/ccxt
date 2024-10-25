@@ -69,7 +69,7 @@ export default class gate extends Exchange {
     fetchOptionUnderlyings(): Promise<any[]>;
     prepareRequest(market?: any, type?: any, params?: {}): Dict[];
     spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
-    multiOrderSpotPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
+    multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
     getMarginMode(stop: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;

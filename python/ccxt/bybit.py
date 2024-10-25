@@ -1026,6 +1026,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
+                'unifiedMarginStatus': None,
                 'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
@@ -1145,6 +1146,8 @@ class bybit(Exchange, ImplicitAPI):
 
     def is_unified_enabled(self, params={}):
         """
+        :see: https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+        :see: https://bybit-exchange.github.io/docs/v5/account/account-info
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1158,8 +1161,12 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
+                self.options['unifiedMarginStatus'] = 3
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
-            response = self.privateGetV5UserQueryApi(params)
+            rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
+            promises = rawPromises
+            response = promises[0]
+            accountInfo = promises[1]
             #
             #     {
             #         "retCode": 0,
@@ -1199,13 +1206,34 @@ class bybit(Exchange, ImplicitAPI):
             #         "retExtInfo": {},
             #         "time": 1676891757649
             #     }
+            # account info
+            #     {
+            #         "retCode": 0,
+            #         "retMsg": "OK",
+            #         "result": {
+            #             "marginMode": "REGULAR_MARGIN",
+            #             "updatedTime": "1697078946000",
+            #             "unifiedMarginStatus": 4,
+            #             "dcpStatus": "OFF",
+            #             "timeWindow": 10,
+            #             "smpGroup": 0,
+            #             "isMasterTrader": False,
+            #             "spotHedgingStatus": "OFF"
+            #         }
+            #     }
             #
             result = self.safe_dict(response, 'result', {})
+            accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     def upgrade_unified_trade_account(self, params={}):
+        """
+        :see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+        upgrades the account to unified trade account *warning* self is irreversible
+        """
         return self.privatePostV5AccountUpgradeToUta(params)
 
     def create_expired_option_market(self, symbol: str):
@@ -3018,10 +3046,15 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            if isInverse:
-                type = 'contract'
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            if unifiedMarginStatus < 5:
+                # it's not uta.20 where inverse are unified
+                if isInverse:
+                    type = 'contract'
+                else:
+                    type = 'unified'
             else:
-                type = 'unified'
+                type = 'unified'  # uta.20 where inverse are unified
         else:
             if isLinear or isInverse:
                 type = 'contract'

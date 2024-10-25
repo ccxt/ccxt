@@ -1791,9 +1791,10 @@ class Exchange extends \ccxt\Exchange {
         $isTriggerOrSLTpOrder = (($this->safe_string($order, 'triggerPrice') !== null || ($this->safe_string($order, 'stopLossPrice') !== null)) || ($this->safe_string($order, 'takeProfitPrice') !== null));
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
-            $oldNumber = $this->number;
+            // $oldNumber = $this->number;
             // we parse $trades here!
-            $this->number = 'strval';
+            // $i don't think this is needed anymore
+            // $this->number = 'strval';
             $firstTrade = $this->safe_value($rawTrades, 0);
             // parse $trades if they haven't already been parsed
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
@@ -1802,7 +1803,7 @@ class Exchange extends \ccxt\Exchange {
             } else {
                 $trades = $rawTrades;
             }
-            $this->number = $oldNumber;
+            // $this->number = $oldNumber; why parse $trades if you read the value using `safeString` ?
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {

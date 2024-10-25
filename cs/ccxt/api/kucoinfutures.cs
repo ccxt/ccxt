@@ -246,6 +246,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetMarketOrderbookLevel3",parameters);
     }
 
+    public async Task<object> privateGetHfAccountsOpened (object parameters = null)
+    {
+        return await this.callAsync ("privateGetHfAccountsOpened",parameters);
+    }
+
     public async Task<object> privateGetHfOrdersActive (object parameters = null)
     {
         return await this.callAsync ("privateGetHfOrdersActive",parameters);

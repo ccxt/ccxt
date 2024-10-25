@@ -1010,6 +1010,7 @@ class bybit extends bybit$1 {
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
+                'unifiedMarginStatus': undefined,
                 'createMarketBuyOrderRequiresPrice': true,
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',
@@ -1139,6 +1140,8 @@ class bybit extends bybit$1 {
         /**
          * @method
          * @name bybit#isUnifiedEnabled
+         * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+         * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1152,9 +1155,13 @@ class bybit extends bybit$1 {
                 // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
+                this.options['unifiedMarginStatus'] = 3;
                 return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
             }
-            const response = await this.privateGetV5UserQueryApi(params);
+            const rawPromises = [this.privateGetV5UserQueryApi(params), this.privateGetV5AccountInfo(params)];
+            const promises = await Promise.all(rawPromises);
+            const response = promises[0];
+            const accountInfo = promises[1];
             //
             //     {
             //         "retCode": 0,
@@ -1194,14 +1201,37 @@ class bybit extends bybit$1 {
             //         "retExtInfo": {},
             //         "time": 1676891757649
             //     }
+            // account info
+            //     {
+            //         "retCode": 0,
+            //         "retMsg": "OK",
+            //         "result": {
+            //             "marginMode": "REGULAR_MARGIN",
+            //             "updatedTime": "1697078946000",
+            //             "unifiedMarginStatus": 4,
+            //             "dcpStatus": "OFF",
+            //             "timeWindow": 10,
+            //             "smpGroup": 0,
+            //             "isMasterTrader": false,
+            //             "spotHedgingStatus": "OFF"
+            //         }
+            //     }
             //
             const result = this.safeDict(response, 'result', {});
+            const accountResult = this.safeDict(accountInfo, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
+            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
         }
         return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
     }
     async upgradeUnifiedTradeAccount(params = {}) {
+        /**
+         * @method
+         * @name bybit#upgradeUnifiedTradeAccount
+         * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+         * @description upgrades the account to unified trade account *warning* this is irreversible
+         */
         return await this.privatePostV5AccountUpgradeToUta(params);
     }
     createExpiredOptionMarket(symbol) {
@@ -3169,11 +3199,18 @@ class bybit extends bybit$1 {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            if (isInverse) {
-                type = 'contract';
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+            if (unifiedMarginStatus < 5) {
+                // it's not uta.20 where inverse are unified
+                if (isInverse) {
+                    type = 'contract';
+                }
+                else {
+                    type = 'unified';
+                }
             }
             else {
-                type = 'unified';
+                type = 'unified'; // uta.20 where inverse are unified
             }
         }
         else {

@@ -1006,6 +1006,7 @@ class bybit extends Exchange {
                 ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
+                'unifiedMarginStatus' => null,
                 'createMarketBuyOrderRequiresPrice' => true, // only true for classic accounts
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
@@ -1133,6 +1134,8 @@ class bybit extends Exchange {
 
     public function is_unified_enabled($params = array ()) {
         /**
+         * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+         * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1146,9 +1149,13 @@ class bybit extends Exchange {
                 // so we're assuming UTA is enabled
                 $this->options['enableUnifiedMargin'] = false;
                 $this->options['enableUnifiedAccount'] = true;
+                $this->options['unifiedMarginStatus'] = 3;
                 return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
             }
-            $response = $this->privateGetV5UserQueryApi ($params);
+            $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
+            $promises = $rawPromises;
+            $response = $promises[0];
+            $accountInfo = $promises[1];
             //
             //     {
             //         "retCode" => 0,
@@ -1188,15 +1195,36 @@ class bybit extends Exchange {
             //         "retExtInfo" => array(),
             //         "time" => 1676891757649
             //     }
+            // account info
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "marginMode" => "REGULAR_MARGIN",
+            //             "updatedTime" => "1697078946000",
+            //             "unifiedMarginStatus" => 4,
+            //             "dcpStatus" => "OFF",
+            //             "timeWindow" => 10,
+            //             "smpGroup" => 0,
+            //             "isMasterTrader" => false,
+            //             "spotHedgingStatus" => "OFF"
+            //         }
+            //     }
             //
             $result = $this->safe_dict($response, 'result', array());
+            $accountResult = $this->safe_dict($accountInfo, 'result', array());
             $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
             $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
+            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
         }
         return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
     }
 
     public function upgrade_unified_trade_account($params = array ()) {
+        /**
+         * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+         * upgrades the account to unified trade account *warning* this is irreversible
+         */
         return $this->privatePostV5AccountUpgradeToUta ($params);
     }
 
@@ -3127,10 +3155,16 @@ class bybit extends Exchange {
         $isInverse = ($type === 'inverse');
         $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
         if ($isUnifiedAccount) {
-            if ($isInverse) {
-                $type = 'contract';
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            if ($unifiedMarginStatus < 5) {
+                // it's not uta.20 where inverse are unified
+                if ($isInverse) {
+                    $type = 'contract';
+                } else {
+                    $type = 'unified';
+                }
             } else {
-                $type = 'unified';
+                $type = 'unified'; // uta.20 where inverse are unified
             }
         } else {
             if ($isLinear || $isInverse) {

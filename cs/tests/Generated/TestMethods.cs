@@ -928,11 +928,12 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
-        object errorMessage = add(add(add(add(message, " computed "), storedString), " stored: "), calculatedString);
+        object errorMessage = message;
         if (isTrue(!isEqual(key, null)))
         {
-            errorMessage = add(add(add(add(add(add(" | ", key), " | "), "computed value: "), storedString), " stored value: "), calculatedString);
+            errorMessage = add(add("[", key), "]");
         }
+        errorMessage = add(errorMessage, add(add(add(" computed: ", storedString), " stored: "), calculatedString));
         assert(cond, errorMessage);
     }
 
@@ -1093,9 +1094,17 @@ public partial class testMainClass
                 this.assertStaticError(isEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
             } else
             {
-                object isBoolean = isTrue(((sanitizedNewOutput is bool))) || isTrue(((sanitizedStoredOutput is bool)));
-                object isString = isTrue(((sanitizedNewOutput is string))) || isTrue(((sanitizedStoredOutput is string)));
-                object isUndefined = isTrue((isEqual(sanitizedNewOutput, null))) || isTrue((isEqual(sanitizedStoredOutput, null))); // undefined is a perfetly valid value
+                object isComputedBool = ((sanitizedNewOutput is bool));
+                object isStoredBool = ((sanitizedStoredOutput is bool));
+                object isComputedString = ((sanitizedNewOutput is string));
+                object isStoredString = ((sanitizedStoredOutput is string));
+                object isComputedUndefined = (isEqual(sanitizedNewOutput, null));
+                object isStoredUndefined = (isEqual(sanitizedStoredOutput, null));
+                object shouldBeSame = isTrue(isTrue((isEqual(isComputedBool, isStoredBool))) && isTrue((isEqual(isComputedString, isStoredString)))) && isTrue((isEqual(isComputedUndefined, isStoredUndefined)));
+                this.assertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, assertingKey);
+                object isBoolean = isTrue(isComputedBool) || isTrue(isStoredBool);
+                object isString = isTrue(isComputedString) || isTrue(isStoredString);
+                object isUndefined = isTrue(isComputedUndefined) || isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
                 {
                     if (isTrue(isEqual(this.lang, "C#")))

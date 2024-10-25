@@ -1537,22 +1537,22 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function multi_order_spot_prepare_request($market = null, $stop = false, $params = array ()) {
+    public function multi_order_spot_prepare_request($market = null, $trigger = false, $params = array ()) {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {array} $market CCXT $market
-         * @param {bool} $stop true if for a $stop order
+         * @param {bool} stop true if for a stop order
          * @param {array} [$params] $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($trigger, $params);
         $request = array(
             'account' => $marginMode,
         );
         if ($market !== null) {
-            if ($stop) {
-                // gate spot and margin $stop orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single $stop order, but createOrder does not call this method
+            if ($trigger) {
+                // gate spot and margin stop orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
                 $request['market'] = $market['id'];
             } else {
                 $request['currency_pair'] = $market['id'];
@@ -4615,21 +4615,21 @@ class gate extends Exchange {
         // Everything below this(above return) is related to $fees
         $fees = array();
         $gtFee = $this->safe_string($order, 'gt_fee');
-        if ($gtFee) {
+        if ($gtFee !== null) {
             $fees[] = array(
                 'currency' => 'GT',
                 'cost' => $gtFee,
             );
         }
         $fee = $this->safe_string($order, 'fee');
-        if ($fee) {
+        if ($fee !== null) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'fee_currency')),
                 'cost' => $fee,
             );
         }
         $rebate = $this->safe_string($order, 'rebated_fee');
-        if ($rebate) {
+        if ($rebate !== null) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'rebated_fee_currency')),
                 'cost' => Precise::string_neg($rebate),
@@ -4823,13 +4823,16 @@ class gate extends Exchange {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $trigger = null;
+        list($trigger, $params) = $this->handle_param_bool_2($params, 'trigger', 'stop');
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
         $request = array();
-        list($request, $params) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $params) : $this->prepare_request($market, $type, $params);
+        list($request, $params) = $spot ? $this->multi_order_spot_prepare_request($market, $trigger, $params) : $this->prepare_request($market, $type, $params);
+        if ($spot && $trigger) {
+            $request = $this->omit($request, 'account');
+        }
         if ($status === 'closed') {
             $status = 'finished';
         }
@@ -4861,31 +4864,33 @@ class gate extends Exchange {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        // don't omit here, omits done in prepareOrdersByStatusRequest
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $res = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $type = $this->safe_string($res, 0);
-        $params['type'] = $type;
         list($request, $requestParams) = $this->prepare_orders_by_status_request($status, $symbol, $since, $limit, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
-        $openSpotOrders = $spot && ($status === 'open') && !$stop;
+        $openStatus = ($status === 'open');
+        $openSpotOrders = $spot && $openStatus && !$trigger;
         $response = null;
-        if ($type === 'spot' || $type === 'margin') {
-            if ($openSpotOrders) {
-                $response = $this->privateSpotGetOpenOrders ($this->extend($request, $requestParams));
-            } elseif ($stop) {
-                $response = $this->privateSpotGetPriceOrders ($this->extend($request, $requestParams));
+        if ($spot) {
+            if (!$trigger) {
+                if ($openStatus) {
+                    $response = $this->privateSpotGetOpenOrders ($this->extend($request, $requestParams));
+                } else {
+                    $response = $this->privateSpotGetOrders ($this->extend($request, $requestParams));
+                }
             } else {
-                $response = $this->privateSpotGetOrders ($this->extend($request, $requestParams));
+                $response = $this->privateSpotGetPriceOrders ($this->extend($request, $requestParams));
             }
         } elseif ($type === 'swap') {
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateFuturesGetSettlePriceOrders ($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateFuturesGetSettleOrders ($this->extend($request, $requestParams));
             }
         } elseif ($type === 'future') {
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateDeliveryGetSettlePriceOrders ($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateDeliveryGetSettleOrders ($this->extend($request, $requestParams));
@@ -4967,7 +4972,7 @@ class gate extends Exchange {
         //        }
         //    )
         //
-        // $spot $stop
+        // $spot stop
         //
         //    array(
         //        {
@@ -6068,38 +6073,49 @@ class gate extends Exchange {
         /**
          * repay cross margin borrowed margin and interest
          * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
+         * @param {boolean} [$params->unifiedAccount] set to true for repaying in the unified account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $currency = $this->currency($code);
         $request = array(
             'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params));
-        //
-        //     array(
-        //         {
-        //             "id" => "17",
-        //             "create_time" => 1620381696159,
-        //             "update_time" => 1620381696159,
-        //             "currency" => "EOS",
-        //             "amount" => "110.553635",
-        //             "text" => "web",
-        //             "status" => 2,
-        //             "repaid" => "110.506649705159",
-        //             "repaid_interest" => "0.046985294841",
-        //             "unpaid_interest" => "0.0000074393366667"
-        //         }
-        //     )
-        //
-        $response = $this->safe_value($response, 0);
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'repayCrossMargin', 'unifiedAccount');
+        $response = null;
+        if ($isUnifiedAccount) {
+            $request['type'] = 'repay';
+            $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
+        } else {
+            $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params));
+            $response = $this->safe_dict($response, 0);
+            //
+            //     array(
+            //         {
+            //             "id" => "17",
+            //             "create_time" => 1620381696159,
+            //             "update_time" => 1620381696159,
+            //             "currency" => "EOS",
+            //             "amount" => "110.553635",
+            //             "text" => "web",
+            //             "status" => 2,
+            //             "repaid" => "110.506649705159",
+            //             "repaid_interest" => "0.046985294841",
+            //             "unpaid_interest" => "0.0000074393366667"
+            //         }
+            //     )
+            //
+        }
         return $this->parse_margin_loan($response, $currency);
     }
 
@@ -6151,34 +6167,45 @@ class gate extends Exchange {
         /**
          * create a loan to borrow margin
          * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
          * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @param {boolean} [$params->unifiedAccount] set to true for borrowing in the unified account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $currency = $this->currency($code);
         $request = array(
             'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params));
-        //
-        //     {
-        //         "id" => "17",
-        //         "create_time" => 1620381696159,
-        //         "update_time" => 1620381696159,
-        //         "currency" => "EOS",
-        //         "amount" => "110.553635",
-        //         "text" => "web",
-        //         "status" => 2,
-        //         "repaid" => "110.506649705159",
-        //         "repaid_interest" => "0.046985294841",
-        //         "unpaid_interest" => "0.0000074393366667"
-        //     }
-        //
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'borrowCrossMargin', 'unifiedAccount');
+        $response = null;
+        if ($isUnifiedAccount) {
+            $request['type'] = 'borrow';
+            $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
+        } else {
+            $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params));
+            //
+            //     {
+            //         "id" => "17",
+            //         "create_time" => 1620381696159,
+            //         "update_time" => 1620381696159,
+            //         "currency" => "EOS",
+            //         "amount" => "110.553635",
+            //         "text" => "web",
+            //         "status" => 2,
+            //         "repaid" => "110.506649705159",
+            //         "repaid_interest" => "0.046985294841",
+            //         "unpaid_interest" => "0.0000074393366667"
+            //     }
+            //
+        }
         return $this->parse_margin_loan($response, $currency);
     }
 

@@ -2254,7 +2254,7 @@ class hyperliquid extends hyperliquid$1 {
             'notional': this.safeNumber(entry, 'positionValue'),
             'leverage': this.safeNumber(leverage, 'value'),
             'collateral': this.safeNumber(entry, 'marginUsed'),
-            'initialMargin': initialMargin,
+            'initialMargin': this.parseNumber(initialMargin),
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,

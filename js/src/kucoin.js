@@ -206,6 +206,7 @@ export default class kucoin extends Exchange {
                         'market/orderbook/level{level}': 3,
                         'market/orderbook/level2': 3,
                         'market/orderbook/level3': 3,
+                        'hf/accounts/opened': 2,
                         'hf/orders/active': 2,
                         'hf/orders/active/symbols': 2,
                         'hf/margin/order/active/symbols': 2,
@@ -635,7 +636,7 @@ export default class kucoin extends Exchange {
                 'FUD': 'FTX Users\' Debt',
             },
             'options': {
-                'hf': false,
+                'hf': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1073,7 +1074,8 @@ export default class kucoin extends Exchange {
         //                 "enableTrading": true
         //             },
         //
-        const requestMarginables = this.checkRequiredCredentials(false);
+        const credentialsSet = this.checkRequiredCredentials(false);
+        const requestMarginables = credentialsSet && this.safeBool(params, 'marginables', true);
         if (requestMarginables) {
             promises.push(this.privateGetMarginSymbols(params)); // cross margin symbols
             //
@@ -1137,6 +1139,10 @@ export default class kucoin extends Exchange {
             //                     "makerCoefficient": "1" // Maker Fee Coefficient
             //                 }
             //
+        }
+        if (credentialsSet) {
+            // load migration status for account
+            promises.push(this.loadMigrationStatus());
         }
         const responses = await Promise.all(promises);
         const symbolsData = this.safeList(responses[0], 'data');
@@ -1225,15 +1231,19 @@ export default class kucoin extends Exchange {
         return result;
     }
     async loadMigrationStatus(force = false) {
-        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
-            const result = await this.privateGetMigrateUserAccountStatus();
-            const data = this.safeDict(result, 'data', {});
-            const status = this.safeInteger(data, 'status');
-            this.options['hfMigrated'] = (status === 2);
+        /**
+         * @method
+         * @name kucoin#loadMigrationStatus
+         * @description loads the migration status for the account (hf or not)
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+         */
+        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
+            const result = await this.privateGetHfAccountsOpened();
+            this.options['hf'] = this.safeBool(result, 'data');
         }
     }
     handleHfAndParams(params = {}) {
-        const migrated = this.safeBool2(this.options, 'hfMigrated', 'hf', false);
+        const migrated = this.safeBool(this.options, 'hf', false);
         let loadedHf = undefined;
         if (migrated !== undefined) {
             if (migrated) {

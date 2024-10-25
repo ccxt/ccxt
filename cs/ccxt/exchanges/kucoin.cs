@@ -183,6 +183,7 @@ public partial class kucoin : Exchange
                         { "market/orderbook/level{level}", 3 },
                         { "market/orderbook/level2", 3 },
                         { "market/orderbook/level3", 3 },
+                        { "hf/accounts/opened", 2 },
                         { "hf/orders/active", 2 },
                         { "hf/orders/active/symbols", 2 },
                         { "hf/margin/order/active/symbols", 2 },
@@ -564,7 +565,7 @@ public partial class kucoin : Exchange
                 { "FUD", "FTX Users' Debt" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "hf", false },
+                { "hf", null },
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
@@ -925,7 +926,8 @@ public partial class kucoin : Exchange
         //                 "enableTrading": true
         //             },
         //
-        object requestMarginables = this.checkRequiredCredentials(false);
+        object credentialsSet = this.checkRequiredCredentials(false);
+        object requestMarginables = isTrue(credentialsSet) && isTrue(this.safeBool(parameters, "marginables", true));
         if (isTrue(requestMarginables))
         {
             ((IList<object>)promises).Add(this.privateGetMarginSymbols(parameters)); // cross margin symbols
@@ -945,6 +947,11 @@ public partial class kucoin : Exchange
         if (isTrue(fetchTickersFees))
         {
             ((IList<object>)promises).Add(this.publicGetMarketAllTickers(parameters));
+        }
+        if (isTrue(credentialsSet))
+        {
+            // load migration status for account
+            ((IList<object>)promises).Add(this.loadMigrationStatus());
         }
         object responses = await promiseAll(promises);
         object symbolsData = this.safeList(getValue(responses, 0), "data");
@@ -1038,20 +1045,24 @@ public partial class kucoin : Exchange
 
     public async virtual Task loadMigrationStatus(object force = null)
     {
+        /**
+        * @method
+        * @name kucoin#loadMigrationStatus
+        * @description loads the migration status for the account (hf or not)
+        * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+        */
         force ??= false;
-        if (isTrue(isTrue(!isTrue((inOp(this.options, "hfMigrated"))) || isTrue((isEqual(getValue(this.options, "hfMigrated"), null)))) || isTrue(force)))
+        if (isTrue(isTrue(!isTrue((inOp(this.options, "hf"))) || isTrue((isEqual(getValue(this.options, "hf"), null)))) || isTrue(force)))
         {
-            object result = await this.privateGetMigrateUserAccountStatus();
-            object data = this.safeDict(result, "data", new Dictionary<string, object>() {});
-            object status = this.safeInteger(data, "status");
-            ((IDictionary<string,object>)this.options)["hfMigrated"] = (isEqual(status, 2));
+            object result = await this.privateGetHfAccountsOpened();
+            ((IDictionary<string,object>)this.options)["hf"] = this.safeBool(result, "data");
         }
     }
 
     public virtual object handleHfAndParams(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object migrated = this.safeBool2(this.options, "hfMigrated", "hf", false);
+        object migrated = this.safeBool(this.options, "hf", false);
         object loadedHf = null;
         if (isTrue(!isEqual(migrated, null)))
         {

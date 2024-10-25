@@ -949,6 +949,7 @@ public partial class bybit : Exchange
                 } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
+                { "unifiedMarginStatus", null },
                 { "createMarketBuyOrderRequiresPrice", true },
                 { "createUnifiedMarginAccount", false },
                 { "defaultType", "swap" },
@@ -1091,6 +1092,8 @@ public partial class bybit : Exchange
         /**
         * @method
         * @name bybit#isUnifiedEnabled
+        * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+        * @see https://bybit-exchange.github.io/docs/v5/account/account-info
         * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
         */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1107,9 +1110,13 @@ public partial class bybit : Exchange
                 // so we're assuming UTA is enabled
                 ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = false;
                 ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = true;
+                ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = 3;
                 return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
             }
-            object response = await this.privateGetV5UserQueryApi(parameters);
+            object rawPromises = new List<object> {this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)};
+            object promises = await promiseAll(rawPromises);
+            object response = getValue(promises, 0);
+            object accountInfo = getValue(promises, 1);
             //
             //     {
             //         "retCode": 0,
@@ -1149,16 +1156,39 @@ public partial class bybit : Exchange
             //         "retExtInfo": {},
             //         "time": 1676891757649
             //     }
+            // account info
+            //     {
+            //         "retCode": 0,
+            //         "retMsg": "OK",
+            //         "result": {
+            //             "marginMode": "REGULAR_MARGIN",
+            //             "updatedTime": "1697078946000",
+            //             "unifiedMarginStatus": 4,
+            //             "dcpStatus": "OFF",
+            //             "timeWindow": 10,
+            //             "smpGroup": 0,
+            //             "isMasterTrader": false,
+            //             "spotHedgingStatus": "OFF"
+            //         }
+            //     }
             //
             object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+            object accountResult = this.safeDict(accountInfo, "result", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.options)["enableUnifiedMargin"] = isEqual(this.safeInteger(result, "unified"), 1);
             ((IDictionary<string,object>)this.options)["enableUnifiedAccount"] = isEqual(this.safeInteger(result, "uta"), 1);
+            ((IDictionary<string,object>)this.options)["unifiedMarginStatus"] = this.safeInteger(accountResult, "unifiedMarginStatus", 3); // default to uta.1 if not found
         }
         return new List<object>() {getValue(this.options, "enableUnifiedMargin"), getValue(this.options, "enableUnifiedAccount")};
     }
 
     public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
     {
+        /**
+        * @method
+        * @name bybit#upgradeUnifiedTradeAccount
+        * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+        * @description upgrades the account to unified trade account *warning* this is irreversible
+        */
         parameters ??= new Dictionary<string, object>();
         return await this.privatePostV5AccountUpgradeToUta(parameters);
     }
@@ -3302,12 +3332,20 @@ public partial class bybit : Exchange
         object isFunding = isTrue((isEqual(lowercaseRawType, "fund"))) || isTrue((isEqual(lowercaseRawType, "funding")));
         if (isTrue(isUnifiedAccount))
         {
-            if (isTrue(isInverse))
+            object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 3);
+            if (isTrue(isLessThan(unifiedMarginStatus, 5)))
             {
-                type = "contract";
+                // it's not uta.20 where inverse are unified
+                if (isTrue(isInverse))
+                {
+                    type = "contract";
+                } else
+                {
+                    type = "unified";
+                }
             } else
             {
-                type = "unified";
+                type = "unified"; // uta.20 where inverse are unified
             }
         } else
         {

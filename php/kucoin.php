@@ -200,6 +200,7 @@ class kucoin extends Exchange {
                         'market/orderbook/level{level}' => 3, // 3SW
                         'market/orderbook/level2' => 3, // 3SW
                         'market/orderbook/level3' => 3, // 3SW
+                        'hf/accounts/opened' => 2, //
                         'hf/orders/active' => 2, // 2SW
                         'hf/orders/active/symbols' => 2, // 2SW
                         'hf/margin/order/active/symbols' => 2, // 2SW
@@ -629,7 +630,7 @@ class kucoin extends Exchange {
                 'FUD' => 'FTX Users\' Debt',
             ),
             'options' => array(
-                'hf' => false,
+                'hf' => null, // would be auto set to `true/false` after first load
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
@@ -1065,7 +1066,8 @@ class kucoin extends Exchange {
         //                 "enableTrading" => true
         //             ),
         //
-        $requestMarginables = $this->check_required_credentials(false);
+        $credentialsSet = $this->check_required_credentials(false);
+        $requestMarginables = $credentialsSet && $this->safe_bool($params, 'marginables', true);
         if ($requestMarginables) {
             $promises[] = $this->privateGetMarginSymbols ($params); // cross margin symbols
             //
@@ -1129,6 +1131,10 @@ class kucoin extends Exchange {
             //                     "makerCoefficient" => "1" // Maker Fee Coefficient
             //                 }
             //
+        }
+        if ($credentialsSet) {
+            // load migration status for account
+            $promises[] = $this->load_migration_status();
         }
         $responses = $promises;
         $symbolsData = $this->safe_list($responses[0], 'data');
@@ -1218,16 +1224,18 @@ class kucoin extends Exchange {
     }
 
     public function load_migration_status(bool $force = false) {
-        if (!(is_array($this->options) && array_key_exists('hfMigrated', $this->options)) || ($this->options['hfMigrated'] === null) || $force) {
-            $result = $this->privateGetMigrateUserAccountStatus ();
-            $data = $this->safe_dict($result, 'data', array());
-            $status = $this->safe_integer($data, 'status');
-            $this->options['hfMigrated'] = ($status === 2);
+        /**
+         * loads the migration status for the account (hf or not)
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+         */
+        if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
+            $result = $this->privateGetHfAccountsOpened ();
+            $this->options['hf'] = $this->safe_bool($result, 'data');
         }
     }
 
     public function handle_hf_and_params($params = array ()) {
-        $migrated = $this->safe_bool_2($this->options, 'hfMigrated', 'hf', false);
+        $migrated = $this->safe_bool($this->options, 'hf', false);
         $loadedHf = null;
         if ($migrated !== null) {
             if ($migrated) {
