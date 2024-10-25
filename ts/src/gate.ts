@@ -4677,21 +4677,21 @@ export default class gate extends Exchange {
         // Everything below this(above return) is related to fees
         const fees = [];
         const gtFee = this.safeString (order, 'gt_fee');
-        if (gtFee) {
+        if (gtFee !== undefined) {
             fees.push ({
                 'currency': 'GT',
                 'cost': gtFee,
             });
         }
         const fee = this.safeString (order, 'fee');
-        if (fee) {
+        if (fee !== undefined) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'fee_currency')),
                 'cost': fee,
             });
         }
         const rebate = this.safeString (order, 'rebated_fee');
-        if (rebate) {
+        if (rebate !== undefined) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (order, 'rebated_fee_currency')),
                 'cost': Precise.stringNeg (rebate),
