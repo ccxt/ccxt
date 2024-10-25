@@ -60,6 +60,7 @@ export default class fswap extends Exchange {
                         'info': 1,
                         'assets': 1,
                         'pairs': 1,
+                        'pairs/{base}/{quote}': 1,
                         'cmc/pairs': 1,
                         'stats/markets': 1,
                         'stats/markets/{base}/{quote}': 1,
@@ -799,8 +800,7 @@ export default class fswap extends Exchange {
 
     mapAssetIdToSymbol (assetId: string): string {
         const symbol = this.safeString (this.options.AssetMap, assetId);
-        const finalSymbol = this.parseSpecialSymbol (assetId, symbol);
-        return finalSymbol;
+        return this.parseSpecialSymbol (assetId, symbol);
     }
 
     mapSymbolToAssetId (symbol: string): string {
@@ -1096,13 +1096,18 @@ export default class fswap extends Exchange {
         const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
         const baseId = this.mapSymbolToAssetId (baseSymbol);
         const quoteId = this.mapSymbolToAssetId (quoteSymbol);
-        const request = {
+        if (!baseId) {
+            throw new Error ('Unable to find asset id for ' + baseSymbol);
+        }
+        if (!quoteId) {
+            throw new Error ('Unable to find asset id for ' + quoteSymbol);
+        }
+        // Fetch the trades
+        const response = await this.fswapPrivateGetTransactionsBaseQuoteMine (this.extend ({
             'base': baseId,
             'quote': quoteId,
             'limit': limit,
-        };
-        // Fetch the trades
-        const response = await this.fswapPrivateGetTransactionsBaseQuoteMine (this.extend (request, params));
+        }, params));
         const data = this.safeValue (response, 'data', {});
         // const trades = this.safeValue (data, 'transactions', []);
         // const result = this.parseTrades (trades, symbol, since, limit);
@@ -1154,9 +1159,7 @@ export default class fswap extends Exchange {
             'raw': signedRaw,
             'request_id': request_id,
         } ]);
-        console.log ('sendSafeTx resp:', resp);
         const sendedTx = this.safeValue (resp, 'data', {});
-        console.log ('sendSafeTx sendedTx:', sendedTx);
         return sendedTx;
     }
 
@@ -1167,7 +1170,6 @@ export default class fswap extends Exchange {
             'asset': asset_id,
             'state': 'unspent',
         });
-        console.log ('getSafeTx safeOutputs resp:', resp);
         const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
@@ -1192,15 +1194,10 @@ export default class fswap extends Exchange {
 
     async safeTransfer (asset_id: string, amount: string, memo: string) {
         const { encodedTx, tx } = await this.getSafeTx (asset_id, amount, memo);
-        console.log ('safeTransfer raw:', encodedTx);
         const { verifiedTx, request_id } = await this.verifySafeTx (encodedTx);
-        console.log ('verifiedTx:', verifiedTx);
         const views = this.safeValue (verifiedTx[0], 'views');
-        console.log ('views:', views);
         const signedTx = this.mixinSignSafeTransaction (tx, views, this.privateKey);
-        console.log ('signedTx:', signedTx);
         const resp = await this.sendSafeTx (signedTx, request_id);
-        console.log ('resp:', resp);
         return resp;
     }
 
@@ -1254,9 +1251,11 @@ export default class fswap extends Exchange {
 
     async createAddLiquidityOrder (symbol: string, side: OrderSide, amount: number, params?: {}): Promise<Order> {
         await this.loadMarkets ();
+        // Get base and quote asset id
         const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
         const baseId = this.mapSymbolToAssetId (baseSymbol);
         const quoteId = this.mapSymbolToAssetId (quoteSymbol);
+        // Get followID, slippage, expireDuration from params
         let followID = this.safeString (params, 'followID');
         let slippage = this.safeNumber (params, 'slippage');
         let expireDuration = this.safeNumber (params, 'expireDuration');
@@ -1269,38 +1268,60 @@ export default class fswap extends Exchange {
         if (!expireDuration) {
             expireDuration = this.options.AddLiquidityDuration;
         }
+        // Request proxy /fswap/add_liquidity to get base memo
         const baseResp = await this.ccxtProxyPost4swapAddLiquidity (this.extend ({
             'followID': followID,
             'oppositeAsset': quoteId,
             'slippage': slippage,
             'expireDuration': expireDuration,
         }, params));
-        console.log ('baseResp:', baseResp);
         const baseMemo = this.safeString (baseResp, 'memo');
-        const followIDBase = this.safeString (baseResp, 'followID');
+        const followIDBase = this.safeString (baseResp, 'follow_id');
         console.log ('baseMemo:', baseMemo);
         console.log ('followIDBase:', followIDBase);
+        // Request proxy /fswap/add_liquidity to get quote memo
         const quoteResp = await this.ccxtProxyPost4swapAddLiquidity (this.extend ({
             'followID': followID,
             'oppositeAsset': baseId,
             'slippage': slippage,
             'expireDuration': expireDuration,
         }, params));
-        console.log ('quoteResp:', quoteResp);
         const quoteMemo = this.safeString (quoteResp, 'memo');
-        const followIDQuote = this.safeString (quoteResp, 'followID');
+        const followIDQuote = this.safeString (quoteResp, 'follow_id');
         console.log ('quoteMemo:', quoteMemo);
         console.log ('followIDQuote:', followIDQuote);
+        // Calculate base and quote amount
+        let baseAmount = '';
         let quoteAmount = '';
+        const lpResp = await this.fswapPublicGetPairsBaseQuote (this.extend ({
+            'base': baseId,
+            'quote': quoteId,
+        }));
+        const lpData = this.safeValue (lpResp, 'data', {});
+        const poolBaseAmount = this.safeValue (lpData, 'base_amount', '');
+        const poolQuoteAmount = this.safeValue (lpData, 'quote_amount', '');
+        if (!poolBaseAmount) {
+            throw new Error ('Unable to find pool base amount');
+        }
+        if (!poolQuoteAmount) {
+            throw new Error ('Unable to find pool quote amount');
+        }
         if (side === 'buy') {
-            // BTC/USDT, pay USDT, opposite BTC
+            // pay quote, opposite base
             quoteAmount = amount.toString ();
+            baseAmount = this.calculateTokenYAmount (amount.toString (), poolBaseAmount, poolQuoteAmount);
+            console.log ('base:', baseSymbol, baseAmount);
+            console.log ('quote:', quoteSymbol, quoteAmount);
         }
         if (side === 'sell') {
-            // BTC/USDT, pay BTC, opposite USDT
-            quoteAmount = this.calculateTokenYAmount (amount.toString (), baseId, quoteId);
+            // pay base, opposite quote
+            baseAmount = amount.toString ();
+            quoteAmount = this.calculateTokenYAmount (amount.toString (), poolBaseAmount, poolQuoteAmount);
+            console.log ('base:', baseSymbol, baseAmount);
+            console.log ('quote:', quoteSymbol, quoteAmount);
         }
-        const addBaseResp = await this.safeTransfer (baseId, amount.toString (), baseMemo);
+        // Send base token and quote token to fswap mtg
+        const addBaseResp = await this.safeTransfer (baseId, baseAmount, baseMemo);
         const addQuoteResp = await this.safeTransfer (quoteId, quoteAmount, quoteMemo);
         const order: Order = {
             'id': followID,
@@ -1392,14 +1413,28 @@ export default class fswap extends Exchange {
         return lpTokenAssetId;
     }
 
+    getLpTokenSymbolBySymbol (symbol: string) {
+        const [ baseSymbol, quoteSymbol ] = symbol.split ('/');
+        const lpTokenSymbolOne = 's' + baseSymbol + '-' + quoteSymbol;
+        const lpTokenSymbolTwo = 's' + quoteSymbol + '-' + baseSymbol;
+        let lpTokenSymbol = '';
+        if (this.mapSymbolToAssetId (lpTokenSymbolOne)) {
+            lpTokenSymbol = lpTokenSymbolOne;
+        }
+        if (this.mapSymbolToAssetId (lpTokenSymbolTwo)) {
+            lpTokenSymbol = lpTokenSymbolTwo;
+        }
+        return lpTokenSymbol;
+    }
+
     calculateTokenYAmount (
-        tokenXAmount: string,
-        tokenXReserve: string,
-        tokenYReserve: string
+        baseTokenAmount: string,
+        baseTokenReserve: string,
+        quoteTokenReserve: string
     ) {
-        const xAmount = new Precise (tokenXAmount);
-        const xReserve = new Precise (tokenXReserve);
-        const yReserve = new Precise (tokenYReserve);
+        const xAmount = new Precise (baseTokenAmount);
+        const xReserve = new Precise (baseTokenReserve);
+        const yReserve = new Precise (quoteTokenReserve);
         // Calculate the amount of token Y based on the reserve ratio
         const yAmount = xAmount.mul (yReserve).div (xReserve);
         // Return the amount of token Y as a string with 8 decimal places
@@ -1466,10 +1501,7 @@ export default class fswap extends Exchange {
                     body = this.json (params);
                 }
             }
-            console.log ('headers:', headers);
-            console.log ('url:', url);
-            console.log ('body:', body);
-            console.log ('method:', method);
+            console.log (method, 'url:', url);
             console.log ('params:', params);
         } else {
             if (method === 'GET') {
@@ -1506,10 +1538,7 @@ export default class fswap extends Exchange {
                     body = this.json (params);
                 }
             }
-            console.log ('headers:', headers);
-            console.log ('url:', url);
-            console.log ('body:', body);
-            console.log ('method:', method);
+            console.log (method, 'url:', url);
             console.log ('params:', params);
         }
         // Return the constructed request object
@@ -1556,7 +1585,6 @@ export default class fswap extends Exchange {
         if (data === '{}') {
             data = '';
         }
-        console.log ('signAuthenticationToken data:', data);
         const iat = Math.floor (Date.now () / 1000);
         const exp = iat + 3600;
         const sig = this.hash (new TextEncoder ().encode (method + uri + data), sha256, 'hex');

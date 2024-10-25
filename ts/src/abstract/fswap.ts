@@ -12,6 +12,7 @@ interface Exchange {
     fswapPublicGetInfo (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetAssets (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetPairs (params?: {}): Promise<implicitReturnType>;
+    fswapPublicGetPairsBaseQuote (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetCmcPairs (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetStatsMarkets (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetStatsMarketsBaseQuote (params?: {}): Promise<implicitReturnType>;
