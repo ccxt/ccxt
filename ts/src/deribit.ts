@@ -60,6 +60,7 @@ export default class deribit extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
