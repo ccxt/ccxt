@@ -47,11 +47,15 @@ public partial class xt : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawals", false },
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -3874,11 +3878,11 @@ public partial class xt : Exchange
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(null, currency) },
+            { "network", null },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
@@ -4563,6 +4567,21 @@ public partial class xt : Exchange
         }
         object sorted = this.sortBy(rates, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name xt#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://doc.xt.com/#futures_quotesgetFundingRate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)

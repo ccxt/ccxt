@@ -81,11 +81,14 @@ class bitget extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -96,11 +99,14 @@ class bitget extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -270,6 +276,7 @@ class bitget extends Exchange {
                             'v2/mix/market/current-fund-rate' => 1,
                             'v2/mix/market/contracts' => 1,
                             'v2/mix/market/query-position-lever' => 2,
+                            'v2/mix/market/account-long-short' => 20,
                         ),
                     ),
                     'margin' => array(
@@ -280,6 +287,7 @@ class bitget extends Exchange {
                             'margin/v1/isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'margin/v1/public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies' => 2,
+                            'v2/margin/market/long-short-ratio' => 20,
                         ),
                     ),
                     'earn' => array(
@@ -442,6 +450,7 @@ class bitget extends Exchange {
                             'v2/mix/order/orders-history' => 2,
                             'v2/mix/order/orders-plan-pending' => 2,
                             'v2/mix/order/orders-plan-history' => 2,
+                            'v2/mix/market/position-long-short' => 20,
                         ),
                         'post' => array(
                             'mix/v1/account/sub-account-contract-assets' => 200, // 0.1 times/1s (UID) => 20/0.1 = 200
@@ -1426,7 +1435,7 @@ class bitget extends Exchange {
                     'ARB' => 'ArbitrumOne',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
-                    'APT' => 'APTOS',
+                    'APT' => 'Aptos',
                     'MATIC' => 'Polygon',
                     'VIC' => 'VICTION',
                     'AVAXC' => 'C-Chain',
@@ -2416,7 +2425,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2459,7 +2468,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "BTC",
@@ -2477,11 +2486,11 @@ class bitget extends Exchange {
             $network = $this->network_id_to_code($networkId, $parsedCurrency);
         }
         return array(
+            'info' => $depositAddress,
             'currency' => $parsedCurrency,
+            'network' => $network,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
@@ -2539,6 +2548,14 @@ class bitget extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //   {
+        //       "symbol" => "BTCUSDT",
+        //       "price" => "26242",
+        //       "indexPrice" => "34867",
+        //       "markPrice" => "25555",
+        //       "ts" => "1695793390482"
+        //   }
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -2643,6 +2660,7 @@ class bitget extends Exchange {
             'baseVolume' => $this->safe_string($ticker, 'baseVolume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
             'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -2741,6 +2759,41 @@ class bitget extends Exchange {
             //         )
             //     }
             //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_ticker($data[0], $market);
+        }) ();
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the mark price for a specific $market
+             * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($market['spot']) {
+                throw new NotSupported($this->id . ' fetchMarkPrice() is not supported for spot markets');
+            } else {
+                $productType = null;
+                list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+                $request['productType'] = $productType;
+                $response = Async\await($this->publicMixGetV2MixMarketSymbolPrice ($this->extend($request, $params)));
+            }
             $data = $this->safe_list($response, 'data', array());
             return $this->parse_ticker($data[0], $market);
         }) ();
@@ -6698,13 +6751,29 @@ class bitget extends Exchange {
 
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol" => "BTCUSDT",
         //         "fundingRate" => "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "nextFundingTime" => "1727942400000",
+        //         "ratePeriod" => "8"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
+        $interval = $this->safe_string($contract, 'ratePeriod');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -6715,15 +6784,15 @@ class bitget extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -8723,6 +8792,124 @@ class bitget extends Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $market = null;
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+            $productType = null;
+            list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'productType' => $productType,
+            );
+            $response = Async\await($this->publicMixGetV2MixMarketFundingTime ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1727930153888,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",
+            //                 "nextFundingTime" => "1727942400000",
+            //                 "ratePeriod" => "8"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_funding_rate($first, $market);
+        }) ();
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches the long short ratio history for a unified $market $symbol
+             * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+             * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+             * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+             * @param {string} [$timeframe] the period for the ratio
+             * @param {int} [$since] the earliest time in ms to fetch ratios for
+             * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($timeframe !== null) {
+                $request['period'] = $timeframe;
+            }
+            $response = null;
+            if ($market['swap'] || $market['future']) {
+                $response = Async\await($this->publicMixGetV2MixMarketAccountLongShort ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1729321233281,
+                //         "data" => array(
+                //             array(
+                //                 "longAccountRatio" => "0.58",
+                //                 "shortAccountRatio" => "0.42",
+                //                 "longShortAccountRatio" => "0.0138",
+                //                 "ts" => "1729312200000"
+                //             ),
+                //         )
+                //     }
+                //
+            } else {
+                $response = Async\await($this->publicMarginGetV2MarginMarketLongShortRatio ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1729306974712,
+                //         "data" => array(
+                //             array(
+                //                 "longShortRatio" => "40.66",
+                //                 "ts" => "1729306800000"
+                //             ),
+                //         )
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_long_short_ratio_history($data, $market);
+        }) ();
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_omit_zero($info, 'ts');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number_2($info, 'longShortRatio', 'longShortAccountRatio'),
+        );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

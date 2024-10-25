@@ -73,6 +73,8 @@ export default class woofipro extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -801,6 +803,18 @@ export default class woofipro extends Exchange {
             '86400000': '24h',
         };
         return this.safeString(intervals, interval, interval);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

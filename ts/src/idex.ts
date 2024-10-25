@@ -9,7 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1783,7 +1783,7 @@ export default class idex extends Exchange {
         return authenticated ? (defaultCost / 2) : defaultCost;
     }
 
-    async fetchDepositAddress (code: Str = undefined, params = {}) {
+    async fetchDepositAddress (code: Str = undefined, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name idex#fetchDepositAddress
@@ -1813,7 +1813,7 @@ export default class idex extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    [
         //        {
@@ -1835,10 +1835,10 @@ export default class idex extends Exchange {
         return {
             'info': depositAddress,
             'currency': undefined,
+            'network': 'MATIC',
             'address': address,
             'tag': undefined,
-            'network': 'MATIC',
-        };
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

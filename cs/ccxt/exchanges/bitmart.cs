@@ -1240,11 +1240,12 @@ public partial class bitmart : Exchange
             { "close", last },
             { "last", last },
             { "previousClose", null },
-            { "change", change },
+            { "change", null },
             { "percentage", percentage },
             { "average", average },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -3578,9 +3579,9 @@ public partial class bitmart : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeString(currency, "code") },
+            { "network", network },
             { "address", address },
             { "tag", this.safeString(depositAddress, "address_memo") },
-            { "network", network },
         };
     }
 

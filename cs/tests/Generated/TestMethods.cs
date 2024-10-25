@@ -6,7 +6,6 @@ namespace Tests;
 
 public partial class testMainClass
 {
-    public bool isSynchronous = IS_SYNCHRONOUS;
     public bool idTests = false;
     public bool requestTestsFailed = false;
     public bool responseTestsFailed = false;
@@ -19,26 +18,23 @@ public partial class testMainClass
     public bool debug = false;
     public bool privateTest = false;
     public bool privateTestOnly = false;
-    private bool loadKeys = false;
+    public bool loadKeys = false;
     public bool sandbox = false;
-    public string proxyTestFileName = PROXY_TEST_FILE_NAME;
     public List<object> onlySpecificTests = new List<object>() {};
     public object skippedSettingsForExchange = new Dictionary<string, object>() {};
     public object skippedMethods = new Dictionary<string, object>() {};
     public object checkedPublicTests = new Dictionary<string, object>() {};
     public Dictionary<string, object> testFiles = new Dictionary<string, object>() {};
     public object publicTests = new Dictionary<string, object>() {};
-    public string newLine = NEW_LINE;
-    public string rootDir = ROOT_DIR;
-    public Dictionary<string, object>  envVars = ENV_VARS;
-    public string ext = EXT;
-    public string lang = LANG;
+    public string ext = "";
+    public string lang = "";
+    public object proxyTestFileName = "proxies";
 
-    public virtual void parseCliArgs()
+    public virtual void parseCliArgsAndProps()
     {
-        this.responseTests = getCliArgValue("--responseTests");
+        this.responseTests = isTrue(getCliArgValue("--responseTests")) || isTrue(getCliArgValue("--response"));
         this.idTests = getCliArgValue("--idTests");
-        this.requestTests = getCliArgValue("--requestTests");
+        this.requestTests = isTrue(getCliArgValue("--requestTests")) || isTrue(getCliArgValue("--request"));
         this.info = getCliArgValue("--info");
         this.verbose = getCliArgValue("--verbose");
         this.debug = getCliArgValue("--debug");
@@ -47,11 +43,13 @@ public partial class testMainClass
         this.sandbox = getCliArgValue("--sandbox");
         this.loadKeys = getCliArgValue("--loadKeys");
         this.wsTests = getCliArgValue("--ws");
+        this.lang = getLang();
+        this.ext = getExt();
     }
 
     public async virtual Task init(object exchangeId, object symbolArgv, object methodArgv)
     {
-        this.parseCliArgs();
+        this.parseCliArgsAndProps();
         if (isTrue(isTrue(this.requestTests) && isTrue(this.responseTests)))
         {
             await this.runStaticRequestTests(exchangeId, symbolArgv);
@@ -73,12 +71,14 @@ public partial class testMainClass
             await this.runBrokerIdTests();
             return;
         }
-        dump(add(add(add(add(this.newLine, ""), this.newLine), ""), "[INFO] TESTING "), this.ext, new Dictionary<string, object>() {
+        object newLine = "\n";
+        dump(add(add(add(add(newLine, ""), newLine), ""), "[INFO] TESTING "), this.ext, new Dictionary<string, object>() {
             { "exchange", exchangeId },
             { "symbol", symbolArgv },
             { "method", methodArgv },
             { "isWs", this.wsTests },
-        }, this.newLine);
+            { "useProxy", getCliArgValue("--useProxy") },
+        }, newLine);
         object exchangeArgs = new Dictionary<string, object>() {
             { "verbose", this.verbose },
             { "debug", this.debug },
@@ -127,7 +127,7 @@ public partial class testMainClass
     {
         object properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         ((IList<object>)properties).Add("loadMarkets");
-        if (isTrue(this.isSynchronous))
+        if (isTrue(isSync()))
         {
             this.testFiles = getTestFilesSync(properties, this.wsTests);
         } else
@@ -149,7 +149,8 @@ public partial class testMainClass
             {
                 object fullKey = add(add(exchangeId, "_"), credential);
                 object credentialEnvName = ((string)fullKey).ToUpper(); // example: KRAKEN_APIKEY
-                object credentialValue = ((bool) isTrue((inOp(this.envVars, credentialEnvName)))) ? getValue(this.envVars, credentialEnvName) : null;
+                object envVars = getEnvVars();
+                object credentialValue = ((bool) isTrue((inOp(envVars, credentialEnvName)))) ? getValue(envVars, credentialEnvName) : null;
                 if (isTrue(credentialValue))
                 {
                     setExchangeProp(exchange, credential, credentialValue);
@@ -161,8 +162,8 @@ public partial class testMainClass
     public virtual void expandSettings(Exchange exchange)
     {
         object exchangeId = exchange.id;
-        object keysGlobal = add(this.rootDir, "keys.json");
-        object keysLocal = add(this.rootDir, "keys.local.json");
+        object keysGlobal = add(getRootDir(), "keys.json");
+        object keysLocal = add(getRootDir(), "keys.local.json");
         object keysGlobalExists = ioFileExists(keysGlobal);
         object keysLocalExists = ioFileExists(keysLocal);
         object globalSettings = ((bool) isTrue(keysGlobalExists)) ? ioFileRead(keysGlobal) : new Dictionary<string, object>() {};
@@ -196,7 +197,7 @@ public partial class testMainClass
             this.loadCredentialsFromEnv(exchange);
         }
         // skipped tests
-        object skippedFile = add(this.rootDir, "skip-tests.json");
+        object skippedFile = add(getRootDir(), "skip-tests.json");
         object skippedSettings = ioFileRead(skippedFile);
         this.skippedSettingsForExchange = exchange.safeValue(skippedSettings, exchangeId, new Dictionary<string, object>() {});
         object skippedSettingsForExchange = this.skippedSettingsForExchange;
@@ -288,7 +289,7 @@ public partial class testMainClass
             object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
         }
-        if (isTrue(this.isSynchronous))
+        if (isTrue(isSync()))
         {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         } else
@@ -850,7 +851,7 @@ public partial class testMainClass
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         object proxyTestName = this.proxyTestFileName;
         // todo: temporary skip for sync py
-        if (isTrue(isTrue(isEqual(this.ext, "py")) && isTrue(this.isSynchronous)))
+        if (isTrue(isTrue(isEqual(this.ext, "py")) && isTrue(isSync())))
         {
             return;
         }
@@ -895,7 +896,7 @@ public partial class testMainClass
             object result = await this.loadExchange(exchange);
             if (!isTrue(result))
             {
-                if (!isTrue(this.isSynchronous))
+                if (!isTrue(isSync()))
                 {
                     await close(exchange);
                 }
@@ -906,13 +907,13 @@ public partial class testMainClass
             //     // await this.testProxies (exchange);
             // }
             await this.testExchange(exchange, symbol);
-            if (!isTrue(this.isSynchronous))
+            if (!isTrue(isSync()))
             {
                 await close(exchange);
             }
         } catch(Exception e)
         {
-            if (!isTrue(this.isSynchronous))
+            if (!isTrue(isSync()))
             {
                 await close(exchange);
             }
@@ -941,14 +942,14 @@ public partial class testMainClass
         // to make this test as fast as possible
         // and basically independent from the exchange
         // so we can run it offline
-        object filename = add(add(add(this.rootDir, "./ts/src/test/static/markets/"), id), ".json");
+        object filename = add(add(add(getRootDir(), "./ts/src/test/static/markets/"), id), ".json");
         object content = ioFileRead(filename);
         return content;
     }
 
     public virtual object loadCurrenciesFromFile(object id)
     {
-        object filename = add(add(add(this.rootDir, "./ts/src/test/static/currencies/"), id), ".json");
+        object filename = add(add(add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json");
         object content = ioFileRead(filename);
         return content;
     }
@@ -1236,7 +1237,7 @@ public partial class testMainClass
         object requestUrl = null;
         try
         {
-            if (!isTrue(this.isSynchronous))
+            if (!isTrue(isSync()))
             {
                 await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
             } else
@@ -1259,7 +1260,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
     }
@@ -1270,7 +1271,7 @@ public partial class testMainClass
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
         try
         {
-            if (!isTrue(this.isSynchronous))
+            if (!isTrue(isSync()))
             {
                 object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
                 this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
@@ -1282,7 +1283,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -1399,7 +1400,7 @@ public partial class testMainClass
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1477,7 +1478,7 @@ public partial class testMainClass
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1510,7 +1511,7 @@ public partial class testMainClass
 
     public async virtual Task runStaticTests(object type, object targetExchange = null, object testName = null)
     {
-        object folder = add(add(add(this.rootDir, "./ts/src/test/static/"), type), "/");
+        object folder = add(add(add(getRootDir(), "./ts/src/test/static/"), type), "/");
         object staticData = this.loadStaticData(folder, targetExchange);
         if (isTrue(isEqual(staticData, null)))
         {
@@ -1548,7 +1549,7 @@ public partial class testMainClass
             exitScript(1);
         } else
         {
-            object prefix = ((bool) isTrue((this.isSynchronous))) ? "[SYNC]" : "";
+            object prefix = ((bool) isTrue((isSync()))) ? "[SYNC]" : "";
             object successMessage = add(add(add(add(add(add(add(add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
             dump(add("[INFO]", successMessage));
         }
@@ -1567,7 +1568,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1611,7 +1612,7 @@ public partial class testMainClass
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1647,7 +1648,7 @@ public partial class testMainClass
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("okx - swap clientOrderId: ", clientOrderIdSwap), " does not start with id: "), idString));
         object swapTag = getValue(getValue(swapOrderRequest, 0), "tag");
         assert(isEqual(swapTag, id), add(add(add("okx - id: ", id), " different from swap tag: "), swapTag));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1669,7 +1670,7 @@ public partial class testMainClass
         }
         object brokerId = getValue(getValue(request, "params"), "broker_id");
         assert(isEqual(brokerId, id), add(add(add("cryptocom - id: ", id), " different from  broker_id: "), brokerId));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1691,7 +1692,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1716,7 +1717,7 @@ public partial class testMainClass
         }
         object id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1740,7 +1741,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1761,7 +1762,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("bitget - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1783,7 +1784,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1827,7 +1828,7 @@ public partial class testMainClass
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("htx - swap channel_code ", clientOrderIdSwap), " does not start with id: "), idString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
         assert(((string)clientOrderIdInverse).StartsWith(((string)idString)), add(add(add("htx - swap inverse channel_code ", clientOrderIdInverse), " does not start with id: "), idString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1863,7 +1864,7 @@ public partial class testMainClass
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
         assert(((string)clientOrderIdStop).StartsWith(((string)idString)), add(add(add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1885,7 +1886,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-BM-BROKER-ID"), id), add(add("bitmart - id: ", id), " not in headers"));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1908,7 +1909,7 @@ public partial class testMainClass
         object clientOrderId = getValue(spotOrderRequest, "client_id");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1930,7 +1931,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1951,7 +1952,7 @@ public partial class testMainClass
         object clientOrderId = getValue(request, "clOrdID");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1972,7 +1973,7 @@ public partial class testMainClass
         object brokerId = getValue(request, "brokerId");
         object idString = ((object)id).ToString();
         assert(((string)brokerId).StartsWith(((string)idString)), add(add(add("blofin - brokerId: ", brokerId), " does not start with id: "), idString));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -1992,7 +1993,7 @@ public partial class testMainClass
         }
         object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
         assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2014,7 +2015,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2036,7 +2037,7 @@ public partial class testMainClass
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2059,7 +2060,7 @@ public partial class testMainClass
         }
         object brokerId = getValue(request, "order_tag");
         assert(isEqual(brokerId, id), add(add(add("woofipro - id: ", id), " different from  broker_id: "), brokerId));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2111,7 +2112,7 @@ public partial class testMainClass
         }
         object swapMedia = getValue(swapOrderRequest, "clientMedia");
         assert(isEqual(swapMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), swapMedia));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2141,7 +2142,7 @@ public partial class testMainClass
         object order = getValue(request, "place_order");
         object brokerId = getValue(order, "id");
         assert(isEqual(brokerId, id), add(add(add("vertex - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2190,7 +2191,7 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), add(add("paradex - id: ", id), " not in headers"));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }
@@ -2211,7 +2212,28 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
-        if (!isTrue(this.isSynchronous))
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testCoincatch()
+    {
+        Exchange exchange = this.initOfflineExchange("coincatch");
+        object reqHeaders = null;
+        object id = "47cfy";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
         {
             await close(exchange);
         }

@@ -2821,4 +2821,12 @@ class vertex(Exchange, ImplicitAPI):
         else:
             if params:
                 url += '?' + self.urlencode(params)
+        if path != 'execute':
+            # required encoding for public methods
+            if headers is not None:
+                headers['Accept-Encoding'] = 'gzip'
+            else:
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

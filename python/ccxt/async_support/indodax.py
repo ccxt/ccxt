@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.indodax import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1148,7 +1148,7 @@ class indodax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#general-information-on-endpoints
@@ -1219,8 +1219,8 @@ class indodax(Exchange, ImplicitAPI):
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'address': address,
                     'network': network,
+                    'address': address,
                     'tag': None,
                 }
         return result

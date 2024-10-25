@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2505,7 +2505,7 @@ class bitmex(Exchange, ImplicitAPI):
         }
         return await self.privatePostPositionIsolate(self.extend(request, params))
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
@@ -2530,11 +2530,11 @@ class bitmex(Exchange, ImplicitAPI):
         #    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         #
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': response.replace('"', '').replace('"', ''),  # Done twice because some languages only replace the first instance
             'tag': None,
-            'network': networkCode,
-            'info': response,
         }
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):

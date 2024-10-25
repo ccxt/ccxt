@@ -62,9 +62,13 @@ class woo extends Exchange {
                 'fetchConvertTradeHistory' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -1996,7 +2000,7 @@ class woo extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://docs.woo.org/#get-token-deposit-$address
@@ -2024,11 +2028,11 @@ class woo extends Exchange {
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $response,
         );
     }
 
@@ -2737,6 +2741,17 @@ class woo extends Exchange {
             'previousFundingDatetime' => $this->iso8601($lastFundingRateTimestamp),
             'interval' => $intervalString . 'h',
         );
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()): array {

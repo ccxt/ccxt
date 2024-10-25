@@ -28,10 +28,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "ZXXfdfd",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "data": {
@@ -45,7 +41,11 @@
                                 }
                             ]
                         }
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "ZXXfdfd",
+                    "tag": null
                 }
             }
         ],
@@ -400,7 +400,7 @@
                         "latency": 494
                     }
                 },
-                "parsedResponse": "1721370799895"
+                "parsedResponse": 1721370799895
             }
         ],
         "fetchOrderBook": [

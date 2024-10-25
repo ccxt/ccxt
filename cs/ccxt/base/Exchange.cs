@@ -41,19 +41,22 @@ public partial class Exchange
 
     private void initHttpClient()
     {
+        var handler = new HttpClientHandler{ AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else
         {
-            this.httpClient = new HttpClient();
+            this.httpClient = new HttpClient(handler);
         }
     }
 

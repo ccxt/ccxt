@@ -43,6 +43,8 @@ public partial class oceanex : Exchange
                 { "fetchDepositAddress", "emulated" },
                 { "fetchDepositAddresses", null },
                 { "fetchDepositAddressesByNetwork", true },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchMarkets", true },
@@ -1061,9 +1063,9 @@ public partial class oceanex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(networkId) },
         };
     }
 

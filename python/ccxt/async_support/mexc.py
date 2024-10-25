@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -90,9 +90,11 @@ class mexc(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': None,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -241,6 +243,7 @@ class mexc(Exchange, ImplicitAPI):
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2160,8 +2163,10 @@ class mexc(Exchange, ImplicitAPI):
         order = self.parse_order(response, market)
         order['side'] = side
         order['type'] = type
-        order['price'] = price
-        order['amount'] = amount
+        if self.safe_string(order, 'price') is None:
+            order['price'] = price
+        if self.safe_string(order, 'amount') is None:
+            order['amount'] = amount
         return order
 
     async def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
@@ -2469,6 +2474,7 @@ class mexc(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -2478,6 +2484,8 @@ class mexc(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
@@ -2485,6 +2493,8 @@ class mexc(Exchange, ImplicitAPI):
             marginMode, queryInner = self.handle_margin_mode_and_params('fetchOrders', params)
             if since is not None:
                 request['startTime'] = since
+            if until is not None:
+                request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
             response = None
@@ -2546,9 +2556,17 @@ class mexc(Exchange, ImplicitAPI):
         else:
             if since is not None:
                 request['start_time'] = since
-                end = self.safe_integer(params, 'end_time')
+                end = self.safe_integer(params, 'end_time', until)
                 if end is None:
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
+                else:
+                    if (end - since) > self.options['maxTimeTillEnd']:
+                        raise BadRequest(self.id + ' end is invalid, i.e. exceeds allowed 90 days.')
+                    else:
+                        request['end_time'] = until
+            elif until is not None:
+                request['start_time'] = self.sum(until, self.options['maxTimeTillEnd'] * -1)
+                request['end_time'] = until
             if limit is not None:
                 request['page_size'] = limit
             method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
@@ -3938,9 +3956,12 @@ class mexc(Exchange, ImplicitAPI):
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingTimestamp = self.safe_integer(contract, 'nextSettleTime')
         marketId = self.safe_string(contract, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'contract')
         timestamp = self.safe_integer(contract, 'timestamp')
-        datetime = self.iso8601(timestamp)
+        interval = self.safe_string(contract, 'collectCycle')
+        intervalString = None
+        if interval is not None:
+            intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
@@ -3949,7 +3970,7 @@ class mexc(Exchange, ImplicitAPI):
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': self.iso8601(nextFundingTimestamp),
@@ -3959,8 +3980,18 @@ class mexc(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
+
+    async def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return await self.fetch_funding_rate(symbol, params)
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
@@ -4193,7 +4224,7 @@ class mexc(Exchange, ImplicitAPI):
             floor = cap
         return tiers
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        coin: "USDT",
@@ -4207,14 +4238,14 @@ class mexc(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'netWork')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.network_id_to_code(networkId),
-            'info': depositAddress,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
@@ -4230,7 +4261,15 @@ class mexc(Exchange, ImplicitAPI):
         networkCode = self.safe_string(params, 'network')
         networkId = None
         if networkCode is not None:
-            networkId = self.network_code_to_id(networkCode, code)
+            # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            networkUnified = self.network_id_to_code(networkCode, code)
+            networks = self.safe_dict(currency, 'networks', {})
+            if networkUnified in networks:
+                network = self.safe_dict(networks, networkUnified, {})
+                networkInfo = self.safe_value(network, 'info', {})
+                networkId = self.safe_string(networkInfo, 'network')
+            else:
+                networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
@@ -4266,7 +4305,16 @@ class mexc(Exchange, ImplicitAPI):
         networkCode = self.safe_string(params, 'network')
         if networkCode is None:
             raise ArgumentsRequired(self.id + ' createDepositAddress requires a `network` parameter')
-        networkId = self.network_code_to_id(networkCode, code)
+        # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        networkId = None
+        networkUnified = self.network_id_to_code(networkCode, code)
+        networks = self.safe_dict(currency, 'networks', {})
+        if networkUnified in networks:
+            network = self.safe_dict(networks, networkUnified, {})
+            networkInfo = self.safe_value(network, 'info', {})
+            networkId = self.safe_string(networkInfo, 'network')
+        else:
+            networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network'] = networkId
         params = self.omit(params, 'network')
@@ -4279,7 +4327,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         return self.parse_deposit_address(response, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
@@ -4289,7 +4337,6 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         network = self.safe_string(params, 'network')
-        params = self.omit(params, ['network'])
         addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
         result = None
         if network is not None:

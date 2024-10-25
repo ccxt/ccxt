@@ -1813,7 +1813,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
@@ -1845,7 +1845,7 @@ class coinsph extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "ETH",
@@ -1856,11 +1856,11 @@ class coinsph extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
         return array(
+            'info' => $depositAddress,
             'currency' => $parsedCurrency,
+            'network' => null,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'addressTag'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 

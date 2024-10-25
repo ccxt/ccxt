@@ -13,6 +13,8 @@ public partial class okx : ccxt.okx
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "watchTicker", true },
+                { "watchMarkPrice", true },
+                { "watchMarkPrices", true },
                 { "watchTickers", true },
                 { "watchBidsAsks", true },
                 { "watchOrderBook", true },
@@ -449,6 +451,57 @@ public partial class okx : ccxt.okx
         symbols = this.marketSymbols(symbols, null, false);
         object channel = null;
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
+        object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async virtual Task<object> watchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchMarkPrice
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        * @description watches a mark price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
+        ((IDictionary<string,object>)parameters)["channel"] = channel;
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object ticker = await this.watchMarkPrices(new List<object>() {symbol}, parameters);
+        return getValue(ticker, symbol);
+    }
+
+    public async virtual Task<object> watchMarkPrices(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#watchMarkPrices
+        * @see https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        * @description watches mark prices
+        * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object channel = null;
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         object newTickers = await this.subscribeMultiple("public", channel, symbols, parameters);
@@ -2603,6 +2656,7 @@ public partial class okx : ccxt.okx
                 { "books50-l2-tbt", this.handleOrderBook },
                 { "books-l2-tbt", this.handleOrderBook },
                 { "tickers", this.handleTicker },
+                { "mark-price", this.handleTicker },
                 { "positions", this.handlePositions },
                 { "index-tickers", this.handleTicker },
                 { "sprd-tickers", this.handleTicker },

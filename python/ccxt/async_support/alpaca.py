@@ -69,6 +69,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchL1OrderBook': True,
                 'fetchL2OrderBook': False,

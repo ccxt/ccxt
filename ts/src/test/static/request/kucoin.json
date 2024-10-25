@@ -7,7 +7,7 @@
     ],
     "outputType": "json",
     "options": {
-        "hfMigrated": false  
+        "hf": false  
     },
     "methods": {
         "createOrder": [
@@ -562,19 +562,19 @@
         ],
         "withdraw": [
             {
-                "description": "network specific withdraw with precision working",
+                "description": "with network",
                 "method": "withdraw",
-                "url": "https://api.kucoin.com/api/v1/withdrawals",
+                "url": "https://api.kucoin.com/api/v3/withdrawals",
                 "input": [
-                    "USDT",
-                    5.12345678,
-                    "sample12345",
-                    {
-                        "network": "EOS"
-                    }
+                  "USDT",
+                  5.5,
+                  "0x123456789123456789123456789",
+                  {
+                    "networkCode": "OP"
+                  }
                 ],
-                "output": "{\"currency\":\"USDT\",\"address\":\"sample12345\",\"chain\":\"eos\",\"amount\":\"5.1235\"}"
-            }
+                "output": "{\"currency\":\"USDT\",\"toAddress\":\"0x123456789123456789123456789\",\"withdrawType\":\"ADDRESS\",\"chain\":\"optimism\",\"amount\":5.5}"
+              }
         ],
         "fetchLedger": [
             {
@@ -828,6 +828,20 @@
                   }
                 ],
                 "output": "{\"leverage\":\"4\",\"isIsolated\":false}"
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "with network code",
+                "method": "createDepositAddress",
+                "url": "https://api.kucoin.com/api/v3/deposit-address/create",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "ERC20"
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"chain\":\"eth\"}"
             }
         ]
     }

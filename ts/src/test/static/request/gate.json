@@ -2,6 +2,9 @@
     "exchange": "gate",
     "skipKeys": ["text"],
     "outputType": "json",
+    "options": {
+        "unifiedAccount": false
+    },
     "methods": {
         "createOrder": [
             {
@@ -393,6 +396,34 @@
                 ]
             },
             {
+                "description": "spot & trigger",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=open",      
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true,
+                    "type": "spot"
+                  }
+                ]
+            },
+            {
+                "description": "swap & trigger",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders?contract=BTC_USDT&status=open",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true,
+                    "type": "swap"
+                  }
+                ]
+            },
+            {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=LTC_USDT&status=open",
@@ -424,6 +455,32 @@
                 "url": "https://api.gateio.ws/api/v4/spot/orders?account=spot&currency_pair=LTC_USDT&status=finished",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "spot & trigger",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",  
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
+                ]
+            },
+            {
+                "description": "swap & trigger",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders?contract=BTC_USDT&status=finished",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  {
+                    "trigger": true
+                  }
                 ]
             },
             {
@@ -648,6 +705,16 @@
                 "input": [
                     {
                         "type": "option"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch the unified account balance",
+                "method": "fetchBalance",
+                "url": "https://api.gateio.ws/api/v4/unified/accounts",
+                "input": [
+                    {
+                        "unifiedAccount": true
                     }
                 ]
             }
@@ -1443,6 +1510,19 @@
                     1
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "unified borrow margin",
+                "method": "borrowCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/unified/loans",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"borrow\"}"
             }
         ],
         "repayCrossMargin": [
@@ -1455,6 +1535,19 @@
                     1
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"1\"}"
+            },
+            {
+                "description": "unified repay margin",
+                "method": "repayCrossMargin",
+                "url": "https://api.gateio.ws/api/v4/unified/loans",
+                "input": [
+                  "USDT",
+                  5,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"type\":\"repay\"}"
             }
         ],
         "borrowIsolatedMargin": [
@@ -1571,6 +1664,36 @@
                 "url": "https://api.gateio.ws/api/v4/options/contracts?underlying=BTC_USDT",
                 "input": [
                   "BTC"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch the isolated borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/margin/uni/interest_records?currency=usdt&currency_pair=BTC_USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "fetch the borrow interest of the unified account",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.gateio.ws/api/v4/unified/interest_records?currency=usdt",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
                 ]
             }
         ]

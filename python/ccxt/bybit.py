@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -105,6 +105,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -384,6 +386,7 @@ class bybit(Exchange, ImplicitAPI):
                         # spot leverage token
                         'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
+                        'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
@@ -4538,7 +4541,7 @@ class bybit(Exchange, ImplicitAPI):
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
-            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
@@ -4627,6 +4630,9 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         innerList = self.safe_list(result, 'list', [])
+        if len(innerList) == 0:
+            extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         order = self.safe_dict(innerList, 0, {})
         return self.parse_order(order, market)
 
@@ -4777,7 +4783,7 @@ class bybit(Exchange, ImplicitAPI):
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
-            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
@@ -4806,7 +4812,7 @@ class bybit(Exchange, ImplicitAPI):
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
-            extra = '' if isTrigger else 'If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
+            extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         if length > 1:
             raise InvalidOrder(self.id + ' returned more than one order')
@@ -5247,7 +5253,7 @@ class bybit(Exchange, ImplicitAPI):
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chainType": "ERC20",
@@ -5262,14 +5268,14 @@ class bybit(Exchange, ImplicitAPI):
         chain = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': chain,
             'address': address,
             'tag': tag,
-            'network': chain,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -5311,7 +5317,7 @@ class bybit(Exchange, ImplicitAPI):
         })
         return self.index_by(parsed, 'network')
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
@@ -6699,7 +6705,8 @@ class bybit(Exchange, ImplicitAPI):
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
-            return self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, params, 500)
+            params['timeframe'] = timeframe
+            return self.fetch_paginated_call_cursor('fetchOpenInterestHistory', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 200)
         market = self.market(symbol)
         if market['spot'] or market['option']:
             raise BadRequest(self.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol)
@@ -6771,12 +6778,22 @@ class bybit(Exchange, ImplicitAPI):
         #         "timestamp": 1666734490778
         #     }
         #
+        # fetchBorrowRateHistory
+        #     {
+        #         "timestamp": 1721469600000,
+        #         "currency": "USDC",
+        #         "hourlyBorrowRate": "0.000014621596",
+        #         "vipLevel": "No VIP"
+        #     }
+        #
         timestamp = self.safe_integer(info, 'timestamp')
-        currencyId = self.safe_string(info, 'coin')
+        currencyId = self.safe_string_2(info, 'coin', 'currency')
+        hourlyBorrowRate = self.safe_number(info, 'hourlyBorrowRate')
+        period = 3600000 if (hourlyBorrowRate is not None) else 86400000  # 1h or 1d
         return {
             'currency': self.safe_currency_code(currencyId, currency),
-            'rate': self.safe_number(info, 'interestRate'),
-            'period': 86400000,  # Daily
+            'rate': self.safe_number(info, 'interestRate', hourlyBorrowRate),
+            'period': period,  # Daily
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -6825,6 +6842,53 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'loanAccountList', [])
         interest = self.parse_borrow_interests(rows, None)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+        """
+        retrieves a history of a currencies borrow interest rate at specific time slots
+        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+        :param str code: unified currency code
+        :param int [since]: timestamp for the earliest borrow rate
+        :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch entries for
+        :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        if since is None:
+            since = self.milliseconds() - 86400000 * 30  # last 30 days
+        request['startTime'] = since
+        endTime = self.safe_integer_2(params, 'until', 'endTime')
+        params = self.omit(params, ['until'])
+        if endTime is None:
+            endTime = since + 86400000 * 30  # since + 30 days
+        request['endTime'] = endTime
+        response = self.privateGetV5SpotMarginTradeInterestRateHistory(self.extend(request, params))
+        #
+        #   {
+        #       "retCode": 0,
+        #       "retMsg": "OK",
+        #       "result": {
+        #           "list": [
+        #               {
+        #                   "timestamp": 1721469600000,
+        #                   "currency": "USDC",
+        #                   "hourlyBorrowRate": "0.000014621596",
+        #                   "vipLevel": "No VIP"
+        #               }
+        #           ]
+        #       },
+        #       "retExtInfo": "{}",
+        #       "time": 1721899048991
+        #   }
+        #
+        data = self.safe_dict(response, 'result')
+        rows = self.safe_list(data, 'list', [])
+        return self.parse_borrow_rate_history(rows, code, since, limit)
 
     def parse_borrow_interest(self, info: dict, market: Market = None):
         #
@@ -7023,13 +7087,13 @@ class bybit(Exchange, ImplicitAPI):
 
     def parse_margin_loan(self, info, currency: Currency = None):
         #
-        # borrowMargin
+        # borrowCrossMargin
         #
         #     {
         #         "transactId": "14143"
         #     }
         #
-        # repayMargin
+        # repayCrossMargin
         #
         #     {
         #         "repayId": "12128"
@@ -8600,6 +8664,77 @@ class bybit(Exchange, ImplicitAPI):
             'toAmount': self.safe_number(conversion, 'toAmount'),
             'price': None,
             'fee': None,
+        }
+
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio, default is 24 hours
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        type = None
+        type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
+        if type == 'spot' or type == 'option':
+            raise NotSupported(self.id + ' fetchLongShortRatioHistory() only support linear and inverse markets')
+        if timeframe is None:
+            timeframe = '1d'
+        request: dict = {
+            'symbol': market['id'],
+            'period': timeframe,
+            'category': type,
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.publicGetV5MarketAccountRatio(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "buyRatio": "0.5707",
+        #                     "sellRatio": "0.4293",
+        #                     "timestamp": "1729123200000"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1729147842516
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        return self.parse_long_short_ratio_history(data, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "buyRatio": "0.5707",
+        #         "sellRatio": "0.4293",
+        #         "timestamp": "1729123200000"
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_omit_zero(info, 'timestamp')
+        longString = self.safe_string(info, 'buyRatio')
+        shortString = self.safe_string(info, 'sellRatio')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

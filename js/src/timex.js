@@ -354,12 +354,7 @@ export default class timex extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            result.push(this.parseCurrency(currency));
-        }
-        return this.indexBy(result, 'code');
+        return this.parseCurrencies(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1362,7 +1357,7 @@ export default class timex extends Exchange {
                 fee = this.parseNumber(fraction + feeString);
             }
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': code,
             'code': code,
             'info': currency,
@@ -1378,7 +1373,7 @@ export default class timex extends Exchange {
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1636,9 +1631,9 @@ export default class timex extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
-            'network': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

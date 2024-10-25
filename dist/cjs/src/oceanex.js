@@ -50,6 +50,8 @@ class oceanex extends oceanex$1 {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
@@ -985,9 +987,9 @@ class oceanex extends oceanex$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

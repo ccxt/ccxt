@@ -1287,8 +1287,8 @@ export default class indodax extends Exchange {
                 result[code] = {
                     'info': {},
                     'currency': code,
-                    'address': address,
                     'network': network,
+                    'address': address,
                     'tag': undefined,
                 };
             }

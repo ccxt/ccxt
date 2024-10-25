@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -37,7 +37,7 @@ export default class htx extends Exchange {
     };
     costToPrecision(symbol: any, cost: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
+    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<any[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -66,7 +66,7 @@ export default class htx extends Exchange {
         type: any;
         code: any;
     };
-    fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     networkCodeToId(networkCode: string, currencyCode?: Str): any;
@@ -102,8 +102,8 @@ export default class htx extends Exchange {
         note: string;
         info: any;
     };
-    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<DepositAddress[]>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchWithdrawAddresses(code: string, note?: any, networkCode?: any, params?: {}): Promise<any[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

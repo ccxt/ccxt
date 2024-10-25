@@ -75,9 +75,11 @@ class mexc extends mexc$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -226,6 +228,7 @@ class mexc extends mexc$1 {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2269,8 +2272,12 @@ class mexc extends mexc$1 {
         const order = this.parseOrder(response, market);
         order['side'] = side;
         order['type'] = type;
-        order['price'] = price;
-        order['amount'] = amount;
+        if (this.safeString(order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString(order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
         return order;
     }
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
@@ -2620,6 +2627,7 @@ class mexc extends mexc$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
          * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2630,6 +2638,8 @@ class mexc extends mexc$1 {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, 'until');
         const [marketType, query] = this.handleMarketTypeAndParams('fetchOrders', market, params);
         if (marketType === 'spot') {
             if (symbol === undefined) {
@@ -2638,6 +2648,9 @@ class mexc extends mexc$1 {
             const [marginMode, queryInner] = this.handleMarginModeAndParams('fetchOrders', params);
             if (since !== undefined) {
                 request['startTime'] = since;
+            }
+            if (until !== undefined) {
+                request['endTime'] = until;
             }
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -2705,10 +2718,22 @@ class mexc extends mexc$1 {
         else {
             if (since !== undefined) {
                 request['start_time'] = since;
-                const end = this.safeInteger(params, 'end_time');
+                const end = this.safeInteger(params, 'end_time', until);
                 if (end === undefined) {
                     request['end_time'] = this.sum(since, this.options['maxTimeTillEnd']);
                 }
+                else {
+                    if ((end - since) > this.options['maxTimeTillEnd']) {
+                        throw new errors.BadRequest(this.id + ' end is invalid, i.e. exceeds allowed 90 days.');
+                    }
+                    else {
+                        request['end_time'] = until;
+                    }
+                }
+            }
+            else if (until !== undefined) {
+                request['start_time'] = this.sum(until, this.options['maxTimeTillEnd'] * -1);
+                request['end_time'] = until;
             }
             if (limit !== undefined) {
                 request['page_size'] = limit;
@@ -4214,9 +4239,13 @@ class mexc extends mexc$1 {
         const nextFundingRate = this.safeNumber(contract, 'fundingRate');
         const nextFundingTimestamp = this.safeInteger(contract, 'nextSettleTime');
         const marketId = this.safeString(contract, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        const symbol = this.safeSymbol(marketId, market, undefined, 'contract');
         const timestamp = this.safeInteger(contract, 'timestamp');
-        const datetime = this.iso8601(timestamp);
+        const interval = this.safeString(contract, 'collectCycle');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -4225,7 +4254,7 @@ class mexc extends mexc$1 {
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
@@ -4235,8 +4264,20 @@ class mexc extends mexc$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name mexc#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**
@@ -4494,11 +4535,11 @@ class mexc extends mexc$1 {
         const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -4519,7 +4560,17 @@ class mexc extends mexc$1 {
         const networkCode = this.safeString(params, 'network');
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            const networkUnified = this.networkIdToCode(networkCode, code);
+            const networks = this.safeDict(currency, 'networks', {});
+            if (networkUnified in networks) {
+                const network = this.safeDict(networks, networkUnified, {});
+                const networkInfo = this.safeValue(network, 'info', {});
+                networkId = this.safeString(networkInfo, 'network');
+            }
+            else {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (networkId !== undefined) {
             request['network'] = networkId;
@@ -4560,7 +4611,18 @@ class mexc extends mexc$1 {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
         }
-        const networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        let networkId = undefined;
+        const networkUnified = this.networkIdToCode(networkCode, code);
+        const networks = this.safeDict(currency, 'networks', {});
+        if (networkUnified in networks) {
+            const network = this.safeDict(networks, networkUnified, {});
+            const networkInfo = this.safeValue(network, 'info', {});
+            networkId = this.safeString(networkInfo, 'network');
+        }
+        else {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4586,7 +4648,6 @@ class mexc extends mexc$1 {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeString(params, 'network');
-        params = this.omit(params, ['network']);
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
         let result = undefined;
         if (network !== undefined) {

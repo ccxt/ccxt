@@ -57,6 +57,8 @@ class hitbtc extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -962,7 +964,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -996,11 +998,10 @@ class hitbtc extends Exchange {
             $parsedCode = $this->safe_currency_code($currencyId);
             return array(
                 'info' => $response,
-                'address' => $address,
-                'tag' => $tag,
-                'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
                 'currency' => $parsedCode,
                 'network' => null,
+                'address' => $address,
+                'tag' => $tag,
             );
         }) ();
     }

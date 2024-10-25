@@ -1294,11 +1294,12 @@ class bitmart extends bitmart$1 {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -3507,9 +3508,9 @@ class bitmart extends bitmart$1 {
         return {
             'info': depositAddress,
             'currency': this.safeString(currency, 'code'),
+            'network': network,
             'address': address,
             'tag': this.safeString(depositAddress, 'address_memo'),
-            'network': network,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

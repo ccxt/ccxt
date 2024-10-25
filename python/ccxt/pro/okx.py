@@ -25,6 +25,8 @@ class okx(ccxt.async_support.okx):
             'has': {
                 'ws': True,
                 'watchTicker': True,
+                'watchMarkPrice': True,
+                'watchMarkPrices': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchOrderBook': True,
@@ -403,6 +405,41 @@ class okx(ccxt.async_support.okx):
         symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
+        newTickers = await self.subscribe_multiple('public', channel, symbols, params)
+        if self.newUpdates:
+            return newTickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
+    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+        """
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        watches a mark price
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchMarkPrice', 'channel', 'mark-price')
+        params['channel'] = channel
+        market = self.market(symbol)
+        symbol = market['symbol']
+        ticker = await self.watch_mark_prices([symbol], params)
+        return ticker[symbol]
+
+    async def watch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+        watches mark prices
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = None
+        channel, params = self.handle_option_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
         if self.newUpdates:
             return newTickers
@@ -2157,6 +2194,7 @@ class okx(ccxt.async_support.okx):
                 'books50-l2-tbt': self.handle_order_book,  # only users who're VIP4 and above can subscribe, identity verification required before subscription
                 'books-l2-tbt': self.handle_order_book,  # only users who're VIP5 and above can subscribe, identity verification required before subscription
                 'tickers': self.handle_ticker,
+                'mark-price': self.handle_ticker,
                 'positions': self.handle_positions,
                 'index-tickers': self.handle_ticker,
                 'sprd-tickers': self.handle_ticker,

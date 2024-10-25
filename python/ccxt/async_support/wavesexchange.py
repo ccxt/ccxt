@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.wavesexchange import ImplicitAPI
 import asyncio
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -59,6 +59,8 @@ class wavesexchange(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': None,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -1019,7 +1021,7 @@ class wavesexchange(Exchange, ImplicitAPI):
             self.safe_number(data, 'volume', 0),
         ]
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1098,12 +1100,11 @@ class wavesexchange(Exchange, ImplicitAPI):
                 responseInner = await self.nodeGetAddressesPublicKeyPublicKey(self.extend(request, request))
                 addressInner = self.safe_string(response, 'address')
                 return {
-                    'address': addressInner,
-                    'code': code,  # kept here for backward-compatibility, but will be removed soon
+                    'info': responseInner,
                     'currency': code,
                     'network': network,
+                    'address': addressInner,
                     'tag': None,
-                    'info': responseInner,
                 }
             else:
                 request: dict = {
@@ -1141,12 +1142,11 @@ class wavesexchange(Exchange, ImplicitAPI):
         addresses = self.safe_value(response, 'deposit_addresses')
         address = self.safe_string(addresses, 0)
         return {
-            'address': address,
-            'code': code,  # kept here for backward-compatibility, but will be removed soon
-            'currency': code,
-            'tag': None,
-            'network': unifiedNetwork,
             'info': response,
+            'currency': code,
+            'network': unifiedNetwork,
+            'address': address,
+            'tag': None,
         }
 
     async def get_matcher_public_key(self):

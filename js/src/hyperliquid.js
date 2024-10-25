@@ -645,9 +645,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
-                const free = this.safeString(balance, 'hold');
+                const used = this.safeString(balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -656,8 +656,8 @@ export default class hyperliquid extends Exchange {
         const result = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat(data, 'accountValue'),
-                'used': this.safeFloat(data, 'totalMarginUsed'),
+                'total': this.safeNumber(data, 'accountValue'),
+                'free': this.safeNumber(response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger(response, 'time');
@@ -1986,6 +1986,10 @@ export default class hyperliquid extends Exchange {
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2224,15 +2228,19 @@ export default class hyperliquid extends Exchange {
         market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict(entry, 'leverage', {});
-        const isIsolated = (this.safeString(leverage, 'type') === 'isolated');
-        const quantity = this.safeNumber(leverage, 'rawUsd');
+        const marginMode = this.safeString(leverage, 'type');
+        const isIsolated = (marginMode === 'isolated');
+        const rawSize = this.safeString(entry, 'szi');
+        let size = rawSize;
         let side = undefined;
-        if (quantity !== undefined) {
-            side = (quantity > 0) ? 'short' : 'long';
+        if (size !== undefined) {
+            side = Precise.stringGt(rawSize, '0') ? 'long' : 'short';
+            size = Precise.stringAbs(size);
         }
-        const unrealizedPnl = this.safeNumber(entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber(entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString(entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        const initialMargin = this.safeString(entry, 'marginUsed');
+        const percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2242,21 +2250,21 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber(entry, 'szi'),
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(entry, 'entryPx'),
             'markPrice': undefined,
             'notional': this.safeNumber(entry, 'positionValue'),
             'leverage': this.safeNumber(leverage, 'value'),
-            'collateral': undefined,
+            'collateral': this.safeNumber(entry, 'marginUsed'),
             'initialMargin': initialMargin,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber(entry, 'liquidationPx'),
-            'marginMode': undefined,
-            'percentage': percentage,
+            'marginMode': marginMode,
+            'percentage': this.parseNumber(percentage),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

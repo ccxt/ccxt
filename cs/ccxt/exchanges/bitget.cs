@@ -67,11 +67,14 @@ public partial class bitget : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -82,11 +85,14 @@ public partial class bitget : Exchange
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrice", true },
                 { "fetchMyLiquidations", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -244,6 +250,7 @@ public partial class bitget : Exchange
                             { "v2/mix/market/current-fund-rate", 1 },
                             { "v2/mix/market/contracts", 1 },
                             { "v2/mix/market/query-position-lever", 2 },
+                            { "v2/mix/market/account-long-short", 20 },
                         } },
                     } },
                     { "margin", new Dictionary<string, object>() {
@@ -254,6 +261,7 @@ public partial class bitget : Exchange
                             { "margin/v1/isolated/public/tierData", 2 },
                             { "margin/v1/public/currencies", 1 },
                             { "v2/margin/currencies", 2 },
+                            { "v2/margin/market/long-short-ratio", 20 },
                         } },
                     } },
                     { "earn", new Dictionary<string, object>() {
@@ -416,6 +424,7 @@ public partial class bitget : Exchange
                             { "v2/mix/order/orders-history", 2 },
                             { "v2/mix/order/orders-plan-pending", 2 },
                             { "v2/mix/order/orders-plan-history", 2 },
+                            { "v2/mix/market/position-long-short", 20 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "mix/v1/account/sub-account-contract-assets", 200 },
@@ -1377,7 +1386,7 @@ public partial class bitget : Exchange
                     { "ARB", "ArbitrumOne" },
                     { "ZKSYNC", "zkSyncEra" },
                     { "STARKNET", "Starknet" },
-                    { "APT", "APTOS" },
+                    { "APT", "Aptos" },
                     { "MATIC", "Polygon" },
                     { "VIC", "VICTION" },
                     { "AVAXC", "C-Chain" },
@@ -2537,11 +2546,11 @@ public partial class bitget : Exchange
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", network },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "tag") },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 
@@ -2609,6 +2618,14 @@ public partial class bitget : Exchange
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //   {
+        //       "symbol": "BTCUSDT",
+        //       "price": "26242",
+        //       "indexPrice": "34867",
+        //       "markPrice": "25555",
+        //       "ts": "1695793390482"
+        //   }
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -2717,6 +2734,7 @@ public partial class bitget : Exchange
             { "baseVolume", this.safeString(ticker, "baseVolume") },
             { "quoteVolume", this.safeString(ticker, "quoteVolume") },
             { "indexPrice", this.safeString(ticker, "indexPrice") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2824,6 +2842,49 @@ public partial class bitget : Exchange
         //         ]
         //     }
         //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseTicker(getValue(data, 0), market);
+    }
+
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchMarkPrice
+        * @description fetches the mark price for a specific market
+        * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object market = null;
+        if (isTrue(sandboxMode))
+        {
+            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        } else
+        {
+            market = this.market(symbol);
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        if (isTrue(getValue(market, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
+        } else
+        {
+            object productType = null;
+            var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+            productType = ((IList<object>)productTypeparametersVariable)[0];
+            parameters = ((IList<object>)productTypeparametersVariable)[1];
+            ((IDictionary<string,object>)request)["productType"] = productType;
+            response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters));
+        }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTicker(getValue(data, 0), market);
     }
@@ -7274,13 +7335,30 @@ public partial class bitget : Exchange
     public override object parseFundingRate(object contract, object market = null)
     {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "fundingRate": "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1727942400000",
+        //         "ratePeriod": "8"
+        //     }
+        //
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
+        object fundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        object interval = this.safeString(contract, "ratePeriod");
+        object intervalString = null;
+        if (isTrue(!isEqual(interval, null)))
+        {
+            intervalString = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -7291,15 +7369,15 @@ public partial class bitget : Exchange
             { "timestamp", null },
             { "datetime", null },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
             { "nextFundingRate", null },
             { "nextFundingTimestamp", null },
             { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
@@ -8738,7 +8816,7 @@ public partial class bitget : Exchange
         return this.parseBorrowRate(first, currency);
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {
@@ -9486,6 +9564,108 @@ public partial class bitget : Exchange
             };
         }
         return result;
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object market = null;
+        if (isTrue(sandboxMode))
+        {
+            object sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        } else
+        {
+            market = this.market(symbol);
+        }
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "productType", productType },
+        };
+        object response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1727930153888,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "nextFundingTime": "1727942400000",
+        //                 "ratePeriod": "8"
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parseFundingRate(first, market);
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+        * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        if (isTrue(!isEqual(timeframe, null)))
+        {
+            ((IDictionary<string,object>)request)["period"] = timeframe;
+        }
+        object response = null;
+        if (isTrue(isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"))))
+        {
+            response = await this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicMarginGetV2MarginMarketLongShortRatio(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseLongShortRatioHistory(data, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeIntegerOmitZero(info, "ts");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.safeNumber2(info, "longShortRatio", "longShortAccountRatio") },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

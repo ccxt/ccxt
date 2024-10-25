@@ -735,6 +735,16 @@
                 ],
                 "output": "action=REDUCE&adjust_amount=0.2&adjust_token=USDT&position_side=SHORT&symbol=PERP_XRP_USDT"
             }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch the funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.staging.woo.org/v1/public/funding_rate/PERP_BTC_USDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

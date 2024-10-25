@@ -52,7 +52,10 @@ class bitrue extends bitrue$1 {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -324,6 +327,7 @@ class bitrue extends bitrue$1 {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
@@ -512,15 +516,6 @@ class bitrue extends bitrue$1 {
                 },
             },
         });
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision(fee, number.TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        }
-        else {
-            return this.numberToString(fee);
-        }
     }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];

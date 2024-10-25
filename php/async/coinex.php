@@ -51,6 +51,8 @@ class coinex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createDepositAddress' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -71,12 +73,14 @@ class coinex extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => true,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -1801,7 +1805,7 @@ class coinex extends Exchange {
         //         "stop_id" => 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
+        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         //
         //     {
         //         "amount" => "0.0001",
@@ -3725,7 +3729,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -3776,7 +3780,7 @@ class coinex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq",
@@ -3797,9 +3801,9 @@ class coinex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
         );
     }
 
@@ -4558,9 +4562,22 @@ class coinex extends Exchange {
         }) ();
     }
 
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
+        }) ();
+    }
+
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate" => "0",
@@ -5704,6 +5721,67 @@ class coinex extends Exchange {
             $records = $this->safe_list($response, 'data', array());
             $positions = $this->parse_positions($records);
             return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
+        }) ();
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes an open position for a $market
+             * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string} [$side] buy or sell, not used by coinex
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->type required by coinex, one of => limit, $market, maker_only, ioc or fok, default is *$market*
+             * @param {string} [$params->price] the price to fulfill the order, ignored in $market orders
+             * @param {string} [$params->amount] the amount to trade in units of the base currency
+             * @param {string} [$params->clientOrderId] the client id of the order
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $type = $this->safe_string($params, 'type', 'market');
+            $request = array(
+                'market' => $market['id'],
+                'market_type' => 'FUTURES',
+                'type' => $type,
+            );
+            $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['client_id'] = $clientOrderId;
+            }
+            $params = $this->omit($params, 'clientOrderId');
+            $response = Async\await($this->v2PrivatePostFuturesClosePosition ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "amount" => "0.0001",
+            //             "client_id" => "",
+            //             "created_at" => 1729666043969,
+            //             "fee" => "0.00335858",
+            //             "fee_ccy" => "USDT",
+            //             "filled_amount" => "0.0001",
+            //             "filled_value" => "6.717179",
+            //             "last_filled_amount" => "0.0001",
+            //             "last_filled_price" => "67171.79",
+            //             "maker_fee_rate" => "0",
+            //             "market" => "BTCUSDT",
+            //             "market_type" => "FUTURES",
+            //             "order_id" => 155477479761,
+            //             "price" => "0",
+            //             "realized_pnl" => "-0.001823",
+            //             "side" => "sell",
+            //             "taker_fee_rate" => "0.0005",
+            //             "type" => "market",
+            //             "unfilled_amount" => "0",
+            //             "updated_at" => 1729666043969
+            //         ),
+            //         "message" => "OK"
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($data, $market);
         }) ();
     }
 
