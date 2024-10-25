@@ -1243,10 +1243,12 @@ export default class defx extends Exchange {
         const timeInForce = this.safeStringLower (order, 'timeInForce');
         let takeProfitPrice: Str = undefined;
         let stopPrice: Str = undefined;
-        if (orderType.indexOf ('take_profit') >= 0) {
-            takeProfitPrice = this.safeString (order, 'stopPrice');
-        } else {
-            stopPrice = this.safeString (order, 'stopPrice');
+        if (orderType !== undefined) {
+            if (orderType.indexOf ('take_profit') >= 0) {
+                takeProfitPrice = this.safeString (order, 'stopPrice');
+            } else {
+                stopPrice = this.safeString (order, 'stopPrice');
+            }
         }
         return this.safeOrder ({
             'id': orderId,
@@ -1281,6 +1283,50 @@ export default class defx extends Exchange {
         }, market);
     }
 
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#cancelOrder
+         * @see https://api-docs.defx.com/#09186f23-f8d1-4993-acf4-9974d8a6ddb0
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.stop] whether the order is a stop/algo order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+            'idType': 'orderId',
+        };
+        const clientOrderId = this.safeStringN (params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        const isByClientOrder = clientOrderId !== undefined;
+        if (isByClientOrder) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
+            const market = this.market (symbol);
+            request['orderId'] = clientOrderId;
+            request['idType'] = 'clientOrderId';
+            request['symbol'] = market['id'];
+        }
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        const response = await this.v1PrivateDeleteApiOrderOrderId (this.extend (request, params));
+        //
+        // {
+        //     "success": true
+        // }
+        //
+        const extendParams: Dict = { 'symbol': symbol };
+        if (isByClientOrder) {
+            extendParams['clientOrderId'] = clientOrderId;
+        } else {
+            extendParams['id'] = id;
+        }
+        return this.extend (this.parseOrder (response), extendParams);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1304,7 +1350,7 @@ export default class defx extends Exchange {
             url += 'auth/' + pathWithParams;
             const nonce = this.milliseconds ().toString ();
             let payload = nonce;
-            if (method === 'GET') {
+            if (method === 'GET' || method === 'DELETE') {
                 payload += this.urlencode (params);
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
