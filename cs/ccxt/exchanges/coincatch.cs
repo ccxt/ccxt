@@ -130,7 +130,7 @@ public partial class coincatch : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://private-user-images.githubusercontent.com/43336371/379178446-b99d8af1-3016-4775-ac37-d5016dccb000.jpeg?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Mjk2NzMxOTksIm5iZiI6MTcyOTY3Mjg5OSwicGF0aCI6Ii80MzMzNjM3MS8zNzkxNzg0NDYtYjk5ZDhhZjEtMzAxNi00Nzc1LWFjMzctZDUwMTZkY2NiMDAwLmpwZWc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQxMDIzJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MTAyM1QwODQxMzlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0xMTkzNTAzYjhlYzg5ODU4ZjFhYzgwZTg3MGFmYjk5MWViMjMwNDY5ZGU4NDRlNGU0NmUxYTgxMzM3OTNlZWM4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.tosowLHE9p_cKbY8dPPduHXFVJQrUZ8qzGBOTCCznvw" },
+                { "logo", "https://github.com/user-attachments/assets/3d49065f-f05d-4573-88a2-1b5201ec6ff3" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.coincatch.com" },
                     { "private", "https://api.coincatch.com" },
