@@ -1366,8 +1366,8 @@ export default class kucoin extends Exchange {
     safeCurrencyItem (currency: object): CurrencyInterface {
         // derive from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
-        const keys: string [] = Object.keys (networks);
-        const length: int = keys.length;
+        const keys = Object.keys (networks);
+        const length = keys.length;
         if (length === 0) {
             return (currency as CurrencyInterface);
         }
