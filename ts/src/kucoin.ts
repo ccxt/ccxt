@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, CurrencyInterface } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1306,34 +1306,21 @@ export default class kucoin extends Exchange {
             const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
-            let isWithdrawEnabled = undefined;
-            let isDepositEnabled = undefined;
             const networks: Dict = {};
             const chains = this.safeList (entry, 'chains', []);
             const rawPrecision = this.safeString (entry, 'precision');
             const precision = this.parseNumber (this.parsePrecision (rawPrecision));
             const chainsLength = chains.length;
             if (!chainsLength) {
-                // https://t.me/KuCoin_API/173118
-                isWithdrawEnabled = false;
-                isDepositEnabled = false;
+                // one buggy coin, which doesn't contain info https://t.me/KuCoin_API/173118
+                continue;
             }
             for (let j = 0; j < chainsLength; j++) {
                 const chain = chains[j];
                 const chainId = this.safeString (chain, 'chainId');
                 const networkCode = this.networkIdToCode (chainId, code);
                 const chainWithdrawEnabled = this.safeBool (chain, 'isWithdrawEnabled', false);
-                if (isWithdrawEnabled === undefined) {
-                    isWithdrawEnabled = chainWithdrawEnabled;
-                } else {
-                    isWithdrawEnabled = isWithdrawEnabled || chainWithdrawEnabled;
-                }
                 const chainDepositEnabled = this.safeBool (chain, 'isDepositEnabled', false);
-                if (isDepositEnabled === undefined) {
-                    isDepositEnabled = chainDepositEnabled;
-                } else {
-                    isDepositEnabled = isDepositEnabled || chainDepositEnabled;
-                }
                 networks[networkCode] = {
                     'info': chain,
                     'id': chainId,
@@ -1358,22 +1345,102 @@ export default class kucoin extends Exchange {
             }
             // kucoin has determined 'fiat' currencies with below logic
             const isFiat = (rawPrecision === '2') && (chainsLength === 0);
-            result[code] = {
+            result[code] = this.safeCurrencyResult ({
                 'id': id,
                 'name': name,
                 'code': code,
                 'type': isFiat ? 'fiat' : 'crypto',
                 'precision': precision,
                 'info': entry,
-                'active': (isDepositEnabled || isWithdrawEnabled),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': undefined,
-                'limits': this.limits,
                 'networks': networks,
-            };
+                'deposit': undefined,
+                'withdraw': undefined,
+                'active': undefined,
+                'fee': undefined,
+                'limits': undefined,
+            });
         }
         return result;
+    }
+
+    safeCurrencyResult (currency: object): CurrencyInterface {
+        // derive from networks: deposit, withdraw, active, fee, limits, precision
+        const networks = this.safeDict (currency, 'networks', {});
+        const keys: string [] = Object.keys (networks);
+        const length: int = keys.length;
+        if (length === 0) {
+            return (currency as CurrencyInterface);
+        }
+        for (let i = 0; i < length; i++) {
+            const network = networks[keys[i]];
+            const deposit = this.safeBool (network, 'deposit');
+            if (currency['deposit'] === undefined || deposit) {
+                currency['deposit'] = deposit;
+            }
+            const withdraw = this.safeBool (network, 'withdraw');
+            if (currency['withdraw'] === undefined || withdraw) {
+                currency['withdraw'] = withdraw;
+            }
+            const active = this.safeBool (network, 'active');
+            if (currency['active'] === undefined || active) {
+                currency['active'] = active;
+            }
+            // find lowest fee (which is more desired)
+            const fee = this.safeString (network, 'fee');
+            const feeMain = this.safeString (currency, 'fee');
+            if (feeMain === undefined || Precise.stringLt (fee, feeMain)) {
+                currency['fee'] = this.parseNumber (fee);
+            }
+            // find lowest precision (which is more desired)
+            const precision = this.safeString (network, 'precision');
+            const precisionMain = this.safeString (currency, 'precision');
+            if (precisionMain === undefined || Precise.stringLt (precision, precisionMain)) {
+                currency['precision'] = this.parseNumber (precision);
+            }
+            // limits
+            const limits = this.safeDict (network, 'limits');
+            const limitsMain = this.safeDict (currency, 'limits');
+            if (limitsMain === undefined) {
+                currency['limits'] = {};
+            }
+            // deposits
+            const limitsDeposit = this.safeDict (limits, 'deposit');
+            const limitsDepositMain = this.safeDict (limitsMain, 'deposit');
+            if (limitsDepositMain === undefined) {
+                currency['limits']['deposit'] = {};
+            }
+            const limitsDepositMin = this.safeString (limitsDeposit, 'min');
+            const limitsDepositMax = this.safeString (limitsDeposit, 'max');
+            const limitsDepositMinMain = this.safeString (limitsDepositMain, 'min');
+            const limitsDepositMaxMain = this.safeString (limitsDepositMain, 'max');
+            // find min
+            if (limitsDepositMinMain === undefined || Precise.stringLt (limitsDepositMin, limitsDepositMinMain)) {
+                currency['limits']['deposit']['min'] = this.parseNumber (limitsDepositMin);
+            }
+            // find max
+            if (limitsDepositMaxMain === undefined || Precise.stringGt (limitsDepositMax, limitsDepositMaxMain)) {
+                currency['limits']['deposit']['max'] = this.parseNumber (limitsDepositMax);
+            }
+            // withdrawals
+            const limitsWithdraw = this.safeDict (limits, 'withdraw');
+            const limitsWithdrawMain = this.safeDict (limitsMain, 'withdraw');
+            if (limitsWithdrawMain === undefined) {
+                currency['limits']['withdraw'] = {};
+            }
+            const limitsWithdrawMin = this.safeString (limitsWithdraw, 'min');
+            const limitsWithdrawMax = this.safeString (limitsWithdraw, 'max');
+            const limitsWithdrawMinMain = this.safeString (limitsWithdrawMain, 'min');
+            const limitsWithdrawMaxMain = this.safeString (limitsWithdrawMain, 'max');
+            // find min
+            if (limitsWithdrawMinMain === undefined || Precise.stringLt (limitsWithdrawMin, limitsWithdrawMinMain)) {
+                currency['limits']['withdraw']['min'] = this.parseNumber (limitsWithdrawMin);
+            }
+            // find max
+            if (limitsWithdrawMaxMain === undefined || Precise.stringGt (limitsWithdrawMax, limitsWithdrawMaxMain)) {
+                currency['limits']['withdraw']['max'] = this.parseNumber (limitsWithdrawMax);
+            }
+        }
+        return (currency as CurrencyInterface);
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
