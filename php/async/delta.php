@@ -45,6 +45,8 @@ class delta extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => null,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
@@ -2343,7 +2345,7 @@ class delta extends Exchange {
         ), $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2385,7 +2387,7 @@ class delta extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id" => 1915615,
@@ -2405,11 +2407,11 @@ class delta extends Exchange {
         $networkId = $this->safe_string($depositAddress, 'network');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($marketId, $currency),
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->network_id_to_code($networkId),
-            'info' => $depositAddress,
         );
     }
 

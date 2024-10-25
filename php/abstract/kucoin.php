@@ -61,6 +61,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function public_get_margin_config($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
+    public function public_get_announcements($params = array()) {
+        return $this->request('announcements', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function public_post_bullet_public($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
     }
@@ -369,6 +372,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_post_position_update_user_leverage($params = array()) {
         return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_deposit_address_create($params = array()) {
+        return $this->request('deposit-address/create', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function private_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));
@@ -712,6 +718,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function publicGetMarginConfig($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
+    public function publicGetAnnouncements($params = array()) {
+        return $this->request('announcements', 'public', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function publicPostBulletPublic($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
     }
@@ -1020,6 +1029,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privatePostPositionUpdateUserLeverage($params = array()) {
         return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostDepositAddressCreate($params = array()) {
+        return $this->request('deposit-address/create', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     public function privateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -118,6 +118,7 @@ class gate(Exchange, ImplicitAPI):
                 'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchClosedOrders': True,
@@ -125,6 +126,8 @@ class gate(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
@@ -338,10 +341,17 @@ class gate(Exchange, ImplicitAPI):
                             'interest_records': 20 / 15,
                             'estimate_rate': 20 / 15,
                             'currency_discount_tiers': 20 / 15,
+                            'risk_units': 20 / 15,
+                            'unified_mode': 20 / 15,
+                            'loan_margin_tiers': 20 / 15,
                         },
                         'post': {
                             'account_mode': 20 / 15,
                             'loans': 200 / 15,  # 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator': 20 / 15,
+                        },
+                        'put': {
+                            'unified_mode': 20 / 15,
                         },
                     },
                     'spot': {
@@ -643,6 +653,7 @@ class gate(Exchange, ImplicitAPI):
             },
             'options': {
                 'sandboxMode': False,
+                'unifiedAccount': None,
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
@@ -903,6 +914,34 @@ class gate(Exchange, ImplicitAPI):
     def set_sandbox_mode(self, enable: bool):
         super(gate, self).set_sandbox_mode(enable)
         self.options['sandboxMode'] = enable
+
+    async def load_unified_status(self, params={}):
+        """
+        returns unifiedAccount so the user can check if the unified account is enabled
+        :see: https://www.gate.io/docs/developers/apiv4/#get-account-detail
+        :returns boolean: True or False if the enabled unified account is enabled or not and sets the unifiedAccount option if it is None
+        """
+        unifiedAccount = self.safe_bool(self.options, 'unifiedAccount')
+        if unifiedAccount is None:
+            response = await self.privateAccountGetDetail(params)
+            #
+            #     {
+            #         "user_id": 10406147,
+            #         "ip_whitelist": [],
+            #         "currency_pairs": [],
+            #         "key": {
+            #             "mode": 1
+            #         },
+            #         "tier": 0,
+            #         "tier_expire_time": "0001-01-01T00:00:00Z",
+            #         "copy_trading_role": 0
+            #     }
+            #
+            result = self.safe_dict(response, 'key', {})
+            self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+
+    async def upgrade_unified_trade_account(self, params={}):
+        return await self.privateUnifiedPutUnifiedMode(params)
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -1548,6 +1587,8 @@ class gate(Exchange, ImplicitAPI):
         apiBackup = self.safe_value(self.urls, 'apiBackup')
         if apiBackup is not None:
             return None
+        if self.check_required_credentials(False):
+            await self.load_unified_status()
         response = await self.publicSpotGetCurrencies(params)
         #
         #    {
@@ -1885,7 +1926,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -1950,11 +1991,10 @@ class gate(Exchange, ImplicitAPI):
         self.check_address(address)
         return {
             'info': response,
-            'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
         }
 
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -2573,10 +2613,14 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.symbol]: margin only - unified ccxt symbol
+        :param boolean [params.unifiedAccount]: default False, set to True for fetching the unified account balance
         """
         await self.load_markets()
+        await self.load_unified_status()
         symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, 'symbol')
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'fetchBalance', 'unifiedAccount')
         type, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request, requestParams = self.prepare_request(None, type, query)
         marginMode, requestQuery = self.get_margin_mode(False, requestParams)
@@ -2584,7 +2628,9 @@ class gate(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['currency_pair'] = market['id']
         response = None
-        if type == 'spot':
+        if isUnifiedAccount:
+            response = await self.privateUnifiedGetAccounts(self.extend(request, params))
+        elif type == 'spot':
             if marginMode == 'spot':
                 response = await self.privateSpotGetAccounts(self.extend(request, requestQuery))
             elif marginMode == 'margin':
@@ -2747,12 +2793,63 @@ class gate(Exchange, ImplicitAPI):
         #         "orders_limit": 10
         #     }
         #
+        # unified
+        #
+        #     {
+        #         "user_id": 10001,
+        #         "locked": False,
+        #         "balances": {
+        #             "ETH": {
+        #                 "available": "0",
+        #                 "freeze": "0",
+        #                 "borrowed": "0.075393666654",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "1016.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             },
+        #             "POINT": {
+        #                 "available": "9999999999.017023138734",
+        #                 "freeze": "0",
+        #                 "borrowed": "0",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "12016.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             },
+        #             "USDT": {
+        #                 "available": "0.00000062023",
+        #                 "freeze": "0",
+        #                 "borrowed": "0",
+        #                 "negative_liab": "0",
+        #                 "futures_pos_liab": "0",
+        #                 "equity": "16.1",
+        #                 "total_freeze": "0",
+        #                 "total_liab": "0"
+        #             }
+        #         },
+        #         "total": "230.94621713",
+        #         "borrowed": "161.66395521",
+        #         "total_initial_margin": "1025.0524665088",
+        #         "total_margin_balance": "3382495.944473949183",
+        #         "total_maintenance_margin": "205.01049330176",
+        #         "total_initial_margin_rate": "3299.827135672679",
+        #         "total_maintenance_margin_rate": "16499.135678363399",
+        #         "total_available_margin": "3381470.892007440383",
+        #         "unified_account_total": "3381470.892007440383",
+        #         "unified_account_total_liab": "0",
+        #         "unified_account_total_equity": "100016.1",
+        #         "leverage": "2"
+        #     }
+        #
         result: dict = {
             'info': response,
         }
         isolated = marginMode == 'margin'
         data = response
-        if 'balances' in data:  # True for cross_margin
+        if 'balances' in data:  # True for cross_margin and unified
             flatBalances = []
             balances = self.safe_value(data, 'balances', [])
             # inject currency and create an artificial balance object
@@ -3490,32 +3587,61 @@ class gate(Exchange, ImplicitAPI):
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
-        # deposits
+        # fetchDeposits
         #
-        #    {
-        #        "id": "d33361395",
-        #        "currency": "USDT_TRX",
-        #        "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        #        "amount": "100",
-        #        "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        #        "timestamp": "1626345819",
-        #        "status": "DONE",
-        #        "memo": ""
-        #    }
+        #     {
+        #         "id": "d33361395",
+        #         "currency": "USDT_TRX",
+        #         "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        #         "amount": "100",
+        #         "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        #         "timestamp": "1626345819",
+        #         "status": "DONE",
+        #         "memo": ""
+        #     }
         #
         # withdraw
         #
-        #    {
-        #        "id": "w13389675",
-        #        "currency": "USDT",
-        #        "amount": "50",
-        #        "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
-        #        "memo": null
-        #    }
+        #     {
+        #         "id":"w64413318",
+        #         "currency":"usdt",
+        #         "amount":"10150",
+        #         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
+        #         "memo":null,
+        #         "status":"REQUEST",
+        #         "chain":"eth",
+        #         "withdraw_order_id":"",
+        #         "fee_amount":"4.15000000"
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "id": "210496",
+        #         "timestamp": "1542000000",
+        #         "withdraw_order_id": "order_123456",
+        #         "currency": "USDT",
+        #         "address": "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs",
+        #         "txid": "128988928203223323290",
+        #         "block_number": "41575382",
+        #         "amount": "222.61",
+        #         "fee": "0.01",
+        #         "memo": "",
+        #         "status": "DONE",
+        #         "chain": "TRX"
+        #     }
+        #
+        #     {
+        #         "id": "w13389675",
+        #         "currency": "USDT",
+        #         "amount": "50",
+        #         "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        #         "memo": null
+        #     }
         #
         #     {
         #         "currency":"usdt",
-        #         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        #         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         #         "amount":"1880",
         #         "chain":"eth"
         #     }
@@ -3530,7 +3656,7 @@ class gate(Exchange, ImplicitAPI):
                 amountString = Precise.string_abs(amountString)
             else:
                 type = self.parse_transaction_type(id[0])
-        feeCostString = self.safe_string(transaction, 'fee')
+        feeCostString = self.safe_string_2(transaction, 'fee', 'fee_amount')
         if type == 'withdrawal':
             amountString = Precise.string_sub(amountString, feeCostString)
         networkId = self.safe_string_upper(transaction, 'chain')
@@ -4391,6 +4517,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+        :see: https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -5785,6 +5912,68 @@ class gate(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
+        }
+
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the interest owed by the user for borrowing currency for margin trading
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+        :see: https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+        :see: https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+        :param str [code]: unified currency code
+        :param str [symbol]: unified market symbol when fetching interest in isolated markets
+        :param int [since]: the earliest time in ms to fetch borrow interest for
+        :param int [limit]: the maximum number of structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unifiedAccount]: set to True for fetching borrow interest in the unified account
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        """
+        await self.load_markets()
+        await self.load_unified_status()
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'fetchBorrowInterest', 'unifiedAccount')
+        request: dict = {}
+        request, params = self.handle_until_option('to', request, params)
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if since is not None:
+            request['from'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
+        if isUnifiedAccount:
+            response = await self.privateUnifiedGetInterestRecords(self.extend(request, params))
+        elif marginMode == 'isolated':
+            if market is not None:
+                request['currency_pair'] = market['id']
+            response = await self.privateMarginGetUniInterestRecords(self.extend(request, params))
+        elif marginMode == 'cross':
+            response = await self.privateMarginGetCrossInterestRecords(self.extend(request, params))
+        interest = self.parse_borrow_interests(response, market)
+        return self.filter_by_currency_since_limit(interest, code, since, limit)
+
+    def parse_borrow_interest(self, info: dict, market: Market = None):
+        marketId = self.safe_string(info, 'currency_pair')
+        market = self.safe_market(marketId, market)
+        marginMode = 'isolated' if (marketId is not None) else 'cross'
+        timestamp = self.safe_integer(info, 'create_time')
+        return {
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': self.safe_string(market, 'symbol'),
+            'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
+            'marginMode': marginMode,
+            'interest': self.safe_number(info, 'interest'),
+            'interestRate': self.safe_number(info, 'actual_rate'),
+            'amountBorrowed': None,
         }
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):

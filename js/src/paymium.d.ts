@@ -1,5 +1,5 @@
 import Exchange from './abstract/paymium.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Num, Dict, Strings, int, DepositAddress } from './base/types.js';
 /**
  * @class paymium
  * @augments Exchange
@@ -13,28 +13,10 @@ export default class paymium extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    }>;
-    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-    };
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<import("./base/types.js").Order>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<import("./base/types.js").Order>;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;

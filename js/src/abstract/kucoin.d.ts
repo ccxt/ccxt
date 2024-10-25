@@ -19,6 +19,7 @@ interface Exchange {
     publicGetMarkPriceSymbolCurrent(params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
+    publicGetAnnouncements(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
     privateGetAccounts(params?: {}): Promise<implicitReturnType>;
@@ -122,6 +123,7 @@ interface Exchange {
     privatePostLendPurchaseUpdate(params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate(params?: {}): Promise<implicitReturnType>;
     privatePostPositionUpdateUserLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddressCreate(params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey(params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId(params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId(params?: {}): Promise<implicitReturnType>;

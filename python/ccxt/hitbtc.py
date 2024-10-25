@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.hitbtc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -66,6 +66,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -948,7 +950,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://api.hitbtc.com/#get-deposit-crypto-address
@@ -979,11 +981,10 @@ class hitbtc(Exchange, ImplicitAPI):
         parsedCode = self.safe_currency_code(currencyId)
         return {
             'info': response,
-            'address': address,
-            'tag': tag,
-            'code': parsedCode,  # kept here for backward-compatibility, but will be removed soon
             'currency': parsedCode,
             'network': None,
+            'address': address,
+            'tag': tag,
         }
 
     def parse_balance(self, response) -> Balances:

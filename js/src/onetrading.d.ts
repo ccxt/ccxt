@@ -1,5 +1,5 @@
 import Exchange from './abstract/onetrading.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class onetrading
  * @augments Exchange
@@ -27,27 +27,9 @@ export default class onetrading extends Exchange {
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: any;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;

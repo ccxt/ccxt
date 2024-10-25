@@ -170,6 +170,7 @@ interface Exchange {
     privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserSubmembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;

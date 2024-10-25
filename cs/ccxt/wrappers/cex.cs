@@ -6,15 +6,11 @@ namespace ccxt;
 
 public partial class cex
 {
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCurrenciesFromCache(parameters);
-        return ((Dictionary<string, object>)res);
-    }
     /// <summary>
-    /// retrieves data on all markets for cex
+    /// retrieves data on all markets for ace
     /// </summary>
     /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-pairs-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -31,10 +27,9 @@ public partial class cex
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     /// <summary>
-    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#account-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -44,17 +39,97 @@ public partial class cex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// get the list of most recent trades for a particular symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-trade-history"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest entry
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#orderbook"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -81,7 +156,7 @@ public partial class cex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#historical-ohlcv-chart"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -101,6 +176,12 @@ public partial class cex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -112,83 +193,10 @@ public partial class cex
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
-    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-    /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
-    }
-    /// <summary>
-    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cex.io/#ticker"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
-    }
-    /// <summary>
-    /// get the list of most recent trades for a particular symbol
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cex.io/#trade-history"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : timestamp in ms of the earliest trade to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum amount of trades to fetch
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    /// <summary>
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#get-my-fee"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -204,12 +212,121 @@ public partial class cex
         var res = await this.fetchTradingFees(parameters);
         return new TradingFees(res);
     }
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAccounts(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    /// <summary>
+    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// object : 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.account</term>
+    /// <description>
+    /// object :  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
+    }
+    public async Task<List<Order>> FetchOrdersByStatus(string status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of orders to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of orders to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
     /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#place-order"/>  <br/>
-    /// See <see href="https://cex.io/rest-api#place-order"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-new-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -224,9 +341,9 @@ public partial class cex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.cost</term>
+    /// <term>params.accountId</term>
     /// <description>
-    /// float : the quote quantity that can be used as an alternative for the amount for market buy orders
+    /// string : account-id to use (default is empty string)
     /// </description>
     /// </item>
     /// </list>
@@ -242,7 +359,7 @@ public partial class cex
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#cancel-order"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -253,53 +370,53 @@ public partial class cex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#cancel-all-orders-for-given-pair"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : 'cross' or 'isolated', for spot margin trading
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// fetch all unfilled currently open orders
+    /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#open-orders"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-transaction-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : the earliest time in ms to fetch open orders for
+    /// int : timestamp in ms of the earliest ledger entry
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  open orders structures to retrieve
+    /// int : max number of ledger entries to return
     /// </description>
     /// </item>
     /// <item>
@@ -308,32 +425,44 @@ public partial class cex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest ledger entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        var res = await this.fetchLedger(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
-    /// fetches information on multiple closed orders made by the user
+    /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#archived-orders"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-funding-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code for the currency of the deposit/withdrawals, default is undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : the earliest time in ms to fetch orders for
+    /// int : timestamp in ms of the earliest deposit/withdrawal, default is undefined
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of order structures to retrieve
+    /// int : max number of deposit/withdrawals to return, default is undefined
     /// </description>
     /// </item>
     /// <item>
@@ -344,19 +473,19 @@ public partial class cex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
-    /// fetches information on an order made by the user
+    /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/?python#get-order-details"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -366,58 +495,27 @@ public partial class cex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchOrder(id, symbol, parameters);
-        return new Order(res);
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
     }
-    /// <summary>
-    /// fetches information on multiple orders made by the user
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://docs.cex.io/#archived-orders"/>  <br/>
-    /// <list type="table">
-    /// <item>
-    /// <term>since</term>
-    /// <description>
-    /// int : the earliest time in ms to fetch orders for
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>limit</term>
-    /// <description>
-    /// int : the maximum number of order structures to retrieve
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferBetweenMainAndSubAccount(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        var res = await this.transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
     }
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> TransferBetweenSubAccounts(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
-        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        var res = await this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.cex.io/#get-crypto-address"/>  <br/>
+    /// See <see href="https://trade.cex.io/docs/#rest-private-api-calls-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -425,12 +523,18 @@ public partial class cex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
 }

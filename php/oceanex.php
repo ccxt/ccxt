@@ -47,6 +47,8 @@ class oceanex extends Exchange {
                 'fetchDepositAddress' => 'emulated',
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchMarkets' => true,
@@ -902,7 +904,7 @@ class oceanex extends Exchange {
         return $this->parse_orders($data);
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch the deposit addresses for a $currency associated with this account
          * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
@@ -954,7 +956,7 @@ class oceanex extends Exchange {
         return $result;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        chain_name => 'TRC20',
@@ -971,9 +973,9 @@ class oceanex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->network_id_to_code($networkId),
         );
     }
 

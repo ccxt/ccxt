@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,8 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
@@ -973,15 +975,15 @@ class lbank(Exchange, ImplicitAPI):
             limit = min(limit, 2000)
         if since is None:
             duration = self.parse_timeframe(timeframe)
-            since = self.milliseconds() - duration * 1000 * limit
+            since = self.milliseconds() - (duration * 1000 * limit)
         request: dict = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'time': self.parse_to_int(since / 1000),
-            'size': limit,  # max 2000
+            'size': min(limit + 1, 2000),  # max 2000
         }
         response = self.spotPublicGetKline(self.extend(request, params))
-        ohlcvs = self.safe_value(response, 'data', [])
+        ohlcvs = self.safe_list(response, 'data', [])
         #
         #
         # [
@@ -1831,7 +1833,7 @@ class lbank(Exchange, ImplicitAPI):
         network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
         return network
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://www.lbank.com/en-US/docs/index.html#get-deposit-address
@@ -1852,7 +1854,7 @@ class lbank(Exchange, ImplicitAPI):
             response = self.fetch_deposit_address_default(code, params)
         return response
 
-    def fetch_deposit_address_default(self, code: str, params={}):
+    def fetch_deposit_address_default(self, code: str, params={}) -> DepositAddress:
         self.load_markets()
         currency = self.currency(code)
         request: dict = {
@@ -1883,14 +1885,14 @@ class lbank(Exchange, ImplicitAPI):
         inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
         networkCode = self.safe_string_upper(inverseNetworks, networkId, networkId)
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         }
 
-    def fetch_deposit_address_supplement(self, code: str, params={}):
+    def fetch_deposit_address_supplement(self, code: str, params={}) -> DepositAddress:
         # returns the address for whatever the default network is...
         self.load_markets()
         currency = self.currency(code)
@@ -1922,11 +1924,11 @@ class lbank(Exchange, ImplicitAPI):
         inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
         networkCode = self.safe_string_upper(inverseNetworks, network, network)
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,  # will be None if not specified in request
             'address': address,
             'tag': tag,
-            'network': networkCode,  # will be None if not specified in request
-            'info': response,
         }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
@@ -2328,7 +2330,7 @@ class lbank(Exchange, ImplicitAPI):
         when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying self.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
         :see: https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
         :see: https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-        :param str[]|None codes: array of unified currency codes
+        :param str[] [codes]: array of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
@@ -2341,11 +2343,11 @@ class lbank(Exchange, ImplicitAPI):
             method = self.safe_string(params, 'method', defaultMethod)
             params = self.omit(params, 'method')
             if method == 'fetchPublicDepositWithdrawFees':
-                self.fetch_public_deposit_withdraw_fees(codes, params)
+                response = self.fetch_public_deposit_withdraw_fees(codes, params)
             else:
-                self.fetch_private_deposit_withdraw_fees(codes, params)
+                response = self.fetch_private_deposit_withdraw_fees(codes, params)
         else:
-            self.fetch_public_deposit_withdraw_fees(codes, params)
+            response = self.fetch_public_deposit_withdraw_fees(codes, params)
         return response
 
     def fetch_private_deposit_withdraw_fees(self, codes=None, params={}):

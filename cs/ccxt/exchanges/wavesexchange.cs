@@ -38,6 +38,8 @@ public partial class wavesexchange : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
@@ -1059,12 +1061,11 @@ public partial class wavesexchange : Exchange
                 object responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 object addressInner = this.safeString(response, "address");
                 return new Dictionary<string, object>() {
-                    { "address", addressInner },
-                    { "code", code },
+                    { "info", responseInner },
                     { "currency", code },
                     { "network", network },
+                    { "address", addressInner },
                     { "tag", null },
-                    { "info", responseInner },
                 };
             } else
             {
@@ -1105,12 +1106,11 @@ public partial class wavesexchange : Exchange
         object addresses = this.safeValue(response, "deposit_addresses");
         object address = this.safeString(addresses, 0);
         return new Dictionary<string, object>() {
-            { "address", address },
-            { "code", code },
-            { "currency", code },
-            { "tag", null },
-            { "network", unifiedNetwork },
             { "info", response },
+            { "currency", code },
+            { "network", unifiedNetwork },
+            { "address", address },
+            { "tag", null },
         };
     }
 

@@ -26,6 +26,7 @@ public partial class paymium : Exchange
                 { "fetchBalance", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -378,9 +379,9 @@ public partial class paymium : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
         };
     }
 

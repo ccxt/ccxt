@@ -1469,16 +1469,10 @@ public partial class coinbaseinternational : Exchange
         //        ...
         //    ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = this.parseCurrency(getValue(currencies, i));
-            ((IDictionary<string,object>)result)[(string)getValue(currency, "code")] = currency;
-        }
-        return result;
+        return this.parseCurrencies(currencies);
     }
 
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //    {
@@ -1493,7 +1487,7 @@ public partial class coinbaseinternational : Exchange
         object id = this.safeString(currency, "asset_name");
         object code = this.safeCurrencyCode(id);
         object statusId = this.safeString(currency, "status");
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "name", code },
             { "code", code },
@@ -1506,7 +1500,7 @@ public partial class coinbaseinternational : Exchange
             { "fee", null },
             { "fees", null },
             { "limits", this.limits },
-        };
+        });
     }
 
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)

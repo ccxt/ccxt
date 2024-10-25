@@ -1888,11 +1888,11 @@ export default class coinsph extends Exchange {
         const currencyId = this.safeString(depositAddress, 'coin');
         const parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': null,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'addressTag'),
-            'network': null,
-            'info': depositAddress,
         };
     }
     urlEncodeQuery(query = {}) {

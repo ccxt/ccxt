@@ -243,7 +243,7 @@ class binance(ccxt.async_support.binance):
         type = None
         type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if type == 'spot':
-            raise BadRequest(self.id + 'watchLiquidationsForSymbols is not supported for swap symbols')
+            raise BadRequest(self.id + 'watchLiquidationsForSymbols is not supported for spot symbols')
         subType = None
         subType, params = self.handle_sub_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
         if self.isLinear(type, subType):

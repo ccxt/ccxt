@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
@@ -41,13 +41,7 @@ export default class exmo extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     getMarketFromTrades(trades: any): any;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransactionStatus(status: Str): string;

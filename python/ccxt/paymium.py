@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paymium import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -35,6 +35,7 @@ class paymium(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -302,7 +303,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
@@ -325,7 +326,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :see: https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
@@ -347,7 +348,7 @@ class paymium(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -361,9 +362,9 @@ class paymium(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(currencyId, currency),
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
         }
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):

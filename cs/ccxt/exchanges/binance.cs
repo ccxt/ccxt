@@ -94,12 +94,15 @@ public partial class binance : Exchange
                 { "fetchLeverages", true },
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", true },
                 { "fetchMarginMode", "emulated" },
                 { "fetchMarginModes", true },
                 { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
+                { "fetchMarkPrice", true },
                 { "fetchMarkPrices", true },
                 { "fetchMyLiquidations", true },
                 { "fetchMySettlementHistory", true },
@@ -444,6 +447,7 @@ public partial class binance : Exchange
                         { "portfolio/asset-index-price", 0.1 },
                         { "portfolio/repay-futures-switch", 3 },
                         { "portfolio/margin-asset-leverage", 5 },
+                        { "portfolio/balance", 2 },
                         { "staking/productList", 0.1 },
                         { "staking/position", 0.1 },
                         { "staking/stakingRecord", 0.1 },
@@ -628,6 +632,7 @@ public partial class binance : Exchange
                         { "loan/flexible/ltv/adjustment/history", 40 },
                         { "loan/flexible/loanable/data", 40 },
                         { "loan/flexible/collateral/data", 40 },
+                        { "portfolio/account", 2 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "eth-staking/eth/stake", 15 },
@@ -744,6 +749,10 @@ public partial class binance : Exchange
                         { "commissionRate", 20 },
                         { "income/asyn", 5 },
                         { "income/asyn/id", 5 },
+                        { "trade/asyn", 0.5 },
+                        { "trade/asyn/id", 0.5 },
+                        { "order/asyn", 0.5 },
+                        { "order/asyn/id", 0.5 },
                         { "pmExchangeInfo", 0.5 },
                         { "pmAccountInfo", 0.5 },
                     } },
@@ -833,6 +842,7 @@ public partial class binance : Exchange
                             { "noSymbol", 10 },
                         } },
                         { "lvtKlines", 1 },
+                        { "convert/exchangeInfo", 4 },
                     } },
                 } },
                 { "fapiData", new Dictionary<string, object>() {
@@ -891,6 +901,7 @@ public partial class binance : Exchange
                         { "feeBurn", 1 },
                         { "symbolConfig", 5 },
                         { "accountConfig", 5 },
+                        { "convert/orderStatus", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -905,6 +916,8 @@ public partial class binance : Exchange
                         { "apiReferral/customization", 1 },
                         { "apiReferral/userCustomization", 1 },
                         { "feeBurn", 1 },
+                        { "convert/getQuote", 200 },
+                        { "convert/acceptQuote", 20 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
@@ -1075,7 +1088,7 @@ public partial class binance : Exchange
                 } },
                 { "papi", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "ping", 1 },
+                        { "ping", 0.2 },
                         { "um/order", 1 },
                         { "um/openOrder", 1 },
                         { "um/openOrders", new Dictionary<string, object>() {
@@ -1096,7 +1109,10 @@ public partial class binance : Exchange
                             { "noSymbol", 40 },
                         } },
                         { "um/conditional/orderHistory", 1 },
-                        { "um/conditional/allOrders", 40 },
+                        { "um/conditional/allOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "cm/conditional/openOrder", 1 },
                         { "cm/conditional/openOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -1104,67 +1120,91 @@ public partial class binance : Exchange
                         } },
                         { "cm/conditional/orderHistory", 1 },
                         { "cm/conditional/allOrders", 40 },
-                        { "margin/order", 5 },
+                        { "margin/order", 10 },
                         { "margin/openOrders", 5 },
                         { "margin/allOrders", 100 },
                         { "margin/orderList", 5 },
                         { "margin/allOrderList", 100 },
                         { "margin/openOrderList", 5 },
                         { "margin/myTrades", 5 },
-                        { "balance", 20 },
-                        { "account", 20 },
-                        { "margin/maxBorrowable", 5 },
-                        { "margin/maxWithdraw", 5 },
-                        { "um/positionRisk", 5 },
-                        { "cm/positionRisk", 1 },
-                        { "um/positionSide/dual", 30 },
-                        { "cm/positionSide/dual", 30 },
+                        { "balance", 4 },
+                        { "account", 4 },
+                        { "margin/maxBorrowable", 1 },
+                        { "margin/maxWithdraw", 1 },
+                        { "um/positionRisk", 1 },
+                        { "cm/positionRisk", 0.2 },
+                        { "um/positionSide/dual", 6 },
+                        { "cm/positionSide/dual", 6 },
                         { "um/userTrades", 5 },
                         { "cm/userTrades", 20 },
-                        { "um/leverageBracket", 1 },
-                        { "cm/leverageBracket", 1 },
+                        { "um/leverageBracket", 0.2 },
+                        { "cm/leverageBracket", 0.2 },
                         { "margin/forceOrders", 1 },
-                        { "um/forceOrders", 20 },
-                        { "cm/forceOrders", 20 },
-                        { "um/apiTradingStatus", 1 },
-                        { "um/commissionRate", 20 },
-                        { "cm/commissionRate", 20 },
-                        { "margin/marginLoan", 10 },
-                        { "margin/repayLoan", 10 },
-                        { "margin/marginInterestHistory", 1 },
-                        { "portfolio/interest-history", 50 },
-                        { "um/income", 30 },
-                        { "cm/income", 30 },
-                        { "um/account", 5 },
-                        { "cm/account", 5 },
-                        { "repay-futures-switch", 3 },
+                        { "um/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                            { "noSymbol", 50 },
+                        } },
+                        { "cm/forceOrders", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                            { "noSymbol", 50 },
+                        } },
+                        { "um/apiTradingStatus", new Dictionary<string, object>() {
+                            { "cost", 0.2 },
+                            { "noSymbol", 2 },
+                        } },
+                        { "um/commissionRate", 4 },
+                        { "cm/commissionRate", 4 },
+                        { "margin/marginLoan", 2 },
+                        { "margin/repayLoan", 2 },
+                        { "margin/marginInterestHistory", 0.2 },
+                        { "portfolio/interest-history", 10 },
+                        { "um/income", 6 },
+                        { "cm/income", 6 },
+                        { "um/account", 1 },
+                        { "cm/account", 1 },
+                        { "repay-futures-switch", 6 },
                         { "um/adlQuantile", 5 },
                         { "cm/adlQuantile", 5 },
+                        { "um/trade/asyn", 300 },
+                        { "um/trade/asyn/id", 2 },
+                        { "um/order/asyn", 300 },
+                        { "um/order/asyn/id", 2 },
+                        { "um/income/asyn", 300 },
+                        { "um/income/asyn/id", 2 },
+                        { "um/orderAmendment", 1 },
+                        { "cm/orderAmendment", 1 },
+                        { "um/feeBurn", 30 },
+                        { "um/accountConfig", 1 },
+                        { "um/symbolConfig", 1 },
+                        { "cm/accountConfig", 1 },
+                        { "cm/symbolConfig", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "um/order", 1 },
                         { "um/conditional/order", 1 },
                         { "cm/order", 1 },
                         { "cm/conditional/order", 1 },
-                        { "margin/order", 0.0133 },
-                        { "marginLoan", 0.1333 },
-                        { "repayLoan", 0.1333 },
-                        { "margin/order/oco", 0.04 },
-                        { "um/leverage", 1 },
-                        { "cm/leverage", 1 },
-                        { "um/positionSide/dual", 1 },
-                        { "cm/positionSide/dual", 1 },
-                        { "auto-collection", 0.6667 },
-                        { "bnb-transfer", 0.6667 },
+                        { "margin/order", 1 },
+                        { "marginLoan", 100 },
+                        { "repayLoan", 100 },
+                        { "margin/order/oco", 1 },
+                        { "um/leverage", 0.2 },
+                        { "cm/leverage", 0.2 },
+                        { "um/positionSide/dual", 0.2 },
+                        { "cm/positionSide/dual", 0.2 },
+                        { "auto-collection", 150 },
+                        { "bnb-transfer", 150 },
                         { "repay-futures-switch", 150 },
                         { "repay-futures-negative-balance", 150 },
-                        { "listenKey", 1 },
-                        { "asset-collection", 3 },
-                        { "margin/repay-debt", 0.4 },
+                        { "listenKey", 0.2 },
+                        { "asset-collection", 6 },
+                        { "margin/repay-debt", 3000 },
                         { "um/feeBurn", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "listenKey", 1 },
+                        { "listenKey", 0.2 },
+                        { "um/order", 1 },
+                        { "cm/order", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "um/order", 1 },
@@ -1175,10 +1215,10 @@ public partial class binance : Exchange
                         { "cm/conditional/order", 1 },
                         { "cm/allOpenOrders", 1 },
                         { "cm/conditional/allOpenOrders", 1 },
-                        { "margin/order", 1 },
+                        { "margin/order", 2 },
                         { "margin/allOpenOrders", 5 },
                         { "margin/orderList", 2 },
-                        { "listenKey", 1 },
+                        { "listenKey", 0.2 },
                     } },
                 } },
             } },
@@ -2621,11 +2661,20 @@ public partial class binance : Exchange
         {
             return null;
         }
-        object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters), this.sapiGetMarginAllAssets(parameters)};
+        object promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters)};
+        object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
+        if (isTrue(fetchMargins))
+        {
+            ((IList<object>)promises).Add(this.sapiGetMarginAllPairs(parameters));
+        }
         object results = await promiseAll(promises);
         object responseCurrencies = getValue(results, 0);
-        object responseMarginables = getValue(results, 1);
-        object marginablesById = this.indexBy(responseMarginables, "assetName");
+        object marginablesById = null;
+        if (isTrue(fetchMargins))
+        {
+            object responseMarginables = getValue(results, 1);
+            marginablesById = this.indexBy(responseMarginables, "assetName");
+        }
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(responseCurrencies)); postFixIncrement(ref i))
         {
@@ -3160,8 +3209,8 @@ public partial class binance : Exchange
         object fees = this.fees;
         object linear = null;
         object inverse = null;
-        object strike = this.safeString(market, "strikePrice");
         object symbol = add(add(bs, "/"), quote);
+        object strike = null;
         if (isTrue(contract))
         {
             if (isTrue(swap))
@@ -3172,6 +3221,7 @@ public partial class binance : Exchange
                 symbol = add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry));
             } else if (isTrue(option))
             {
+                strike = this.numberToString(this.parseToNumeric(this.safeString(market, "strikePrice")));
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), settle), "-"), this.yymmdd(expiry)), "-"), strike), "-"), this.safeString(optionParts, 3));
             }
             contractSize = this.safeNumber2(market, "contractSize", "unit", this.parseNumber("1"));
@@ -4276,6 +4326,51 @@ public partial class binance : Exchange
         return this.parseTickers(response, symbols);
     }
 
+    public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchMarkPrice
+        * @description fetches mark price for the market
+        * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] "linear" or "inverse"
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        if (isTrue(this.isLinear(type, subType)))
+        {
+            response = await this.fapiPublicGetPremiumIndex(this.extend(request, parameters));
+        } else if (isTrue(this.isInverse(type, subType)))
+        {
+            response = await this.dapiPublicGetPremiumIndex(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchMarkPrice() does not support "), type), " markets yet")) ;
+        }
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            return this.parseTicker(this.safeDict(response, 0, new Dictionary<string, object>() {}), market);
+        }
+        return this.parseTicker(response, market);
+    }
+
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         /**
@@ -4283,6 +4378,7 @@ public partial class binance : Exchange
         * @name binance#fetchMarkPrices
         * @description fetches mark prices for multiple markets
         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
@@ -4293,11 +4389,11 @@ public partial class binance : Exchange
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
@@ -6428,7 +6524,15 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount);
             } else
             {
-                ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                object marketAmountPrecision = this.safeString(getValue(market, "precision"), "amount");
+                object isPrecisionAvailable = (!isEqual(marketAmountPrecision, null));
+                if (isTrue(isPrecisionAvailable))
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
+                }
             }
         }
         if (isTrue(isTrue(priceIsRequired) && !isTrue(isPriceMatch)))
@@ -6437,7 +6541,15 @@ public partial class binance : Exchange
             {
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a price argument for a "), type), " order")) ;
             }
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            object pricePrecision = this.safeString(getValue(market, "precision"), "price");
+            object isPricePrecisionAvailable = (!isEqual(pricePrecision, null));
+            if (isTrue(isPricePrecisionAvailable))
+            {
+                ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            } else
+            {
+                ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(price); // some options don't have the precision available
+            }
         }
         if (isTrue(stopPriceIsRequired))
         {
@@ -8913,8 +9025,29 @@ public partial class binance : Exchange
         //         }
         //     }
         //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public override object parseDepositAddress(object response, object currency = null)
+    {
+        //
+        //     {
+        //         "currency": "XRP",
+        //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag": "108618262",
+        //         "info": {
+        //             "coin": "XRP",
+        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag": "108618262",
+        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        object info = this.safeDict(response, "info", new Dictionary<string, object>() {});
+        object url = this.safeString(info, "url");
         object address = this.safeString(response, "address");
-        object url = this.safeString(response, "url");
+        object currencyId = this.safeString(response, "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
         object impliedNetwork = null;
         if (isTrue(!isEqual(url, null)))
         {
@@ -8951,11 +9084,11 @@ public partial class binance : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", impliedNetwork },
             { "address", address },
             { "tag", tag },
-            { "network", impliedNetwork },
-            { "info", response },
         };
     }
 
@@ -12553,20 +12686,7 @@ public partial class binance : Exchange
         return this.parseBorrowRateHistory(response, code, since, limit);
     }
 
-    public virtual object parseBorrowRateHistory(object response, object code, object since, object limit)
-    {
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object item = getValue(response, i);
-            object borrowRate = this.parseBorrowRate(item);
-            ((IList<object>)result).Add(borrowRate);
-        }
-        object sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
-
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //    {
@@ -14287,5 +14407,97 @@ public partial class binance : Exchange
         //
         object result = this.parseFundingRates(response, market);
         return this.filterByArray(result, "symbol", symbols);
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio, default is 24 hours
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            timeframe = "1d";
+        }
+        object request = new Dictionary<string, object>() {
+            { "period", timeframe },
+        };
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            response = await this.fapiDataGetGlobalLongShortAccountRatio(this.extend(request, parameters));
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            ((IDictionary<string,object>)request)["pair"] = getValue(getValue(market, "info"), "pair");
+            response = await this.dapiDataGetGlobalLongShortAccountRatio(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchLongShortRatioHistory() supports linear and inverse subTypes only")) ;
+        }
+        return this.parseLongShortRatioHistory(response, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        //
+        // linear
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "longAccount": "0.4558",
+        //         "longShortRatio": "0.8376",
+        //         "shortAccount": "0.5442",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount": "0.7262",
+        //         "longShortRatio": "2.6523",
+        //         "shortAccount": "0.2738",
+        //         "pair": "BTCUSD",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeIntegerOmitZero(info, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.safeNumber(info, "longShortRatio") },
+        };
     }
 }

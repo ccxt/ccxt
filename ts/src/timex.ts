@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int, DepositAddress } from './base/types.js';
 
 /**
  * @class timex
@@ -353,12 +353,7 @@ export default class timex extends Exchange {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            result.push (this.parseCurrency (currency));
-        }
-        return this.indexBy (result, 'code');
+        return this.parseCurrencies (response);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1315,7 +1310,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency: Dict) {
+    parseCurrency (currency: Dict): Currency {
         //
         //     {
         //         "symbol": "BTC",
@@ -1379,7 +1374,7 @@ export default class timex extends Exchange {
                 fee = this.parseNumber (fraction + feeString);
             }
         }
-        return {
+        return this.safeCurrencyStructure ({
             'id': code,
             'code': code,
             'info': currency,
@@ -1395,7 +1390,7 @@ export default class timex extends Exchange {
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -1601,7 +1596,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name timex#fetchDepositAddress
@@ -1638,7 +1633,7 @@ export default class timex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        symbol: 'BTC',
@@ -1657,10 +1652,10 @@ export default class timex extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': undefined,
             'address': this.safeString (depositAddress, 'address'),
             'tag': undefined,
-            'network': undefined,
-        };
+        } as DepositAddress;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

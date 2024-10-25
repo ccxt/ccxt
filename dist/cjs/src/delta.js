@@ -41,6 +41,8 @@ class delta extends delta$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
@@ -2372,11 +2374,11 @@ class delta extends delta$1 {
         const networkId = this.safeString(depositAddress, 'network');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

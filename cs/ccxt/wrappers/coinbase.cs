@@ -1077,10 +1077,10 @@ public partial class coinbase
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger

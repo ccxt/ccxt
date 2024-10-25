@@ -40,6 +40,7 @@ public partial class probit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
@@ -1401,11 +1402,11 @@ public partial class probit : Exchange
         object network = this.safeString(depositAddress, "platform_id");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
-            { "info", depositAddress },
         };
     }
 

@@ -70,7 +70,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 103 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 104 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                             | id                    | name                                                                                         | ver                                                                                                                                              | type | certified                                                                                                                   | pro                                                                          |
 |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------|----------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------------------------------------------------------------:|------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -108,10 +108,11 @@ The CCXT library currently supports the following 103 cryptocurrency exchange ma
 | [![btcmarkets](https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg)](https://btcmarkets.net)                                                    | btcmarkets            | [BTC Markets](https://btcmarkets.net)                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.btcmarkets.net/doc/v3)                                                  | cex  |                                                                                                                             |                                                                              |
 | [![btcturk](https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg)](https://www.btcturk.com)                                                      | btcturk               | [BTCTurk](https://www.btcturk.com)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/BTCTrader/broker-api-docs)                                       | cex  |                                                                                                                             |                                                                              |
 | [![bybit](https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg)](https://www.bybit.com/register?affiliate_id=35953)                              | bybit                 | [Bybit](https://www.bybit.com/register?affiliate_id=35953)                                   | [![API Version 5](https://img.shields.io/badge/5-lightgray)](https://bybit-exchange.github.io/docs/inverse/)                                     | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                                 | cex                   | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://cex.io/cex-api)                                                             | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![cex](https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg)](https://cex.io/r/0/up105393824/0/)                                                 | cex                   | [CEX.IO](https://cex.io/r/0/up105393824/0/)                                                  | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://trade.cex.io/docs/)                                                         | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbase](https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg)](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                       | coinbase              | [Coinbase Advanced](https://www.coinbase.com/join/58cbe25a355148797479dbd2)                  | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://developers.coinbase.com/api/v2)                                             | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseexchange](https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e)](https://coinbase.com/)                                                                  | coinbaseexchange      | [Coinbase Exchange](https://coinbase.com/)                                                   | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.cloud.coinbase.com/exchange/docs/)                                     | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinbaseinternational](https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625)](https://international.coinbase.com)                                                | coinbaseinternational | [Coinbase International](https://international.coinbase.com)                                 | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.cloud.coinbase.com/intx/docs)                                          | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![coincatch](https://github.com/user-attachments/assets/3d49065f-f05d-4573-88a2-1b5201ec6ff3)](https://partner.coincatch.cc/bg/92hy70391729607848548)                                           | coincatch             | [CoinCatch](https://partner.coincatch.cc/bg/92hy70391729607848548)                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://coincatch.github.io/github.io/en/)                                          | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coincheck](https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg)](https://coincheck.com)                                                      | coincheck             | [coincheck](https://coincheck.com)                                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://coincheck.com/documents/exchange/api)                                       | cex  |                                                                                                                             |                                                                              |
 | [![coinex](https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg)](https://www.coinex.com/register?refer_code=yw5fz)                              | coinex                | [CoinEx](https://www.coinex.com/register?refer_code=yw5fz)                                   | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.coinex.com/api/v2)                                                     | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![coinlist](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/281108917-eff2ae1d-ce8a-4b2a-950d-8678b12da965.jpg)](https://coinlist.co)                                      | coinlist              | [Coinlist](https://coinlist.co)                                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://trade-docs.coinlist.co)                                                     | cex  |                                                                                                                             |                                                                              |
@@ -1752,6 +1753,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchFundingRateHistory (symbol, since, limit, params)`
 - `fetchFundingRateInterval (symbol, params)`
 - `fetchFundingRateIntervals (symbols, params)`
+- `fetchLongShortRatio (symbol, params)`
 - ...
 
 ```text
@@ -3442,6 +3444,58 @@ Returns
 }
 ```
 
+## Long Short Ratio
+
+*contract only*
+
+Use the `fetchLongShortRatio` method to fetch the current long short ratio of a symbol and use the `fetchLongShortRatioHistory` to fetch the history of long short ratios for a symbol.
+
+- `fetchLongShortRatio (symbol, period)` for the current ratio of a single market symbol
+- `fetchLongShortRatioHistory (symbol, period, since, limit)` for the history of ratios of a single market symbol
+
+```javascript
+fetchLongShortRatio (symbol, period = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) *required* Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- a [long short ratio structure](#long-short-ratio-structure)
+
+```javascript
+fetchLongShortRatioHistory (symbol = undefined, period = undefined, since = undefined, limit = undefined, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT symbol (e.g. `"BTC/USDT:USDT"`)
+- **period** (String) The period to calculate the ratio from (e.g. `"24h"`)
+- **since** (Integer) Timestamp for the earliest ratio (e.g. `1645807945000`)
+- **limit** (Integer) The maximum number of ratios to retrieve (e.g. `10`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
+
+Returns
+
+- an array of [long short ratio structures](#long-short-ratio-structure)
+
+### Long Short Ratio Structure
+
+```javascript
+{
+    info: { ... },
+    symbol: 'BTC/USDT:USDT',
+    timestamp: 1645833600000,
+    datetime: '2022-02-26T00:00:00.000Z',
+    timeframe: '24h',
+    longShortRatio: 0.000072,
+}
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -4112,7 +4166,7 @@ There are different types of orders that a user can send to the exchange, regula
 - [Limit Orders](#limit-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell) and a `price` in quote currency (for which price you want to buy or sell).
 - [Market Orders](#market-orders) – regular orders having an `amount` in base currency (how much you want to buy or sell)
   - [Market Buys](#market-buys) – some exchanges require market buy orders with an `amount` in quote currency (how much you want to spend for buying)
-- [Trigger Orders](#trigger-orders) – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
+- [Trigger Orders](#conditional-orders) aka *conditional orders* – an advanced type of order used to wait for a certain condition on a market and then react automatically: when a `triggerPrice` is reached, the trigger order gets triggered and then a regular limit `price` or market price order is placed, that eventually results in entering a position or exiting a position
 - [Stop Loss Orders](#stop-loss-orders) – almost the same as trigger orders, but used to close a position to stop further losses on that position: when the price reaches `triggerPrice` then the stop loss order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a stop loss order attached to it).
 - [Take Profit Orders](#take-profit-orders) – a counterpart to stop loss orders, this type of order is used to close a position to take existing profits on that position: when the price reaches `triggerPrice` then the take profit order is triggered that results in placing another regular limit or market order to close a position at a specific limit `price` or at market price (a position with a take profit order attached to it).
 - [StopLoss And TakeProfit Orders Attached To A Position](#stoploss-and-takeprofit-orders-attached-to-a-position) – advanced orders, consisting of three orders of types listed above: a regular limit or market order placed to enter a position with stop loss and/or take profit orders that will be placed upon opening that position and will be used to close that position later (when a stop loss is reached, it will close the position and will cancel its take profit counterpart, and vice versa, when a take profit is reached, it will close the position and will cancel its stop loss counterpart, these two counterparts are also known as "OCO orders – one cancels the other), apart from the `amount` (and `price` for the limit order) to open a position it will also require a `triggerPrice` for a stop loss order (with a limit `price` if it's a stop loss limit order) and/or a `triggerPrice` for a take profit order (with a limit `price` if it's a take profit limit order).
@@ -4382,9 +4436,9 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 Coming from traditional trading, the term "Stop order" has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated as `market` or `limit` order, depending which one you had chosen.
 
 We have different classification of trigger orders:
-1) stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
-2) stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
-3) an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+1) standalone [Trigger order](#trigger-order) to buy/sell coin (open/close position)
+2) standalone [Stop Loss](#stop-loss-orders) or [Take Profit](#take-profit-orders) designed to close open positions.
+3) a Stop Loss or Take Profit order attached to a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 
 
 ##### Trigger order
@@ -5508,11 +5562,11 @@ The address structures returned from `fetchDepositAddress`, `fetchDepositAddress
 
 ```javascript
 {
-    'currency': currency, // currency code
-    'network': network,   // a list of deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
-    'address': address,   // address in terms of requested currency
-    'tag': tag,           // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
-    'info': response,     // raw unparsed data as returned from the exchange
+    'info': response,       // raw unparsed data as returned from the exchange
+    'currency': 'USDC',     // currency code
+    'network': 'ERC20',     // a deposit/withdraw networks, ERC20, TRC20, BSC20 (see below)
+    'address': '0x',        // blockchain address in terms of the requested currency and network
+    'tag': undefined,       // tag / memo / paymentId for particular currencies (XRP, XMR, ...)
 }
 ```
 
@@ -5901,17 +5955,31 @@ Returns
 
 *margin only*
 
-To borrow and repay currency as a margin loan use `borrowMargin` and `repayMargin`.
+To borrow and repay currency as a margin loan use `borrowCrossMargin`, `borrowIsolatedMargin`, `repayCrossMargin` and `repayIsolatedMargin`.
 
 ```javascript
-borrowMargin (code, amount, symbol = undefined, params = {})
-repayMargin (code, amount, symbol = undefined, params = {})
+borrowCrossMargin (code, amount, params = {})
+repayCrossMargin (code, amount, params = {})
 ```
 Parameters
 
 - **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
 - **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
-- **symbol** (String) The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
+
+Returns
+
+- A [margin loan structure](#margin-loan-structure)
+
+```javascript
+borrowIsolatedMargin (symbol, code, amount, params = {})
+repayIsolatedMargin (symbol, code, amount, params = {})
+```
+Parameters
+
+- **symbol** (String) *required* The unified CCXT market symbol of an isolated margin market (e.g. `"BTC/USDT"`)
+- **code** (String) *required* The unified currency code for the currency to be borrowed or repaid (e.g. `"USDT"`)
+- **amount** (Float) *required* The amount of margin to borrow or repay (e.g. `20.92`)
 - **params** (Dictionary) Parameters specific to the exchange API endpoint (e.g. `{"rate": 0.002}`)
 
 Returns

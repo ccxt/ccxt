@@ -94,6 +94,45 @@
                     }
                 ],
                 "output": "{\"clientOid\":\"ea0dd8f4-476a-485d-8af7-5d615c4859ab\",\"side\":\"sell\",\"symbol\":\"LTCUSDTM\",\"type\":\"market\",\"size\":1,\"leverage\":1,\"stop\":\"up\",\"stopPrice\":\"100\",\"reduceOnly\":true,\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "position with tp+sl",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/st-orders",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "market",
+                  "buy",
+                  4,
+                  null,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": 0.2
+                    },
+                    "takeProfit": {
+                      "triggerPrice": 0.5
+                    }
+                  }
+                ],
+                "output": "{\"clientOid\":\"9424d62f-6389-4005-ac84-d5b3309dbda0\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"triggerStopUpPrice\":\"0.5\",\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "position with sl",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/st-orders",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "market",
+                  "buy",
+                  4,
+                  null,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": 0.2
+                    }
+                  }
+                ],
+                "output": "{\"clientOid\":\"be4eeb70-2371-46de-9afa-88fec3070f1f\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"stopPriceType\":\"MP\"}"
             }
         ],
         "createOrders": [
@@ -152,6 +191,35 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders with id",
+                "method": "cancelOrders",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/multi-cancel",
+                "input": [
+                  [
+                    "235624148146139136",
+                    "235624167473491968"
+                  ]
+                ],
+                "output": "{\"orderIdsList\":[\"235624148146139136\",\"235624167473491968\"]}"
+              },
+              {
+                "description": "cancel orders with clientOrderId",
+                "method": "cancelOrders",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/multi-cancel",
+                "input": [
+                  [],
+                  "ADA/USDT:USDT",
+                  {
+                    "clientOrderIds": [
+                      "adaorder"
+                    ]
+                  }
+                ],
+                "output": "{\"clientOidsList\":[{\"symbol\":\"ADAUSDTM\",\"clientOid\":\"adaorder\"}]}"
             }
         ],
         "cancelAllOrders": [

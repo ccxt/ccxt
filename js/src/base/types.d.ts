@@ -84,6 +84,7 @@ export interface MarketInterface {
         cost?: MinMax;
         leverage?: MinMax;
         price?: MinMax;
+        market?: MinMax;
     };
     created: Int;
     info: any;
@@ -239,10 +240,11 @@ export interface Balances extends Dictionary<Balance> {
     datetime?: any;
 }
 export interface DepositAddress {
-    currency: Str;
-    address: string;
-    status: Str;
     info: any;
+    currency: string;
+    network?: string;
+    address: string;
+    tag?: Str;
 }
 export interface WithdrawalResponse {
     info: any;
@@ -502,6 +504,14 @@ export interface Leverage {
     marginMode: 'isolated' | 'cross' | Str;
     longLeverage: number;
     shortLeverage: number;
+}
+export interface LongShortRatio {
+    info: any;
+    symbol: string;
+    timestamp?: number;
+    datetime?: string;
+    timeframe?: string;
+    longShortRatio: number;
 }
 export interface MarginModification {
     'info': any;

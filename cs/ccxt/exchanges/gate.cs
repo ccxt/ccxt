@@ -93,6 +93,7 @@ public partial class gate : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -100,6 +101,8 @@ public partial class gate : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -311,10 +314,17 @@ public partial class gate : Exchange
                             { "interest_records", divide(20, 15) },
                             { "estimate_rate", divide(20, 15) },
                             { "currency_discount_tiers", divide(20, 15) },
+                            { "risk_units", divide(20, 15) },
+                            { "unified_mode", divide(20, 15) },
+                            { "loan_margin_tiers", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
+                            { "portfolio_calculator", divide(20, 15) },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "unified_mode", divide(20, 15) },
                         } },
                     } },
                     { "spot", new Dictionary<string, object>() {
@@ -614,6 +624,7 @@ public partial class gate : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
+                { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
@@ -802,6 +813,44 @@ public partial class gate : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
+    public async virtual Task loadUnifiedStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#isUnifiedEnabled
+        * @description returns unifiedAccount so the user can check if the unified account is enabled
+        * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+        * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+        */
+        parameters ??= new Dictionary<string, object>();
+        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        if (isTrue(isEqual(unifiedAccount, null)))
+        {
+            object response = await this.privateAccountGetDetail(parameters);
+            //
+            //     {
+            //         "user_id": 10406147,
+            //         "ip_whitelist": [],
+            //         "currency_pairs": [],
+            //         "key": {
+            //             "mode": 1
+            //         },
+            //         "tier": 0,
+            //         "tier_expire_time": "0001-01-01T00:00:00Z",
+            //         "copy_trading_role": 0
+            //     }
+            //
+            object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+        }
+    }
+
+    public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.privateUnifiedPutUnifiedMode(parameters);
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -1560,6 +1609,10 @@ public partial class gate : Exchange
         {
             return null;
         }
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            await this.loadUnifiedStatus();
+        }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
         //    {
@@ -2018,11 +2071,10 @@ public partial class gate : Exchange
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "code", code },
             { "currency", code },
+            { "network", network },
             { "address", address },
             { "tag", tag },
-            { "network", network },
         };
     }
 
@@ -2773,11 +2825,17 @@ public partial class gate : Exchange
         * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.symbol] margin only - unified ccxt symbol
+        * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, "symbol");
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
         var typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -2793,7 +2851,10 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
@@ -2968,6 +3029,57 @@ public partial class gate : Exchange
         //         "currency": "USDT",
         //         "short_enabled": false,
         //         "orders_limit": 10
+        //     }
+        //
+        // unified
+        //
+        //     {
+        //         "user_id": 10001,
+        //         "locked": false,
+        //         "balances": {
+        //             "ETH": {
+        //                 "available": "0",
+        //                 "freeze": "0",
+        //                 "borrowed": "0.075393666654",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "1016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "POINT": {
+        //                 "available": "9999999999.017023138734",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "12016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "USDT": {
+        //                 "available": "0.00000062023",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "16.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             }
+        //         },
+        //         "total": "230.94621713",
+        //         "borrowed": "161.66395521",
+        //         "total_initial_margin": "1025.0524665088",
+        //         "total_margin_balance": "3382495.944473949183",
+        //         "total_maintenance_margin": "205.01049330176",
+        //         "total_initial_margin_rate": "3299.827135672679",
+        //         "total_maintenance_margin_rate": "16499.135678363399",
+        //         "total_available_margin": "3381470.892007440383",
+        //         "unified_account_total": "3381470.892007440383",
+        //         "unified_account_total_liab": "0",
+        //         "unified_account_total_equity": "100016.1",
+        //         "leverage": "2"
         //     }
         //
         object result = new Dictionary<string, object>() {
@@ -3894,32 +4006,61 @@ public partial class gate : Exchange
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
-        // deposits
+        // fetchDeposits
         //
-        //    {
-        //        "id": "d33361395",
-        //        "currency": "USDT_TRX",
-        //        "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        //        "amount": "100",
-        //        "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        //        "timestamp": "1626345819",
-        //        "status": "DONE",
-        //        "memo": ""
-        //    }
+        //     {
+        //         "id": "d33361395",
+        //         "currency": "USDT_TRX",
+        //         "address": "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        //         "amount": "100",
+        //         "txid": "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        //         "timestamp": "1626345819",
+        //         "status": "DONE",
+        //         "memo": ""
+        //     }
         //
         // withdraw
         //
-        //    {
-        //        "id": "w13389675",
-        //        "currency": "USDT",
-        //        "amount": "50",
-        //        "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
-        //        "memo": null
-        //    }
+        //     {
+        //         "id":"w64413318",
+        //         "currency":"usdt",
+        //         "amount":"10150",
+        //         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
+        //         "memo":null,
+        //         "status":"REQUEST",
+        //         "chain":"eth",
+        //         "withdraw_order_id":"",
+        //         "fee_amount":"4.15000000"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id": "210496",
+        //         "timestamp": "1542000000",
+        //         "withdraw_order_id": "order_123456",
+        //         "currency": "USDT",
+        //         "address": "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs",
+        //         "txid": "128988928203223323290",
+        //         "block_number": "41575382",
+        //         "amount": "222.61",
+        //         "fee": "0.01",
+        //         "memo": "",
+        //         "status": "DONE",
+        //         "chain": "TRX"
+        //     }
+        //
+        //     {
+        //         "id": "w13389675",
+        //         "currency": "USDT",
+        //         "amount": "50",
+        //         "address": "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //         "memo": null
+        //     }
         //
         //     {
         //         "currency":"usdt",
-        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         //         "amount":"1880",
         //         "chain":"eth"
         //     }
@@ -3939,7 +4080,7 @@ public partial class gate : Exchange
                 type = this.parseTransactionType(getValue(id, 0));
             }
         }
-        object feeCostString = this.safeString(transaction, "fee");
+        object feeCostString = this.safeString2(transaction, "fee", "fee_amount");
         if (isTrue(isEqual(type, "withdrawal")))
         {
             amountString = Precise.stringSub(amountString, feeCostString);
@@ -5019,6 +5160,7 @@ public partial class gate : Exchange
         * @name gate#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+        * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -6709,6 +6851,95 @@ public partial class gate : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
+        };
+    }
+
+    public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchBorrowInterest
+        * @description fetch the interest owed by the user for borrowing currency for margin trading
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+        * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+        * @param {string} [code] unified currency code
+        * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+        * @param {int} [since] the earliest time in ms to fetch borrow interest for
+        * @param {int} [limit] the maximum number of structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "isolated")))
+        {
+            if (isTrue(!isEqual(market, null)))
+            {
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            }
+            response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "cross")))
+        {
+            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
+        }
+        object interest = this.parseBorrowInterests(response, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+
+    public override object parseBorrowInterest(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "currency_pair");
+        market = this.safeMarket(marketId, market);
+        object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
+        object timestamp = this.safeInteger(info, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", this.safeString(market, "symbol") },
+            { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
+            { "marginMode", marginMode },
+            { "interest", this.safeNumber(info, "interest") },
+            { "interestRate", this.safeNumber(info, "actual_rate") },
+            { "amountBorrowed", null },
         };
     }
 

@@ -72,7 +72,7 @@ public partial class mexc : Exchange
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", null },
+                { "fetchFundingRates", false },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -217,6 +217,7 @@ public partial class mexc : Exchange
                             { "rebate/affiliate/commission/detail", 1 },
                             { "mxDeduct/enable", 1 },
                             { "userDataStream", 1 },
+                            { "selfSymbols", 1 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "order", 1 },
@@ -2137,8 +2138,14 @@ public partial class mexc : Exchange
         object order = this.parseOrder(response, market);
         ((IDictionary<string,object>)order)["side"] = side;
         ((IDictionary<string,object>)order)["type"] = type;
-        ((IDictionary<string,object>)order)["price"] = price;
-        ((IDictionary<string,object>)order)["amount"] = amount;
+        if (isTrue(isEqual(this.safeString(order, "price"), null)))
+        {
+            ((IDictionary<string,object>)order)["price"] = price;
+        }
+        if (isTrue(isEqual(this.safeString(order, "amount"), null)))
+        {
+            ((IDictionary<string,object>)order)["amount"] = amount;
+        }
         return order;
     }
 
@@ -4450,11 +4457,11 @@ public partial class mexc : Exchange
         object networkId = this.safeString(depositAddress, "netWork");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.networkIdToCode(networkId) },
             { "address", address },
             { "tag", this.safeString(depositAddress, "memo") },
-            { "network", this.networkIdToCode(networkId) },
-            { "info", depositAddress },
         };
     }
 
@@ -4479,7 +4486,18 @@ public partial class mexc : Exchange
         object networkId = null;
         if (isTrue(!isEqual(networkCode, null)))
         {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            object networkUnified = this.networkIdToCode(networkCode, code);
+            object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            if (isTrue(inOp(networks, networkUnified)))
+            {
+                object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+                object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+                networkId = this.safeString(networkInfo, "network");
+            } else
+            {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (isTrue(!isEqual(networkId, null)))
         {
@@ -4525,7 +4543,19 @@ public partial class mexc : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createDepositAddress requires a `network` parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        object networkId = null;
+        object networkUnified = this.networkIdToCode(networkCode, code);
+        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+        if (isTrue(inOp(networks, networkUnified)))
+        {
+            object network = this.safeDict(networks, networkUnified, new Dictionary<string, object>() {});
+            object networkInfo = this.safeValue(network, "info", new Dictionary<string, object>() {});
+            networkId = this.safeString(networkInfo, "network");
+        } else
+        {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (isTrue(!isEqual(networkId, null)))
         {
             ((IDictionary<string,object>)request)["network"] = networkId;
@@ -4555,7 +4585,6 @@ public partial class mexc : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object network = this.safeString(parameters, "network");
-        parameters = this.omit(parameters, new List<object>() {"network"});
         object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
         object result = null;
         if (isTrue(!isEqual(network, null)))

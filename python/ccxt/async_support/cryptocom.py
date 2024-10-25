@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Account, Balances, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -69,6 +69,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': False,
@@ -1495,7 +1496,7 @@ class cryptocom(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
+            return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
         request: dict = {}
         market = None
         if symbol is not None:
@@ -1601,7 +1602,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_transaction(result, currency)
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}):
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
@@ -1652,13 +1653,13 @@ class cryptocom(Exchange, ImplicitAPI):
             result[network] = {
                 'info': value,
                 'currency': responseCode,
+                'network': network,
                 'address': address,
                 'tag': tag,
-                'network': network,
             }
         return result
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address

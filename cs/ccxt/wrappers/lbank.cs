@@ -496,20 +496,20 @@ public partial class lbank
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddressDefault(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddressDefault(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressDefault(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddressSupplement(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddressSupplement(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressSupplement(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal

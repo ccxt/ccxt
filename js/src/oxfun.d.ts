@@ -1,5 +1,5 @@
 import Exchange from './abstract/oxfun.js';
-import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 /**
  * @class oxfun
  * @augments Exchange
@@ -65,20 +65,8 @@ export default class oxfun extends Exchange {
         info: any;
     };
     parseTransferStatus(status: any): string;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-        info: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactions(transactions: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): Transaction[];

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -65,6 +65,8 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
@@ -1019,7 +1021,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.deribit.com/#private-get_current_deposit_address
@@ -1054,11 +1056,11 @@ class deribit(Exchange, ImplicitAPI):
         address = self.safe_string(result, 'address')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
         }
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:

@@ -251,7 +251,7 @@ public partial class kucoin
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#create-deposit-address"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -268,10 +268,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -294,10 +294,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -314,10 +314,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1181,7 +1181,7 @@ public partial class kucoin
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

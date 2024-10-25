@@ -101,6 +101,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("publicGetMarginConfig",parameters);
     }
 
+    public async Task<object> publicGetAnnouncements (object parameters = null)
+    {
+        return await this.callAsync ("publicGetAnnouncements",parameters);
+    }
+
     public async Task<object> publicPostBulletPublic (object parameters = null)
     {
         return await this.callAsync ("publicPostBulletPublic",parameters);
@@ -616,6 +621,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privatePostPositionUpdateUserLeverage",parameters);
     }
 
+    public async Task<object> privatePostDepositAddressCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostDepositAddressCreate",parameters);
+    }
+
     public async Task<object> privateDeleteSubApiKey (object parameters = null)
     {
         return await this.callAsync ("privateDeleteSubApiKey",parameters);
@@ -1094,6 +1104,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> futuresPrivateDeleteSubApiKey (object parameters = null)
     {
         return await this.callAsync ("futuresPrivateDeleteSubApiKey",parameters);
+    }
+
+    public async Task<object> futuresPrivateDeleteOrdersMultiCancel (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateDeleteOrdersMultiCancel",parameters);
     }
 
     public async Task<object> webExchangeGetCurrencyCurrencyChainInfo (object parameters = null)

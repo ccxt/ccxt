@@ -38,32 +38,52 @@ class zonda extends Exchange {
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => null,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchPosition' => false,
@@ -71,6 +91,7 @@ class zonda extends Exchange {
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => false,
@@ -81,9 +102,13 @@ class zonda extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => null,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
                 'setMarginMode' => false,
@@ -1533,7 +1558,7 @@ class zonda extends Exchange {
         return $this->safe_bool($fiatCurrencies, $currency, false);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
@@ -1547,15 +1572,15 @@ class zonda extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'tag'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto
@@ -1590,7 +1615,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs.zondacrypto.exchange/reference/deposit-addresses-for-crypto

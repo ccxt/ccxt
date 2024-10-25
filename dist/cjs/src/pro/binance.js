@@ -246,7 +246,7 @@ class binance extends binance$1 {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new errors.BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+            throw new errors.BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);

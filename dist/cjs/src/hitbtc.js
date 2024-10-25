@@ -49,6 +49,8 @@ class hitbtc extends hitbtc$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -987,11 +989,10 @@ class hitbtc extends hitbtc$1 {
         const parsedCode = this.safeCurrencyCode(currencyId);
         return {
             'info': response,
-            'address': address,
-            'tag': tag,
-            'code': parsedCode,
             'currency': parsedCode,
             'network': undefined,
+            'address': address,
+            'tag': tag,
         };
     }
     parseBalance(response) {

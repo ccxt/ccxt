@@ -1270,7 +1270,7 @@ public partial class bitget : ccxt.bitget
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin")))) && isTrue((isEqual(symbol, null)))))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " watchOrders requires a symbol argument for "), type), " markets.")) ;
+            marketId = "default";
         }
         if (isTrue(isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(type, "spot")))) && isTrue((isEqual(symbol, null)))))
         {
@@ -1286,9 +1286,15 @@ public partial class bitget : ccxt.bitget
             messageHash = add(messageHash, ":usdcfutures"); // non unified channel
         }
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(market, null)) && isTrue(isEqual(type, "spot"))))
+        {
+            instType = "SPOT";
+        } else
+        {
+            var instTypeparametersVariable = this.getInstType(market, parameters);
+            instType = ((IList<object>)instTypeparametersVariable)[0];
+            parameters = ((IList<object>)instTypeparametersVariable)[1];
+        }
         if (isTrue(isEqual(type, "spot")))
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbol);
@@ -1694,10 +1700,20 @@ public partial class bitget : ccxt.bitget
             symbol = getValue(market, "symbol");
             messageHash = add(add(messageHash, ":"), symbol);
         }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
         object instType = null;
-        var instTypeparametersVariable = this.getInstType(market, parameters);
-        instType = ((IList<object>)instTypeparametersVariable)[0];
-        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(market, null)) && isTrue(isEqual(type, "spot"))))
+        {
+            instType = "SPOT";
+        } else
+        {
+            var instTypeparametersVariable = this.getInstType(market, parameters);
+            instType = ((IList<object>)instTypeparametersVariable)[0];
+            parameters = ((IList<object>)instTypeparametersVariable)[1];
+        }
         object subscriptionHash = add("fill:", instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },

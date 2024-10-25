@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.probit import ImplicitAPI
 import math
-from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,7 @@ class probit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -1232,7 +1233,7 @@ class probit(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'destination_tag')
         currencyId = self.safe_string(depositAddress, 'currency_id')
@@ -1241,14 +1242,14 @@ class probit(Exchange, ImplicitAPI):
         network = self.safe_string(depositAddress, 'platform_id')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         :see: https://docs-en.probit.com/reference/deposit_address
         fetch the deposit address for a currency associated with self account
@@ -1298,7 +1299,7 @@ class probit(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() returned an empty response')
         return self.parse_deposit_address(firstAddress, currency)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         :see: https://docs-en.probit.com/reference/deposit_address
         fetch deposit addresses for multiple currencies and chain types

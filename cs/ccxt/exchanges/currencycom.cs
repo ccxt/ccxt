@@ -1967,11 +1967,11 @@ public partial class currencycom : Exchange
         this.checkAddress(address);
         currency = this.safeCurrency(null, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", getValue(currency, "code") },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

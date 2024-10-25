@@ -76,7 +76,7 @@ class mexc extends Exchange {
                 'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => null,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -225,6 +225,7 @@ class mexc extends Exchange {
                             'rebate/affiliate/commission/detail' => 1,
                             'mxDeduct/enable' => 1,
                             'userDataStream' => 1,
+                            'selfSymbols' => 1,
                         ),
                         'post' => array(
                             'order' => 1,
@@ -2236,8 +2237,12 @@ class mexc extends Exchange {
         $order = $this->parse_order($response, $market);
         $order['side'] = $side;
         $order['type'] = $type;
-        $order['price'] = $price;
-        $order['amount'] = $amount;
+        if ($this->safe_string($order, 'price') === null) {
+            $order['price'] = $price;
+        }
+        if ($this->safe_string($order, 'amount') === null) {
+            $order['amount'] = $amount;
+        }
         return $order;
     }
 
@@ -4428,7 +4433,7 @@ class mexc extends Exchange {
         return $tiers;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        coin => "USDT",
@@ -4442,21 +4447,21 @@ class mexc extends Exchange {
         $networkId = $this->safe_string($depositAddress, 'netWork');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => $this->network_id_to_code($networkId),
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
-         * fetch a dictionary of addresses for a $currency, indexed by network
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+         * fetch a dictionary of addresses for a $currency, indexed by $network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the $network
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4466,7 +4471,16 @@ class mexc extends Exchange {
         $networkCode = $this->safe_string($params, 'network');
         $networkId = null;
         if ($networkCode !== null) {
-            $networkId = $this->network_code_to_id($networkCode, $code);
+            // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+            $networkUnified = $this->network_id_to_code($networkCode, $code);
+            $networks = $this->safe_dict($currency, 'networks', array());
+            if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+                $network = $this->safe_dict($networks, $networkUnified, array());
+                $networkInfo = $this->safe_value($network, 'info', array());
+                $networkId = $this->safe_string($networkInfo, 'network');
+            } else {
+                $networkId = $this->network_code_to_id($networkCode, $code);
+            }
         }
         if ($networkId !== null) {
             $request['network'] = $networkId;
@@ -4477,7 +4491,7 @@ class mexc extends Exchange {
         //    array(
         //        {
         //            coin => "USDT",
-        //            network => "BNB Smart Chain(BEP20)",
+        //            $network => "BNB Smart Chain(BEP20)",
         //            address => "0x0d48003e0c27c5de62b97c9b4cdb31fdd29da619",
         //            memo =>  null
         //        }
@@ -4491,10 +4505,10 @@ class mexc extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit address
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-$network
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->network] the blockchain network name
+         * @param {string} [$params->network] the blockchain $network name
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -4504,9 +4518,19 @@ class mexc extends Exchange {
         );
         $networkCode = $this->safe_string($params, 'network');
         if ($networkCode === null) {
-            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `network` parameter');
+            throw new ArgumentsRequired($this->id . ' createDepositAddress requires a `$network` parameter');
         }
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
+        $networkId = null;
+        $networkUnified = $this->network_id_to_code($networkCode, $code);
+        $networks = $this->safe_dict($currency, 'networks', array());
+        if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+            $network = $this->safe_dict($networks, $networkUnified, array());
+            $networkInfo = $this->safe_value($network, 'info', array());
+            $networkId = $this->safe_string($networkInfo, 'network');
+        } else {
+            $networkId = $this->network_code_to_id($networkCode, $code);
+        }
         if ($networkId !== null) {
             $request['network'] = $networkId;
         }
@@ -4521,7 +4545,7 @@ class mexc extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
          * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
@@ -4531,7 +4555,6 @@ class mexc extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $network = $this->safe_string($params, 'network');
-        $params = $this->omit($params, array( 'network' ));
         $addressStructures = $this->fetch_deposit_addresses_by_network($code, $params);
         $result = null;
         if ($network !== null) {

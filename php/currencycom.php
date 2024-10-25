@@ -1811,7 +1811,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET
@@ -1831,16 +1831,16 @@ class currencycom extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         $currency = $this->safe_currency(null, $currency);
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 

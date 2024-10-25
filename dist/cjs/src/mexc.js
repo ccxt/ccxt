@@ -79,7 +79,7 @@ class mexc extends mexc$1 {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -228,6 +228,7 @@ class mexc extends mexc$1 {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2271,8 +2272,12 @@ class mexc extends mexc$1 {
         const order = this.parseOrder(response, market);
         order['side'] = side;
         order['type'] = type;
-        order['price'] = price;
-        order['amount'] = amount;
+        if (this.safeString(order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString(order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
         return order;
     }
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
@@ -4530,11 +4535,11 @@ class mexc extends mexc$1 {
         const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -4555,7 +4560,17 @@ class mexc extends mexc$1 {
         const networkCode = this.safeString(params, 'network');
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId(networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            const networkUnified = this.networkIdToCode(networkCode, code);
+            const networks = this.safeDict(currency, 'networks', {});
+            if (networkUnified in networks) {
+                const network = this.safeDict(networks, networkUnified, {});
+                const networkInfo = this.safeValue(network, 'info', {});
+                networkId = this.safeString(networkInfo, 'network');
+            }
+            else {
+                networkId = this.networkCodeToId(networkCode, code);
+            }
         }
         if (networkId !== undefined) {
             request['network'] = networkId;
@@ -4596,7 +4611,18 @@ class mexc extends mexc$1 {
         if (networkCode === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' createDepositAddress requires a `network` parameter');
         }
-        const networkId = this.networkCodeToId(networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        let networkId = undefined;
+        const networkUnified = this.networkIdToCode(networkCode, code);
+        const networks = this.safeDict(currency, 'networks', {});
+        if (networkUnified in networks) {
+            const network = this.safeDict(networks, networkUnified, {});
+            const networkInfo = this.safeValue(network, 'info', {});
+            networkId = this.safeString(networkInfo, 'network');
+        }
+        else {
+            networkId = this.networkCodeToId(networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4622,7 +4648,6 @@ class mexc extends mexc$1 {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeString(params, 'network');
-        params = this.omit(params, ['network']);
         const addressStructures = await this.fetchDepositAddressesByNetwork(code, params);
         let result = undefined;
         if (network !== undefined) {

@@ -212,6 +212,7 @@ interface binance {
     sapiGetPortfolioAssetIndexPrice(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     sapiGetPortfolioMarginAssetLeverage(params?: {}): Promise<implicitReturnType>;
+    sapiGetPortfolioBalance(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingProductList(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingPosition(params?: {}): Promise<implicitReturnType>;
     sapiGetStakingStakingRecord(params?: {}): Promise<implicitReturnType>;
@@ -431,6 +432,7 @@ interface binance {
     sapiV2GetLoanFlexibleLtvAdjustmentHistory(params?: {}): Promise<implicitReturnType>;
     sapiV2GetLoanFlexibleLoanableData(params?: {}): Promise<implicitReturnType>;
     sapiV2GetLoanFlexibleCollateralData(params?: {}): Promise<implicitReturnType>;
+    sapiV2GetPortfolioAccount(params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAccount(params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAlertHistory(params?: {}): Promise<implicitReturnType>;
     sapiV2PostEthStakingEthStake(params?: {}): Promise<implicitReturnType>;
@@ -491,6 +493,10 @@ interface binance {
     dapiPrivateGetCommissionRate(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetIncomeAsyn(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetIncomeAsynId(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetTradeAsyn(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetTradeAsynId(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOrderAsyn(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOrderAsynId(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPmExchangeInfo(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetPmAccountInfo(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
@@ -533,6 +539,7 @@ interface binance {
     fapiPublicGetConstituents(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetApiTradingStatus(params?: {}): Promise<implicitReturnType>;
     fapiPublicGetLvtKlines(params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetConvertExchangeInfo(params?: {}): Promise<implicitReturnType>;
     fapiDataGetDeliveryPrice(params?: {}): Promise<implicitReturnType>;
     fapiDataGetOpenInterestHist(params?: {}): Promise<implicitReturnType>;
     fapiDataGetTopLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
@@ -577,6 +584,7 @@ interface binance {
     fapiPrivateGetFeeBurn(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetSymbolConfig(params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetAccountConfig(params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetConvertOrderStatus(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin(params?: {}): Promise<implicitReturnType>;
@@ -589,6 +597,8 @@ interface binance {
     fapiPrivatePostApiReferralCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostFeeBurn(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertGetQuote(params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostConvertAcceptQuote(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutOrder(params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutBatchOrders(params?: {}): Promise<implicitReturnType>;
@@ -736,6 +746,19 @@ interface binance {
     papiGetRepayFuturesSwitch(params?: {}): Promise<implicitReturnType>;
     papiGetUmAdlQuantile(params?: {}): Promise<implicitReturnType>;
     papiGetCmAdlQuantile(params?: {}): Promise<implicitReturnType>;
+    papiGetUmTradeAsyn(params?: {}): Promise<implicitReturnType>;
+    papiGetUmTradeAsynId(params?: {}): Promise<implicitReturnType>;
+    papiGetUmOrderAsyn(params?: {}): Promise<implicitReturnType>;
+    papiGetUmOrderAsynId(params?: {}): Promise<implicitReturnType>;
+    papiGetUmIncomeAsyn(params?: {}): Promise<implicitReturnType>;
+    papiGetUmIncomeAsynId(params?: {}): Promise<implicitReturnType>;
+    papiGetUmOrderAmendment(params?: {}): Promise<implicitReturnType>;
+    papiGetCmOrderAmendment(params?: {}): Promise<implicitReturnType>;
+    papiGetUmFeeBurn(params?: {}): Promise<implicitReturnType>;
+    papiGetUmAccountConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetUmSymbolConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetCmAccountConfig(params?: {}): Promise<implicitReturnType>;
+    papiGetCmSymbolConfig(params?: {}): Promise<implicitReturnType>;
     papiPostUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPostUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiPostCmOrder(params?: {}): Promise<implicitReturnType>;
@@ -757,6 +780,8 @@ interface binance {
     papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
     papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
+    papiPutUmOrder(params?: {}): Promise<implicitReturnType>;
+    papiPutCmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmConditionalOrder(params?: {}): Promise<implicitReturnType>;
     papiDeleteUmAllOpenOrders(params?: {}): Promise<implicitReturnType>;

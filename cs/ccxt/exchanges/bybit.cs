@@ -81,6 +81,8 @@ public partial class bybit : Exchange
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverageTiers", true },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
@@ -335,6 +337,7 @@ public partial class bybit : Exchange
                         { "v5/user/del-submember", 5 },
                         { "v5/user/submembers", 5 },
                         { "v5/spot-lever-token/order-record", 1 },
+                        { "v5/spot-margin-trade/interest-rate-history", 5 },
                         { "v5/spot-margin-trade/state", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
                         { "v5/spot-cross-margin-trade/account", 1 },
@@ -5166,7 +5169,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -5277,6 +5280,11 @@ public partial class bybit : Exchange
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object innerList = this.safeList(result, "list", new List<object>() {});
+        if (isTrue(isEqual(getArrayLength(innerList), 0)))
+        {
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
+        }
         object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
@@ -5467,7 +5475,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -5505,7 +5513,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(length, 0)))
         {
             object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
-            object extra = ((bool) isTrue(isTrigger)) ? "" : "If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            object extra = ((bool) isTrue(isTrigger)) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6070,11 +6078,11 @@ public partial class bybit : Exchange
         object chain = this.safeString(depositAddress, "chain");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", chain },
             { "address", address },
             { "tag", tag },
-            { "network", chain },
-            { "info", depositAddress },
         };
     }
 
@@ -7779,7 +7787,8 @@ public partial class bybit : Exchange
         if (isTrue(paginate))
         {
             parameters = this.omit(parameters, "paginate");
-            return await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 500);
+            ((IDictionary<string,object>)parameters)["timeframe"] = timeframe;
+            return await this.fetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 200);
         }
         object market = this.market(symbol);
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "option"))))
@@ -7854,7 +7863,7 @@ public partial class bybit : Exchange
         return this.parseBorrowRate(data, currency);
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {
@@ -7865,12 +7874,22 @@ public partial class bybit : Exchange
         //         "timestamp": 1666734490778
         //     }
         //
+        // fetchBorrowRateHistory
+        //     {
+        //         "timestamp": 1721469600000,
+        //         "currency": "USDC",
+        //         "hourlyBorrowRate": "0.000014621596",
+        //         "vipLevel": "No VIP"
+        //     }
+        //
         object timestamp = this.safeInteger(info, "timestamp");
-        object currencyId = this.safeString(info, "coin");
+        object currencyId = this.safeString2(info, "coin", "currency");
+        object hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
+        object period = ((bool) isTrue((!isEqual(hourlyBorrowRate, null)))) ? 3600000 : 86400000; // 1h or 1d
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
-            { "rate", this.safeNumber(info, "interestRate") },
-            { "period", 86400000 },
+            { "rate", this.safeNumber(info, "interestRate", hourlyBorrowRate) },
+            { "period", period },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
@@ -7924,6 +7943,62 @@ public partial class bybit : Exchange
         object rows = this.safeList(data, "loanAccountList", new List<object>() {});
         object interest = this.parseBorrowInterests(rows, null);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+
+    public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchBorrowRateHistory
+        * @description retrieves a history of a currencies borrow interest rate at specific time slots
+        * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+        * @param {string} code unified currency code
+        * @param {int} [since] timestamp for the earliest borrow rate
+        * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch entries for
+        * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        if (isTrue(isEqual(since, null)))
+        {
+            since = subtract(this.milliseconds(), multiply(86400000, 30)); // last 30 days
+        }
+        ((IDictionary<string,object>)request)["startTime"] = since;
+        object endTime = this.safeInteger2(parameters, "until", "endTime");
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(isEqual(endTime, null)))
+        {
+            endTime = add(since, multiply(86400000, 30)); // since + 30 days
+        }
+        ((IDictionary<string,object>)request)["endTime"] = endTime;
+        object response = await this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, parameters));
+        //
+        //   {
+        //       "retCode": 0,
+        //       "retMsg": "OK",
+        //       "result": {
+        //           "list": [
+        //               {
+        //                   "timestamp": 1721469600000,
+        //                   "currency": "USDC",
+        //                   "hourlyBorrowRate": "0.000014621596",
+        //                   "vipLevel": "No VIP"
+        //               }
+        //           ]
+        //       },
+        //       "retExtInfo": "{}",
+        //       "time": 1721899048991
+        //   }
+        //
+        object data = this.safeDict(response, "result");
+        object rows = this.safeList(data, "list", new List<object>() {});
+        return this.parseBorrowRateHistory(rows, code, since, limit);
     }
 
     public override object parseBorrowInterest(object info, object market = null)
@@ -8158,13 +8233,13 @@ public partial class bybit : Exchange
     public virtual object parseMarginLoan(object info, object currency = null)
     {
         //
-        // borrowMargin
+        // borrowCrossMargin
         //
         //     {
         //         "transactId": "14143"
         //     }
         //
-        // repayMargin
+        // repayCrossMargin
         //
         //     {
         //         "repayId": "12128"
@@ -10002,6 +10077,92 @@ public partial class bybit : Exchange
             { "toAmount", this.safeNumber(conversion, "toAmount") },
             { "price", null },
             { "fee", null },
+        };
+    }
+
+    public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#fetchLongShortRatioHistory
+        * @description fetches the long short ratio history for a unified market symbol
+        * @see https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+        * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+        * @param {string} [timeframe] the period for the ratio, default is 24 hours
+        * @param {int} [since] the earliest time in ms to fetch ratios for
+        * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = null;
+        var typeparametersVariable = this.getBybitType("fetchLongShortRatioHistory", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "option"))))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchLongShortRatioHistory() only support linear and inverse markets")) ;
+        }
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            timeframe = "1d";
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "period", timeframe },
+            { "category", type },
+        };
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = await this.publicGetV5MarketAccountRatio(this.extend(request, parameters));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "buyRatio": "0.5707",
+        //                     "sellRatio": "0.4293",
+        //                     "timestamp": "1729123200000"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1729147842516
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "list", new List<object>() {});
+        return this.parseLongShortRatioHistory(data, market);
+    }
+
+    public override object parseLongShortRatio(object info, object market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "buyRatio": "0.5707",
+        //         "sellRatio": "0.4293",
+        //         "timestamp": "1729123200000"
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeIntegerOmitZero(info, "timestamp");
+        object longString = this.safeString(info, "buyRatio");
+        object shortString = this.safeString(info, "sellRatio");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "timeframe", null },
+            { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
         };
     }
 
