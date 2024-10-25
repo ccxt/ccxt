@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported, ArgumentsRequired } from './base/errors.js';
-import type { Dict, int, Num, Strings, Int, Market, OrderType, OrderSide, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
+import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1146,7 +1146,7 @@ export default class defx extends Exchange {
         }
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
+            request['newClientOrderId'] = clientOrderId;
         }
         if (stopPrice !== undefined || takeProfitPrice !== undefined) {
             request['workingType'] = 'MARK_PRICE';
@@ -1196,6 +1196,89 @@ export default class defx extends Exchange {
         //
         const data = this.safeDict (response, 'data');
         return this.parseOrder (data, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        if (status !== undefined) {
+            const statuses: Dict = {
+                'NEW': 'open',
+            };
+            return this.safeString (statuses, status, status);
+        }
+        return status;
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // {
+        //     "orderId": "",
+        //     "clientOrderId": "",
+        //     "cumulativeQty": "",
+        //     "cumulativeQuote": "",
+        //     "executedQty": "",
+        //     "avgPrice": "",
+        //     "origQty": "",
+        //     "price": "",
+        //     "reduceOnly": true,
+        //     "side": "",
+        //     "status": "",
+        //     "symbol": "",
+        //     "timeInForce": "",
+        //     "type": "",
+        //     "workingType": ""
+        // }
+        //
+        const orderId = this.safeString (order, 'orderId');
+        const clientOrderId = this.omitZero (this.safeString (order, 'clientOrderId'));
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'origQty');
+        const orderType = this.safeStringLower (order, 'type');
+        const status = this.safeString (order, 'status');
+        const side = this.safeStringLower (order, 'side');
+        const filled = this.omitZero (this.safeString (order, 'executedQty'));
+        const average = this.omitZero (this.safeString (order, 'avgPrice'));
+        const timeInForce = this.safeStringLower (order, 'timeInForce');
+        let takeProfitPrice: Str = undefined;
+        let stopPrice: Str = undefined;
+        if (orderType.indexOf ('take_profit') >= 0) {
+            takeProfitPrice = this.safeString (order, 'stopPrice');
+        } else {
+            stopPrice = this.safeString (order, 'stopPrice');
+        }
+        return this.safeOrder ({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': this.parseOrderStatus (status),
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': timeInForce,
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'side': side,
+            'price': price,
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': undefined,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+            },
+            'info': order,
+        }, market);
     }
 
     nonce () {
