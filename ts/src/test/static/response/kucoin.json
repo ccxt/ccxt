@@ -1212,24 +1212,10 @@
                         "active": false,
                         "deposit": false,
                         "withdraw": false,
-                        "fee": null,
+                        "fee": 2999,
                         "limits": {
-                            "leverage": {
-                                "min": null,
-                                "max": null
-                            },
-                            "amount": {
-                                "min": null,
-                                "max": null
-                            },
-                            "price": {
-                                "min": null,
-                                "max": null
-                            },
-                            "cost": {
-                                "min": null,
-                                "max": null
-                            }
+                            "deposit":{"min":null,"max":null},
+                            "withdraw":{"min":2999,"max":null}
                         },
                         "networks": {
                             "ERC20": {
