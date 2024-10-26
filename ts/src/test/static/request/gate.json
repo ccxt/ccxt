@@ -159,6 +159,22 @@
                   1
                 ],
                 "output": "{\"contract\":\"XRP_USDT\",\"size\":-1,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
+            {
+                "description": "unified spot create a limit order",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  52000,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"unified\",\"side\":\"buy\",\"amount\":\"0.0001\",\"price\":\"52000\"}"
             }
         ],
         "createOrders": [
