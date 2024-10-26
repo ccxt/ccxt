@@ -384,6 +384,19 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "unified spot fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.gateio.ws/api/v4/spot/my_trades?currency_pair=BTC_USDT&account=unified",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "fetchOpenOrders": [
