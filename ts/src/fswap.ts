@@ -1271,8 +1271,34 @@ export default class fswap extends Exchange {
         console.log ('preOrderResp:', preOrderResp);
         const memo = this.safeString (preOrderResp, 'memo');
         const resp = await this.safeTransfer (payAssetId, amount.toString (), memo);
-        console.log ('safeTransfer:', resp);
-        return resp;
+        const order: Order = {
+            'id': followID,
+            'clientOrderId': undefined,
+            'datetime': new Date ().toISOString (),
+            'timestamp': Date.now (),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': 'open',
+            'symbol': symbol,
+            'type': 'swap',
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'filled': 0,
+            'remaining': amount,
+            'cost': 0,
+            'trades': [],
+            'fee': {
+                'cost': 0,
+                'currency': baseSymbol,
+            },
+            'reduceOnly': false,
+            'postOnly': false,
+            'info': { resp },
+        };
+        return order;
     }
 
     async createAddLiquidityOrder (symbol: string, side: OrderSide, amount: number, params?: {}): Promise<Order> {
