@@ -1594,6 +1594,11 @@ class gate extends gate$1 {
                 throw new errors.BadRequest(this.id + ' getMarginMode() does not support stop orders for cross margin');
             }
         }
+        let isUnifiedAccount = false;
+        [isUnifiedAccount, params] = this.handleOptionAndParams(params, 'getMarginMode', 'unifiedAccount');
+        if (isUnifiedAccount) {
+            marginMode = 'unified';
+        }
         return [marginMode, params];
     }
     getSettlementCurrencies(type, method) {
@@ -3369,10 +3374,12 @@ class gate extends gate$1 {
          * @param {int} [params.offset] *contract only* list offset, starting from 0
          * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
+         * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -3930,9 +3937,11 @@ class gate extends gate$1 {
          * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
          * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
          * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = this.market(symbol);
         const trigger = this.safeValue(params, 'trigger');
         const triggerPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
@@ -4084,6 +4093,7 @@ class gate extends gate$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const ordersRequests = this.createOrdersRequest(orders, params);
         const firstOrder = orders[0];
         const market = this.market(firstOrder['symbol']);
@@ -4365,9 +4375,11 @@ class gate extends gate$1 {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -4377,8 +4389,14 @@ class gate extends gate$1 {
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('editOrder', market, params);
-        const account = this.convertTypeToAccount(marketType);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('editOrder', market, params);
+        let account = this.convertTypeToAccount(marketType);
+        let isUnifiedAccount = false;
+        [isUnifiedAccount, params] = this.handleOptionAndParams(params, 'editOrder', 'unifiedAccount');
+        if (isUnifiedAccount) {
+            account = 'unified';
+        }
         const isLimitOrder = (type === 'limit');
         if (account === 'spot') {
             if (!isLimitOrder) {
@@ -4410,7 +4428,7 @@ class gate extends gate$1 {
         if (!market['spot']) {
             request['settle'] = market['settleId'];
         }
-        return this.extend(request, query);
+        return this.extend(request, params);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
@@ -4426,9 +4444,11 @@ class gate extends gate$1 {
          * @param {float} amount how much of the currency you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = this.market(symbol);
         const extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         let response = undefined;
@@ -4788,9 +4808,11 @@ class gate extends gate$1 {
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+         * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const result = this.handleMarketTypeAndParams('fetchOrder', market, params);
         const type = this.safeString(result, 0);
@@ -4843,6 +4865,7 @@ class gate extends gate$1 {
          * @param {bool} [params.stop] true for fetching stop orders
          * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+         * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
@@ -4868,9 +4891,11 @@ class gate extends gate$1 {
          * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
          * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {boolean} [params.historical] *swap only* true for using historical endpoint
+         * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const until = this.safeInteger(params, 'until');
         let market = undefined;
         if (symbol !== undefined) {
@@ -4941,6 +4966,7 @@ class gate extends gate$1 {
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -5160,9 +5186,11 @@ class gate extends gate$1 {
          * @param {string} symbol Unified market symbol
          * @param {object} [params] Parameters specified by the exchange api
          * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+         * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
          * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const stop = this.safeBoolN(params, ['is_stop_order', 'stop', 'trigger'], false);
         params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
@@ -5293,9 +5321,11 @@ class gate extends gate$1 {
          * @param {string[]} ids order ids
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -5339,9 +5369,11 @@ class gate extends gate$1 {
          * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [params.clientOrderIds] client order ids
+         * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -5379,9 +5411,11 @@ class gate extends gate$1 {
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);

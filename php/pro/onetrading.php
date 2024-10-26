@@ -1018,7 +1018,8 @@ class onetrading extends \ccxt\async\onetrading {
         if ($updateType === 'TRADE_SETTLED') {
             $parsed = $this->parse_trade($update);
             $symbol = $this->safe_string($parsed, 'symbol', '');
-            $this->myTrades.append ($parsed);
+            $myTrades = $this->myTrades;
+            $myTrades->append ($parsed);
             $client->resolve ($this->myTrades, 'myTrades:' . $symbol);
             $client->resolve ($this->myTrades, 'myTrades');
         }

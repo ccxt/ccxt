@@ -1613,6 +1613,11 @@ class gate extends Exchange {
                 throw new BadRequest($this->id . ' getMarginMode() does not support $stop orders for cross margin');
             }
         }
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'getMarginMode', 'unifiedAccount');
+        if ($isUnifiedAccount) {
+            $marginMode = 'unified';
+        }
         return array( $marginMode, $params );
     }
 
@@ -3387,10 +3392,12 @@ class gate extends Exchange {
              * @param {int} [$params->offset] *$contract only* list offset, starting from 0
              * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
              * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {bool} [$params->unifiedAccount] set to true for fetching trades in a unified account
+             * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -3949,9 +3956,11 @@ class gate extends Exchange {
              * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
              * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+             * @param {bool} [$params->unifiedAccount] set to true for creating an order in the unified account
              * @return {array|null} ~@link https://docs.ccxt.com/#/?id=order-structure An order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             $trigger = $this->safe_value($params, 'trigger');
             $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
@@ -4099,6 +4108,7 @@ class gate extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $ordersRequests = $this->create_orders_request($orders, $params);
             $firstOrder = $orders[0];
             $market = $this->market($firstOrder['symbol']);
@@ -4202,7 +4212,7 @@ class gate extends Exchange {
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     'currency_pair' => $market['id'], // filled in prepareRequest above
                     'type' => $type,
-                    'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
+                    'account' => $marginMode, // spot, margin, cross_margin, unified
                     'side' => $side,
                     // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
@@ -4367,9 +4377,11 @@ class gate extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->unifiedAccount] set to true for creating a unified account order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -4381,8 +4393,14 @@ class gate extends Exchange {
 
     public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
         $account = $this->convert_type_to_account($marketType);
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'editOrder', 'unifiedAccount');
+        if ($isUnifiedAccount) {
+            $account = 'unified';
+        }
         $isLimitOrder = ($type === 'limit');
         if ($account === 'spot') {
             if (!$isLimitOrder) {
@@ -4412,7 +4430,7 @@ class gate extends Exchange {
         if (!$market['spot']) {
             $request['settle'] = $market['settleId'];
         }
-        return $this->extend($request, $query);
+        return $this->extend($request, $params);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
@@ -4428,9 +4446,11 @@ class gate extends Exchange {
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->unifiedAccount] set to true for editing an order in a unified account
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             $extendedRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
@@ -4793,9 +4813,11 @@ class gate extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
+             * @param {bool} [$params->unifiedAccount] set to true for fetching a unified account order
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
             $type = $this->safe_string($result, 0);
@@ -4842,6 +4864,7 @@ class gate extends Exchange {
              * @param {bool} [$params->stop] true for fetching stop orders
              * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
+             * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
@@ -4868,9 +4891,11 @@ class gate extends Exchange {
              * @param {string} [$params->type] spot, swap or future, if not provided $this->options['defaultType'] is used
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {boolean} [$params->historical] *swap only* true for using historical endpoint
+             * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $until = $this->safe_integer($params, 'until');
             $market = null;
             if ($symbol !== null) {
@@ -4945,6 +4970,7 @@ class gate extends Exchange {
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -5157,9 +5183,11 @@ class gate extends Exchange {
              * @param {string} $symbol Unified $market $symbol
              * @param {array} [$params] Parameters specified by the exchange api
              * @param {bool} [$params->stop] True if the order to be cancelled is a trigger order
+             * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $stop = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
             $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
@@ -5284,9 +5312,11 @@ class gate extends Exchange {
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -5331,9 +5361,11 @@ class gate extends Exchange {
              * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string[]} [$params->clientOrderIds] client $order ids
+             * @param {bool} [$params->unifiedAccount] set to true for canceling unified account $orders
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $ordersRequests = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $order = $orders[$i];
@@ -5372,9 +5404,11 @@ class gate extends Exchange {
              * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $stop = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));

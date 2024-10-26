@@ -1581,6 +1581,14 @@ public partial class gate : Exchange
                 throw new BadRequest ((string)add(this.id, " getMarginMode() does not support stop orders for cross margin")) ;
             }
         }
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            marginMode = "unified";
+        }
         return new List<object>() {marginMode, parameters};
     }
 
@@ -3531,11 +3539,13 @@ public partial class gate : Exchange
         * @param {int} [params.offset] *contract only* list offset, starting from 0
         * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
         * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
+        * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -4155,10 +4165,12 @@ public partial class gate : Exchange
         * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+        * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
         * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         object trigger = this.safeValue(parameters, "trigger");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -4325,6 +4337,7 @@ public partial class gate : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
         object firstOrder = getValue(orders, 0);
         object market = this.market(getValue(firstOrder, "symbol"));
@@ -4637,10 +4650,12 @@ public partial class gate : Exchange
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -4654,10 +4669,19 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object account = this.convertTypeToAccount(marketType);
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            account = "unified";
+        }
         object isLimitOrder = (isEqual(type, "limit"));
         if (isTrue(isEqual(account, "spot")))
         {
@@ -4695,7 +4719,7 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["settle"] = getValue(market, "settleId");
         }
-        return this.extend(request, query);
+        return this.extend(request, parameters);
     }
 
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -4713,10 +4737,12 @@ public partial class gate : Exchange
         * @param {float} amount how much of the currency you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
@@ -5104,10 +5130,12 @@ public partial class gate : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+        * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         object type = this.safeString(result, 0);
@@ -5168,6 +5196,7 @@ public partial class gate : Exchange
         * @param {bool} [params.stop] true for fetching stop orders
         * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+        * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5196,10 +5225,12 @@ public partial class gate : Exchange
         * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {boolean} [params.historical] *swap only* true for using historical endpoint
+        * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object until = this.safeInteger(parameters, "until");
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -5301,6 +5332,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -5532,10 +5564,12 @@ public partial class gate : Exchange
         * @param {string} symbol Unified market symbol
         * @param {object} [params] Parameters specified by the exchange api
         * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object stop = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
@@ -5676,10 +5710,12 @@ public partial class gate : Exchange
         * @param {string[]} ids order ids
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -5732,10 +5768,12 @@ public partial class gate : Exchange
         * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string[]} [params.clientOrderIds] client order ids
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -5777,10 +5815,12 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});

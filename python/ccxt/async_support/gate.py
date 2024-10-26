@@ -1568,6 +1568,10 @@ class gate(Exchange, ImplicitAPI):
                 marginMode = 'normal'
             if marginMode == 'cross_margin':
                 raise BadRequest(self.id + ' getMarginMode() does not support stop orders for cross margin')
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'getMarginMode', 'unifiedAccount')
+        if isUnifiedAccount:
+            marginMode = 'unified'
         return [marginMode, params]
 
     def get_settlement_currencies(self, type, method):
@@ -3204,10 +3208,12 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.offset]: *contract only* list offset, starting from 0
         :param str [params.last_id]: *contract only* specify list staring point using the id of last record in previous list-query results
         :param int [params.count_total]: *contract only* whether to return total number matched, default to 0(no return)
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :param bool [params.unifiedAccount]: set to True for fetching trades in a unified account
+        :param bool [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -3725,9 +3731,11 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.auto_size]: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param bool [params.unifiedAccount]: set to True for creating an order in the unified account
         :returns dict|None: `An order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = self.market(symbol)
         trigger = self.safe_value(params, 'trigger')
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
@@ -3862,6 +3870,7 @@ class gate(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         ordersRequests = self.create_orders_request(orders, params)
         firstOrder = orders[0]
         market = self.market(firstOrder['symbol'])
@@ -3949,7 +3958,7 @@ class gate(Exchange, ImplicitAPI):
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     'currency_pair': market['id'],  # filled in prepareRequest above
                     'type': type,
-                    'account': marginMode,  # 'spot', 'margin', 'cross_margin'
+                    'account': marginMode,  # spot, margin, cross_margin, unified
                     'side': side,
                     # 'time_in_force': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'iceberg': 0,  # amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
@@ -4090,9 +4099,11 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.unifiedAccount]: set to True for creating a unified account order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -4101,8 +4112,13 @@ class gate(Exchange, ImplicitAPI):
 
     def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('editOrder', market, params)
         account = self.convert_type_to_account(marketType)
+        isUnifiedAccount = False
+        isUnifiedAccount, params = self.handle_option_and_params(params, 'editOrder', 'unifiedAccount')
+        if isUnifiedAccount:
+            account = 'unified'
         isLimitOrder = (type == 'limit')
         if account == 'spot':
             if not isLimitOrder:
@@ -4125,7 +4141,7 @@ class gate(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         if not market['spot']:
             request['settle'] = market['settleId']
-        return self.extend(request, query)
+        return self.extend(request, params)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
@@ -4139,9 +4155,11 @@ class gate(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.unifiedAccount]: set to True for editing an order in a unified account
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = self.market(symbol)
         extendedRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = None
@@ -4483,9 +4501,11 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.type]: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
+        :param bool [params.unifiedAccount]: set to True for fetching a unified account order
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         result = self.handle_market_type_and_params('fetchOrder', market, params)
         type = self.safe_string(result, 0)
@@ -4525,6 +4545,7 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.stop]: True for fetching stop orders
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
+        :param bool [params.unifiedAccount]: set to True for fetching unified account orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return await self.fetch_orders_by_status('open', symbol, since, limit, params)
@@ -4548,9 +4569,11 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.type]: spot, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param boolean [params.historical]: *swap only* True for using historical endpoint
+        :param bool [params.unifiedAccount]: set to True for fetching unified account orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         until = self.safe_integer(params, 'until')
         market = None
         if symbol is not None:
@@ -4608,6 +4631,7 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
+        await self.load_unified_status()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -4809,9 +4833,11 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: Unified market symbol
         :param dict [params]: Parameters specified by the exchange api
         :param bool [params.stop]: True if the order to be cancelled is a trigger order
+        :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         stop = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
@@ -4929,9 +4955,11 @@ class gate(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -4968,9 +4996,11 @@ class gate(Exchange, ImplicitAPI):
         :param CancellationRequest[] orders: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
+        :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         ordersRequests = []
         for i in range(0, len(orders)):
             order = orders[i]
@@ -5004,9 +5034,11 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
         stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])

@@ -965,7 +965,8 @@ class onetrading(ccxt.async_support.onetrading):
         if updateType == 'TRADE_SETTLED':
             parsed = self.parse_trade(update)
             symbol = self.safe_string(parsed, 'symbol', '')
-            self.myTrades.append(parsed)
+            myTrades = self.myTrades
+            myTrades.append(parsed)
             client.resolve(self.myTrades, 'myTrades:' + symbol)
             client.resolve(self.myTrades, 'myTrades')
 
