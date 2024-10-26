@@ -159,6 +159,22 @@
                   1
                 ],
                 "output": "{\"contract\":\"XRP_USDT\",\"size\":-1,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
+            {
+                "description": "unified spot create a limit order",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders",
+                "input": [
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  52000,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"type\":\"limit\",\"account\":\"unified\",\"side\":\"buy\",\"amount\":\"0.0001\",\"price\":\"52000\"}"
             }
         ],
         "createOrders": [
@@ -279,6 +295,23 @@
                   101
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":-2,\"price\":\"101\"}"
+            },
+            {
+                "description": "unified spot edit an order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/707345943869?currency_pair=BTC_USDT&account=unified&price=51000",
+                "input": [
+                  "707345943869",
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  null,
+                  51000,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"account\":\"unified\",\"price\":\"51000\"}"
             }
         ],
         "fetchPositions": [
@@ -384,6 +417,19 @@
                     1699457638000,
                     5
                 ]
+            },
+            {
+                "description": "unified spot fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.gateio.ws/api/v4/spot/my_trades?currency_pair=BTC_USDT&account=unified",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -445,6 +491,19 @@
                 "url": "https://api.gateio.ws/api/v4/options/orders?contract=BTC_USDT-20240126-20000-C&status=open",
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
+                ]
+            },
+            {
+                "description": "unified spot fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/open_orders?account=unified&currency_pair=BTC_USDT&status=open",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
                 ]
             }
         ],
@@ -555,6 +614,19 @@
                     "until": 1727316000000
                   }
                 ]
+            },
+            {
+                "description": "unified spot fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/orders?account=unified&currency_pair=BTC_USDT&status=finished",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [
@@ -632,6 +704,17 @@
                     {
                         "stop": true
                     }
+                ]
+            },
+            {
+                "description": "unified spot cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/orders?account=unified&currency_pair=BTC_USDT",
+                "input": [
+                  "BTC/USDT",
+                  {
+                    "unifiedAccount": true
+                  }
                 ]
             }
         ],
@@ -1344,6 +1427,18 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "unified account fetch an order",
+                "method": "fetchOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/707345943869?account=unified&currency_pair=BTC_USDT",
+                "input": [
+                  "707345943869",
+                  "BTC/USDT",
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "cancelOrder": [
@@ -1430,6 +1525,18 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "unified spot cancel an order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/707345943869?account=unified&currency_pair=BTC_USDT",
+                "input": [
+                  "707345943869",
+                  "BTC/USDT",
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "cancelOrders": [
@@ -1458,6 +1565,21 @@
                   "LTC/USDT:USDT"
                 ],
                 "output": "[\"495649711905\",\"495649711903\"]"
+            },
+            {
+                "description": "unified spot cancel orders",
+                "method": "cancelOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/cancel_batch_orders",
+                "input": [
+                  [
+                    "707359349827"
+                  ],
+                  "BTC/USDT",
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "[{\"id\":\"707359349827\",\"currency_pair\":\"BTC_USDT\"}]"
             }
         ],
         "reduceMargin": [
