@@ -5,6 +5,7 @@ import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { eddsa, TRUNCATE } from './base/functions.js';
 import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
+import { blake3Hash } from './static_dependencies/mixin-node-sdk/client/utils/uniq.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { base64 } from './static_dependencies/scure-base/index.js';
@@ -79,19 +80,17 @@ export default class fswap extends Exchange {
                         'orders/{follow_id}': 1,
                         'transactions/{base}/{quote}/mine': 1,
                     },
-                    'post': {
-                        'actions': 1,
-                    },
                 },
                 'mixinPrivate': {
                     'get': {
                         'safe/outputs': 1,
                         'safe/snapshots': 1,
+                        'safe/assets/{asset_id}/fees': 1,
                     },
                     'post': {
                         'safe/keys': 1,
-                        'safe/transaction/requests': 1,
                         'safe/transactions': 1,
+                        'safe/transaction/requests': 1,
                         'safe/deposit/entries': 1,
                     },
                 },
@@ -100,7 +99,6 @@ export default class fswap extends Exchange {
                         '4swap/preorder': 1,
                         '4swap/add_liquidity': 1,
                         '4swap/remove_liquidity': 1,
-                        'mixin/encodetx': 1,
                     },
                 },
             },
@@ -1225,6 +1223,14 @@ export default class fswap extends Exchange {
         return resp;
     }
 
+    async safeTransferWithTx (encodedTx: string, tx: Dict) {
+        const { verifiedTx, request_id } = await this.verifySafeTx (encodedTx);
+        const views = this.safeValue (verifiedTx[0], 'views');
+        const signedTx = this.mixinSignSafeTransaction (tx, views, this.privateKey);
+        const resp = await this.sendSafeTx (signedTx, request_id);
+        return resp;
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order> {
         if (type === 'spot') {
             return await this.createSwapOrder (symbol, side, amount, price, params);
@@ -1530,6 +1536,152 @@ export default class fswap extends Exchange {
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        const currency = this.currency (code);
+        const assetId = currency['id'];
+        const fees = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
+            'asset_id': assetId,
+        });
+        const feeResp = this.safeValue (fees, 0, {});
+        const feeAmount = this.safeString (feeResp, 'amount');
+        const feeAssetId = this.safeString (feeResp, 'asset_id');
+        if (!feeAmount || !feeAssetId) {
+            throw new Error ('Unable to find fee amount or fee asset id');
+        }
+        if (feeAssetId === assetId) {
+            // Same chain, one asset
+            const safeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
+                'asset_id': assetId,
+                'state': 'unspent',
+            });
+            const outputs = this.safeValue (safeOutputsResp, 'data', []);
+            if (outputs.length === 0) {
+                throw new Error ('No unspent outputs found for ' + code);
+            }
+            const recipients = [
+                {
+                    'amount': amount.toString (),
+                    'destination': address,
+                },
+                this.mixinBuildSafeTransactionRecipient (this.options.MixinCashier, 1, feeAmount),
+            ];
+            const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
+            if (!change.isZero () && !change.isNegative ()) {
+                recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
+            }
+            const recipientDetails = [];
+            for (let i = 0; i < recipients.length; i++) {
+                const r = recipients[i];
+                const receivers = this.safeValue (r, 'members');
+                recipientDetails.push ({
+                    'hint': this.uuid (),
+                    'receivers': receivers,
+                    'index': i,
+                });
+            }
+            const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
+            const ghosts = this.safeValue (ghostsResp, 'data', {});
+            const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+            const encodedTx = this.mixinEncodeSafeTransaction (tx);
+            const resp = await this.safeTransferWithTx (encodedTx, tx);
+            return resp;
+        } else {
+            // Different chain, two assets
+            const safeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
+                'asset_id': assetId,
+                'state': 'unspent',
+            });
+            const feeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
+                'asset_id': feeAssetId,
+                'state': 'unspent',
+            });
+            const outputs = this.safeValue (safeOutputsResp, 'data', []);
+            const feeOutputs = this.safeValue (feeOutputsResp, 'data', []);
+            if (outputs.length === 0) {
+                throw new Error ('No unspent outputs found for ' + code);
+            }
+            if (feeOutputs.length === 0) {
+                throw new Error ('No unspent outputs found for fee asset ' + feeAssetId);
+            }
+            const recipients = [
+                {
+                    'amount': amount.toString (),
+                    'destination': address,
+                },
+            ];
+            const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
+            if (!change.isZero () && !change.isNegative ()) {
+                const changeRecipient = this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ());
+                // Destination added here as a placeholder to avoid ts error
+                recipients.push ({
+                    ...changeRecipient,
+                    'destination': 'default',
+                });
+            }
+            const recipientDetails = [];
+            for (let i = 0; i < recipients.length; i++) {
+                const r = recipients[i];
+                const receivers = this.safeValue (r, 'members');
+                recipientDetails.push ({
+                    'hint': this.uuid (),
+                    'receivers': receivers,
+                    'index': i,
+                });
+            }
+            const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
+            // spare the 0 inedx for withdrawal output, withdrawal output doesnt need ghost key
+            const ghosts = this.safeValue (ghostsResp, 'data', {});
+            const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+            const raw = this.mixinEncodeSafeTransaction (tx);
+            const ref = this.mixinBlake3Hash (raw);
+            // fee
+            const feeRecipients = [
+                this.mixinBuildSafeTransactionRecipient (this.options.MixinCashier, 1, feeAmount),
+            ];
+            const { 'utxos': feeUtxos, 'change': feeChange } = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
+            if (!feeChange.isZero () && !feeChange.isNegative ()) {
+                // add fee change output if needed
+                feeRecipients.push (this.mixinBuildSafeTransactionRecipient (feeOutputs[0].receivers, feeOutputs[0].receivers_threshold, feeChange.toString ()));
+            }
+            const feeRecipientDetails = [];
+            for (let i = 0; i < feeRecipients.length; i++) {
+                const r = feeRecipients[i];
+                const receivers = this.safeValue (r, 'members');
+                feeRecipientDetails.push ({
+                    'hint': this.uuid (),
+                    'receivers': receivers,
+                    'index': i,
+                });
+            }
+            const feeGhostsResp = await this.mixinPrivatePostSafeKeys (feeRecipientDetails);
+            const feeGhosts = this.safeValue (feeGhostsResp, 'data', {});
+            const feeTx = this.mixinBuildSafeTransaction (feeUtxos, feeRecipients, feeGhosts, 'withdrawal-fee-memo', [ ref ]);
+            const feeRaw = this.mixinEncodeSafeTransaction (feeTx);
+            const txId = this.uuid ();
+            const feeId = this.uuid ();
+            const txs = await this.mixinPrivatePostSafeTransactionRequests ([
+                {
+                    'raw': raw,
+                    'request_id': txId,
+                },
+                {
+                    'raw': feeRaw,
+                    'request_id': feeId,
+                },
+            ]);
+            const signedRaw = this.mixinSignSafeTransaction (tx, txs[0].views, this.privateKey);
+            const signedFeeRaw = this.mixinSignSafeTransaction (feeTx, txs[1].views, this.privateKey);
+            const res = await this.mixinPrivatePostSafeTransactions ([
+                {
+                    'raw': signedRaw,
+                    'request_id': txId,
+                },
+                {
+                    'raw': signedFeeRaw,
+                    'request_id': feeId,
+                },
+            ]);
+            console.log (res);
+        }
         return undefined;
     }
 

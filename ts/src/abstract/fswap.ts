@@ -18,20 +18,20 @@ interface Exchange {
     fswapPublicGetStatsMarketsBaseQuote (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetStatsMarketsBaseQuoteKlineV2 (params?: {}): Promise<implicitReturnType>;
     fswapPublicGetTransactionsBaseQuote (params?: {}): Promise<implicitReturnType>;
+    mixinPublicGetAssetsAssetId (params?: {}): Promise<implicitReturnType>;
     mixinPublicGetNetworkAssetAssetId (params?: {}): Promise<implicitReturnType>;
     fswapPrivateGetOrdersFollowId (params?: {}): Promise<implicitReturnType>;
     fswapPrivateGetTransactionsBaseQuoteMine (params?: {}): Promise<implicitReturnType>;
-    fswapPrivatePostActions (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeOutputs (params?: {}): Promise<implicitReturnType>;
     mixinPrivateGetSafeSnapshots (params?: {}): Promise<implicitReturnType>;
+    mixinPrivateGetSafeAssetsAssetIdFees (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeKeys (params?: {}): Promise<implicitReturnType>;
-    mixinPrivatePostSafeTransactionRequests (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeTransactions (params?: {}): Promise<implicitReturnType>;
+    mixinPrivatePostSafeTransactionRequests (params?: {}): Promise<implicitReturnType>;
     mixinPrivatePostSafeDepositEntries (params?: {}): Promise<implicitReturnType>;
     ccxtProxyPost4swapPreorder (params?: {}): Promise<implicitReturnType>;
     ccxtProxyPost4swapAddLiquidity (params?: {}): Promise<implicitReturnType>;
     ccxtProxyPost4swapRemoveLiquidity (params?: {}): Promise<implicitReturnType>;
-    ccxtProxyPostMixinEncodetx (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

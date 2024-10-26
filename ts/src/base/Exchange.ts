@@ -170,6 +170,7 @@ import {getStarkKey, ethSigToPrivate, sign as starknetCurveSign} from '../static
 import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
 import { buildSafeTransaction, buildSafeTransactionRecipient, encodeSafeTransaction, getUnspentOutputsForRecipients, signSafeTransaction } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
+import { blake3Hash } from '../static_dependencies/mixin-node-sdk/client/utils/uniq.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1552,6 +1553,10 @@ export default class Exchange {
 
     mixinSignSafeTransaction(raw, views, privateKey, index = 0) {
         return signSafeTransaction(raw, views, privateKey, index);
+    }
+
+    mixinBlake3Hash(raw) {
+        return blake3Hash(Buffer.from(raw, 'hex')).toString('hex');
     }
 
     intToBase16(elem): string {
