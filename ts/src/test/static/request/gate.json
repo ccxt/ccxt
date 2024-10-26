@@ -492,6 +492,19 @@
                 "input": [
                     "BTC/USDT:USDT-240126-20000-C"
                 ]
+            },
+            {
+                "description": "unified spot fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/open_orders?account=unified&currency_pair=BTC_USDT&status=open",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [
