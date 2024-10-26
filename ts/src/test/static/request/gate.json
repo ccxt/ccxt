@@ -295,6 +295,23 @@
                   101
                 ],
                 "output": "{\"currency_pair\":\"LTC_USDT\",\"account\":\"futures\",\"size\":-2,\"price\":\"101\"}"
+            },
+            {
+                "description": "unified spot edit an order",
+                "method": "editOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/707345943869?currency_pair=BTC_USDT&account=unified&price=51000",
+                "input": [
+                  "707345943869",
+                  "BTC/USDT",
+                  "limit",
+                  "buy",
+                  null,
+                  51000,
+                  {
+                    "unifiedAccount": true
+                  }
+                ],
+                "output": "{\"currency_pair\":\"BTC_USDT\",\"account\":\"unified\",\"price\":\"51000\"}"
             }
         ],
         "fetchPositions": [
