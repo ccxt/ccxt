@@ -1390,6 +1390,18 @@
                         "stop": true
                     }
                 ]
+            },
+            {
+                "description": "unified account fetch an order",
+                "method": "fetchOrder",
+                "url": "https://api.gateio.ws/api/v4/spot/orders/707345943869?account=unified&currency_pair=BTC_USDT",
+                "input": [
+                  "707345943869",
+                  "BTC/USDT",
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "cancelOrder": [
