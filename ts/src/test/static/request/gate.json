@@ -614,6 +614,19 @@
                     "until": 1727316000000
                   }
                 ]
+            },
+            {
+                "description": "unified spot fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/spot/orders?account=unified&currency_pair=BTC_USDT&status=finished",
+                "input": [
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "unifiedAccount": true
+                  }
+                ]
             }
         ],
         "cancelAllOrders": [
