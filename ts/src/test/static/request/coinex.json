@@ -1309,7 +1309,7 @@
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
             null,
             {
-              "network": "TRX"
+              "network": "TRC20"
             }
           ],
           "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"

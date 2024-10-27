@@ -4920,7 +4920,6 @@ export default class coinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        params = this.omit (params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
