@@ -3984,23 +3984,15 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networks = this.safeDict (currency, 'networks', {});
-        const network = this.safeString2 (params, 'network', 'chain');
-        params = this.omit (params, 'network');
-        const networksKeys = Object.keys (networks);
-        const numOfNetworks = networksKeys.length;
-        if (networks !== undefined && numOfNetworks > 1) {
-            if (network === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() ' + code + ' requires a network parameter');
-            }
-            if (!(network in networks)) {
-                throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
-            }
-        }
         const request: Dict = {
             'ccy': currency['id'],
-            'chain': network,
         };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
+        }
+        request['chain'] = this.networkCodeToId (networkCode); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress (this.extend (request, params));
         //
         //     {
@@ -4013,13 +4005,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const depositAddress = this.parseDepositAddress (data, currency);
-        const options = this.safeDict (this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            depositAddress['network'] = this.networkIdToCode (network, currency).toUpperCase ();
-        }
-        return depositAddress as DepositAddress;
+        return this.parseDepositAddress (data, currency);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
