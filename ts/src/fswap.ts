@@ -4,7 +4,7 @@ import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { eddsa, TRUNCATE } from './base/functions.js';
-import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Trade, Transaction, TransferEntry } from './base/types.js';
+import { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry } from './base/types.js';
 import { blake3Hash } from './static_dependencies/mixin-node-sdk/client/utils/uniq.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1535,6 +1535,51 @@ export default class fswap extends Exchange {
         }
     }
 
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        const fees = {};
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const assetId = currency['id'];
+            const feesResp = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
+                'asset_id': assetId,
+            });
+            // [
+            //     {
+            //       "amount": "10",
+            //       "asset_id": "4d8c508b-91c5-375b-92b0-ee702ed2dac5",
+            //       "priority": 100,
+            //       "type": "withdrawal_fee"
+            //     },
+            //     {
+            //       "amount": "0.01",
+            //       "asset_id": "43d61dcd-e413-450d-80b8-101d5e903357",
+            //       "priority": 10,
+            //       "type": "withdrawal_fee"
+            //     }
+            // ]
+            const allFees = this.safeValue (feesResp, 'data', []);
+            const fee = allFees[0];
+            if (!fee) {
+                throw new Error ('Unable to find fee for asset ' + code);
+            }
+            const feeAmount = this.safeString (fee, 'amount');
+            const feeAssetId = this.safeString (fee, 'asset_id');
+            fees[code] = {
+                'withdraw': { 'fee': feeAmount, 'percentage': false, 'asset_id': feeAssetId },
+                'deposit': { 'fee': 0, 'percentage': undefined },
+                'networks': {
+                    [code]: {
+                        'deposit': { 'fee': 0, 'percentage': undefined },
+                        'withdraw': { 'fee': feeAmount, 'percentage': false, 'asset_id': feeAssetId },
+                    },
+                },
+                'info': allFees,
+            };
+        }
+        return fees;
+    }
+
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         const currency = this.currency (code);
         const assetId = currency['id'];
@@ -1708,6 +1753,7 @@ export default class fswap extends Exchange {
                     body = this.json (params);
                 }
             }
+            console.log ('path:', path);
             console.log (method, 'url:', url);
             console.log ('params:', params);
         } else {
@@ -1715,9 +1761,13 @@ export default class fswap extends Exchange {
                 if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
                     this.checkRequiredCredentials ();
                     let encodedParams = '';
+                    // Avoid adding params to dynamic path endpoint
                     if (Object.keys (params).length) {
                         encodedParams = '?' + this.urlencode (params);
                         url = url + encodedParams;
+                    }
+                    if (path === 'safe/assets/{asset_id}/fees') {
+                        path = path.replace ('{asset_id}', params['asset_id']);
                     }
                     const requestID = this.uuid ();
                     const jwtToken = this.signAuthenticationToken (method, '/' + path, encodedParams, requestID);
@@ -1726,6 +1776,7 @@ export default class fswap extends Exchange {
                         'Authorization': 'Bearer ' + jwtToken,
                         'X-Request-Id': requestID,
                     };
+                    console.log ('path:', path);
                     console.log ('encodedParams:', encodedParams);
                 } else {
                     if (Object.keys (params).length) {
