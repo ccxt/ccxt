@@ -448,7 +448,7 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	result := map[string]interface{}{
 		"r": "",
 		"s": "",
-		"v": "",
+		"v": 0,
 	}
 
 	// Determine the curve
