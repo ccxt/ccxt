@@ -1260,6 +1260,10 @@ class testMainClass {
                 if (isDisabledCSharp && (this.lang === 'C#')) {
                     continue;
                 }
+                const isDisabledGo = exchange.safeBool (result, 'disabledGO', false);
+                if (isDisabledGo && (this.lang === 'GO')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);

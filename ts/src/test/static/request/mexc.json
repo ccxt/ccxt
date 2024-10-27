@@ -118,6 +118,7 @@
             {
                 "description": "Spot create multiple buy orders at once",
                 "method": "createOrders",
+                "disabledGO": true,
                 "url": "https://api.mexc.com/api/v3/batchOrders?batchOrders=%5B%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221000%22%2C%22price%22%3A%220.005%22%7D%2C%7B%22symbol%22%3A%22ATLASUSDT%22%2C%22side%22%3A%22BUY%22%2C%22type%22%3A%22LIMIT%22%2C%22quantity%22%3A%221100%22%2C%22price%22%3A%220.0054%22%7D%5D&timestamp=1701304049492&recvWindow=5000&signature=2b277d28ccda099ffe176604ab3e87f27fb151180a6d7a35d3ad1640ae6839f3",
                 "input": [
                     [
