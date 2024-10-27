@@ -4968,6 +4968,7 @@ export default class coinex extends Exchange {
         const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',
+            'audit_required': 'pending',
             'processing': 'pending',
             'confirming': 'pending',
             'not_pass': 'failed',
