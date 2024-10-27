@@ -2613,8 +2613,8 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-            const stopLoss = this.safeValue (params, 'stopLoss');
-            const takeProfit = this.safeValue (params, 'takeProfit');
+            const stopLoss = this.safeDict (params, 'stopLoss');
+            const takeProfit = this.safeDict (params, 'takeProfit');
             const isStopLoss = stopLoss !== undefined;
             const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
@@ -3262,7 +3262,7 @@ export default class bingx extends Exchange {
                 feeCurrencyCode = market['quote'];
             }
         }
-        let stopLoss = this.safeValue (order, 'stopLoss');
+        let stopLoss = this.safeDict (order, 'stopLoss');
         let stopLossPrice = undefined;
         if ((stopLoss !== undefined) && (stopLoss !== '')) {
             stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopLoss'));
@@ -3274,7 +3274,7 @@ export default class bingx extends Exchange {
             }
             stopLossPrice = this.omitZero (this.safeString (stopLoss, 'stopPrice'));
         }
-        let takeProfit = this.safeValue (order, 'takeProfit');
+        let takeProfit = this.safeDict (order, 'takeProfit');
         let takeProfitPrice = undefined;
         if (takeProfit !== undefined && (takeProfit !== '')) {
             takeProfitPrice = this.omitZero (this.safeString (takeProfit, 'takeProfit'));
@@ -3655,7 +3655,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const clientOrderIds = this.safeDict (params, 'clientOrderIds');
+        const clientOrderIds = this.safeList (params, 'clientOrderIds');
         params = this.omit (params, 'clientOrderIds');
         let idsToParse = ids;
         const areClientOrderIds = (clientOrderIds !== undefined);
