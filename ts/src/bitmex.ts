@@ -1171,7 +1171,7 @@ export default class bitmex extends Exchange {
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
             fee = {
-                'cost': this.parseToNumeric (feeCost),
+                'cost': this.parseNumber (feeCost),
                 'currency': code,
             };
         }
@@ -1179,7 +1179,7 @@ export default class bitmex extends Exchange {
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
-        const before = this.parseToNumeric (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
+        const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
@@ -1199,9 +1199,9 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': this.parseToNumeric (amount),
+            'amount': this.parseNumber (amount),
             'before': before,
-            'after': this.parseToNumeric (after),
+            'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
         }, currency) as LedgerEntry;
