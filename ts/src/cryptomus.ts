@@ -19,7 +19,7 @@ export default class cryptomus extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'cryptomus',
             'name': 'Cryptomus',
-            'countries': [ '' ], // todo
+            'countries': [ 'CA' ],
             'rateLimit': 100, // todo check
             'version': 'v1',
             'certified': false,
@@ -163,7 +163,21 @@ export default class cryptomus extends Exchange {
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'networks': {
-                    // todo
+                    'BEP20': 'bsc',
+                    'DASH': 'dash',
+                    'POLYGON': 'polygon',
+                    'ARB': 'arbitrum',
+                    'SOL': 'sol',
+                    'TON': 'ton',
+                    'ERC20': 'eth',
+                    'TRC20': 'tron',
+                    'LTC': 'ltc',
+                    'XMR': 'xmr',
+                    'BCH': 'bch',
+                    'DOGE': 'doge',
+                    'AVAX': 'avalanche',
+                    'BTC': 'btc',
+                    'RUB': 'rub',
                 },
                 'networksById': {
                     'bsc': 'BEP20',
@@ -531,15 +545,31 @@ export default class cryptomus extends Exchange {
             'currencyPair': market['id'],
         };
         let level = 0;
-        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'leve', level);
+        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'level', level);
         request['level'] = level;
         const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
         //
-        // todo check
+        //     {
+        //         "data": {
+        //             "timestamp": "1730138702",
+        //             "bids": [
+        //                 {
+        //                     "price": "2250.00",
+        //                     "quantity": "1.00000"
+        //                 }
+        //             ],
+        //             "asks": [
+        //                 {
+        //                     "price": "2428.69",
+        //                     "quantity": "0.16470"
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        const result = this.safeDict (response, 'result');
-        const timestamp = this.safeInteger (result, 'timestamp');
-        return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
