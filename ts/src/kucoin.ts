@@ -1363,13 +1363,13 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    safeCurrencyItem (currency: object): CurrencyInterface {
+    safeCurrencyItem (currency: object) {
         // derive from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
         const length = keys.length;
         if (length === 0) {
-            return (currency as CurrencyInterface);
+            return currency;
         }
         for (let i = 0; i < length; i++) {
             const network = networks[keys[i]];
@@ -1440,7 +1440,7 @@ export default class kucoin extends Exchange {
                 currency['limits']['withdraw']['max'] = this.parseNumber (limitsWithdrawMax);
             }
         }
-        return (currency as CurrencyInterface);
+        return currency;
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
