@@ -1795,7 +1795,8 @@
             "fetchL2OrderBook": "same",
             "fetchTrades": {
                 "price": "sometimes is not set",
-                "amount": "same"
+                "amount": "same",
+                "cost": "same"
             }
         }
     }
