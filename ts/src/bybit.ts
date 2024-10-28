@@ -1084,7 +1084,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
          */
-        if (this.isSandboxMode) {
+        if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
