@@ -1780,5 +1780,17 @@
             },
             "loadMarkets": "linear and inverse values are same"
         }
+    },
+    "cryptomus": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+		"loadMarkets": {
+                "active":"not provided",
+                "precision": "not provided",
+                "limits": "not provided"
+            }
+        }
     }
 }
