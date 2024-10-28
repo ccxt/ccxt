@@ -568,7 +568,7 @@ export default class cryptomus extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'timestamp');
+        const timestamp = this.safeTimestamp (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
@@ -598,7 +598,8 @@ export default class cryptomus extends Exchange {
         //                 "price": "2315.6320500000000000",
         //                 "base_volume": "21.9839623057260000",
         //                 "quote_volume": "0.0094937200000000",
-        //                 "timestamp": 1726653796,"type": "sell"
+        //                 "timestamp": 1726653796,
+        //                 "type": "sell"
         //             }
         //         ]
         //     }
@@ -626,8 +627,8 @@ export default class cryptomus extends Exchange {
             'symbol': market['symbol'],
             'side': this.safeString (trade, 'type'),
             'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'quote_volume'), // todo check
-            'cost': this.safeString (trade, 'base_volume'), // todo check
+            'amount': this.safeString (trade, 'quote_volume'), // quote_volume is amount
+            'cost': this.safeString (trade, 'base_volume'), // base_volume is cost
             'takerOrMaker': undefined,
             'type': undefined,
             'order': undefined,
