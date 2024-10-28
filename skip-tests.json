@@ -1786,11 +1786,13 @@
             "fetchCurrencies": {
                 "precision": "not provided"
             },
-		"loadMarkets": {
+            "loadMarkets": {
                 "active":"not provided",
                 "precision": "not provided",
                 "limits": "not provided"
-            }
+            },
+            "fetchOrderBook": "best ask is not always greater than best bid",
+            "fetchL2OrderBook": "same"
         }
     }
 }
