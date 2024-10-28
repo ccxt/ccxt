@@ -5,7 +5,6 @@ import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
 import { eddsa, TRUNCATE } from './base/functions.js';
 import { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry } from './base/types.js';
-import { blake3Hash } from './static_dependencies/mixin-node-sdk/client/utils/uniq.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { base64 } from './static_dependencies/scure-base/index.js';
@@ -149,6 +148,7 @@ export default class fswap extends Exchange {
                 'MTGMember4': 'd469485e-5812-466d-a156-93bee313b6a1',
                 'MTGMember5': 'd68ca71f-0e2c-458a-bb9c-1d6c2eed2497',
                 'MTGThrehold': 4,
+                'MixinWithdrawalCashier': '674d6776-d600-4346-af46-58e77d8df185',
                 'AddLiquidityDuration': 3600,
                 'AddLiquiditySlippage': 0.01,
                 'AssetMap': {
@@ -1539,8 +1539,7 @@ export default class fswap extends Exchange {
         const fees = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currency = this.currency (code);
-            const assetId = currency['id'];
+            const assetId = this.mapSymbolToAssetId (code);
             const feesResp = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
                 'asset_id': assetId,
             });
@@ -1581,14 +1580,17 @@ export default class fswap extends Exchange {
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        const currency = this.currency (code);
-        const assetId = currency['id'];
-        const fees = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
+        const assetId = this.mapSymbolToAssetId (code);
+        const feesResp = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
             'asset_id': assetId,
         });
-        const feeResp = this.safeValue (fees, 0, {});
-        const feeAmount = this.safeString (feeResp, 'amount');
-        const feeAssetId = this.safeString (feeResp, 'asset_id');
+        const allFees = this.safeValue (feesResp, 'data', []);
+        const fee = allFees[0];
+        if (!fee) {
+            throw new Error ('Unable to find fee for asset ' + code);
+        }
+        const feeAmount = this.safeString (fee, 'amount');
+        const feeAssetId = this.safeString (fee, 'asset_id');
         if (!feeAmount || !feeAssetId) {
             throw new Error ('Unable to find fee amount or fee asset id');
         }
@@ -1607,7 +1609,7 @@ export default class fswap extends Exchange {
                     'amount': amount.toString (),
                     'destination': address,
                 },
-                this.mixinBuildSafeTransactionRecipient (this.options.MixinCashier, 1, feeAmount),
+                this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
             ];
             const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
             if (!change.isZero () && !change.isNegative ()) {
@@ -1680,7 +1682,7 @@ export default class fswap extends Exchange {
             const ref = this.mixinBlake3Hash (raw);
             // fee
             const feeRecipients = [
-                this.mixinBuildSafeTransactionRecipient (this.options.MixinCashier, 1, feeAmount),
+                this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
             ];
             const { 'utxos': feeUtxos, 'change': feeChange } = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
             if (!feeChange.isZero () && !feeChange.isNegative ()) {
@@ -1731,7 +1733,22 @@ export default class fswap extends Exchange {
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        throw new Error (this.id + ' transfer() is not supported yet');
+        // Map code to asset ID
+        // fromAccount is the app_id in keystore
+        // toAccoutn is the user_id or the app_id of the bot
+        const asset_id = this.mapSymbolToAssetId (code);
+        const transferResp = await this.safeTransfer (asset_id, amount.toString(), '');
+        return {
+            'info': transferResp,
+            'id': '',
+            'timestamp': Date.now (),
+            'datetime': new Date ().toISOString (),
+            'currency': code,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': 'success',
+        }
     }
 
     sign (path, api = 'fswapPublic', method = 'GET', params = {}, headers = undefined, body = undefined) {
