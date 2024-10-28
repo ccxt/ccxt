@@ -776,7 +776,6 @@ class Transpiler {
             'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
-            'CurrencyInterface': /-> CurrencyInterface:/,
             'Bool': /: (?:List\[)?Bool =/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
