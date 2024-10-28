@@ -1699,6 +1699,9 @@ class xt(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_', marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 't')
+        percentage = self.safe_number_2(ticker, 'cr', 'r')
+        if percentage is not None:
+            percentage = percentage * 100
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1715,7 +1718,7 @@ class xt(Exchange, ImplicitAPI):
             'last': self.safe_string(ticker, 'c'),
             'previousClose': None,
             'change': self.safe_number(ticker, 'cv'),
-            'percentage': self.safe_number_2(ticker, 'cr', 'r'),
+            'percentage': percentage,
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
