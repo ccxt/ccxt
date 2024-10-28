@@ -1166,14 +1166,15 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        let fee = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
+            fee = {
+                'cost': this.parseToNumeric (feeCost),
+                'currency': code,
+            };
         }
-        const fee = {
-            'cost': this.parseToNumeric (feeCost),
-            'currency': code,
-        };
         let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
