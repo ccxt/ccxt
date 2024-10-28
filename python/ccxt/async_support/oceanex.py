@@ -57,6 +57,8 @@ class oceanex(Exchange, ImplicitAPI):
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarkets': True,

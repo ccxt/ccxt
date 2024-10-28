@@ -93,6 +93,7 @@ public partial class gate : Exchange
                 { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -313,10 +314,17 @@ public partial class gate : Exchange
                             { "interest_records", divide(20, 15) },
                             { "estimate_rate", divide(20, 15) },
                             { "currency_discount_tiers", divide(20, 15) },
+                            { "risk_units", divide(20, 15) },
+                            { "unified_mode", divide(20, 15) },
+                            { "loan_margin_tiers", divide(20, 15) },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "account_mode", divide(20, 15) },
                             { "loans", divide(200, 15) },
+                            { "portfolio_calculator", divide(20, 15) },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "unified_mode", divide(20, 15) },
                         } },
                     } },
                     { "spot", new Dictionary<string, object>() {
@@ -616,6 +624,7 @@ public partial class gate : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "sandboxMode", false },
+                { "unifiedAccount", null },
                 { "createOrder", new Dictionary<string, object>() {
                     { "expiration", 86400 },
                 } },
@@ -804,6 +813,44 @@ public partial class gate : Exchange
     {
         base.setSandboxMode(enable);
         ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
+    }
+
+    public async virtual Task loadUnifiedStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#isUnifiedEnabled
+        * @description returns unifiedAccount so the user can check if the unified account is enabled
+        * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+        * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
+        */
+        parameters ??= new Dictionary<string, object>();
+        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        if (isTrue(isEqual(unifiedAccount, null)))
+        {
+            object response = await this.privateAccountGetDetail(parameters);
+            //
+            //     {
+            //         "user_id": 10406147,
+            //         "ip_whitelist": [],
+            //         "currency_pairs": [],
+            //         "key": {
+            //             "mode": 1
+            //         },
+            //         "tier": 0,
+            //         "tier_expire_time": "0001-01-01T00:00:00Z",
+            //         "copy_trading_role": 0
+            //     }
+            //
+            object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
+            ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+        }
+    }
+
+    public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.privateUnifiedPutUnifiedMode(parameters);
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -1464,7 +1511,7 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object multiOrderSpotPrepareRequest(object market = null, object stop = null, object parameters = null)
+    public virtual object multiOrderSpotPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -1476,9 +1523,9 @@ public partial class gate : Exchange
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
-        stop ??= false;
+        trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(stop, parameters);
+        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -1486,7 +1533,7 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(market, null)))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 // gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
                 ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
@@ -1534,6 +1581,14 @@ public partial class gate : Exchange
                 throw new BadRequest ((string)add(this.id, " getMarginMode() does not support stop orders for cross margin")) ;
             }
         }
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            marginMode = "unified";
+        }
         return new List<object>() {marginMode, parameters};
     }
 
@@ -1561,6 +1616,10 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(apiBackup, null)))
         {
             return null;
+        }
+        if (isTrue(this.checkRequiredCredentials(false)))
+        {
+            await this.loadUnifiedStatus();
         }
         object response = await this.publicSpotGetCurrencies(parameters);
         //
@@ -2774,11 +2833,17 @@ public partial class gate : Exchange
         * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.symbol] margin only - unified ccxt symbol
+        * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, "symbol");
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
         var typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
@@ -2794,7 +2859,10 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
         object response = null;
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetAccounts(this.extend(request, parameters));
+        } else if (isTrue(isEqual(type, "spot")))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
@@ -2969,6 +3037,57 @@ public partial class gate : Exchange
         //         "currency": "USDT",
         //         "short_enabled": false,
         //         "orders_limit": 10
+        //     }
+        //
+        // unified
+        //
+        //     {
+        //         "user_id": 10001,
+        //         "locked": false,
+        //         "balances": {
+        //             "ETH": {
+        //                 "available": "0",
+        //                 "freeze": "0",
+        //                 "borrowed": "0.075393666654",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "1016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "POINT": {
+        //                 "available": "9999999999.017023138734",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "12016.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             },
+        //             "USDT": {
+        //                 "available": "0.00000062023",
+        //                 "freeze": "0",
+        //                 "borrowed": "0",
+        //                 "negative_liab": "0",
+        //                 "futures_pos_liab": "0",
+        //                 "equity": "16.1",
+        //                 "total_freeze": "0",
+        //                 "total_liab": "0"
+        //             }
+        //         },
+        //         "total": "230.94621713",
+        //         "borrowed": "161.66395521",
+        //         "total_initial_margin": "1025.0524665088",
+        //         "total_margin_balance": "3382495.944473949183",
+        //         "total_maintenance_margin": "205.01049330176",
+        //         "total_initial_margin_rate": "3299.827135672679",
+        //         "total_maintenance_margin_rate": "16499.135678363399",
+        //         "total_available_margin": "3381470.892007440383",
+        //         "unified_account_total": "3381470.892007440383",
+        //         "unified_account_total_liab": "0",
+        //         "unified_account_total_equity": "100016.1",
+        //         "leverage": "2"
         //     }
         //
         object result = new Dictionary<string, object>() {
@@ -3420,11 +3539,13 @@ public partial class gate : Exchange
         * @param {int} [params.offset] *contract only* list offset, starting from 0
         * @param {string} [params.last_id] *contract only* specify list staring point using the id of last record in previous list-query results
         * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
+        * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -4044,10 +4165,12 @@ public partial class gate : Exchange
         * @param {bool} [params.auto_size] *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+        * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
         * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         object trigger = this.safeValue(parameters, "trigger");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
@@ -4214,6 +4337,7 @@ public partial class gate : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object ordersRequests = this.createOrdersRequest(orders, parameters);
         object firstOrder = getValue(orders, 0);
         object market = this.market(getValue(firstOrder, "symbol"));
@@ -4526,10 +4650,12 @@ public partial class gate : Exchange
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -4543,10 +4669,19 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object account = this.convertTypeToAccount(marketType);
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            account = "unified";
+        }
         object isLimitOrder = (isEqual(type, "limit"));
         if (isTrue(isEqual(account, "spot")))
         {
@@ -4584,7 +4719,7 @@ public partial class gate : Exchange
         {
             ((IDictionary<string,object>)request)["settle"] = getValue(market, "settleId");
         }
-        return this.extend(request, query);
+        return this.extend(request, parameters);
     }
 
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -4602,10 +4737,12 @@ public partial class gate : Exchange
         * @param {float} amount how much of the currency you want to trade in units of the base currency
         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = this.market(symbol);
         object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = null;
@@ -4879,7 +5016,7 @@ public partial class gate : Exchange
         // Everything below this(above return) is related to fees
         object fees = new List<object>() {};
         object gtFee = this.safeString(order, "gt_fee");
-        if (isTrue(gtFee))
+        if (isTrue(!isEqual(gtFee, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", "GT" },
@@ -4887,7 +5024,7 @@ public partial class gate : Exchange
             });
         }
         object fee = this.safeString(order, "fee");
-        if (isTrue(fee))
+        if (isTrue(!isEqual(fee, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "fee_currency")) },
@@ -4895,7 +5032,7 @@ public partial class gate : Exchange
             });
         }
         object rebate = this.safeString(order, "rebated_fee");
-        if (isTrue(rebate))
+        if (isTrue(!isEqual(rebate, null)))
         {
             ((IList<object>)fees).Add(new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString(order, "rebated_fee_currency")) },
@@ -4993,10 +5130,12 @@ public partial class gate : Exchange
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
         * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
+        * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         object type = this.safeString(result, 0);
@@ -5057,6 +5196,7 @@ public partial class gate : Exchange
         * @param {bool} [params.stop] true for fetching stop orders
         * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
+        * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -5085,10 +5225,12 @@ public partial class gate : Exchange
         * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
         * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
         * @param {boolean} [params.historical] *swap only* true for using historical endpoint
+        * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object until = this.safeInteger(parameters, "until");
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -5137,17 +5279,23 @@ public partial class gate : Exchange
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object trigger = null;
+        var triggerparametersVariable = this.handleParamBool2(parameters, "trigger", "stop");
+        trigger = ((IList<object>)triggerparametersVariable)[0];
+        parameters = ((IList<object>)triggerparametersVariable)[1];
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
         object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, stop, parameters) : this.prepareRequest(market, type, parameters);
+        var requestparametersVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
+        if (isTrue(isTrue(spot) && isTrue(trigger)))
+        {
+            request = this.omit(request, "account");
+        }
         if (isTrue(isEqual(status, "closed")))
         {
             status = "finished";
@@ -5184,38 +5332,42 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        object stop = this.safeBool2(parameters, "stop", "trigger");
-        parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+        // don't omit here, omits done in prepareOrdersByStatusRequest
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
         object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         object type = this.safeString(res, 0);
-        ((IDictionary<string,object>)parameters)["type"] = type;
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
-        object openSpotOrders = isTrue(isTrue(spot) && isTrue((isEqual(status, "open")))) && !isTrue(stop);
+        object openStatus = (isEqual(status, "open"));
+        object openSpotOrders = isTrue(isTrue(spot) && isTrue(openStatus)) && !isTrue(trigger);
         object response = null;
-        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
+        if (isTrue(spot))
         {
-            if (isTrue(openSpotOrders))
+            if (!isTrue(trigger))
             {
-                response = await this.privateSpotGetOpenOrders(this.extend(request, requestParams));
-            } else if (isTrue(stop))
-            {
-                response = await this.privateSpotGetPriceOrders(this.extend(request, requestParams));
+                if (isTrue(openStatus))
+                {
+                    response = await this.privateSpotGetOpenOrders(this.extend(request, requestParams));
+                } else
+                {
+                    response = await this.privateSpotGetOrders(this.extend(request, requestParams));
+                }
             } else
             {
-                response = await this.privateSpotGetOrders(this.extend(request, requestParams));
+                response = await this.privateSpotGetPriceOrders(this.extend(request, requestParams));
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesGetSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5224,7 +5376,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryGetSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5412,10 +5564,12 @@ public partial class gate : Exchange
         * @param {string} symbol Unified market symbol
         * @param {object} [params] Parameters specified by the exchange api
         * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object stop = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
@@ -5556,10 +5710,12 @@ public partial class gate : Exchange
         * @param {string[]} ids order ids
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -5612,10 +5768,12 @@ public partial class gate : Exchange
         * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string[]} [params.clientOrderIds] client order ids
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -5657,10 +5815,12 @@ public partial class gate : Exchange
         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
@@ -6563,39 +6723,38 @@ public partial class gate : Exchange
         * @name gate#repayCrossMargin
         * @description repay cross margin borrowed margin and interest
         * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+        * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
         * @param {string} code unified currency code of the currency to repay
         * @param {float} amount the amount to repay
         * @param {string} symbol unified market symbol, required for isolated margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
         * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
+        * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
-        //
-        //     [
-        //         {
-        //             "id": "17",
-        //             "create_time": 1620381696159,
-        //             "update_time": 1620381696159,
-        //             "currency": "EOS",
-        //             "amount": "110.553635",
-        //             "text": "web",
-        //             "status": 2,
-        //             "repaid": "110.506649705159",
-        //             "repaid_interest": "0.046985294841",
-        //             "unpaid_interest": "0.0000074393366667"
-        //         }
-        //     ]
-        //
-        response = this.safeValue(response, 0);
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object response = null;
+        if (isTrue(isUnifiedAccount))
+        {
+            ((IDictionary<string,object>)request)["type"] = "repay";
+            response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateMarginPostCrossRepayments(this.extend(request, parameters));
+            response = this.safeDict(response, 0);
+        }
         return this.parseMarginLoan(response, currency);
     }
 
@@ -6654,35 +6813,36 @@ public partial class gate : Exchange
         * @name gate#borrowMargin
         * @description create a loan to borrow margin
         * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+        * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
         * @param {string} code unified currency code of the currency to borrow
         * @param {float} amount the amount to borrow
         * @param {string} symbol unified market symbol, required for isolated margin
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
+        * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        await this.loadUnifiedStatus();
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", ((string)getValue(currency, "id")).ToUpper() },
             { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
-        //
-        //     {
-        //         "id": "17",
-        //         "create_time": 1620381696159,
-        //         "update_time": 1620381696159,
-        //         "currency": "EOS",
-        //         "amount": "110.553635",
-        //         "text": "web",
-        //         "status": 2,
-        //         "repaid": "110.506649705159",
-        //         "repaid_interest": "0.046985294841",
-        //         "unpaid_interest": "0.0000074393366667"
-        //     }
-        //
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object response = null;
+        if (isTrue(isUnifiedAccount))
+        {
+            ((IDictionary<string,object>)request)["type"] = "borrow";
+            response = await this.privateUnifiedPostLoans(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateMarginPostCrossLoans(this.extend(request, parameters));
+        }
         return this.parseMarginLoan(response, currency);
     }
 
@@ -6740,6 +6900,95 @@ public partial class gate : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
+        };
+    }
+
+    public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchBorrowInterest
+        * @description fetch the interest owed by the user for borrowing currency for margin trading
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records
+        * @see https://www.gate.io/docs/developers/apiv4/en/#interest-records-for-the-cross-margin-account
+        * @see https://www.gate.io/docs/developers/apiv4/en/#list-interest-records-2
+        * @param {string} [code] unified currency code
+        * @param {string} [symbol] unified market symbol when fetching interest in isolated markets
+        * @param {int} [since] the earliest time in ms to fetch borrow interest for
+        * @param {int} [limit] the maximum number of structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
+        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.loadUnifiedStatus();
+        object isUnifiedAccount = false;
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        object request = new Dictionary<string, object>() {};
+        var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["from"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["limit"] = limit;
+        }
+        object response = null;
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        if (isTrue(isUnifiedAccount))
+        {
+            response = await this.privateUnifiedGetInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "isolated")))
+        {
+            if (isTrue(!isEqual(market, null)))
+            {
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
+            }
+            response = await this.privateMarginGetUniInterestRecords(this.extend(request, parameters));
+        } else if (isTrue(isEqual(marginMode, "cross")))
+        {
+            response = await this.privateMarginGetCrossInterestRecords(this.extend(request, parameters));
+        }
+        object interest = this.parseBorrowInterests(response, market);
+        return this.filterByCurrencySinceLimit(interest, code, since, limit);
+    }
+
+    public override object parseBorrowInterest(object info, object market = null)
+    {
+        object marketId = this.safeString(info, "currency_pair");
+        market = this.safeMarket(marketId, market);
+        object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
+        object timestamp = this.safeInteger(info, "create_time");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "symbol", this.safeString(market, "symbol") },
+            { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
+            { "marginMode", marginMode },
+            { "interest", this.safeNumber(info, "interest") },
+            { "interestRate", this.safeNumber(info, "actual_rate") },
+            { "amountBorrowed", null },
         };
     }
 

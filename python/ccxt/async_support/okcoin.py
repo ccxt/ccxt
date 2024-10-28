@@ -72,6 +72,7 @@ class okcoin(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,

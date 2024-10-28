@@ -1125,7 +1125,7 @@ class yobit(Exchange, ImplicitAPI):
         ids = list(trades.keys())
         result = []
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             trade = self.parse_trade(self.extend(trades[id], {
                 'trade_id': id,
             }), market)

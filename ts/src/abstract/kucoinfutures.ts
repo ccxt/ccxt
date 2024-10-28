@@ -56,6 +56,7 @@ interface kucoin {
     privateGetMarketOrderbookLevelLevel (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel2 (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel3 (params?: {}): Promise<implicitReturnType>;
+    privateGetHfAccountsOpened (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActiveSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrderActiveSymbols (params?: {}): Promise<implicitReturnType>;
@@ -131,6 +132,7 @@ interface kucoin {
     privatePostLendPurchaseUpdate (params?: {}): Promise<implicitReturnType>;
     privatePostBulletPrivate (params?: {}): Promise<implicitReturnType>;
     privatePostPositionUpdateUserLeverage (params?: {}): Promise<implicitReturnType>;
+    privatePostDepositAddressCreate (params?: {}): Promise<implicitReturnType>;
     privateDeleteSubApiKey (params?: {}): Promise<implicitReturnType>;
     privateDeleteWithdrawalsWithdrawalId (params?: {}): Promise<implicitReturnType>;
     privateDeleteHfOrdersOrderId (params?: {}): Promise<implicitReturnType>;

@@ -89,6 +89,8 @@ class bybit extends bybit$1 {
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': true,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -1008,6 +1010,7 @@ class bybit extends bybit$1 {
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
+                'unifiedMarginStatus': undefined,
                 'createMarketBuyOrderRequiresPrice': true,
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',
@@ -1137,6 +1140,8 @@ class bybit extends bybit$1 {
         /**
          * @method
          * @name bybit#isUnifiedEnabled
+         * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+         * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1150,9 +1155,13 @@ class bybit extends bybit$1 {
                 // so we're assuming UTA is enabled
                 this.options['enableUnifiedMargin'] = false;
                 this.options['enableUnifiedAccount'] = true;
+                this.options['unifiedMarginStatus'] = 3;
                 return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
             }
-            const response = await this.privateGetV5UserQueryApi(params);
+            const rawPromises = [this.privateGetV5UserQueryApi(params), this.privateGetV5AccountInfo(params)];
+            const promises = await Promise.all(rawPromises);
+            const response = promises[0];
+            const accountInfo = promises[1];
             //
             //     {
             //         "retCode": 0,
@@ -1192,14 +1201,37 @@ class bybit extends bybit$1 {
             //         "retExtInfo": {},
             //         "time": 1676891757649
             //     }
+            // account info
+            //     {
+            //         "retCode": 0,
+            //         "retMsg": "OK",
+            //         "result": {
+            //             "marginMode": "REGULAR_MARGIN",
+            //             "updatedTime": "1697078946000",
+            //             "unifiedMarginStatus": 4,
+            //             "dcpStatus": "OFF",
+            //             "timeWindow": 10,
+            //             "smpGroup": 0,
+            //             "isMasterTrader": false,
+            //             "spotHedgingStatus": "OFF"
+            //         }
+            //     }
             //
             const result = this.safeDict(response, 'result', {});
+            const accountResult = this.safeDict(accountInfo, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger(result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger(result, 'uta') === 1;
+            this.options['unifiedMarginStatus'] = this.safeInteger(accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
         }
         return [this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount']];
     }
     async upgradeUnifiedTradeAccount(params = {}) {
+        /**
+         * @method
+         * @name bybit#upgradeUnifiedTradeAccount
+         * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+         * @description upgrades the account to unified trade account *warning* this is irreversible
+         */
         return await this.privatePostV5AccountUpgradeToUta(params);
     }
     createExpiredOptionMarket(symbol) {
@@ -3167,11 +3199,18 @@ class bybit extends bybit$1 {
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
-            if (isInverse) {
-                type = 'contract';
+            const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 3);
+            if (unifiedMarginStatus < 5) {
+                // it's not uta.20 where inverse are unified
+                if (isInverse) {
+                    type = 'contract';
+                }
+                else {
+                    type = 'unified';
+                }
             }
             else {
-                type = 'unified';
+                type = 'unified'; // uta.20 where inverse are unified
             }
         }
         else {
@@ -7642,13 +7681,13 @@ class bybit extends bybit$1 {
     }
     parseMarginLoan(info, currency = undefined) {
         //
-        // borrowMargin
+        // borrowCrossMargin
         //
         //     {
         //         "transactId": "14143"
         //     }
         //
-        // repayMargin
+        // repayCrossMargin
         //
         //     {
         //         "repayId": "12128"
@@ -9305,6 +9344,82 @@ class bybit extends bybit$1 {
             'toAmount': this.safeNumber(conversion, 'toAmount'),
             'price': undefined,
             'fee': undefined,
+        };
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio, default is 24 hours
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.getBybitType('fetchLongShortRatioHistory', market, params);
+        if (type === 'spot' || type === 'option') {
+            throw new errors.NotSupported(this.id + ' fetchLongShortRatioHistory() only support linear and inverse markets');
+        }
+        if (timeframe === undefined) {
+            timeframe = '1d';
+        }
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+            'category': type,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV5MarketAccountRatio(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "buyRatio": "0.5707",
+        //                     "sellRatio": "0.4293",
+        //                     "timestamp": "1729123200000"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1729147842516
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        const data = this.safeList(result, 'list', []);
+        return this.parseLongShortRatioHistory(data, market);
+    }
+    parseLongShortRatio(info, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "buyRatio": "0.5707",
+        //         "sellRatio": "0.4293",
+        //         "timestamp": "1729123200000"
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeIntegerOmitZero(info, 'timestamp');
+        const longString = this.safeString(info, 'buyRatio');
+        const shortString = this.safeString(info, 'sellRatio');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.parseToNumeric(Precise["default"].stringDiv(longString, shortString)),
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
