@@ -1794,7 +1794,8 @@
             "fetchOrderBook": "best ask is not always greater than best bid",
             "fetchL2OrderBook": "same",
             "fetchTrades": {
-                "price": "sometimes price is not set"
+                "price": "sometimes is not set",
+                "amount": "same"
             }
         }
     }
