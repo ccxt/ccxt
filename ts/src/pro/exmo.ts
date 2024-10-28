@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict, Strings, Tickers, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -587,6 +587,128 @@ export default class exmo extends exmoRest {
         }
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name exmo#watchOrders
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate (params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
+        const url = this.urls['api']['ws'][type];
+        let messageHash = undefined;
+        if (symbol === undefined) {
+            messageHash = 'orders:' + type;
+        } else {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = 'orders:' + market['symbol'];
+        }
+        const message: Dict = {
+            'method': 'subscribe',
+            'topics': [
+                type + '/orders',
+            ],
+            'id': this.requestId (),
+        };
+        const request = this.deepExtend (message, query);
+        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrders (client: Client, message) {
+        //
+        //  spot
+        // {
+        //     "ts": 1574427585174,
+        //     "event": "snapshot",
+        //     "topic": "spot/orders",
+        //     "data": [
+        //       {
+        //         "order_id": "14",
+        //         "client_id":"100500",
+        //         "created": "1574427585",
+        //         "pair": "BTC_USD",
+        //         "price": "7750",
+        //         "quantity": "0.1",
+        //         "amount": "775",
+        //         "original_quantity": "0.1",
+        //         "original_amount": "775",
+        //         "type": "sell",
+        //         "status": "open"
+        //       }
+        //     ]
+        // }
+        //
+        //  margin
+        // {
+        //     "ts":1624371281773,
+        //     "event":"snapshot",
+        //     "topic":"margin/orders",
+        //     "data":[
+        //        {
+        //           "order_id":"692844278081168665",
+        //           "created":"1624371250919761600",
+        //           "type":"limit_buy",
+        //           "previous_type":"limit_buy",
+        //           "pair":"BTC_USD",
+        //           "leverage":"2",
+        //           "price":"10000",
+        //           "stop_price":"0",
+        //           "distance":"0",
+        //           "trigger_price":"10000",
+        //           "init_quantity":"0.1",
+        //           "quantity":"0.1",
+        //           "funding_currency":"USD",
+        //           "funding_quantity":"1000",
+        //           "funding_rate":"0",
+        //           "client_id":"111111",
+        //           "expire":0,
+        //           "src":1,
+        //           "comment":"comment1",
+        //           "updated":1624371250938136600,
+        //           "status":"active"
+        //        }
+        //     ]
+        // }
+        //
+        const topic = this.safeString (message, 'topic');
+        const parts = topic.split ('/');
+        const type = this.safeString (parts, 0);
+        const messageHash = 'orders:' + type;
+        const event = this.safeString (message, 'event');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedOrders = this.orders;
+        let rawOrders = [];
+        if (event === 'snapshot') {
+            rawOrders = this.safeValue (message, 'data', []);
+        }
+        const symbols: Dict = {};
+        for (let j = 0; j < rawOrders.length; j++) {
+            const order = this.parseOrder (rawOrders[j]);
+            cachedOrders.append (order);
+            symbols[order['symbol']] = true;
+        }
+        const symbolKeys = Object.keys (symbols);
+        for (let i = 0; i < symbolKeys.length; i++) {
+            const symbol = symbolKeys[i];
+            const symbolSpecificMessageHash = 'orders:' + symbol;
+            client.resolve (cachedOrders, symbolSpecificMessageHash);
+        }
+        client.resolve (cachedOrders, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         //
         // {
@@ -627,8 +749,8 @@ export default class exmo extends exmoRest {
                     'spot/trades': this.handleTrades,
                     'margin/trades': this.handleTrades,
                     'spot/order_book_updates': this.handleOrderBook,
-                    // 'spot/orders': this.handleOrders,
-                    // 'margin/orders': this.handleOrders,
+                    'spot/orders': this.handleOrders,
+                    'margin/orders': this.handleOrders,
                     'spot/user_trades': this.handleMyTrades,
                     'margin/user_trades': this.handleMyTrades,
                 };
