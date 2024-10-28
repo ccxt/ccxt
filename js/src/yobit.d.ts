@@ -1,5 +1,5 @@
 import Exchange from './abstract/yobit.js';
-import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
 /**
  * @class yobit
  * @augments Exchange
@@ -31,31 +31,7 @@ export default class yobit extends Exchange {
         tag: any;
         info: any;
     }>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        id: any;
-        currency: string;
-        address: string;
-        tag: any;
-        network: any;
-        info: any;
-        txid: any;
-        type: any;
-        amount: any;
-        status: any;
-        timestamp: any;
-        datetime: any;
-        addressFrom: any;
-        addressTo: any;
-        tagFrom: any;
-        tagTo: any;
-        updated: any;
-        comment: any;
-        fee: {
-            currency: any;
-            cost: any;
-            rate: any;
-        };
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: any;

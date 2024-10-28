@@ -35,10 +35,16 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,  // Endpoint 'lendbook/{currency}' is related to interest rates on spot margin lending
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -555,11 +561,11 @@ class bitfinex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $ids = $this->publicGetSymbols ();
+        $idsPromise = $this->publicGetSymbols ();
         //
         //     array( "btcusd", "ltcusd", "ltcbtc" )
         //
-        $details = $this->publicGetSymbolsDetails ();
+        $detailsPromise = $this->publicGetSymbolsDetails ();
         //
         //     array(
         //         array(
@@ -574,6 +580,7 @@ class bitfinex extends Exchange {
         //         ),
         //     )
         //
+        list($ids, $details) = array( $idsPromise, $detailsPromise );
         $result = array();
         for ($i = 0; $i < count($details); $i++) {
             $market = $details[$i];
@@ -1412,7 +1419,7 @@ class bitfinex extends Exchange {
         return $this->fetch_deposit_address($code, $this->extend($request, $params));
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-deposit

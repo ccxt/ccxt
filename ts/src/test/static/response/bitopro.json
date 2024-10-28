@@ -84,6 +84,8 @@
                     "average": null,
                     "baseVolume": 43.5725531,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "pair": "btc_usdt",
                         "lastPrice": "73102.33000000",

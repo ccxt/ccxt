@@ -95,6 +95,8 @@ class binance extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => 'emulated',
+                'fetchFundingIntervals' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -110,12 +112,16 @@ class binance extends Exchange {
                 'fetchLeverages' => true,
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
                 'fetchMarginMode' => 'emulated',
                 'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
@@ -337,7 +343,7 @@ class binance extends Exchange {
                         'capital/deposit/hisrec' => 0.1,
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
-                        'capital/withdraw/history' => 1800, // Weight(IP) => 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/history' => 2, // Weight(UID) => 18000 . (Additional => 10 requests per second => cost = ( 1000 / rateLimit ) / 10 = 2
                         'capital/withdraw/address/list' => 10,
                         'capital/contract/convertible-coins' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
@@ -472,6 +478,7 @@ class binance extends Exchange {
                         'portfolio/asset-index-price' => 0.1,
                         'portfolio/repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
                         'portfolio/margin-asset-leverage' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
+                        'portfolio/balance' => 2,
                         // staking
                         'staking/productList' => 0.1,
                         'staking/position' => 0.1,
@@ -674,6 +681,7 @@ class binance extends Exchange {
                         'loan/flexible/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/flexible/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/flexible/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'portfolio/account' => 2,
                     ),
                     'post' => array(
                         'eth-staking/eth/stake' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
@@ -717,6 +725,7 @@ class binance extends Exchange {
                         'ticker/bookTicker' => array( 'cost' => 2, 'noSymbol' => 5 ),
                         'constituents' => 2,
                         'openInterest' => 1,
+                        'fundingInfo' => 1,
                     ),
                 ),
                 'dapiData' => array(
@@ -750,6 +759,10 @@ class binance extends Exchange {
                         'commissionRate' => 20,
                         'income/asyn' => 5,
                         'income/asyn/id' => 5,
+                        'trade/asyn' => 0.5,
+                        'trade/asyn/id' => 0.5,
+                        'order/asyn' => 0.5,
+                        'order/asyn/id' => 0.5,
                         'pmExchangeInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                         'pmAccountInfo' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                     ),
@@ -806,6 +819,7 @@ class binance extends Exchange {
                         'constituents' => 2,
                         'apiTradingStatus' => array( 'cost' => 1, 'noSymbol' => 10 ),
                         'lvtKlines' => 1,
+                        'convert/exchangeInfo' => 4,
                     ),
                 ),
                 'fapiData' => array(
@@ -859,6 +873,7 @@ class binance extends Exchange {
                         'feeBurn' => 1,
                         'symbolConfig' => 5,
                         'accountConfig' => 5,
+                        'convert/orderStatus' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -874,6 +889,8 @@ class binance extends Exchange {
                         'apiReferral/customization' => 1,
                         'apiReferral/userCustomization' => 1,
                         'feeBurn' => 1,
+                        'convert/getQuote' => 200, // 360 requests per hour
+                        'convert/acceptQuote' => 20,
                     ),
                     'put' => array(
                         'listenKey' => 1,
@@ -1024,97 +1041,118 @@ class binance extends Exchange {
                     ),
                 ),
                 'papi' => array(
+                    // IP (papi) request rate limit of 6000 per minute
+                    // 1 IP (papi) => cost = 0.2 => (1000 / (50 * 0.2)) * 60 = 6000
+                    // Order (papi) request rate limit of 1200 per minute
+                    // 1 Order (papi) => cost = 1 => (1000 / (50 * 1)) * 60 = 1200
                     'get' => array(
-                        'ping' => 1,
-                        'um/order' => 1, // 1
-                        'um/openOrder' => 1, // 1
+                        'ping' => 0.2,
+                        'um/order' => 1,
+                        'um/openOrder' => 1,
                         'um/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
-                        'um/allOrders' => 5, // 5
-                        'cm/order' => 1, // 1
-                        'cm/openOrder' => 1, // 1
+                        'um/allOrders' => 5,
+                        'cm/order' => 1,
+                        'cm/openOrder' => 1,
                         'cm/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
-                        'cm/allOrders' => 20, // 20
+                        'cm/allOrders' => 20,
                         'um/conditional/openOrder' => 1,
                         'um/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'um/conditional/orderHistory' => 1,
-                        'um/conditional/allOrders' => 40,
+                        'um/conditional/allOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'cm/conditional/openOrder' => 1,
                         'cm/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'cm/conditional/orderHistory' => 1,
                         'cm/conditional/allOrders' => 40,
-                        'margin/order' => 5,
+                        'margin/order' => 10,
                         'margin/openOrders' => 5,
                         'margin/allOrders' => 100,
                         'margin/orderList' => 5,
                         'margin/allOrderList' => 100,
                         'margin/openOrderList' => 5,
                         'margin/myTrades' => 5,
-                        'balance' => 20, // 20
-                        'account' => 20, // 20
-                        'margin/maxBorrowable' => 5, // 5
-                        'margin/maxWithdraw' => 5, // 5
-                        'um/positionRisk' => 5, // 5
-                        'cm/positionRisk' => 1, // 1
-                        'um/positionSide/dual' => 30, // 30
-                        'cm/positionSide/dual' => 30, // 30
-                        'um/userTrades' => 5, // 5
-                        'cm/userTrades' => 20, // 20
-                        'um/leverageBracket' => 1, // 1
-                        'cm/leverageBracket' => 1, // 1
-                        'margin/forceOrders' => 1, // 1
-                        'um/forceOrders' => 20, // 20
-                        'cm/forceOrders' => 20, // 20
-                        'um/apiTradingStatus' => 1, // 1
-                        'um/commissionRate' => 20, // 20
-                        'cm/commissionRate' => 20, // 20
-                        'margin/marginLoan' => 10,
-                        'margin/repayLoan' => 10,
-                        'margin/marginInterestHistory' => 1,
-                        'portfolio/interest-history' => 50, // 50
-                        'um/income' => 30,
-                        'cm/income' => 30,
-                        'um/account' => 5,
-                        'cm/account' => 5,
-                        'repay-futures-switch' => 3, // Weight(IP) => 30 => cost = 0.1 * 30 = 3
+                        'balance' => 4,
+                        'account' => 4,
+                        'margin/maxBorrowable' => 1,
+                        'margin/maxWithdraw' => 1,
+                        'um/positionRisk' => 1,
+                        'cm/positionRisk' => 0.2,
+                        'um/positionSide/dual' => 6,
+                        'cm/positionSide/dual' => 6,
+                        'um/userTrades' => 5,
+                        'cm/userTrades' => 20,
+                        'um/leverageBracket' => 0.2,
+                        'cm/leverageBracket' => 0.2,
+                        'margin/forceOrders' => 1,
+                        'um/forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
+                        'cm/forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
+                        'um/apiTradingStatus' => array( 'cost' => 0.2, 'noSymbol' => 2 ),
+                        'um/commissionRate' => 4,
+                        'cm/commissionRate' => 4,
+                        'margin/marginLoan' => 2,
+                        'margin/repayLoan' => 2,
+                        'margin/marginInterestHistory' => 0.2,
+                        'portfolio/interest-history' => 10,
+                        'um/income' => 6,
+                        'cm/income' => 6,
+                        'um/account' => 1,
+                        'cm/account' => 1,
+                        'repay-futures-switch' => 6,
                         'um/adlQuantile' => 5,
                         'cm/adlQuantile' => 5,
+                        'um/trade/asyn' => 300,
+                        'um/trade/asyn/id' => 2,
+                        'um/order/asyn' => 300,
+                        'um/order/asyn/id' => 2,
+                        'um/income/asyn' => 300,
+                        'um/income/asyn/id' => 2,
+                        'um/orderAmendment' => 1,
+                        'cm/orderAmendment' => 1,
+                        'um/feeBurn' => 30,
+                        'um/accountConfig' => 1,
+                        'um/symbolConfig' => 1,
+                        'cm/accountConfig' => 1,
+                        'cm/symbolConfig' => 1,
                     ),
                     'post' => array(
-                        'um/order' => 1, // 0
+                        'um/order' => 1,
                         'um/conditional/order' => 1,
-                        'cm/order' => 1, // 0
+                        'cm/order' => 1,
                         'cm/conditional/order' => 1,
-                        'margin/order' => 0.0133, // Weight(UID) => 2 => cost = 0.006667 * 2 = 0.013334
-                        'marginLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
-                        'repayLoan' => 0.1333, // Weight(UID) => 20 => cost = 0.006667 * 20 = 0.13334
-                        'margin/order/oco' => 0.0400, // Weight(UID) => 6 => cost = 0.006667 * 6 = 0.040002
-                        'um/leverage' => 1, // 1
-                        'cm/leverage' => 1, // 1
-                        'um/positionSide/dual' => 1, // 1
-                        'cm/positionSide/dual' => 1, // 1
-                        'auto-collection' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
-                        'bnb-transfer' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
-                        'repay-futures-switch' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
-                        'repay-futures-negative-balance' => 150, // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
-                        'listenKey' => 1, // 1
-                        'asset-collection' => 3,
+                        'margin/order' => 1,
+                        'marginLoan' => 100,
+                        'repayLoan' => 100,
+                        'margin/order/oco' => 1,
+                        'um/leverage' => 0.2,
+                        'cm/leverage' => 0.2,
+                        'um/positionSide/dual' => 0.2,
+                        'cm/positionSide/dual' => 0.2,
+                        'auto-collection' => 150,
+                        'bnb-transfer' => 150,
+                        'repay-futures-switch' => 150,
+                        'repay-futures-negative-balance' => 150,
+                        'listenKey' => 0.2,
+                        'asset-collection' => 6,
+                        'margin/repay-debt' => 3000,
+                        'um/feeBurn' => 1,
                     ),
                     'put' => array(
-                        'listenKey' => 1, // 1
+                        'listenKey' => 0.2,
+                        'um/order' => 1,
+                        'cm/order' => 1,
                     ),
                     'delete' => array(
-                        'um/order' => 1, // 1
+                        'um/order' => 1,
                         'um/conditional/order' => 1,
-                        'um/allOpenOrders' => 1, // 1
+                        'um/allOpenOrders' => 1,
                         'um/conditional/allOpenOrders' => 1,
-                        'cm/order' => 1, // 1
+                        'cm/order' => 1,
                         'cm/conditional/order' => 1,
-                        'cm/allOpenOrders' => 1, // 1
+                        'cm/allOpenOrders' => 1,
                         'cm/conditional/allOpenOrders' => 1,
-                        'margin/order' => 1, // Weight(IP) => 10 => cost = 0.1 * 10 = 1
-                        'margin/allOpenOrders' => 5, // 5
-                        'margin/orderList' => 2, // 2
-                        'listenKey' => 1, // 1
+                        'margin/order' => 2,
+                        'margin/allOpenOrders' => 5,
+                        'margin/orderList' => 2,
+                        'listenKey' => 0.2,
                     ),
                 ),
             ),
@@ -1198,6 +1236,9 @@ class binance extends Exchange {
                 ),
                 'option' => array(),
             ),
+            'currencies' => array(
+                'BNFCR' => $this->safe_currency_structure(array( 'id' => 'BNFCR', 'code' => 'BNFCR', 'precision' => $this->parse_number('0.001') )),
+            ),
             'commonCurrencies' => array(
                 'BCC' => 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO' => 'YOYOW',
@@ -1206,6 +1247,7 @@ class binance extends Exchange {
             // exchange-specific options
             'options' => array(
                 'sandboxMode' => false,
+                'fetchMargins' => true,
                 'fetchMarkets' => array(
                     'spot', // allows CORS in browsers
                     'linear', // allows CORS in browsers
@@ -1214,6 +1256,7 @@ class binance extends Exchange {
                 ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                // 'repayCrossMarginMethod' => 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
@@ -2646,6 +2689,7 @@ class binance extends Exchange {
             /**
              * fetches all available currencies on an exchange
              * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+             * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -2665,9 +2709,20 @@ class binance extends Exchange {
             if ($apiBackup !== null) {
                 return null;
             }
-            $response = Async\await($this->sapiGetCapitalConfigGetall ($params));
+            $promises = array( $this->sapiGetCapitalConfigGetall ($params) );
+            $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
+            if ($fetchMargins) {
+                $promises[] = $this->sapiGetMarginAllPairs ($params);
+            }
+            $results = Async\await(Promise\all($promises));
+            $responseCurrencies = $results[0];
+            $marginablesById = null;
+            if ($fetchMargins) {
+                $responseMarginables = $results[1];
+                $marginablesById = $this->index_by($responseMarginables, 'assetName');
+            }
             $result = array();
-            for ($i = 0; $i < count($response); $i++) {
+            for ($i = 0; $i < count($responseCurrencies); $i++) {
                 //
                 //    {
                 //        "coin" => "LINK",
@@ -2763,7 +2818,7 @@ class binance extends Exchange {
                 //        ]
                 //    }
                 //
-                $entry = $response[$i];
+                $entry = $responseCurrencies[$i];
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
@@ -2818,6 +2873,17 @@ class binance extends Exchange {
                 }
                 $trading = $this->safe_bool($entry, 'trading');
                 $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
+                $marginEntry = $this->safe_dict($marginablesById, $id, array());
+                //
+                //     {
+                //         assetName => "BTC",
+                //         assetFullName => "Bitcoin",
+                //         isBorrowable => true,
+                //         isMortgageable => true,
+                //         userMinBorrow => "0",
+                //         userMinRepay => "0",
+                //     }
+                //
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
@@ -2831,6 +2897,7 @@ class binance extends Exchange {
                     'fee' => $fee,
                     'fees' => $fees,
                     'limits' => $this->limits,
+                    'margin' => $this->safe_bool($marginEntry, 'isBorrowable'),
                 );
             }
             return $result;
@@ -2845,6 +2912,8 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
              * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+             * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+             * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -2859,10 +2928,15 @@ class binance extends Exchange {
                 }
                 $fetchMarkets[] = $type;
             }
+            $fetchMargins = $this->safe_bool($this->options, 'fetchMargins', false);
             for ($i = 0; $i < count($fetchMarkets); $i++) {
                 $marketType = $fetchMarkets[$i];
                 if ($marketType === 'spot') {
                     $promisesRaw[] = $this->publicGetExchangeInfo ($params);
+                    if ($fetchMargins && $this->check_required_credentials(false) && !$sandboxMode) {
+                        $promisesRaw[] = $this->sapiGetMarginAllPairs ($params);
+                        $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs ($params);
+                    }
                 } elseif ($marketType === 'linear') {
                     $promisesRaw[] = $this->fapiPublicGetExchangeInfo ($params);
                 } elseif ($marketType === 'inverse') {
@@ -2873,12 +2947,25 @@ class binance extends Exchange {
                     throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
                 }
             }
-            $promises = Async\await(Promise\all($promisesRaw));
+            $results = Async\await(Promise\all($promisesRaw));
             $markets = array();
-            for ($i = 0; $i < count($fetchMarkets); $i++) {
-                $promise = $this->safe_dict($promises, $i);
-                $promiseMarkets = $this->safe_list_2($promise, 'symbols', 'optionSymbols', array());
-                $markets = $this->array_concat($markets, $promiseMarkets);
+            $this->options['crossMarginPairsData'] = array();
+            $this->options['isolatedMarginPairsData'] = array();
+            for ($i = 0; $i < count($results); $i++) {
+                $res = $this->safe_value($results, $i);
+                if ($fetchMargins && gettype($res) === 'array' && array_keys($res) === array_keys(array_keys($res))) {
+                    $keysList = is_array($this->index_by($res, 'symbol')) ? array_keys($this->index_by($res, 'symbol')) : array();
+                    $length = count($this->options['crossMarginPairsData']);
+                    // first one is the cross-margin promise
+                    if ($length === 0) {
+                        $this->options['crossMarginPairsData'] = $keysList;
+                    } else {
+                        $this->options['isolatedMarginPairsData'] = $keysList;
+                    }
+                } else {
+                    $resultMarkets = $this->safe_list_2($res, 'symbols', 'optionSymbols', array());
+                    $markets = $this->array_concat($markets, $resultMarkets);
+                }
             }
             //
             // spot / margin
@@ -2923,6 +3010,20 @@ class binance extends Exchange {
             //             ),
             //         ],
             //     }
+            //
+            // cross & isolated pairs response:
+            //
+            //     array(
+            //         array(
+            //           symbol => "BTCUSDT",
+            //           base => "BTC",
+            //           quote => "USDT",
+            //           isMarginTrade => true,
+            //           isBuyAllowed => true,
+            //           isSellAllowed => true,
+            //           id => "376870555451677893", // doesn't exist in isolated
+            //         ),
+            //     )
             //
             // futures/usdt-margined (fapi)
             //
@@ -3129,14 +3230,15 @@ class binance extends Exchange {
         $fees = $this->fees;
         $linear = null;
         $inverse = null;
-        $strike = $this->safe_string($market, 'strikePrice');
         $symbol = $base . '/' . $quote;
+        $strike = null;
         if ($contract) {
             if ($swap) {
                 $symbol = $symbol . ':' . $settle;
             } elseif ($future) {
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
             } elseif ($option) {
+                $strike = $this->number_to_string($this->parse_to_numeric($this->safe_string($market, 'strikePrice')));
                 $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry) . '-' . $strike . '-' . $this->safe_string($optionParts, 3);
             }
             $contractSize = $this->safe_number_2($market, 'contractSize', 'unit', $this->parse_number('1'));
@@ -3156,6 +3258,20 @@ class binance extends Exchange {
             }
         }
         $isMarginTradingAllowed = $this->safe_bool($market, 'isMarginTradingAllowed', false);
+        $marginModes = null;
+        if ($spot) {
+            $hasCrossMargin = $this->in_array($id, $this->options['crossMarginPairsData']);
+            $hasIsolatedMargin = $this->in_array($id, $this->options['isolatedMarginPairsData']);
+            $marginModes = array(
+                'cross' => $hasCrossMargin,
+                'isolated' => $hasIsolatedMargin,
+            );
+        } elseif ($linear || $inverse) {
+            $marginModes = array(
+                'cross' => true,
+                'isolated' => true,
+            );
+        }
         $unifiedType = null;
         if ($spot) {
             $unifiedType = 'spot';
@@ -3184,6 +3300,7 @@ class binance extends Exchange {
             'type' => $unifiedType,
             'spot' => $spot,
             'margin' => $spot && $isMarginTradingAllowed,
+            'marginModes' => $marginModes,
             'swap' => $swap,
             'future' => $future,
             'option' => $option,
@@ -3719,6 +3836,18 @@ class binance extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        // markPrices
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "markPrice" => "11793.63104562",  // mark price
+        //         "indexPrice" => "11781.80495970", // index price
+        //         "estimatedSettlePrice" => "11781.16138815", // Estimated Settle Price, only useful in the $last hour before the settlement starts.
+        //         "lastFundingRate" => "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime" => 1597392000000,
+        //         "interestRate" => "0.00010000",
+        //         "time" => 1597370495002
+        //     }
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -3822,7 +3951,7 @@ class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
-        $timestamp = $this->safe_integer($ticker, 'closeTime');
+        $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
         $marketType = null;
         if ((is_array($ticker) && array_key_exists('time', $ticker))) {
             $marketType = 'contract';
@@ -3865,6 +3994,8 @@ class binance extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -4120,6 +4251,71 @@ class binance extends Exchange {
         }) ();
     }
 
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches mark price for the $market
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrice', $market, $params, 'swap');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrice', $market, $params, 'linear');
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicGetPremiumIndex ($this->extend($request, $params)));
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetPremiumIndex ($this->extend($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchMarkPrice() does not support ' . $type . ' markets yet');
+            }
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                return $this->parse_ticker($this->safe_dict($response, 0, array()), $market);
+            }
+            return $this->parse_ticker($response, $market);
+        }) ();
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches mark prices for multiple markets
+             * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrices', $market, $params, 'swap');
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicGetPremiumIndex ($params));
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetPremiumIndex ($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchMarkPrices() does not support ' . $type . ' markets yet');
+            }
+            return $this->parse_tickers($response, $symbols);
+        }) ();
+    }
+
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     array(
@@ -4222,6 +4418,9 @@ class binance extends Exchange {
             $price = $this->safe_string($params, 'price');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'price', 'until' ));
+            if ($since !== null && $until !== null && $limit === null) {
+                $limit = $maxLimit;
+            }
             $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
             $request = array(
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -5714,6 +5913,8 @@ class binance extends Exchange {
              * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to create an order in a portfolio margin account
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+             * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
+             * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5810,9 +6011,9 @@ class binance extends Exchange {
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'createOrder', 'papi', 'portfolioMargin', false);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         if (($marketType === 'margin') || ($marginMode !== null) || $market['option']) {
             // for swap and future $reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
             $params = $this->omit($params, 'reduceOnly');
             if ($market['option']) {
                 $request['reduceOnly'] = $reduceOnly;
@@ -6022,14 +6223,26 @@ class binance extends Exchange {
             if ($isPortfolioMargin) {
                 $request['quantity'] = $this->parse_to_numeric($amount);
             } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                $marketAmountPrecision = $this->safe_string($market['precision'], 'amount');
+                $isPrecisionAvailable = ($marketAmountPrecision !== null);
+                if ($isPrecisionAvailable) {
+                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+                } else {
+                    $request['quantity'] = $this->parse_to_numeric($amount); // some options don't have the $precision available
+                }
             }
         }
         if ($priceIsRequired && !$isPriceMatch) {
             if ($price === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for a ' . $type . ' order');
             }
-            $request['price'] = $this->price_to_precision($symbol, $price);
+            $pricePrecision = $this->safe_string($market['precision'], 'price');
+            $isPricePrecisionAvailable = ($pricePrecision !== null);
+            if ($isPricePrecisionAvailable) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            } else {
+                $request['price'] = $this->parse_to_numeric($price); // some options don't have the $precision available
+            }
         }
         if ($stopPriceIsRequired) {
             if ($market['contract']) {
@@ -6056,7 +6269,15 @@ class binance extends Exchange {
         if ($this->safe_string($params, 'timeInForce') === 'PO') {
             $params = $this->omit($params, 'timeInForce');
         }
-        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test' ));
+        $hedged = $this->safe_bool($params, 'hedged', false);
+        if (!$market['spot'] && !$market['option'] && $hedged) {
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly');
+                $side = ($side === 'buy') ? 'sell' : 'buy';
+            }
+            $request['positionSide'] = ($side === 'buy') ? 'LONG' : 'SHORT';
+        }
+        $requestParams = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged' ));
         return $this->extend($request, $requestParams);
     }
 
@@ -6235,8 +6456,8 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
-            $params = $this->omit($params, array( 'stop', 'conditional', 'type' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional', 'type' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6497,7 +6718,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
@@ -6512,7 +6733,7 @@ class binance extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional', 'trigger' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($type === 'option') {
                 if ($since !== null) {
@@ -6587,8 +6808,8 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_n($params, array( 'stop', 'conditional', 'trigger' ));
-            $params = $this->omit($params, array( 'stop', 'conditional', 'trigger' ));
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
+            $params = $this->omit($params, array( 'stop', 'trigger', 'conditional' ));
             $isPortfolioMarginConditional = ($isPortfolioMargin && $isConditional);
             $orderIdRequest = $isPortfolioMarginConditional ? 'strategyId' : 'orderId';
             $request[$orderIdRequest] = $id;
@@ -6900,7 +7121,7 @@ class binance extends Exchange {
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -6922,7 +7143,7 @@ class binance extends Exchange {
                     $request['orderId'] = $id;
                 }
             }
-            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional' ));
             $response = null;
             if ($market['option']) {
                 $response = Async\await($this->eapiPrivateDeleteOrder ($this->extend($request, $params)));
@@ -6992,9 +7213,9 @@ class binance extends Exchange {
             );
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-            $isConditional = $this->safe_bool_2($params, 'stop', 'conditional');
+            $isConditional = $this->safe_bool_n($params, array( 'stop', 'trigger', 'conditional' ));
             $type = $this->safe_string($params, 'type', $market['type']);
-            $params = $this->omit($params, array( 'type', 'stop', 'conditional' ));
+            $params = $this->omit($params, array( 'type', 'stop', 'trigger', 'conditional' ));
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             $response = null;
@@ -8410,14 +8631,14 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the deposit $address for a $currency associated with this account
-             * @see https://developers.binance.com/docs/wallet/capital/deposite-$address
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://developers.binance.com/docs/wallet/capital/deposite-address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -8447,42 +8668,62 @@ class binance extends Exchange {
             //         }
             //     }
             //
-            $address = $this->safe_string($response, 'address');
-            $url = $this->safe_string($response, 'url');
-            $impliedNetwork = null;
-            if ($url !== null) {
-                $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
-                $parts = explode('/', $url);
-                $topLevel = $this->safe_string($parts, 2);
-                if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
-                    $subLevel = $this->safe_string($parts, 3);
-                    if ($subLevel !== null) {
-                        $topLevel = $topLevel . '/' . $subLevel;
-                    }
-                }
-                $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
-                $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
-                    'ETH' => array( 'ERC20' => 'ETH' ),
-                    'TRX' => array( 'TRC20' => 'TRX' ),
-                ));
-                if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
-                    $conversion = $this->safe_dict($impliedNetworks, $code, array());
-                    $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
-                }
-            }
-            $tag = $this->safe_string($response, 'tag', '');
-            if (strlen($tag) === 0) {
-                $tag = null;
-            }
-            $this->check_address($address);
-            return array(
-                'currency' => $code,
-                'address' => $address,
-                'tag' => $tag,
-                'network' => $impliedNetwork,
-                'info' => $response,
-            );
+            return $this->parse_deposit_address($response, $currency);
         }) ();
+    }
+
+    public function parse_deposit_address($response, ?array $currency = null): array {
+        //
+        //     {
+        //         "currency" => "XRP",
+        //         "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag" => "108618262",
+        //         "info" => {
+        //             "coin" => "XRP",
+        //             "address" => "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag" => "108618262",
+        //             "url" => "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        $info = $this->safe_dict($response, 'info', array());
+        $url = $this->safe_string($info, 'url');
+        $address = $this->safe_string($response, 'address');
+        $currencyId = $this->safe_string($response, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $impliedNetwork = null;
+        if ($url !== null) {
+            $reverseNetworks = $this->safe_dict($this->options, 'reverseNetworks', array());
+            $parts = explode('/', $url);
+            $topLevel = $this->safe_string($parts, 2);
+            if (($topLevel === 'blockchair.com') || ($topLevel === 'viewblock.io')) {
+                $subLevel = $this->safe_string($parts, 3);
+                if ($subLevel !== null) {
+                    $topLevel = $topLevel . '/' . $subLevel;
+                }
+            }
+            $impliedNetwork = $this->safe_string($reverseNetworks, $topLevel);
+            $impliedNetworks = $this->safe_dict($this->options, 'impliedNetworks', array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ));
+            if (is_array($impliedNetworks) && array_key_exists($code, $impliedNetworks)) {
+                $conversion = $this->safe_dict($impliedNetworks, $code, array());
+                $impliedNetwork = $this->safe_string($conversion, $impliedNetwork, $impliedNetwork);
+            }
+        }
+        $tag = $this->safe_string($response, 'tag', '');
+        if (strlen($tag) === 0) {
+            $tag = null;
+        }
+        $this->check_address($address);
+        return array(
+            'info' => $response,
+            'currency' => $code,
+            'network' => $impliedNetwork,
+            'address' => $address,
+            'tag' => $tag,
+        );
     }
 
     public function fetch_transaction_fees(?array $codes = null, $params = array ()) {
@@ -9076,7 +9317,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -9129,7 +9370,7 @@ class binance extends Exchange {
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
              */
@@ -9195,7 +9436,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -9204,7 +9445,7 @@ class binance extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -9221,29 +9462,36 @@ class binance extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchFundingRates() supports linear and inverse contracts only');
             }
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
-                $parsed = $this->parse_funding_rate($entry);
-                $result[] = $parsed;
-            }
+            $result = $this->parse_funding_rates($response);
             return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
-        //   {
-        //     "symbol" => "BTCUSDT",
-        //     "markPrice" => "45802.81129892",
-        //     "indexPrice" => "45745.47701915",
-        //     "estimatedSettlePrice" => "45133.91753671",
-        //     "lastFundingRate" => "0.00063521",
-        //     "interestRate" => "0.00010000",
-        //     "nextFundingTime" => "1621267200000",
-        //     "time" => "1621252344001"
-        //  }
+        // fetchFundingRate, fetchFundingRates
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "markPrice" => "45802.81129892",
+        //         "indexPrice" => "45745.47701915",
+        //         "estimatedSettlePrice" => "45133.91753671",
+        //         "lastFundingRate" => "0.00063521",
+        //         "interestRate" => "0.00010000",
+        //         "nextFundingTime" => "1621267200000",
+        //         "time" => "1621252344001"
+        //     }
+        //
+        // fetchFundingInterval, fetchFundingIntervals
+        //
+        //     {
+        //         "symbol" => "BLZUSDT",
+        //         "adjustedFundingRateCap" => "0.03000000",
+        //         "adjustedFundingRateFloor" => "-0.03000000",
+        //         "fundingIntervalHours" => 4,
+        //         "disclaimer" => false
+        //     }
         //
         $timestamp = $this->safe_integer($contract, 'time');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -9254,6 +9502,11 @@ class binance extends Exchange {
         $estimatedSettlePrice = $this->safe_number($contract, 'estimatedSettlePrice');
         $fundingRate = $this->safe_number($contract, 'lastFundingRate');
         $fundingTime = $this->safe_integer($contract, 'nextFundingTime');
+        $interval = $this->safe_string($contract, 'fundingIntervalHours');
+        $intervalString = null;
+        if ($interval !== null) {
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -9272,6 +9525,7 @@ class binance extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => $intervalString,
         );
     }
 
@@ -10973,23 +11227,46 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()) {
+    public function fetch_ledger_entry(string $id, ?string $code = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+             * @param {string} $id the identification number of the ledger entry
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?$id=ledger-structure ledger structure~
+             */
             Async\await($this->load_markets());
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
-            $query = array(
-                'recordId' => $id,
-                'type' => $type,
-            );
             if ($type !== 'option') {
-                throw new BadRequest($this->id . ' fetchLedgerEntry () can only be used for $type option');
+                throw new BadRequest($this->id . ' fetchLedgerEntry() can only be used for $type option');
             }
-            return Async\await($this->fetch_ledger($code, null, null, $this->extend($query, $params)));
+            $this->check_required_argument('fetchLedgerEntry', $code, 'code');
+            $currency = $this->currency($code);
+            $request = array(
+                'recordId' => $id,
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->eapiPrivateGetBill ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "id" => "1125899906845701870",
+            //             "asset" => "USDT",
+            //             "amount" => "-0.16518203",
+            //             "type" => "FEE",
+            //             "createDate" => 1676621042489
+            //         }
+            //     )
+            //
+            $first = $this->safe_dict($response, 0, $response);
+            return $this->parse_ledger_entry($first, $currency);
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -10998,9 +11275,9 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-             * @param {string} $code unified $currency $code
+             * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
-             * @param {int} [$limit] max number of ledger entrys to return
+             * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
@@ -11088,7 +11365,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // options (eapi)
         //
@@ -11122,16 +11399,19 @@ class binance extends Exchange {
             $direction = 'in';
         }
         $currencyId = $this->safe_string($item, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer_2($item, 'createDate', 'time');
         $type = $this->safe_string_2($item, 'type', 'incomeType');
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $this->safe_string_2($item, 'id', 'tranId'),
             'direction' => $direction,
             'account' => null,
             'referenceAccount' => null,
             'referenceId' => $this->safe_string($item, 'tradeId'),
             'type' => $this->parse_ledger_entry_type($type),
-            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'currency' => $code,
             'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -11139,8 +11419,7 @@ class binance extends Exchange {
             'after' => null,
             'status' => null,
             'fee' => null,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
     public function parse_ledger_entry_type($type) {
@@ -11680,17 +11959,6 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_rate_history($response, $code, $since, $limit) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $borrowRate = $this->parse_borrow_rate($item);
-            $result[] = $borrowRate;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
-    }
-
     public function parse_borrow_rate($info, ?array $currency = null) {
         //
         //    {
@@ -11948,10 +12216,13 @@ class binance extends Exchange {
              * repay borrowed margin and interest
              * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
              * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+             * @param {string} [$params->repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+             * @param {string} [$params->specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
              */
             Async\await($this->load_markets());
@@ -11964,18 +12235,39 @@ class binance extends Exchange {
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
             if ($isPortfolioMargin) {
-                $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                $method = null;
+                list($method, $params) = $this->handle_option_and_params_2($params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+                if ($method === 'papiPostMarginRepayDebt') {
+                    $response = Async\await($this->papiPostMarginRepayDebt ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "asset" => "USDC",
+                    //         "amount" => 10,
+                    //         "specifyRepayAssets" => null,
+                    //         "updateTime" => 1727170761267,
+                    //         "success" => true
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->papiPostRepayLoan ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "tranId" => 108988250265,
+                    //         "clientTag":""
+                    //     }
+                    //
+                }
             } else {
                 $request['isIsolated'] = 'FALSE';
                 $request['type'] = 'REPAY';
                 $response = Async\await($this->sapiPostMarginBorrowRepay ($this->extend($request, $params)));
+                //
+                //     {
+                //         "tranId" => 108988250265,
+                //         "clientTag":""
+                //     }
+                //
             }
-            //
-            //     {
-            //         "tranId" => 108988250265,
-            //         "clientTag":""
-            //     }
-            //
             return $this->parse_margin_loan($response, $currency);
         }) ();
     }
@@ -12089,13 +12381,25 @@ class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset" => "USDC",
+        //         "amount" => 10,
+        //         "specifyRepayAssets" => null,
+        //         "updateTime" => 1727170761267,
+        //         "success" => true
+        //     }
+        //
+        $currencyId = $this->safe_string($info, 'asset');
+        $timestamp = $this->safe_integer($info, 'updateTime');
         return array(
             'id' => $this->safe_integer($info, 'tranId'),
-            'currency' => $this->safe_currency_code(null, $currency),
-            'amount' => null,
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->safe_number($info, 'amount'),
             'symbol' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'info' => $info,
         );
     }
@@ -13317,6 +13621,151 @@ class binance extends Exchange {
             'toAmount' => $this->safe_number_2($conversion, 'targetAmount', 'toAmount'),
             'price' => null,
             'fee' => null,
+        );
+    }
+
+    public function fetch_funding_intervals(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the funding rate interval for multiple markets
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $market = $this->market($symbols[0]);
+            }
+            $type = 'swap';
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingIntervals', $market, $params, 'linear');
+            $response = null;
+            if ($this->is_linear($type, $subType)) {
+                $response = Async\await($this->fapiPublicGetFundingInfo ($params));
+            } elseif ($this->is_inverse($type, $subType)) {
+                $response = Async\await($this->dapiPublicGetFundingInfo ($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchFundingIntervals() supports linear and inverse swap contracts only');
+            }
+            //
+            //     array(
+            //         array(
+            //             "symbol" => "BLZUSDT",
+            //             "adjustedFundingRateCap" => "0.03000000",
+            //             "adjustedFundingRateFloor" => "-0.03000000",
+            //             "fundingIntervalHours" => 4,
+            //             "disclaimer" => false
+            //         ),
+            //     )
+            //
+            $result = $this->parse_funding_rates($response, $market);
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches the long short ratio history for a unified $market $symbol
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+             * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+             * @param {string} [$timeframe] the period for the ratio, default is 24 hours
+             * @param {int} [$since] the earliest time in ms to fetch ratios for
+             * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($timeframe === null) {
+                $timeframe = '1d';
+            }
+            $request = array(
+                'period' => $timeframe,
+            );
+            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchLongShortRatioHistory', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $request['symbol'] = $market['id'];
+                $response = Async\await($this->fapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params)));
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "BTCUSDT",
+                //             "longAccount" => "0.4558",
+                //             "longShortRatio" => "0.8376",
+                //             "shortAccount" => "0.5442",
+                //             "timestamp" => 1726790400000
+                //         ),
+                //     )
+                //
+            } elseif ($subType === 'inverse') {
+                $request['pair'] = $market['info']['pair'];
+                $response = Async\await($this->dapiDataGetGlobalLongShortAccountRatio ($this->extend($request, $params)));
+                //
+                //     array(
+                //         array(
+                //             "longAccount" => "0.7262",
+                //             "longShortRatio" => "2.6523",
+                //             "shortAccount" => "0.2738",
+                //             "pair" => "BTCUSD",
+                //             "timestamp" => 1726790400000
+                //         ),
+                //     )
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
+            }
+            return $this->parse_long_short_ratio_history($response, $market);
+        }) ();
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        //
+        // linear
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "longAccount" => "0.4558",
+        //         "longShortRatio" => "0.8376",
+        //         "shortAccount" => "0.5442",
+        //         "timestamp" => 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount" => "0.7262",
+        //         "longShortRatio" => "2.6523",
+        //         "shortAccount" => "0.2738",
+        //         "pair" => "BTCUSD",
+        //         "timestamp" => 1726790400000
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_omit_zero($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
         );
     }
 }

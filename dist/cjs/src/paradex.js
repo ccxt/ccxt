@@ -1,13 +1,12 @@
 'use strict';
 
-require('../ccxt.js');
+var Precise = require('./base/Precise.js');
 var paradex$1 = require('./abstract/paradex.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var crypto = require('./base/functions/crypto.js');
 var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
-var Precise = require('./base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -657,7 +656,7 @@ class paradex extends paradex$1 {
             'low': undefined,
             'bid': this.safeString(ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'sdk'),
+            'ask': this.safeString(ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -669,6 +668,7 @@ class paradex extends paradex$1 {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(ticker, 'volume_24h'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
             'info': ticker,
         }, market);
     }

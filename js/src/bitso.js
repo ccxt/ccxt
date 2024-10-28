@@ -48,6 +48,7 @@ export default class bitso extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -118,6 +119,12 @@ export default class bitso extends Exchange {
                     'TUSD': 0.01,
                 },
                 'defaultPrecision': 0.00000001,
+                'networks': {
+                    'TRC20': 'trx',
+                    'ERC20': 'erc20',
+                    'BEP20': 'bsc',
+                    'BEP2': 'bep2',
+                },
             },
             'timeframes': {
                 '1m': '60',
@@ -194,10 +201,10 @@ export default class bitso extends Exchange {
         /**
          * @method
          * @name bitso#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string} code unified currency code, default is undefined
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -306,6 +313,7 @@ export default class bitso extends Exchange {
         const amount = this.safeString(firstBalance, 'amount');
         const currencyId = this.safeString(firstBalance, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const details = this.safeValue(item, 'details', {});
         let referenceId = this.safeString2(details, 'fid', 'wid');
         if (referenceId === undefined) {
@@ -330,6 +338,7 @@ export default class bitso extends Exchange {
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
         return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'eid'),
             'direction': direction,
             'account': undefined,
@@ -344,7 +353,6 @@ export default class bitso extends Exchange {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-            'info': item,
         }, currency);
     }
     async fetchMarkets(params = {}) {
@@ -1339,11 +1347,11 @@ export default class bitso extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -1634,19 +1642,6 @@ export default class bitso extends Exchange {
         const first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
-    safeNetwork(networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        networkId = networkId.toUpperCase();
-        const networksById = {
-            'trx': 'TRC20',
-            'erc20': 'ERC20',
-            'bsc': 'BEP20',
-            'bep2': 'BEP2',
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
     parseTransaction(transaction, currency = undefined) {
         //
         // deposit
@@ -1693,12 +1688,14 @@ export default class bitso extends Exchange {
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
+        const networkCode = this.networkIdToCode(networkId);
+        const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
             'txid': this.safeString(details, 'tx_hash'),
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'network': this.safeNetwork(networkId),
+            'network': networkCodeUpper,
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,

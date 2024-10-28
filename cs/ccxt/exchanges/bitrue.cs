@@ -44,7 +44,10 @@ public partial class bitrue : Exchange
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchMarginMode", false },
@@ -278,6 +281,7 @@ public partial class bitrue : Exchange
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -400,7 +404,7 @@ public partial class bitrue : Exchange
                     { "Order would immediately match and take.", typeof(OrderImmediatelyFillable) },
                     { "Account has insufficient balance for requested action.", typeof(InsufficientFunds) },
                     { "Rest API trading is not enabled.", typeof(ExchangeNotAvailable) },
-                    { "You don\'t have permission.", typeof(PermissionDenied) },
+                    { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
                     { "-1000", typeof(ExchangeNotAvailable) },
@@ -465,18 +469,6 @@ public partial class bitrue : Exchange
                 } },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        // info is available in currencies only if the user has configured his api keys
-        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
-        {
-            return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
-        } else
-        {
-            return this.numberToString(fee);
-        }
     }
 
     public override object nonce()

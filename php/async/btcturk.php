@@ -653,7 +653,7 @@ class btcturk extends Exchange {
         }) ();
     }
 
-    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, Bool $tail = false) {
         $results = array();
         $timestamp = $this->safe_value($ohlcvs, 't');
         $high = $this->safe_value($ohlcvs, 'h');
@@ -673,7 +673,7 @@ class btcturk extends Exchange {
             $results[] = $this->parse_ohlcv($ohlcv, $market);
         }
         $sorted = $this->sort_by($results, 0);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

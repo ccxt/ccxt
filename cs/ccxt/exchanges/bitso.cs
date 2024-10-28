@@ -38,6 +38,7 @@ public partial class bitso : Exchange
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -108,6 +109,12 @@ public partial class bitso : Exchange
                     { "TUSD", 0.01 },
                 } },
                 { "defaultPrecision", 1e-8 },
+                { "networks", new Dictionary<string, object>() {
+                    { "TRC20", "trx" },
+                    { "ERC20", "erc20" },
+                    { "BEP20", "bsc" },
+                    { "BEP2", "bep2" },
+                } },
             } },
             { "timeframes", new Dictionary<string, object>() {
                 { "1m", "60" },
@@ -143,10 +150,10 @@ public partial class bitso : Exchange
         /**
         * @method
         * @name bitso#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -261,6 +268,7 @@ public partial class bitso : Exchange
         object amount = this.safeString(firstBalance, "amount");
         object currencyId = this.safeString(firstBalance, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object details = this.safeValue(item, "details", new Dictionary<string, object>() {});
         object referenceId = this.safeString2(details, "fid", "wid");
         if (isTrue(isEqual(referenceId, null)))
@@ -287,6 +295,7 @@ public partial class bitso : Exchange
         }
         object timestamp = this.parse8601(this.safeString(item, "created_at"));
         return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", this.safeString(item, "eid") },
             { "direction", direction },
             { "account", null },
@@ -301,7 +310,6 @@ public partial class bitso : Exchange
             { "after", null },
             { "status", "ok" },
             { "fee", fee },
-            { "info", item },
         }, currency);
     }
 
@@ -1384,11 +1392,11 @@ public partial class bitso : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1703,22 +1711,6 @@ public partial class bitso : Exchange
         return this.parseTransaction(first, currency);
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isEqual(networkId, null)))
-        {
-            return null;
-        }
-        networkId = ((string)networkId).ToUpper();
-        object networksById = new Dictionary<string, object>() {
-            { "trx", "TRC20" },
-            { "erc20", "ERC20" },
-            { "bsc", "BEP20" },
-            { "bep2", "BEP2" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
@@ -1766,12 +1758,14 @@ public partial class bitso : Exchange
         object networkId = this.safeString2(transaction, "network", "method");
         object status = this.safeString(transaction, "status");
         object withdrawId = this.safeString(transaction, "wid");
+        object networkCode = this.networkIdToCode(networkId);
+        object networkCodeUpper = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
         return new Dictionary<string, object>() {
             { "id", this.safeString2(transaction, "wid", "fid") },
             { "txid", this.safeString(details, "tx_hash") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.safeNetwork(networkId) },
+            { "network", networkCodeUpper },
             { "addressFrom", receivingAddress },
             { "address", ((bool) isTrue((!isEqual(withdrawalAddress, null)))) ? withdrawalAddress : receivingAddress },
             { "addressTo", withdrawalAddress },

@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -52,6 +52,8 @@ export default class lbank extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -1012,16 +1014,16 @@ export default class lbank extends Exchange {
         }
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);
-            since = this.milliseconds () - duration * 1000 * limit;
+            since = this.milliseconds () - (duration * 1000 * limit);
         }
         const request: Dict = {
             'symbol': market['id'],
             'type': this.safeString (this.timeframes, timeframe, timeframe),
             'time': this.parseToInt (since / 1000),
-            'size': limit, // max 2000
+            'size': Math.min (limit + 1, 2000), // max 2000
         };
         const response = await this.spotPublicGetKline (this.extend (request, params));
-        const ohlcvs = this.safeValue (response, 'data', []);
+        const ohlcvs = this.safeList (response, 'data', []);
         //
         //
         // [
@@ -1949,7 +1951,7 @@ export default class lbank extends Exchange {
         return network;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name lbank#fetchDepositAddress
@@ -1971,10 +1973,10 @@ export default class lbank extends Exchange {
         } else {
             response = await this.fetchDepositAddressDefault (code, params);
         }
-        return response;
+        return response as DepositAddress;
     }
 
-    async fetchDepositAddressDefault (code: string, params = {}) {
+    async fetchDepositAddressDefault (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
@@ -2006,15 +2008,15 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper (inverseNetworks, networkId, networkId);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddressSupplement (code: string, params = {}) {
+    async fetchDepositAddressSupplement (code: string, params = {}): Promise<DepositAddress> {
         // returns the address for whatever the default network is...
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2047,12 +2049,12 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue (this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper (inverseNetworks, network, network);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode, // will be undefined if not specified in request
             'address': address,
             'tag': tag,
-            'network': networkCode, // will be undefined if not specified in request
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -2491,25 +2493,25 @@ export default class lbank extends Exchange {
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-         * @param {string[]|undefined} codes array of unified currency codes
+         * @param {string[]} [codes] array of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        const response = undefined;
+        let response = undefined;
         if (isAuthorized === true) {
             const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString (params, 'method', defaultMethod);
             params = this.omit (params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                await this.fetchPublicDepositWithdrawFees (codes, params);
+                response = await this.fetchPublicDepositWithdrawFees (codes, params);
             } else {
-                await this.fetchPrivateDepositWithdrawFees (codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees (codes, params);
             }
         } else {
-            await this.fetchPublicDepositWithdrawFees (codes, params);
+            response = await this.fetchPublicDepositWithdrawFees (codes, params);
         }
         return response;
     }

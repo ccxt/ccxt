@@ -42,6 +42,8 @@ public partial class whitebit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -191,7 +193,7 @@ public partial class whitebit : Exchange
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },
-                    { "You don\'t have such amount for transfer", typeof(InsufficientFunds) },
+                    { "You don't have such amount for transfer", typeof(InsufficientFunds) },
                 } },
             } },
         });
@@ -1645,22 +1647,21 @@ public partial class whitebit : Exchange
         * @name whitebit#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-        * @param {string} symbol unified market symbol
+        * @param {string} [symbol] unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
-        };
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
@@ -2002,11 +2003,11 @@ public partial class whitebit : Exchange
         object tag = this.safeString(account, "memo");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -2464,8 +2465,8 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRate
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the current funding rate
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2482,11 +2483,11 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRates
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the funding rate for multiple markets
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2536,7 +2537,7 @@ public partial class whitebit : Exchange
         //        }
         //    ]
         //
-        object data = this.safeValue(response, "result", new List<object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = this.parseFundingRates(data);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2581,7 +2582,7 @@ public partial class whitebit : Exchange
         object indexPrice = this.safeNumber(contract, "indexPrice");
         object interestRate = this.safeNumber(contract, "interestRate");
         object fundingRate = this.safeNumber(contract, "funding_rate");
-        object nextFundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
+        object fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -2591,14 +2592,15 @@ public partial class whitebit : Exchange
             { "timestamp", null },
             { "datetime", null },
             { "fundingRate", fundingRate },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", this.iso8601(null) },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },
-            { "nextFundingTimestamp", nextFundingTime },
-            { "nextFundingDatetime", this.iso8601(nextFundingTime) },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 

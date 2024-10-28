@@ -725,6 +725,8 @@
                     "average": null,
                     "baseVolume": 2638.4314844,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": [
                         73350,
                         2.55279457,

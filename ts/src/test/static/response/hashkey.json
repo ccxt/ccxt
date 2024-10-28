@@ -145,6 +145,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "symbol": "ETHUSDT",
@@ -947,6 +951,8 @@
                     "average": 65334.43,
                     "baseVolume": 840.82448,
                     "quoteVolume": 54553459.3478067,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1721910147500",
                         "s": "BTCUSDT",
@@ -1001,6 +1007,8 @@
                     "average": 2541.34,
                     "baseVolume": 1561096,
                     "quoteVolume": 4138307.86688,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1723212900000",
                         "s": "ETHUSDT-PERPETUAL",
@@ -1490,7 +1498,7 @@
         ],
         "fetchLedger": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Fetch ledger with since limit and until parameters",
                 "method": "fetchLedger",
                 "input": [
                     "USDT",
@@ -1531,6 +1539,19 @@
                 "parsedResponse": [
                     {
                         "id": "1740843877328280576",
+                        "timestamp": 1722260761834,
+                        "datetime": "2024-07-29T13:46:01.834Z",
+                        "direction": "out",
+                        "account": "1732885739589466112",
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": -1,
+                        "before": 10.015680088,
+                        "after": 9.015680088,
+                        "status": "ok",
+                        "fee": null,
                         "info": {
                             "id": "1740843877328280576",
                             "accountId": "1732885739589466112",
@@ -1543,24 +1564,23 @@
                             "change": "-1",
                             "total": "9.015680088",
                             "created": "1722260761834"
-                        },
-                        "timestamp": 1722260761834,
-                        "datetime": "2024-07-29T13:46:01.834Z",
+                        }
+                    },
+                    {
+                        "id": "1740844413612065537",
+                        "timestamp": 1722260825765,
+                        "datetime": "2024-07-29T13:47:05.765Z",
                         "account": "1732885739589466112",
                         "direction": "out",
                         "referenceId": null,
                         "referenceAccount": null,
                         "type": "transfer",
                         "currency": "USDT",
-                        "symbol": null,
                         "amount": -1,
-                        "before": null,
-                        "after": 9.015680088,
+                        "before": 9.015680088,
+                        "after": 8.015680088,
                         "status": "ok",
-                        "fee": null
-                    },
-                    {
-                        "id": "1740844413612065537",
+                        "fee": null,
                         "info": {
                             "id": "1740844413612065537",
                             "accountId": "1732885739589466112",
@@ -1573,21 +1593,7 @@
                             "change": "-1",
                             "total": "8.015680088",
                             "created": "1722260825765"
-                        },
-                        "timestamp": 1722260825765,
-                        "datetime": "2024-07-29T13:47:05.765Z",
-                        "account": "1732885739589466112",
-                        "direction": "out",
-                        "referenceId": null,
-                        "referenceAccount": null,
-                        "type": "transfer",
-                        "currency": "USDT",
-                        "symbol": null,
-                        "amount": -1,
-                        "before": null,
-                        "after": 8.015680088,
-                        "status": "ok",
-                        "fee": null
+                        }
                     }
                 ]
             }
@@ -3088,7 +3094,8 @@
                     "nextFundingDatetime": "2024-08-05T16:00:00.000Z",
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": null
                 }
             }
         ],

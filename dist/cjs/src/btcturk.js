@@ -640,7 +640,7 @@ class btcturk extends btcturk$1 {
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
         const timestamp = this.safeValue(ohlcvs, 't');
         const high = this.safeValue(ohlcvs, 'h');
@@ -660,7 +660,7 @@ class btcturk extends btcturk$1 {
             results.push(this.parseOHLCV(ohlcv, market));
         }
         const sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

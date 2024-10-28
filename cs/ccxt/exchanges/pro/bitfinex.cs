@@ -245,15 +245,15 @@ public partial class bitfinex : ccxt.bitfinex
         {
             open = Precise.stringSub(last, change);
         }
-        object result = new Dictionary<string, object>() {
+        object result = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
-            { "high", this.safeFloat(message, 9) },
-            { "low", this.safeFloat(message, 10) },
-            { "bid", this.safeFloat(message, 1) },
+            { "high", this.safeString(message, 9) },
+            { "low", this.safeString(message, 10) },
+            { "bid", this.safeString(message, 1) },
             { "bidVolume", null },
-            { "ask", this.safeFloat(message, 3) },
+            { "ask", this.safeString(message, 3) },
             { "askVolume", null },
             { "vwap", null },
             { "open", this.parseNumber(open) },
@@ -261,12 +261,12 @@ public partial class bitfinex : ccxt.bitfinex
             { "last", this.parseNumber(last) },
             { "previousClose", null },
             { "change", this.parseNumber(change) },
-            { "percentage", this.safeFloat(message, 6) },
+            { "percentage", this.safeString(message, 6) },
             { "average", null },
-            { "baseVolume", this.safeFloat(message, 8) },
+            { "baseVolume", this.safeString(message, 8) },
             { "quoteVolume", null },
             { "info", message },
-        };
+        });
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
     }
@@ -492,7 +492,7 @@ public partial class bitfinex : ccxt.bitfinex
             object method = this.safeString(message, "event");
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, method)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
             }
         }
     }

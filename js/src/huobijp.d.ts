@@ -57,7 +57,6 @@ export default class huobijp extends Exchange {
     cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
     parseCancelOrders(orders: any): any[];
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    currencyToPrecision(code: any, fee: any, networkCode?: any): string;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         address: string;

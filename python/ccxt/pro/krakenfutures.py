@@ -998,6 +998,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': self.safe_string(ticker, 'volumeQuote'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'index'),
         })
 
     def handle_order_book_snapshot(self, client: Client, message):

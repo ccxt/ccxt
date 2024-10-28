@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinone.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress } from './base/types.js';
 /**
  * @class coinone
  * @augments Exchange
@@ -23,7 +23,7 @@ export default class coinone extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

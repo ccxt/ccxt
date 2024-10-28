@@ -41,10 +41,16 @@ export default class bitfinex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -566,11 +572,11 @@ export default class bitfinex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const ids = await this.publicGetSymbols();
+        const idsPromise = this.publicGetSymbols();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        const details = await this.publicGetSymbolsDetails();
+        const detailsPromise = this.publicGetSymbolsDetails();
         //
         //     [
         //         {
@@ -585,6 +591,7 @@ export default class bitfinex extends Exchange {
         //         },
         //     ]
         //
+        const [ids, details] = await Promise.all([idsPromise, detailsPromise]);
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];

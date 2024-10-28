@@ -22,6 +22,7 @@ public partial class bybit : ccxt.bybit
                 { "fetchTradesWs", false },
                 { "fetchBalanceWs", false },
                 { "watchBalance", true },
+                { "watchBidsAsks", true },
                 { "watchLiquidations", true },
                 { "watchLiquidationsForSymbols", false },
                 { "watchMyLiquidations", false },
@@ -338,7 +339,7 @@ public partial class bybit : ccxt.bybit
         object requestId = ((object)this.requestId()).ToString();
         if (isTrue(inOp(orderRequest, "orderFilter")))
         {
-
+            ((IDictionary<string,object>)orderRequest).Remove((string)"orderFilter");
         }
         object request = new Dictionary<string, object>() {
             { "op", "order.cancel" },
@@ -618,6 +619,59 @@ public partial class bybit : ccxt.bybit
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
 
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#watchBidsAsks
+        * @description watches best bid & ask for symbols
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchBidsAsks", parameters);
+        parameters = this.cleanParams(parameters);
+        object marketIds = this.marketIds(symbols);
+        object topics = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object topic = add("orderbook.1.", marketId);
+            ((IList<object>)topics).Add(topic);
+            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+        }
+        object ticker = await this.watchTopics(url, messageHashes, topics, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            return ticker;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual object parseWsBidAsk(object orderbook, object market = null)
+    {
+        object timestamp = this.safeInteger(orderbook, "timestamp");
+        object bids = this.sortBy(this.aggregate(getValue(orderbook, "bids")), 0);
+        object asks = this.sortBy(this.aggregate(getValue(orderbook, "asks")), 0);
+        object bestBid = this.safeList(bids, 0, new List<object>() {});
+        object bestAsk = this.safeList(asks, 0, new List<object>() {});
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(bestAsk, 0) },
+            { "askVolume", this.safeNumber(bestAsk, 1) },
+            { "bid", this.safeNumber(bestBid, 0) },
+            { "bidVolume", this.safeNumber(bestBid, 1) },
+            { "info", orderbook },
+        }, market);
+    }
+
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -683,6 +737,66 @@ public partial class bybit : ccxt.bybit
         }
         object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#unWatchOHLCVForSymbols
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+        object firstSymbol = getValue(marketSymbols, 0);
+        object url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
+        object rawHashes = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        {
+            object data = getValue(symbolsAndTimeframes, i);
+            object symbolString = this.safeString(data, 0);
+            object market = this.market(symbolString);
+            symbolString = getValue(market, "symbol");
+            object unfiedTimeframe = this.safeString(data, 1);
+            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), getValue(market, "id")));
+            ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
+        }
+        object subExtension = new Dictionary<string, object>() {
+            { "symbolsAndTimeframes", symbolsAndTimeframes },
+        };
+        return await this.unWatchTopics(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, parameters, subExtension);
+    }
+
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#unWatchOHLCV
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -922,6 +1036,8 @@ public partial class bybit : ccxt.bybit
         //         }
         //     }
         //
+        object topic = this.safeString(message, "topic");
+        object limit = getValue(((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 1);
         object isSpot = isGreaterThanOrEqual(getIndexOf(client.url, "spot"), 0);
         object type = this.safeString(message, "type");
         object isSnapshot = (isEqual(type, "snapshot"));
@@ -952,6 +1068,14 @@ public partial class bybit : ccxt.bybit
         object messageHash = add(add("orderbook", ":"), symbol);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+        if (isTrue(isEqual(limit, "1")))
+        {
+            object bidask = this.parseWsBidAsk(getValue(this.orderbooks, symbol), market);
+            object newBidsAsks = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)newBidsAsks)[(string)symbol] = bidask;
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = bidask;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {newBidsAsks, add("bidask:", symbol)});
+        }
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -1056,7 +1180,7 @@ public partial class bybit : ccxt.bybit
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)subMessageHashes).Add(add("trade:", symbol));
         }
-        return await this.unWatchTopics(url, "trade", symbols, messageHashes, subMessageHashes, topics, parameters);
+        return await this.unWatchTopics(url, "trades", symbols, messageHashes, subMessageHashes, topics, parameters);
     }
 
     public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
@@ -2354,9 +2478,10 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null)
+    public async virtual Task<object> unWatchTopics(object url, object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null, object subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
+        subExtension ??= new Dictionary<string, object>();
         object reqId = this.requestId();
         object request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -2371,7 +2496,7 @@ public partial class bybit : ccxt.bybit
             { "symbols", symbols },
         };
         object message = this.extend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension));
     }
 
     public async virtual Task<object> authenticate(object url, object parameters = null)
@@ -2478,7 +2603,7 @@ public partial class bybit : ccxt.bybit
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -2619,7 +2744,7 @@ public partial class bybit : ccxt.bybit
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;
@@ -2681,64 +2806,11 @@ public partial class bybit : ccxt.bybit
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
-                    {
-
-                    }
-                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-                    {
-
-                    }
-                    var error = new UnsubscribeError(add(add(this.id, " "), messageHash));
-                    ((WebSocketClient)client).reject(error, subHash);
-                    callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
-                    this.cleanCache(subscription);
+                    this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
                 }
+                this.cleanCache(subscription);
             }
         }
         return message;
-    }
-
-    public virtual void cleanCache(object subscription)
-    {
-        object topic = this.safeString(subscription, "topic");
-        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isGreaterThan(symbolsLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                if (isTrue(isEqual(topic, "trade")))
-                {
-
-                } else if (isTrue(isEqual(topic, "orderbook")))
-                {
-
-                } else if (isTrue(isEqual(topic, "ticker")))
-                {
-
-                }
-            }
-        } else
-        {
-            if (isTrue(isEqual(topic, "myTrades")))
-            {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "orders")))
-            {
-                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            }
-        }
     }
 }

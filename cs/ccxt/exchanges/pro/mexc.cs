@@ -27,7 +27,8 @@ public partial class mexc : ccxt.mexc
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchTicker", true },
-                { "watchTickers", false },
+                { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
             } },
@@ -112,6 +113,7 @@ public partial class mexc : ccxt.mexc
         //        "t": 1678643605721
         //    }
         //
+        this.handleBidAsk(client as WebSocketClient, message);
         object rawTicker = this.safeValue2(message, "d", "data");
         object marketId = this.safeString2(message, "s", "symbol");
         object timestamp = this.safeInteger(message, "t");
@@ -130,6 +132,93 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+    }
+
+    public async override Task<object> watchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#watchTickers
+        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object messageHashes = new List<object>() {};
+        object marketIds = this.marketIds(symbols);
+        object firstMarket = this.market(getValue(symbols, 0));
+        object isSpot = getValue(firstMarket, "spot");
+        object url = ((bool) isTrue((isSpot))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(isSpot))
+        {
+            object topics = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            {
+                object marketId = getValue(marketIds, i);
+                ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+                ((IList<object>)topics).Add(add("spot@public.bookTicker.v3.api@", marketId));
+            }
+            ((IDictionary<string,object>)request)["method"] = "SUBSCRIPTION";
+            ((IDictionary<string,object>)request)["params"] = topics;
+        } else
+        {
+            ((IDictionary<string,object>)request)["method"] = "sub.tickers";
+            ((IDictionary<string,object>)request)["params"] = new Dictionary<string, object>() {};
+            ((IList<object>)messageHashes).Add("ticker");
+        }
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(isTrue(isSpot) && isTrue(this.newUpdates)))
+        {
+            object result = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)result)[(string)getValue(ticker, "symbol")] = ticker;
+            return result;
+        }
+        return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public virtual void handleTickers(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //       "channel": "push.tickers",
+        //       "data": [
+        //         {
+        //           "symbol": "ETH_USDT",
+        //           "lastPrice": 2324.5,
+        //           "riseFallRate": 0.0356,
+        //           "fairPrice": 2324.32,
+        //           "indexPrice": 2325.44,
+        //           "volume24": 25868309,
+        //           "amount24": 591752573.9792,
+        //           "maxBidPrice": 2557.98,
+        //           "minAskPrice": 2092.89,
+        //           "lower24Price": 2239.39,
+        //           "high24Price": 2332.59,
+        //           "timestamp": 1725872514111
+        //         }
+        //       ],
+        //       "ts": 1725872514111
+        //     }
+        //
+        object data = this.safeList(message, "data");
+        object topic = "ticker";
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object ticker = this.parseTicker(getValue(data, i));
+            object symbol = getValue(ticker, "symbol");
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            ((IList<object>)result).Add(ticker);
+            object messageHash = add(add(topic, ":"), symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
     }
 
     public virtual object parseWsTicker(object ticker, object market = null)
@@ -162,6 +251,101 @@ public partial class mexc : ccxt.mexc
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", null },
+            { "info", ticker },
+        }, market);
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name mexc#watchBidsAsks
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, false, true);
+        object marketType = null;
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, "watchBidsAsks required symbols argument")) ;
+        }
+        object markets = this.marketsForSymbols(symbols);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object isSpot = isEqual(marketType, "spot");
+        if (!isTrue(isSpot))
+        {
+            throw new NotSupported ((string)add(this.id, "watchBidsAsks only support spot market")) ;
+        }
+        object messageHashes = new List<object>() {};
+        object topics = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            if (isTrue(isSpot))
+            {
+                object market = this.market(getValue(symbols, i));
+                ((IList<object>)topics).Add(add("spot@public.bookTicker.v3.api@", getValue(market, "id")));
+            }
+            ((IList<object>)messageHashes).Add(add("bidask:", getValue(symbols, i)));
+        }
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
+        object request = new Dictionary<string, object>() {
+            { "method", "SUBSCRIPTION" },
+            { "params", topics },
+        };
+        object ticker = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
+        if (isTrue(this.newUpdates))
+        {
+            object tickers = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //    {
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
+        //    }
+        //
+        object parsedTicker = this.parseWsBidAsk(message);
+        object symbol = getValue(parsedTicker, "symbol");
+        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+        object messageHash = add("bidask:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object data = this.safeDict(ticker, "d");
+        object marketId = this.safeString(ticker, "s");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "t");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeNumber(data, "a") },
+            { "askVolume", this.safeNumber(data, "A") },
+            { "bid", this.safeNumber(data, "b") },
+            { "bidVolume", this.safeNumber(data, "B") },
             { "info", ticker },
         }, market);
     }
@@ -520,7 +704,7 @@ public partial class mexc : ccxt.mexc
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(e, messageHash);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
@@ -1230,7 +1414,7 @@ public partial class mexc : ccxt.mexc
             var client = this.client(url);
             ((IDictionary<string,object>)this.options)["listenKey"] = null;
             ((WebSocketClient)client).reject(error);
-
+            ((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Remove((string)url);
         }
     }
 
@@ -1248,8 +1432,8 @@ public partial class mexc : ccxt.mexc
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
-        //
-        object msg = this.safeString(message, "msg");
+        // Set the default to an empty string if the message is empty during the test.
+        object msg = this.safeString(message, "msg", "");
         if (isTrue(isEqual(msg, "PONG")))
         {
             this.handlePong(client as WebSocketClient, message);
@@ -1301,6 +1485,7 @@ public partial class mexc : ccxt.mexc
             { "push.kline", this.handleOHLCV },
             { "public.bookTicker.v3.api", this.handleTicker },
             { "push.ticker", this.handleTicker },
+            { "push.tickers", this.handleTickers },
             { "public.increase.depth.v3.api", this.handleOrderBook },
             { "push.depth", this.handleOrderBook },
             { "private.orders.v3.api", this.handleOrder },

@@ -118,6 +118,8 @@ class Transpiler {
             [ /\.parsePositionRisk /g, '.parse_position_risk'],
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
+            [ /\.describeData /g, '.describe_data'],
+            [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
@@ -770,6 +772,7 @@ class Transpiler {
         }
         const matchObject = {
             'Account': /-> (?:List\[)?Account/,
+            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
             'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
@@ -779,6 +782,7 @@ class Transpiler {
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'DepositAddress': /-> (?:List\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
@@ -787,6 +791,7 @@ class Transpiler {
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
             'LastPrices': /-> LastPrices:/,
+            'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
             'LeverageTier': /-> (?:List\[)?LeverageTier/,
@@ -797,6 +802,7 @@ class Transpiler {
             'MarginModification': /-> MarginModification:/,
             'Market': /(-> Market:|: Market)/,
             'MarketInterface': /-> MarketInterface:/,
+            'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
             'Num': /: (?:List\[)?Num =/,
             'Option': /-> Option:/,
@@ -1472,7 +1478,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2014,6 +2020,12 @@ class Transpiler {
         overwriteSafe (finalPath, baseContent)
     }
 
+    isFirstLetterUpperCase (str) {
+        if (!str || str.length === 0) return false;
+        const firstChar = str[0];
+        return firstChar === firstChar.toUpperCase() && firstChar !== firstChar.toLowerCase();
+    }
+
     transpileMainTests (files) {
         log.magenta ('Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ()
@@ -2071,7 +2083,7 @@ class Transpiler {
             replace(/\.api_key/g, '.apiKey');
         
         let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
-        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass') ? x.name : unCamelCase(x.name));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass' || this.isFirstLetterUpperCase (x.name)) ? x.name : unCamelCase(x.name));
         const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
@@ -2094,10 +2106,12 @@ class Transpiler {
             }
             let head = '<?php\n\n' + 'namespace ccxt;\n\n' + 'use \\React\\Async;\nuse \\React\\Promise;\n' + exceptions + '\nrequire_once __DIR__ . \'/tests_helpers.php\';\n\n';
             let newContent = head + cont;
-            newContent = newContent.replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
-            replace(/\->wallet_address/g, '->walletAddress').
-            replace(/\->private_key/g, '->privateKey').
-            replace(/\->api_key/g, '->apiKey');
+            newContent = newContent.
+                replace (/use ccxt\\(async\\|)abstract\\testMainClass as baseMainTestClass;/g, '').
+                replace(/\->wallet_address/g, '->walletAddress').
+                replace(/\->private_key/g, '->privateKey').
+                replace(/\->api_key/g, '->apiKey').
+                replace (/class testMainClass/, '#[\\AllowDynamicProperties]\nclass testMainClass');
             newContent = snakeCaseFunctions (newContent);
             newContent = this.phpReplaceException (newContent);
             return newContent;
@@ -2289,6 +2303,11 @@ class Transpiler {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
             }
+            // py: json
+            if (pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump')) {
+                pythonHeaderSync.push ('import json  # noqa E402')
+                pythonHeaderAsync.push ('import json  # noqa E402')
+            }
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
@@ -2319,6 +2338,7 @@ class Transpiler {
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.exchange.base';
+                const isLangSpec = subTestName === 'testLanguageSpecific';
 
                 if (isSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
@@ -2332,11 +2352,13 @@ class Transpiler {
                     }
                 } else {
                     if (test.base) {
-                        phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
+                        const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
+                        phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
                         if (test.tsFile.includes('Exchange/base')) {
                             pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                         } else {
-                            pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                            const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
+                            pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
                         }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)

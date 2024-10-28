@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -394,7 +394,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        assets = self.v1PublicGetAssets(params)
+        assetsPromise = self.v1PublicGetAssets(params)
         #
         #     {
         #         "code":0,
@@ -411,7 +411,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        margin = self.v1PublicGetMarginAssets(params)
+        marginPromise = self.v1PublicGetMarginAssets(params)
         #
         #     {
         #         "code":0,
@@ -431,7 +431,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = self.v1PublicGetCashAssets(params)
+        cashPromise = self.v1PublicGetCashAssets(params)
         #
         #     {
         #         "code":0,
@@ -448,6 +448,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        assets, margin, cash = [assetsPromise, marginPromise, cashPromise]
         assetsData = self.safe_list(assets, 'data', [])
         marginData = self.safe_list(margin, 'data', [])
         cashData = self.safe_list(cash, 'data', [])
@@ -499,7 +500,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        products = self.v1PublicGetProducts(params)
+        productsPromise = self.v1PublicGetProducts(params)
         #
         #     {
         #         "code": 0,
@@ -520,7 +521,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = self.v1PublicGetCashProducts(params)
+        cashPromise = self.v1PublicGetCashProducts(params)
         #
         #     {
         #         "code": 0,
@@ -550,7 +551,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        perpetuals = self.v2PublicGetFuturesContract(params)
+        perpetualsPromise = self.v2PublicGetFuturesContract(params)
         #
         #    {
         #        "code": 0,
@@ -588,6 +589,7 @@ class ascendex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        products, cash, perpetuals = [productsPromise, cashPromise, perpetualsPromise]
         productsData = self.safe_list(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_list(cash, 'data', [])
@@ -2244,7 +2246,7 @@ class ascendex(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2266,14 +2268,14 @@ class ascendex(Exchange, ImplicitAPI):
         chainName = self.safe_string(depositAddress, 'blockchain')
         network = self.network_id_to_code(chainName, code)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
@@ -2617,7 +2619,7 @@ class ascendex(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_number(position, 'takeProfitPrice'),
         })
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #      {
         #          "time": 1640061364830,
@@ -2652,14 +2654,15 @@ class ascendex(Exchange, ImplicitAPI):
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingRateTimestamp,
             'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'interval': None,
         }
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)

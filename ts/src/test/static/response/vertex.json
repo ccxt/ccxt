@@ -515,7 +515,8 @@
                         "nextFundingDatetime": null,
                         "previousFundingRate": null,
                         "previousFundingTimestamp": null,
-                        "previousFundingDatetime": null
+                        "previousFundingDatetime": null,
+                        "interval": null
                     }
                 }
             }
@@ -796,7 +797,8 @@
                     "nextFundingDatetime": null,
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
-                    "previousFundingDatetime": null
+                    "previousFundingDatetime": null,
+                    "interval": null
                 }
             }
         ],
@@ -4669,6 +4671,8 @@
                         "average": null,
                         "baseVolume": 30851.79,
                         "quoteVolume": 117809333.88248695,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "ticker_id": "ETH-PERP_USDC",
                             "base_currency": "ETH-PERP",

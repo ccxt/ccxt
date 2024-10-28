@@ -60,6 +60,8 @@ public partial class woofipro : Exchange
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
@@ -114,7 +116,7 @@ public partial class woofipro : Exchange
                 { "1y", "1y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69" },
+                { "logo", "https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api-evm.orderly.org" },
                     { "private", "https://api-evm.orderly.org" },
@@ -779,12 +781,14 @@ public partial class woofipro : Exchange
         //            "sum_unitary_funding": 521.367
         //         }
         //
-        //
         object symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
         object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
         object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
         object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        object fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
+        object nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new Dictionary<string, object>() {
             { "info", fundingRate },
             { "symbol", getValue(market, "symbol") },
@@ -803,7 +807,35 @@ public partial class woofipro : Exchange
             { "previousFundingRate", this.safeNumber(fundingRate, "last_funding_rate") },
             { "previousFundingTimestamp", lastFundingRateTimestamp },
             { "previousFundingDatetime", this.iso8601(lastFundingRateTimestamp) },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woofipro#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
@@ -848,7 +880,7 @@ public partial class woofipro : Exchange
         /**
         * @method
         * @name woofipro#fetchFundingRates
-        * @description fetch the current funding rates
+        * @description fetch the current funding rate for multiple markets
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2256,13 +2288,15 @@ public partial class woofipro : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object code = this.safeString(item, "token");
+        object currencyId = this.safeString(item, "token");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeNumber(item, "amount");
         object side = this.safeString(item, "token_side");
         object direction = ((bool) isTrue((isEqual(side, "DEPOSIT")))) ? "in" : "out";
         object timestamp = this.safeInteger(item, "created_time");
         object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "id", this.safeString(item, "id") },
             { "currency", code },
             { "account", this.safeString(item, "account") },
@@ -2278,7 +2312,7 @@ public partial class woofipro : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "type", this.parseLedgerEntryType(this.safeString(item, "type")) },
             { "info", item },
-        };
+        }, currency);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -2295,11 +2329,11 @@ public partial class woofipro : Exchange
         /**
         * @method
         * @name woofipro#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */

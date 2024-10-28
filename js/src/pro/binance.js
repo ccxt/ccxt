@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported, UnsubscribeError } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -16,7 +16,11 @@ import { ed25519 } from '../static_dependencies/noble-curves/ed25519.js';
 // -----------------------------------------------------------------------------
 export default class binance extends binanceRest {
     describe() {
-        return this.deepExtend(super.describe(), {
+        const superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+    describeData() {
+        return {
             'has': {
                 'ws': true,
                 'watchBalance': true,
@@ -35,6 +39,8 @@ export default class binance extends binanceRest {
                 'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchMarkPrices': true,
+                'watchMarkPrice': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'createOrderWs': true,
@@ -151,6 +157,7 @@ export default class binance extends binanceRest {
                 'tickerChannelsMap': {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
+                    'markPriceUpdate': 'markPrice',
                     // rolling window tickers
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
@@ -158,7 +165,7 @@ export default class binance extends binanceRest {
                     'bookTicker': 'bookTicker',
                 },
             },
-        });
+        };
     }
     requestId(url) {
         const options = this.safeDict(this.options, 'requestId', this.createSafeDictionary());
@@ -242,7 +249,7 @@ export default class binance extends binanceRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
@@ -1026,58 +1033,9 @@ export default class binance extends binanceRest {
         for (let j = 0; j < messageHashes.length; j++) {
             const unsubHash = messageHashes[j];
             const subHash = subMessageHashes[j];
-            if (unsubHash in client.subscriptions) {
-                delete client.subscriptions[unsubHash];
-            }
-            if (subHash in client.subscriptions) {
-                delete client.subscriptions[subHash];
-            }
-            const error = new UnsubscribeError(this.id + ' ' + subHash);
-            client.reject(error, subHash);
-            client.resolve(true, unsubHash);
-            this.cleanCache(subscription);
+            this.cleanUnsubscription(client, subHash, unsubHash);
         }
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
-                }
-                else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
-                }
-                else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
-                }
-            }
-        }
-        else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            }
-            else if (topic === 'orders') {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-            else if (topic === 'ticker') {
-                const tickerSymbols = Object.keys(this.tickers);
-                for (let i = 0; i < tickerSymbols.length; i++) {
-                    delete this.tickers[tickerSymbols[i]];
-                }
-            }
-        }
+        this.cleanCache(subscription);
     }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         /**
@@ -1200,7 +1158,7 @@ export default class binance extends binanceRest {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
             'symbols': symbols,
-            'topic': 'trade',
+            'topic': 'trades',
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
@@ -1510,6 +1468,93 @@ export default class binance extends binanceRest {
         const filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        /**
+         * @method
+         * @name binance#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        let klineType = undefined;
+        [klineType, params] = this.handleParamString2(params, 'channel', 'name', 'kline');
+        const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols(symbols, undefined, false, false, true);
+        const firstMarket = this.market(marketSymbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const isSpot = (type === 'spot');
+        let timezone = undefined;
+        [timezone, params] = this.handleParamString(params, 'timezone', undefined);
+        const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq(timezone, '8'));
+        const rawHashes = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symAndTf = symbolsAndTimeframes[i];
+            const symbolString = symAndTf[0];
+            const timeframeString = symAndTf[1];
+            const interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            const market = this.market(symbolString);
+            let marketId = market['lowercaseId'];
+            if (klineType === 'indexPriceKline') {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace('_perp', '');
+            }
+            const shouldUseUTC8 = (isUtc8 && isSpot);
+            const suffix = '@+08:00';
+            const utcSuffix = shouldUseUTC8 ? suffix : '';
+            rawHashes.push(marketId + '@' + klineType + '_' + interval + utcSuffix);
+            subMessageHashes.push('ohlcv::' + market['symbol'] + '::' + timeframeString);
+            messageHashes.push('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, 'multipleOHLCV');
+        const requestId = this.requestId(url);
+        const request = {
+            'method': 'UNSUBSCRIBE',
+            'params': rawHashes,
+            'id': requestId,
+        };
+        const subscribe = {
+            'unsubscribe': true,
+            'id': requestId.toString(),
+            'symbols': symbols,
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'topic': 'ohlcv',
+        };
+        params = this.omit(params, 'callerMethodName');
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes, subscribe);
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name binance#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        params['callerMethodName'] = 'watchOHLCV';
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    }
     handleOHLCV(client, message) {
         //
         //     {
@@ -1728,6 +1773,44 @@ export default class binance extends binanceRest {
         const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
         return tickers[symbol];
     }
+    async watchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMarkPrice
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const tickers = await this.watchMarkPrices([symbol], this.extend(params, { 'callerMethodName': 'watchMarkPrice' }));
+        return tickers[symbol];
+    }
+    async watchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMarkPrices
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Mark-Price-Stream-for-All-market
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let channelName = undefined;
+        // for now watchmarkPrice uses the same messageHash as watchTicker
+        // so it's impossible to watch both at the same time
+        // refactor this to use different messageHashes
+        [channelName, params] = this.handleOptionAndParams(params, 'watchMarkPrices', 'name', 'markPrice');
+        const newTickers = await this.watchMultiTickerHelper('watchMarkPrices', channelName, symbols, params);
+        if (this.newUpdates) {
+            return newTickers;
+        }
+        return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
     async watchTickers(symbols = undefined, params = {}) {
         /**
          * @method
@@ -1881,18 +1964,22 @@ export default class binance extends binanceRest {
         if (this.newUpdates) {
             return result;
         }
-        return this.filterByArray(this.tickers, 'symbol', symbols);
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchMultiTickerHelper(methodName, channelName, symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, false, true);
+        const isBidAsk = (channelName === 'bookTicker');
+        const isMarkPrice = (channelName === 'markPrice');
+        const use1sFreq = this.safeBool(params, 'use1sFreq', true);
         let firstMarket = undefined;
         let marketType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market(symbols[0]);
         }
-        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params);
+        const defaultMarket = (isMarkPrice) ? 'swap' : 'spot';
+        [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);
         let rawMarketType = undefined;
@@ -1908,14 +1995,17 @@ export default class binance extends binanceRest {
         else {
             throw new NotSupported(this.id + ' ' + methodName + '() does not support options markets');
         }
-        const isBidAsk = (channelName === 'bookTicker');
         const subscriptionArgs = [];
         const messageHashes = [];
+        let suffix = '';
+        if (isMarkPrice) {
+            suffix = (use1sFreq) ? '@1s' : '';
+        }
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market(symbol);
-                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName);
+                subscriptionArgs.push(market['lowercaseId'] + '@' + channelName + suffix);
                 messageHashes.push(this.getMessageHash(channelName, market['symbol'], isBidAsk));
             }
         }
@@ -1925,6 +2015,9 @@ export default class binance extends binanceRest {
                     throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
                 subscriptionArgs.push('!' + channelName);
+            }
+            else if (isMarkPrice) {
+                subscriptionArgs.push('!' + channelName + '@arr' + suffix);
             }
             else {
                 subscriptionArgs.push('!' + channelName + '@arr');
@@ -1958,6 +2051,17 @@ export default class binance extends binanceRest {
         }
     }
     parseWsTicker(message, marketType) {
+        // markPrice
+        //   {
+        //       "e": "markPriceUpdate",   // Event type
+        //       "E": 1562305380000,       // Event time
+        //       "s": "BTCUSDT",           // Symbol
+        //       "p": "11794.15000000",    // Mark price
+        //       "i": "11784.62659091",    // Index price
+        //       "P": "11784.25641265",    // Estimated Settle Price, only useful in the last hour before the settlement starts
+        //       "r": "0.00038167",        // Funding rate
+        //       "T": 1562306400000        // Next funding time
+        //   }
         //
         // ticker
         //     {
@@ -2015,9 +2119,22 @@ export default class binance extends binanceRest {
         //         "time":1589437530011,
         //      }
         //
+        const marketId = this.safeString2(message, 's', 'symbol');
+        const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         let event = this.safeString(message, 'e', 'bookTicker');
         if (event === '24hrTicker') {
             event = 'ticker';
+        }
+        if (event === 'markPriceUpdate') {
+            // handle this separately because some fields clash with the ticker fields
+            return this.safeTicker({
+                'symbol': symbol,
+                'timestamp': this.safeInteger(message, 'E'),
+                'datetime': this.iso8601(this.safeInteger(message, 'E')),
+                'info': message,
+                'markPrice': this.safeString(message, 'p'),
+                'indexPrice': this.safeString(message, 'i'),
+            });
         }
         let timestamp = undefined;
         if (event === 'bookTicker') {
@@ -2028,8 +2145,6 @@ export default class binance extends binanceRest {
             // take the timestamp of the closing price for candlestick streams
             timestamp = this.safeIntegerN(message, ['C', 'E', 'time']);
         }
-        const marketId = this.safeString2(message, 's', 'symbol');
-        const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const last = this.safeString2(message, 'c', 'price');
         return this.safeTicker({
@@ -2607,15 +2722,15 @@ export default class binance extends binanceRest {
         [subType, params] = this.handleSubTypeAndParams('watchBalance', undefined, params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        let urlType = type;
-        if (isPortfolioMargin) {
-            urlType = 'papi';
-        }
         if (this.isLinear(type, subType)) {
             type = 'future';
         }
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
+        }
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
         }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
         const client = this.client(url);
@@ -4198,6 +4313,8 @@ export default class binance extends binanceRest {
             '1dTicker': this.handleTickers,
             '24hrTicker': this.handleTickers,
             '24hrMiniTicker': this.handleTickers,
+            'markPriceUpdate': this.handleTickers,
+            'markPriceUpdate@arr': this.handleTickers,
             'bookTicker': this.handleBidsAsks,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,

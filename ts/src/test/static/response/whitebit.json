@@ -90,6 +90,8 @@
                     "average": 72764.05,
                     "baseVolume": 17340.923796,
                     "quoteVolume": 1237525361.9981415,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "open": "72165.04",
                         "bid": "73368.43",

@@ -69,6 +69,8 @@ class hashkey extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -1775,7 +1777,7 @@ class hashkey extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1815,7 +1817,7 @@ class hashkey extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "canDeposit" => true,
@@ -1835,11 +1837,11 @@ class hashkey extends Exchange {
             $tag = null;
         }
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -2254,14 +2256,14 @@ class hashkey extends Exchange {
         return $this->safe_integer($types, $type, $type);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-             * @param {string} $code unified $currency $code, default is null (not used)
+             * @param {string} [$code] unified $currency $code, default is null (not used)
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {int} [$params->flowType] trade, fee, transfer, deposit, withdrawal
@@ -2329,7 +2331,7 @@ class hashkey extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "id" => "1740844413612065537",
@@ -2349,7 +2351,9 @@ class hashkey extends Exchange {
         $account = $this->safe_string($item, 'accountId');
         $timestamp = $this->safe_integer($item, 'created');
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'flowTypeValue'));
-        $code = $this->safe_currency_code($this->safe_string($item, 'coin'), $currency);
+        $currencyId = $this->safe_string($item, 'coin');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'change');
         $amount = $this->parse_number($amountString);
         $direction = 'in';
@@ -2359,9 +2363,9 @@ class hashkey extends Exchange {
         $afterString = $this->safe_string($item, 'total');
         $after = $this->parse_number($afterString);
         $status = 'ok';
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'account' => $account,
@@ -2376,7 +2380,7 @@ class hashkey extends Exchange {
             'after' => $after,
             'status' => $status,
             'fee' => null,
-        );
+        ), $currency);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
@@ -3728,7 +3732,7 @@ class hashkey extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding $rate
@@ -3754,14 +3758,14 @@ class hashkey extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
              * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -3780,9 +3784,8 @@ class hashkey extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
-        // fetchFundingRates
         //     {
         //         "symbol" => "ETHUSDT-PERPETUAL",
         //         "rate" => "0.0001",
@@ -3811,6 +3814,7 @@ class hashkey extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 

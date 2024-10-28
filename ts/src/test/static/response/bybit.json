@@ -630,7 +630,7 @@
                     "remaining": 0,
                     "status": "closed",
                     "fee": {
-                        "cost": "0.00385935",
+                        "cost": 0.00385935,
                         "currency": "USDT"
                     },
                     "trades": [],
@@ -906,7 +906,8 @@
                         "side": "long",
                         "percentage": null,
                         "stopLossPrice": null,
-                        "takeProfitPrice": null
+                        "takeProfitPrice": null,
+                        "hedged": false
                     }
                 ]
             }
@@ -1022,7 +1023,8 @@
                     "side": null,
                     "percentage": null,
                     "stopLossPrice": null,
-                    "takeProfitPrice": null
+                    "takeProfitPrice": null,
+                    "hedged": false
                 }
             }
         ],
@@ -1854,6 +1856,8 @@
                     "average": 50795.9,
                     "baseVolume": 47293.887,
                     "quoteVolume": 2352063794.0035,
+                    "markPrice": 51444.40,
+                    "indexPrice": 51469.95,
                     "info": {
                         "symbol": "BTCUSDT",
                         "lastPrice": "51444.40",
@@ -1933,11 +1937,14 @@
                         "account": null,
                         "referenceAccount": null,
                         "referenceId": null,
-                        "status": null,
+                        "status": "ok",
                         "amount": 0.0006935,
                         "before": 94.05001087,
                         "after": 94.05070437,
-                        "fee": 0,
+                        "fee": {
+                            "currency":"USDT",
+                            "cost":0
+                        },
                         "direction": "out",
                         "timestamp": 1707897600000,
                         "datetime": "2024-02-14T08:00:00.000Z",
@@ -2646,10 +2653,77 @@
                     "side": "long",
                     "percentage": null,
                     "stopLossPrice": null,
-                    "takeProfitPrice": null
+                    "takeProfitPrice": null,
+                    "hedged": false
                   }
                 ]
             }
+        ],
+        "fetchBorrowRateHistory":[
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "input": [
+                  "USDT",
+                  1729241283000
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "list": [
+                      {
+                        "timestamp": "1729245600000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003433654",
+                        "vipLevel": "No VIP"
+                      },
+                      {
+                        "timestamp": "1729242000000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003238239",
+                        "vipLevel": "No VIP"
+                      },
+                      {
+                        "timestamp": "1729238400000",
+                        "currency": "USDT",
+                        "hourlyBorrowRate": "0.000003140500",
+                        "vipLevel": "No VIP"
+                      }
+                    ]
+                  },
+                  "retExtInfo": "{}",
+                  "time": "1729247936685"
+                },
+                "parsedResponse": [
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003238239,
+                    "period": 3600000,
+                    "timestamp": 1729242000000,
+                    "datetime": "2024-10-18T09:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729242000000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003238239",
+                      "vipLevel": "No VIP"
+                    }
+                  },
+                  {
+                    "currency": "USDT",
+                    "rate": 0.000003433654,
+                    "period": 3600000,
+                    "timestamp": 1729245600000,
+                    "datetime": "2024-10-18T10:00:00.000Z",
+                    "info": {
+                      "timestamp": "1729245600000",
+                      "currency": "USDT",
+                      "hourlyBorrowRate": "0.000003433654",
+                      "vipLevel": "No VIP"
+                    }
+                  }
+                ]
+              }
         ]
     }
 }

@@ -885,6 +885,9 @@ class indodax extends Exchange {
             } elseif ($type === 'limit') {
                 $priceIsRequired = true;
                 $quantityIsRequired = true;
+                if ($side === 'buy') {
+                    $request[$market['quoteId']] = $this->parse_to_numeric(Precise::string_mul($this->number_to_string($amount), $this->number_to_string($price)));
+                }
             }
             if ($priceIsRequired) {
                 if ($price === null) {
@@ -1228,7 +1231,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
@@ -1303,8 +1306,8 @@ class indodax extends Exchange {
                     $result[$code] = array(
                         'info' => array(),
                         'currency' => $code,
-                        'address' => $address,
                         'network' => $network,
+                        'address' => $address,
                         'tag' => null,
                     );
                 }

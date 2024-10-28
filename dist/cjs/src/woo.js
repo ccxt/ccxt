@@ -65,9 +65,13 @@ class woo extends woo$1 {
                 'fetchConvertTradeHistory': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -482,7 +486,7 @@ class woo extends woo$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
             'inverse': undefined,
@@ -2072,11 +2076,11 @@ class woo extends woo$1 {
         const address = this.safeString(response, 'address');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         };
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2141,9 +2145,9 @@ class woo extends woo$1 {
          * @name woo#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://docs.woo.org/#get-asset-history
-         * @param {string} code unified currency code, default is undefined
+         * @param {string} [code] unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
@@ -2154,12 +2158,14 @@ class woo extends woo$1 {
         const networkizedCode = this.safeString(item, 'token');
         const currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         const code = currencyDefined['code'];
+        currency = this.safeCurrency(code, currency);
         const amount = this.safeNumber(item, 'amount');
         const side = this.safeString(item, 'token_side');
         const direction = (side === 'DEPOSIT') ? 'in' : 'out';
         const timestamp = this.safeTimestamp(item, 'created_time');
         const fee = this.parseTokenAndFeeTemp(item, 'fee_token', 'fee_amount');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString(item, 'id'),
             'currency': code,
             'account': this.safeString(item, 'account'),
@@ -2169,13 +2175,12 @@ class woo extends woo$1 {
             'amount': amount,
             'before': undefined,
             'after': undefined,
-            'fee': fee,
             'direction': direction,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'type': this.parseLedgerEntryType(this.safeString(item, 'type')),
-            'info': item,
-        };
+            'fee': fee,
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -2748,21 +2753,25 @@ class woo extends woo$1 {
     }
     parseFundingRate(fundingRate, market = undefined) {
         //
-        //         {
-        //             "symbol":"PERP_AAVE_USDT",
-        //             "est_funding_rate":-0.00003447,
-        //             "est_funding_rate_timestamp":1653633959001,
-        //             "last_funding_rate":-0.00002094,
-        //             "last_funding_rate_timestamp":1653631200000,
-        //             "next_funding_time":1653634800000
-        //         }
-        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1727427915529,
+        //         "symbol": "PERP_BTC_USDT",
+        //         "est_funding_rate": -0.00092719,
+        //         "est_funding_rate_timestamp": 1727427899060,
+        //         "last_funding_rate": -0.00092610,
+        //         "last_funding_rate_timestamp": 1727424000000,
+        //         "next_funding_time": 1727452800000,
+        //         "last_funding_rate_interval": 8,
+        //         "est_funding_rate_interval": 8
+        //     }
         //
         const symbol = this.safeString(fundingRate, 'symbol');
         market = this.market(symbol);
         const nextFundingTimestamp = this.safeInteger(fundingRate, 'next_funding_time');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'est_funding_rate_timestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'last_funding_rate_timestamp');
+        const intervalString = this.safeString(fundingRate, 'est_funding_rate_interval');
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -2781,9 +2790,31 @@ class woo extends woo$1 {
             'previousFundingRate': this.safeNumber(fundingRate, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601(lastFundingRateTimestamp),
+            'interval': intervalString + 'h',
         };
     }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
+    }
     async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -2792,19 +2823,30 @@ class woo extends woo$1 {
         const response = await this.v1PublicGetFundingRateSymbol(this.extend(request, params));
         //
         //     {
-        //         "success":true,
-        //         "timestamp":1653640572711,
-        //         "symbol":"PERP_BTC_USDT",
-        //         "est_funding_rate":0.00000738,
-        //         "est_funding_rate_timestamp":1653640559003,
-        //         "last_funding_rate":0.00000629,
-        //         "last_funding_rate_timestamp":1653638400000,
-        //         "next_funding_time":1653642000000
+        //         "success": true,
+        //         "timestamp": 1727428037877,
+        //         "symbol": "PERP_BTC_USDT",
+        //         "est_funding_rate": -0.00092674,
+        //         "est_funding_rate_timestamp": 1727428019064,
+        //         "last_funding_rate": -0.00092610,
+        //         "last_funding_rate_timestamp": 1727424000000,
+        //         "next_funding_time": 1727452800000,
+        //         "last_funding_rate_interval": 8,
+        //         "est_funding_rate_interval": 8
         //     }
         //
         return this.parseFundingRate(response, market);
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.v1PublicGetFundingRates(params);

@@ -382,7 +382,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $assets = $this->v1PublicGetAssets ($params);
+        $assetsPromise = $this->v1PublicGetAssets ($params);
         //
         //     {
         //         "code":0,
@@ -399,7 +399,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $margin = $this->v1PublicGetMarginAssets ($params);
+        $marginPromise = $this->v1PublicGetMarginAssets ($params);
         //
         //     {
         //         "code":0,
@@ -419,7 +419,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $cash = $this->v1PublicGetCashAssets ($params);
+        $cashPromise = $this->v1PublicGetCashAssets ($params);
         //
         //     {
         //         "code":0,
@@ -436,6 +436,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
+        list($assets, $margin, $cash) = array( $assetsPromise, $marginPromise, $cashPromise );
         $assetsData = $this->safe_list($assets, 'data', array());
         $marginData = $this->safe_list($margin, 'data', array());
         $cashData = $this->safe_list($cash, 'data', array());
@@ -489,7 +490,7 @@ class ascendex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $products = $this->v1PublicGetProducts ($params);
+        $productsPromise = $this->v1PublicGetProducts ($params);
         //
         //     {
         //         "code" => 0,
@@ -510,7 +511,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $cash = $this->v1PublicGetCashProducts ($params);
+        $cashPromise = $this->v1PublicGetCashProducts ($params);
         //
         //     {
         //         "code" => 0,
@@ -540,7 +541,7 @@ class ascendex extends Exchange {
         //         )
         //     }
         //
-        $perpetuals = $this->v2PublicGetFuturesContract ($params);
+        $perpetualsPromise = $this->v2PublicGetFuturesContract ($params);
         //
         //    {
         //        "code" => 0,
@@ -578,6 +579,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
+        list($products, $cash, $perpetuals) = array( $productsPromise, $cashPromise, $perpetualsPromise );
         $productsData = $this->safe_list($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
         $cashData = $this->safe_list($cash, 'data', array());
@@ -2328,7 +2330,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0xe7c70b4e73b6b450ee46c3b5c0f5fb127ca55722",
@@ -2350,15 +2352,15 @@ class ascendex extends Exchange {
         $chainName = $this->safe_string($depositAddress, 'blockchain');
         $network = $this->network_id_to_code($chainName, $code);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-$addresses
@@ -2718,7 +2720,7 @@ class ascendex extends Exchange {
         ));
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //      {
         //          "time" => 1640061364830,
@@ -2753,15 +2755,16 @@ class ascendex extends Exchange {
             'fundingRate' => $nextFundingRate,
             'fundingTimestamp' => $nextFundingRateTimestamp,
             'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'interval' => null,
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);

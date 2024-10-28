@@ -88,6 +88,8 @@ class binance extends binance$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': 'emulated',
+                'fetchFundingIntervals': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -103,12 +105,16 @@ class binance extends binance$1 {
                 'fetchLeverages': true,
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarginMode': 'emulated',
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMyLiquidations': true,
                 'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
@@ -330,7 +336,7 @@ class binance extends binance$1 {
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 1800,
+                        'capital/withdraw/history': 2,
                         'capital/withdraw/address/list': 10,
                         'capital/contract/convertible-coins': 4.0002,
                         'convert/tradeFlow': 20.001,
@@ -465,6 +471,7 @@ class binance extends binance$1 {
                         'portfolio/asset-index-price': 0.1,
                         'portfolio/repay-futures-switch': 3,
                         'portfolio/margin-asset-leverage': 5,
+                        'portfolio/balance': 2,
                         // staking
                         'staking/productList': 0.1,
                         'staking/position': 0.1,
@@ -666,7 +673,8 @@ class binance extends binance$1 {
                         'loan/flexible/repay/history': 40,
                         'loan/flexible/ltv/adjustment/history': 40,
                         'loan/flexible/loanable/data': 40,
-                        'loan/flexible/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/flexible/collateral/data': 40,
+                        'portfolio/account': 2,
                     },
                     'post': {
                         'eth-staking/eth/stake': 15,
@@ -710,6 +718,7 @@ class binance extends binance$1 {
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 },
                         'constituents': 2,
                         'openInterest': 1,
+                        'fundingInfo': 1,
                     },
                 },
                 'dapiData': {
@@ -743,6 +752,10 @@ class binance extends binance$1 {
                         'commissionRate': 20,
                         'income/asyn': 5,
                         'income/asyn/id': 5,
+                        'trade/asyn': 0.5,
+                        'trade/asyn/id': 0.5,
+                        'order/asyn': 0.5,
+                        'order/asyn/id': 0.5,
                         'pmExchangeInfo': 0.5,
                         'pmAccountInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                     },
@@ -799,6 +812,7 @@ class binance extends binance$1 {
                         'constituents': 2,
                         'apiTradingStatus': { 'cost': 1, 'noSymbol': 10 },
                         'lvtKlines': 1,
+                        'convert/exchangeInfo': 4,
                     },
                 },
                 'fapiData': {
@@ -852,6 +866,7 @@ class binance extends binance$1 {
                         'feeBurn': 1,
                         'symbolConfig': 5,
                         'accountConfig': 5,
+                        'convert/orderStatus': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -867,6 +882,8 @@ class binance extends binance$1 {
                         'apiReferral/customization': 1,
                         'apiReferral/userCustomization': 1,
                         'feeBurn': 1,
+                        'convert/getQuote': 200,
+                        'convert/acceptQuote': 20,
                     },
                     'put': {
                         'listenKey': 1,
@@ -1017,8 +1034,12 @@ class binance extends binance$1 {
                     },
                 },
                 'papi': {
+                    // IP (papi) request rate limit of 6000 per minute
+                    // 1 IP (papi) => cost = 0.2 => (1000 / (50 * 0.2)) * 60 = 6000
+                    // Order (papi) request rate limit of 1200 per minute
+                    // 1 Order (papi) => cost = 1 => (1000 / (50 * 1)) * 60 = 1200
                     'get': {
-                        'ping': 1,
+                        'ping': 0.2,
                         'um/order': 1,
                         'um/openOrder': 1,
                         'um/openOrders': { 'cost': 1, 'noSymbol': 40 },
@@ -1030,70 +1051,87 @@ class binance extends binance$1 {
                         'um/conditional/openOrder': 1,
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': 1,
-                        'um/conditional/allOrders': 40,
+                        'um/conditional/allOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/conditional/openOrder': 1,
                         'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/conditional/orderHistory': 1,
                         'cm/conditional/allOrders': 40,
-                        'margin/order': 5,
+                        'margin/order': 10,
                         'margin/openOrders': 5,
                         'margin/allOrders': 100,
                         'margin/orderList': 5,
                         'margin/allOrderList': 100,
                         'margin/openOrderList': 5,
                         'margin/myTrades': 5,
-                        'balance': 20,
-                        'account': 20,
-                        'margin/maxBorrowable': 5,
-                        'margin/maxWithdraw': 5,
-                        'um/positionRisk': 5,
-                        'cm/positionRisk': 1,
-                        'um/positionSide/dual': 30,
-                        'cm/positionSide/dual': 30,
+                        'balance': 4,
+                        'account': 4,
+                        'margin/maxBorrowable': 1,
+                        'margin/maxWithdraw': 1,
+                        'um/positionRisk': 1,
+                        'cm/positionRisk': 0.2,
+                        'um/positionSide/dual': 6,
+                        'cm/positionSide/dual': 6,
                         'um/userTrades': 5,
                         'cm/userTrades': 20,
-                        'um/leverageBracket': 1,
-                        'cm/leverageBracket': 1,
+                        'um/leverageBracket': 0.2,
+                        'cm/leverageBracket': 0.2,
                         'margin/forceOrders': 1,
-                        'um/forceOrders': 20,
-                        'cm/forceOrders': 20,
-                        'um/apiTradingStatus': 1,
-                        'um/commissionRate': 20,
-                        'cm/commissionRate': 20,
-                        'margin/marginLoan': 10,
-                        'margin/repayLoan': 10,
-                        'margin/marginInterestHistory': 1,
-                        'portfolio/interest-history': 50,
-                        'um/income': 30,
-                        'cm/income': 30,
-                        'um/account': 5,
-                        'cm/account': 5,
-                        'repay-futures-switch': 3,
+                        'um/forceOrders': { 'cost': 20, 'noSymbol': 50 },
+                        'cm/forceOrders': { 'cost': 20, 'noSymbol': 50 },
+                        'um/apiTradingStatus': { 'cost': 0.2, 'noSymbol': 2 },
+                        'um/commissionRate': 4,
+                        'cm/commissionRate': 4,
+                        'margin/marginLoan': 2,
+                        'margin/repayLoan': 2,
+                        'margin/marginInterestHistory': 0.2,
+                        'portfolio/interest-history': 10,
+                        'um/income': 6,
+                        'cm/income': 6,
+                        'um/account': 1,
+                        'cm/account': 1,
+                        'repay-futures-switch': 6,
                         'um/adlQuantile': 5,
                         'cm/adlQuantile': 5,
+                        'um/trade/asyn': 300,
+                        'um/trade/asyn/id': 2,
+                        'um/order/asyn': 300,
+                        'um/order/asyn/id': 2,
+                        'um/income/asyn': 300,
+                        'um/income/asyn/id': 2,
+                        'um/orderAmendment': 1,
+                        'cm/orderAmendment': 1,
+                        'um/feeBurn': 30,
+                        'um/accountConfig': 1,
+                        'um/symbolConfig': 1,
+                        'cm/accountConfig': 1,
+                        'cm/symbolConfig': 1,
                     },
                     'post': {
                         'um/order': 1,
                         'um/conditional/order': 1,
                         'cm/order': 1,
                         'cm/conditional/order': 1,
-                        'margin/order': 0.0133,
-                        'marginLoan': 0.1333,
-                        'repayLoan': 0.1333,
-                        'margin/order/oco': 0.0400,
-                        'um/leverage': 1,
-                        'cm/leverage': 1,
-                        'um/positionSide/dual': 1,
-                        'cm/positionSide/dual': 1,
-                        'auto-collection': 0.6667,
-                        'bnb-transfer': 0.6667,
+                        'margin/order': 1,
+                        'marginLoan': 100,
+                        'repayLoan': 100,
+                        'margin/order/oco': 1,
+                        'um/leverage': 0.2,
+                        'cm/leverage': 0.2,
+                        'um/positionSide/dual': 0.2,
+                        'cm/positionSide/dual': 0.2,
+                        'auto-collection': 150,
+                        'bnb-transfer': 150,
                         'repay-futures-switch': 150,
                         'repay-futures-negative-balance': 150,
-                        'listenKey': 1,
-                        'asset-collection': 3,
+                        'listenKey': 0.2,
+                        'asset-collection': 6,
+                        'margin/repay-debt': 3000,
+                        'um/feeBurn': 1,
                     },
                     'put': {
-                        'listenKey': 1, // 1
+                        'listenKey': 0.2,
+                        'um/order': 1,
+                        'cm/order': 1,
                     },
                     'delete': {
                         'um/order': 1,
@@ -1104,10 +1142,10 @@ class binance extends binance$1 {
                         'cm/conditional/order': 1,
                         'cm/allOpenOrders': 1,
                         'cm/conditional/allOpenOrders': 1,
-                        'margin/order': 1,
+                        'margin/order': 2,
                         'margin/allOpenOrders': 5,
                         'margin/orderList': 2,
-                        'listenKey': 1, // 1
+                        'listenKey': 0.2,
                     },
                 },
             },
@@ -1191,6 +1229,9 @@ class binance extends binance$1 {
                 },
                 'option': {},
             },
+            'currencies': {
+                'BNFCR': this.safeCurrencyStructure({ 'id': 'BNFCR', 'code': 'BNFCR', 'precision': this.parseNumber('0.001') }),
+            },
             'commonCurrencies': {
                 'BCC': 'BCC',
                 'YOYO': 'YOYOW',
@@ -1199,6 +1240,7 @@ class binance extends binance$1 {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
+                'fetchMargins': true,
                 'fetchMarkets': [
                     'spot',
                     'linear',
@@ -1207,6 +1249,7 @@ class binance extends binance$1 {
                 ],
                 'fetchCurrencies': true,
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
+                // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'defaultTimeInForce': 'GTC',
                 'defaultType': 'spot',
                 'defaultSubType': undefined,
@@ -2641,6 +2684,7 @@ class binance extends binance$1 {
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -2660,9 +2704,20 @@ class binance extends binance$1 {
         if (apiBackup !== undefined) {
             return undefined;
         }
-        const response = await this.sapiGetCapitalConfigGetall(params);
+        const promises = [this.sapiGetCapitalConfigGetall(params)];
+        const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
+        if (fetchMargins) {
+            promises.push(this.sapiGetMarginAllPairs(params));
+        }
+        const results = await Promise.all(promises);
+        const responseCurrencies = results[0];
+        let marginablesById = undefined;
+        if (fetchMargins) {
+            const responseMarginables = results[1];
+            marginablesById = this.indexBy(responseMarginables, 'assetName');
+        }
         const result = {};
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < responseCurrencies.length; i++) {
             //
             //    {
             //        "coin": "LINK",
@@ -2758,7 +2813,7 @@ class binance extends binance$1 {
             //        ]
             //    }
             //
-            const entry = response[i];
+            const entry = responseCurrencies[i];
             const id = this.safeString(entry, 'coin');
             const name = this.safeString(entry, 'name');
             const code = this.safeCurrencyCode(id);
@@ -2813,6 +2868,17 @@ class binance extends binance$1 {
             }
             const trading = this.safeBool(entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
+            const marginEntry = this.safeDict(marginablesById, id, {});
+            //
+            //     {
+            //         assetName: "BTC",
+            //         assetFullName: "Bitcoin",
+            //         isBorrowable: true,
+            //         isMortgageable: true,
+            //         userMinBorrow: "0",
+            //         userMinRepay: "0",
+            //     }
+            //
             result[code] = {
                 'id': id,
                 'name': name,
@@ -2826,6 +2892,7 @@ class binance extends binance$1 {
                 'fee': fee,
                 'fees': fees,
                 'limits': this.limits,
+                'margin': this.safeBool(marginEntry, 'isBorrowable'),
             };
         }
         return result;
@@ -2839,6 +2906,8 @@ class binance extends binance$1 {
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              // future
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             // cross margin
+         * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             // isolated margin
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -2853,10 +2922,15 @@ class binance extends binance$1 {
             }
             fetchMarkets.push(type);
         }
+        const fetchMargins = this.safeBool(this.options, 'fetchMargins', false);
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push(this.publicGetExchangeInfo(params));
+                if (fetchMargins && this.checkRequiredCredentials(false) && !sandboxMode) {
+                    promisesRaw.push(this.sapiGetMarginAllPairs(params));
+                    promisesRaw.push(this.sapiGetMarginIsolatedAllPairs(params));
+                }
             }
             else if (marketType === 'linear') {
                 promisesRaw.push(this.fapiPublicGetExchangeInfo(params));
@@ -2871,12 +2945,27 @@ class binance extends binance$1 {
                 throw new errors.ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
-        const promises = await Promise.all(promisesRaw);
+        const results = await Promise.all(promisesRaw);
         let markets = [];
-        for (let i = 0; i < fetchMarkets.length; i++) {
-            const promise = this.safeDict(promises, i);
-            const promiseMarkets = this.safeList2(promise, 'symbols', 'optionSymbols', []);
-            markets = this.arrayConcat(markets, promiseMarkets);
+        this.options['crossMarginPairsData'] = [];
+        this.options['isolatedMarginPairsData'] = [];
+        for (let i = 0; i < results.length; i++) {
+            const res = this.safeValue(results, i);
+            if (fetchMargins && Array.isArray(res)) {
+                const keysList = Object.keys(this.indexBy(res, 'symbol'));
+                const length = this.options['crossMarginPairsData'].length;
+                // first one is the cross-margin promise
+                if (length === 0) {
+                    this.options['crossMarginPairsData'] = keysList;
+                }
+                else {
+                    this.options['isolatedMarginPairsData'] = keysList;
+                }
+            }
+            else {
+                const resultMarkets = this.safeList2(res, 'symbols', 'optionSymbols', []);
+                markets = this.arrayConcat(markets, resultMarkets);
+            }
         }
         //
         // spot / margin
@@ -2921,6 +3010,20 @@ class binance extends binance$1 {
         //             },
         //         ],
         //     }
+        //
+        // cross & isolated pairs response:
+        //
+        //     [
+        //         {
+        //           symbol: "BTCUSDT",
+        //           base: "BTC",
+        //           quote: "USDT",
+        //           isMarginTrade: true,
+        //           isBuyAllowed: true,
+        //           isSellAllowed: true,
+        //           id: "376870555451677893", // doesn't exist in isolated
+        //         },
+        //     ]
         //
         // futures/usdt-margined (fapi)
         //
@@ -3127,8 +3230,8 @@ class binance extends binance$1 {
         let fees = this.fees;
         let linear = undefined;
         let inverse = undefined;
-        const strike = this.safeString(market, 'strikePrice');
         let symbol = base + '/' + quote;
+        let strike = undefined;
         if (contract) {
             if (swap) {
                 symbol = symbol + ':' + settle;
@@ -3137,6 +3240,7 @@ class binance extends binance$1 {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd(expiry);
             }
             else if (option) {
+                strike = this.numberToString(this.parseToNumeric(this.safeString(market, 'strikePrice')));
                 symbol = symbol + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + this.safeString(optionParts, 3);
             }
             contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
@@ -3156,6 +3260,21 @@ class binance extends binance$1 {
             }
         }
         const isMarginTradingAllowed = this.safeBool(market, 'isMarginTradingAllowed', false);
+        let marginModes = undefined;
+        if (spot) {
+            const hasCrossMargin = this.inArray(id, this.options['crossMarginPairsData']);
+            const hasIsolatedMargin = this.inArray(id, this.options['isolatedMarginPairsData']);
+            marginModes = {
+                'cross': hasCrossMargin,
+                'isolated': hasIsolatedMargin,
+            };
+        }
+        else if (linear || inverse) {
+            marginModes = {
+                'cross': true,
+                'isolated': true,
+            };
+        }
         let unifiedType = undefined;
         if (spot) {
             unifiedType = 'spot';
@@ -3187,6 +3306,7 @@ class binance extends binance$1 {
             'type': unifiedType,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
+            'marginModes': marginModes,
             'swap': swap,
             'future': future,
             'option': option,
@@ -3738,6 +3858,18 @@ class binance extends binance$1 {
         return orderbook;
     }
     parseTicker(ticker, market = undefined) {
+        // markPrices
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "11793.63104562",  // mark price
+        //         "indexPrice": "11781.80495970", // index price
+        //         "estimatedSettlePrice": "11781.16138815", // Estimated Settle Price, only useful in the last hour before the settlement starts.
+        //         "lastFundingRate": "0.00038246",  // This is the lastest estimated funding rate
+        //         "nextFundingTime": 1597392000000,
+        //         "interestRate": "0.00010000",
+        //         "time": 1597370495002
+        //     }
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -3841,7 +3973,7 @@ class binance extends binance$1 {
         //         "time":"1673899278514"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'closeTime');
+        const timestamp = this.safeInteger2(ticker, 'closeTime', 'time');
         let marketType = undefined;
         if (('time' in ticker)) {
             marketType = 'contract';
@@ -3885,6 +4017,8 @@ class binance extends binance$1 {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -4147,6 +4281,73 @@ class binance extends binance$1 {
         }
         return this.parseTickers(response, symbols);
     }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarkPrice
+         * @description fetches mark price for the market
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMarkPrice', market, params, 'swap');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMarkPrice', market, params, 'linear');
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetPremiumIndex(this.extend(request, params));
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetPremiumIndex(this.extend(request, params));
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrice() does not support ' + type + ' markets yet');
+        }
+        if (Array.isArray(response)) {
+            return this.parseTicker(this.safeDict(response, 0, {}), market);
+        }
+        return this.parseTicker(response, market);
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchMarkPrices
+         * @description fetches mark prices for multiple markets
+         * @see https://binance-docs.github.io/apidocs/futures/en/#mark-price
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('fetchMarkPrices', market, params, 'swap');
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMarkPrices', market, params, 'linear');
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetPremiumIndex(params);
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetPremiumIndex(params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrices() does not support ' + type + ' markets yet');
+        }
+        return this.parseTickers(response, symbols);
+    }
     parseOHLCV(ohlcv, market = undefined) {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
@@ -4249,6 +4450,9 @@ class binance extends binance$1 {
         const price = this.safeString(params, 'price');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['price', 'until']);
+        if (since !== undefined && until !== undefined && limit === undefined) {
+            limit = maxLimit;
+        }
         limit = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
@@ -5763,6 +5967,8 @@ class binance extends binance$1 {
          * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
          * @param {boolean} [params.portfolioMargin] set to true if you would like to create an order in a portfolio margin account
          * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
+         * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -5871,9 +6077,9 @@ class binance extends binance$1 {
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'createOrder', 'papi', 'portfolioMargin', false);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const reduceOnly = this.safeBool(params, 'reduceOnly', false);
         if ((marketType === 'margin') || (marginMode !== undefined) || market['option']) {
             // for swap and future reduceOnly is a string that cant be sent with close position set to true or in hedge mode
-            const reduceOnly = this.safeBool(params, 'reduceOnly', false);
             params = this.omit(params, 'reduceOnly');
             if (market['option']) {
                 request['reduceOnly'] = reduceOnly;
@@ -6108,14 +6314,28 @@ class binance extends binance$1 {
                 request['quantity'] = this.parseToNumeric(amount);
             }
             else {
-                request['quantity'] = this.amountToPrecision(symbol, amount);
+                const marketAmountPrecision = this.safeString(market['precision'], 'amount');
+                const isPrecisionAvailable = (marketAmountPrecision !== undefined);
+                if (isPrecisionAvailable) {
+                    request['quantity'] = this.amountToPrecision(symbol, amount);
+                }
+                else {
+                    request['quantity'] = this.parseToNumeric(amount); // some options don't have the precision available
+                }
             }
         }
         if (priceIsRequired && !isPriceMatch) {
             if (price === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            request['price'] = this.priceToPrecision(symbol, price);
+            const pricePrecision = this.safeString(market['precision'], 'price');
+            const isPricePrecisionAvailable = (pricePrecision !== undefined);
+            if (isPricePrecisionAvailable) {
+                request['price'] = this.priceToPrecision(symbol, price);
+            }
+            else {
+                request['price'] = this.parseToNumeric(price); // some options don't have the precision available
+            }
         }
         if (stopPriceIsRequired) {
             if (market['contract']) {
@@ -6143,7 +6363,15 @@ class binance extends binance$1 {
         if (this.safeString(params, 'timeInForce') === 'PO') {
             params = this.omit(params, 'timeInForce');
         }
-        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test']);
+        const hedged = this.safeBool(params, 'hedged', false);
+        if (!market['spot'] && !market['option'] && hedged) {
+            if (reduceOnly) {
+                params = this.omit(params, 'reduceOnly');
+                side = (side === 'buy') ? 'sell' : 'buy';
+            }
+            request['positionSide'] = (side === 'buy') ? 'LONG' : 'SHORT';
+        }
+        const requestParams = this.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged']);
         return this.extend(request, requestParams);
     }
     async createMarketOrderWithCost(symbol, side, cost, params = {}) {
@@ -6327,8 +6555,8 @@ class binance extends binance$1 {
         [marginMode, params] = this.handleMarginModeAndParams('fetchOrders', params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2(params, 'stop', 'conditional');
-        params = this.omit(params, ['stop', 'conditional', 'type']);
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
+        params = this.omit(params, ['stop', 'trigger', 'conditional', 'type']);
         let request = {
             'symbol': market['id'],
         };
@@ -6597,7 +6825,7 @@ class binance extends binance$1 {
         [marginMode, params] = this.handleMarginModeAndParams('fetchOpenOrders', params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN(params, ['stop', 'conditional', 'trigger']);
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -6614,7 +6842,7 @@ class binance extends binance$1 {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params);
-        params = this.omit(params, ['type', 'stop', 'conditional', 'trigger']);
+        params = this.omit(params, ['type', 'stop', 'trigger', 'conditional']);
         let response = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -6697,8 +6925,8 @@ class binance extends binance$1 {
         };
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'fetchOpenOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBoolN(params, ['stop', 'conditional', 'trigger']);
-        params = this.omit(params, ['stop', 'conditional', 'trigger']);
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
+        params = this.omit(params, ['stop', 'trigger', 'conditional']);
         const isPortfolioMarginConditional = (isPortfolioMargin && isConditional);
         const orderIdRequest = isPortfolioMarginConditional ? 'strategyId' : 'orderId';
         request[orderIdRequest] = id;
@@ -7013,7 +7241,7 @@ class binance extends binance$1 {
         [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'cancelOrder', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2(params, 'stop', 'conditional');
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
         const request = {
             'symbol': market['id'],
         };
@@ -7039,7 +7267,7 @@ class binance extends binance$1 {
                 request['orderId'] = id;
             }
         }
-        params = this.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'conditional']);
+        params = this.omit(params, ['type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional']);
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteOrder(this.extend(request, params));
@@ -7117,9 +7345,9 @@ class binance extends binance$1 {
         };
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
-        const isConditional = this.safeBool2(params, 'stop', 'conditional');
+        const isConditional = this.safeBoolN(params, ['stop', 'trigger', 'conditional']);
         const type = this.safeString(params, 'type', market['type']);
-        params = this.omit(params, ['type', 'stop', 'conditional']);
+        params = this.omit(params, ['type', 'stop', 'trigger', 'conditional']);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('cancelAllOrders', params);
         let response = undefined;
@@ -8584,8 +8812,27 @@ class binance extends binance$1 {
         //         }
         //     }
         //
+        return this.parseDepositAddress(response, currency);
+    }
+    parseDepositAddress(response, currency = undefined) {
+        //
+        //     {
+        //         "currency": "XRP",
+        //         "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //         "tag": "108618262",
+        //         "info": {
+        //             "coin": "XRP",
+        //             "address": "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh",
+        //             "tag": "108618262",
+        //             "url": "https://bithomp.com/explorer/rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh"
+        //         }
+        //     }
+        //
+        const info = this.safeDict(response, 'info', {});
+        const url = this.safeString(info, 'url');
         const address = this.safeString(response, 'address');
-        const url = this.safeString(response, 'url');
+        const currencyId = this.safeString(response, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
         let impliedNetwork = undefined;
         if (url !== undefined) {
             const reverseNetworks = this.safeDict(this.options, 'reverseNetworks', {});
@@ -8613,11 +8860,11 @@ class binance extends binance$1 {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': impliedNetwork,
             'address': address,
             'tag': tag,
-            'network': impliedNetwork,
-            'info': response,
         };
     }
     async fetchTransactionFees(codes = undefined, params = {}) {
@@ -9266,7 +9513,7 @@ class binance extends binance$1 {
          * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest funding rate
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
          */
@@ -9342,7 +9589,7 @@ class binance extends binance$1 {
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -9361,27 +9608,34 @@ class binance extends binance$1 {
         else {
             throw new errors.NotSupported(this.id + ' fetchFundingRates() supports linear and inverse contracts only');
         }
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const parsed = this.parseFundingRate(entry);
-            result.push(parsed);
-        }
+        const result = this.parseFundingRates(response);
         return this.filterByArray(result, 'symbol', symbols);
     }
     parseFundingRate(contract, market = undefined) {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
-        //   {
-        //     "symbol": "BTCUSDT",
-        //     "markPrice": "45802.81129892",
-        //     "indexPrice": "45745.47701915",
-        //     "estimatedSettlePrice": "45133.91753671",
-        //     "lastFundingRate": "0.00063521",
-        //     "interestRate": "0.00010000",
-        //     "nextFundingTime": "1621267200000",
-        //     "time": "1621252344001"
-        //  }
+        // fetchFundingRate, fetchFundingRates
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "markPrice": "45802.81129892",
+        //         "indexPrice": "45745.47701915",
+        //         "estimatedSettlePrice": "45133.91753671",
+        //         "lastFundingRate": "0.00063521",
+        //         "interestRate": "0.00010000",
+        //         "nextFundingTime": "1621267200000",
+        //         "time": "1621252344001"
+        //     }
+        //
+        // fetchFundingInterval, fetchFundingIntervals
+        //
+        //     {
+        //         "symbol": "BLZUSDT",
+        //         "adjustedFundingRateCap": "0.03000000",
+        //         "adjustedFundingRateFloor": "-0.03000000",
+        //         "fundingIntervalHours": 4,
+        //         "disclaimer": false
+        //     }
         //
         const timestamp = this.safeInteger(contract, 'time');
         const marketId = this.safeString(contract, 'symbol');
@@ -9392,6 +9646,11 @@ class binance extends binance$1 {
         const estimatedSettlePrice = this.safeNumber(contract, 'estimatedSettlePrice');
         const fundingRate = this.safeNumber(contract, 'lastFundingRate');
         const fundingTime = this.safeInteger(contract, 'nextFundingTime');
+        const interval = this.safeString(contract, 'fundingIntervalHours');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -9410,6 +9669,7 @@ class binance extends binance$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': intervalString,
         };
     }
     parseAccountPositions(account, filterClosed = false) {
@@ -11146,17 +11406,42 @@ class binance extends binance$1 {
         return result;
     }
     async fetchLedgerEntry(id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLedgerEntry
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+         * @param {string} id the identification number of the ledger entry
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchLedgerEntry', undefined, params);
-        const query = {
-            'recordId': id,
-            'type': type,
-        };
         if (type !== 'option') {
-            throw new errors.BadRequest(this.id + ' fetchLedgerEntry () can only be used for type option');
+            throw new errors.BadRequest(this.id + ' fetchLedgerEntry() can only be used for type option');
         }
-        return await this.fetchLedger(code, undefined, undefined, this.extend(query, params));
+        this.checkRequiredArgument('fetchLedgerEntry', code, 'code');
+        const currency = this.currency(code);
+        const request = {
+            'recordId': id,
+            'currency': currency['id'],
+        };
+        const response = await this.eapiPrivateGetBill(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1125899906845701870",
+        //             "asset": "USDT",
+        //             "amount": "-0.16518203",
+        //             "type": "FEE",
+        //             "createDate": 1676621042489
+        //         }
+        //     ]
+        //
+        const first = this.safeDict(response, 0, response);
+        return this.parseLedgerEntry(first, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -11168,9 +11453,9 @@ class binance extends binance$1 {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
-         * @param {string} code unified currency code
+         * @param {string} [code] unified currency code
          * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entrys to return
+         * @param {int} [limit] max number of ledger entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -11296,16 +11581,19 @@ class binance extends binance$1 {
             direction = 'in';
         }
         const currencyId = this.safeString(item, 'asset');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         const timestamp = this.safeInteger2(item, 'createDate', 'time');
         const type = this.safeString2(item, 'type', 'incomeType');
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': this.safeString2(item, 'id', 'tranId'),
             'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': this.safeString(item, 'tradeId'),
             'type': this.parseLedgerEntryType(type),
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': code,
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -11313,8 +11601,7 @@ class binance extends binance$1 {
             'after': undefined,
             'status': undefined,
             'fee': undefined,
-            'info': item,
-        };
+        }, currency);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -11855,16 +12142,6 @@ class binance extends binance$1 {
         //
         return this.parseBorrowRateHistory(response, code, since, limit);
     }
-    parseBorrowRateHistory(response, code, since, limit) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const borrowRate = this.parseBorrowRate(item);
-            result.push(borrowRate);
-        }
-        const sorted = this.sortBy(result, 'timestamp');
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
     parseBorrowRate(info, currency = undefined) {
         //
         //    {
@@ -12117,10 +12394,13 @@ class binance extends binance$1 {
          * @description repay borrowed margin and interest
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
          * @see https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
+         * @param {string} [params.repayCrossMarginMethod] *portfolio margin only* 'papiPostRepayLoan' (default), 'papiPostMarginRepayDebt' (alternative)
+         * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
          */
         await this.loadMarkets();
@@ -12133,19 +12413,41 @@ class binance extends binance$1 {
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'repayCrossMargin', 'papi', 'portfolioMargin', false);
         if (isPortfolioMargin) {
-            response = await this.papiPostRepayLoan(this.extend(request, params));
+            let method = undefined;
+            [method, params] = this.handleOptionAndParams2(params, 'repayCrossMargin', 'repayCrossMarginMethod', 'method');
+            if (method === 'papiPostMarginRepayDebt') {
+                response = await this.papiPostMarginRepayDebt(this.extend(request, params));
+                //
+                //     {
+                //         "asset": "USDC",
+                //         "amount": 10,
+                //         "specifyRepayAssets": null,
+                //         "updateTime": 1727170761267,
+                //         "success": true
+                //     }
+                //
+            }
+            else {
+                response = await this.papiPostRepayLoan(this.extend(request, params));
+                //
+                //     {
+                //         "tranId": 108988250265,
+                //         "clientTag":""
+                //     }
+                //
+            }
         }
         else {
             request['isIsolated'] = 'FALSE';
             request['type'] = 'REPAY';
             response = await this.sapiPostMarginBorrowRepay(this.extend(request, params));
+            //
+            //     {
+            //         "tranId": 108988250265,
+            //         "clientTag":""
+            //     }
+            //
         }
-        //
-        //     {
-        //         "tranId": 108988250265,
-        //         "clientTag":""
-        //     }
-        //
         return this.parseMarginLoan(response, currency);
     }
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
@@ -12255,13 +12557,25 @@ class binance extends binance$1 {
         //         "clientTag":""
         //     }
         //
+        // repayCrossMargin alternative endpoint
+        //
+        //     {
+        //         "asset": "USDC",
+        //         "amount": 10,
+        //         "specifyRepayAssets": null,
+        //         "updateTime": 1727170761267,
+        //         "success": true
+        //     }
+        //
+        const currencyId = this.safeString(info, 'asset');
+        const timestamp = this.safeInteger(info, 'updateTime');
         return {
             'id': this.safeInteger(info, 'tranId'),
-            'currency': this.safeCurrencyCode(undefined, currency),
-            'amount': undefined,
+            'currency': this.safeCurrencyCode(currencyId, currency),
+            'amount': this.safeNumber(info, 'amount'),
             'symbol': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'info': info,
         };
     }
@@ -13484,6 +13798,152 @@ class binance extends binance$1 {
             'toAmount': this.safeNumber2(conversion, 'targetAmount', 'toAmount'),
             'price': undefined,
             'fee': undefined,
+        };
+    }
+    async fetchFundingIntervals(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchFundingIntervals
+         * @description fetch the funding rate interval for multiple markets
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols(symbols);
+            market = this.market(symbols[0]);
+        }
+        const type = 'swap';
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchFundingIntervals', market, params, 'linear');
+        let response = undefined;
+        if (this.isLinear(type, subType)) {
+            response = await this.fapiPublicGetFundingInfo(params);
+        }
+        else if (this.isInverse(type, subType)) {
+            response = await this.dapiPublicGetFundingInfo(params);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchFundingIntervals() supports linear and inverse swap contracts only');
+        }
+        //
+        //     [
+        //         {
+        //             "symbol": "BLZUSDT",
+        //             "adjustedFundingRateCap": "0.03000000",
+        //             "adjustedFundingRateFloor": "-0.03000000",
+        //             "fundingIntervalHours": 4,
+        //             "disclaimer": false
+        //         },
+        //     ]
+        //
+        const result = this.parseFundingRates(response, market);
+        return this.filterByArray(result, 'symbol', symbols);
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio, default is 24 hours
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (timeframe === undefined) {
+            timeframe = '1d';
+        }
+        let request = {
+            'period': timeframe,
+        };
+        [request, params] = this.handleUntilOption('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLongShortRatioHistory', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            request['symbol'] = market['id'];
+            response = await this.fapiDataGetGlobalLongShortAccountRatio(this.extend(request, params));
+            //
+            //     [
+            //         {
+            //             "symbol": "BTCUSDT",
+            //             "longAccount": "0.4558",
+            //             "longShortRatio": "0.8376",
+            //             "shortAccount": "0.5442",
+            //             "timestamp": 1726790400000
+            //         },
+            //     ]
+            //
+        }
+        else if (subType === 'inverse') {
+            request['pair'] = market['info']['pair'];
+            response = await this.dapiDataGetGlobalLongShortAccountRatio(this.extend(request, params));
+            //
+            //     [
+            //         {
+            //             "longAccount": "0.7262",
+            //             "longShortRatio": "2.6523",
+            //             "shortAccount": "0.2738",
+            //             "pair": "BTCUSD",
+            //             "timestamp": 1726790400000
+            //         },
+            //     ]
+            //
+        }
+        else {
+            throw new errors.BadRequest(this.id + ' fetchLongShortRatioHistory() supports linear and inverse subTypes only');
+        }
+        return this.parseLongShortRatioHistory(response, market);
+    }
+    parseLongShortRatio(info, market = undefined) {
+        //
+        // linear
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "longAccount": "0.4558",
+        //         "longShortRatio": "0.8376",
+        //         "shortAccount": "0.5442",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        // inverse
+        //
+        //     {
+        //         "longAccount": "0.7262",
+        //         "longShortRatio": "2.6523",
+        //         "shortAccount": "0.2738",
+        //         "pair": "BTCUSD",
+        //         "timestamp": 1726790400000
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeIntegerOmitZero(info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.safeNumber(info, 'longShortRatio'),
         };
     }
 }

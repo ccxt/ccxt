@@ -38,11 +38,18 @@ class poloniex extends Exchange {
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -626,6 +633,7 @@ class poloniex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'quantity'),
             'quoteVolume' => $this->safe_string($ticker, 'amount'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -1765,7 +1773,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
@@ -1806,11 +1814,11 @@ class poloniex extends Exchange {
             }
         }
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $response,
         );
     }
 

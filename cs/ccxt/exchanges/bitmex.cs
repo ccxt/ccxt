@@ -44,7 +44,7 @@ public partial class bitmex : Exchange
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -1208,6 +1208,7 @@ public partial class bitmex : Exchange
         object type = this.parseLedgerEntryType(this.safeString(item, "transactType"));
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amountString = this.safeString(item, "amount");
         object amount = this.convertToRealAmount(code, amountString);
         object timestamp = this.parse8601(this.safeString(item, "transactTime"));
@@ -1224,7 +1225,7 @@ public partial class bitmex : Exchange
             feeCost = this.convertToRealAmount(code, feeCost);
         }
         object fee = new Dictionary<string, object>() {
-            { "cost", this.parseNumber(feeCost) },
+            { "cost", this.parseToNumeric(feeCost) },
             { "currency", code },
         };
         object after = this.safeString(item, "walletBalance");
@@ -1232,7 +1233,7 @@ public partial class bitmex : Exchange
         {
             after = this.convertToRealAmount(code, after);
         }
-        object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        object before = this.parseToNumeric(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         object direction = null;
         if (isTrue(Precise.stringLt(amountString, "0")))
         {
@@ -1243,9 +1244,9 @@ public partial class bitmex : Exchange
             direction = "in";
         }
         object status = this.parseTransactionStatus(this.safeString(item, "transactStatus"));
-        return new Dictionary<string, object>() {
-            { "id", id },
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
+            { "id", id },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "direction", direction },
@@ -1254,12 +1255,12 @@ public partial class bitmex : Exchange
             { "referenceAccount", referenceAccount },
             { "type", type },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.parseToNumeric(amount) },
             { "before", before },
-            { "after", this.parseNumber(after) },
+            { "after", this.parseToNumeric(after) },
             { "status", status },
             { "fee", fee },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1267,11 +1268,11 @@ public partial class bitmex : Exchange
         /**
         * @method
         * @name bitmex#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -1529,6 +1530,7 @@ public partial class bitmex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "homeNotional24h") },
             { "quoteVolume", this.safeString(ticker, "foreignNotional24h") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2671,7 +2673,7 @@ public partial class bitmex : Exchange
         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2710,7 +2712,7 @@ public partial class bitmex : Exchange
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
-            { "fundingTimestamp", this.iso8601(fundingDatetime) },
+            { "fundingTimestamp", this.parseToNumeric(this.iso8601(fundingDatetime)) },
             { "fundingDatetime", fundingDatetime },
             { "nextFundingRate", this.safeNumber(contract, "indicativeFundingRate") },
             { "nextFundingTimestamp", null },
@@ -2718,6 +2720,7 @@ public partial class bitmex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -2921,11 +2924,11 @@ public partial class bitmex : Exchange
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", ((string)((string)response).Replace((string)"\"", (string)"")).Replace((string)"\"", (string)"") },
             { "tag", null },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 

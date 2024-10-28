@@ -52,6 +52,8 @@ class deribit extends deribit$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
@@ -1078,11 +1080,11 @@ class deribit extends deribit$1 {
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
         };
     }
     parseTicker(ticker, market = undefined) {
@@ -1157,6 +1159,8 @@ class deribit extends deribit$1 {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(stats, 'volume'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -3137,6 +3141,7 @@ class deribit extends deribit$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': '8h',
         };
     }
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {

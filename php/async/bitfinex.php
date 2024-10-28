@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bitfinex extends Exchange {
@@ -41,10 +42,16 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,  // Endpoint 'lendbook/{currency}' is related to interest rates on spot margin lending
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -568,11 +575,11 @@ class bitfinex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $ids = Async\await($this->publicGetSymbols ());
+            $idsPromise = $this->publicGetSymbols ();
             //
             //     array( "btcusd", "ltcusd", "ltcbtc" )
             //
-            $details = Async\await($this->publicGetSymbolsDetails ());
+            $detailsPromise = $this->publicGetSymbolsDetails ();
             //
             //     array(
             //         array(
@@ -587,6 +594,7 @@ class bitfinex extends Exchange {
             //         ),
             //     )
             //
+            list($ids, $details) = Async\await(Promise\all(array( $idsPromise, $detailsPromise )));
             $result = array();
             for ($i = 0; $i < count($details); $i++) {
                 $market = $details[$i];
@@ -1458,7 +1466,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a currency associated with this account

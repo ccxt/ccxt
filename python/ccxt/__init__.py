@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.90'
+__version__ = '4.4.24'
 
 # ----------------------------------------------------------------------------
 
@@ -95,7 +95,6 @@ from ccxt.binanceusdm import binanceusdm                              # noqa: F4
 from ccxt.bingx import bingx                                          # noqa: F401
 from ccxt.bit2c import bit2c                                          # noqa: F401
 from ccxt.bitbank import bitbank                                      # noqa: F401
-from ccxt.bitbay import bitbay                                        # noqa: F401
 from ccxt.bitbns import bitbns                                        # noqa: F401
 from ccxt.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.bitfinex import bitfinex                                    # noqa: F401
@@ -125,6 +124,7 @@ from ccxt.coinbase import coinbase                                    # noqa: F4
 from ccxt.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F401
+from ccxt.coincatch import coincatch                                  # noqa: F401
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinlist import coinlist                                    # noqa: F401
@@ -145,7 +145,6 @@ from ccxt.gateio import gateio                                        # noqa: F4
 from ccxt.gemini import gemini                                        # noqa: F401
 from ccxt.hashkey import hashkey                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
-from ccxt.hitbtc3 import hitbtc3                                      # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
 from ccxt.htx import htx                                              # noqa: F401
 from ccxt.huobi import huobi                                          # noqa: F401
@@ -207,7 +206,6 @@ exchanges = [
     'bingx',
     'bit2c',
     'bitbank',
-    'bitbay',
     'bitbns',
     'bitcoincom',
     'bitfinex',
@@ -237,6 +235,7 @@ exchanges = [
     'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
+    'coincatch',
     'coincheck',
     'coinex',
     'coinlist',
@@ -257,7 +256,6 @@ exchanges = [
     'gemini',
     'hashkey',
     'hitbtc',
-    'hitbtc3',
     'hollaex',
     'htx',
     'huobi',
