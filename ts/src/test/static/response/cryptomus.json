@@ -97,9 +97,9 @@
                     "data": [
                         {
                             "currency_pair": "ETH_USDT",
-                            "last_price": "2281.42629",
-                            "base_volume": "17.9874409855",
-                            "quote_volume": "40680.110271058"
+                            "last_price": "2350.5",
+                            "base_volume": "1.6162657477127",
+                            "quote_volume": "3983.946998925"
                         }
                     ]
                 },
@@ -114,22 +114,24 @@
                         "bidVolume": null,
                         "ask": null,
                         "askVolume": null,
-                        "vwap": 2261.584085465574,
+                        "vwap": 2464.908388093347,
                         "open": null,
-                        "close": 2281.42629,
-                        "last": 2281.42629,
+                        "close": 2350.5,
+                        "last": 2350.5,
                         "previousClose": null,
                         "change": null,
                         "percentage": null,
                         "average": null,
-                        "baseVolume": 17.9874409855,
-                        "quoteVolume": 40680.110271058,
+                        "baseVolume": 1.6162657477127,
+                        "quoteVolume": 3983.946998925,
                         "info": {
                             "currency_pair": "ETH_USDT",
-                            "last_price": "2281.42629",
-                            "base_volume": "17.9874409855",
-                            "quote_volume": "40680.110271058"
-                        }
+                            "last_price": "2350.5",
+                            "base_volume": "1.6162657477127",
+                            "quote_volume": "3983.946998925"
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
                     }
                 }
             }
