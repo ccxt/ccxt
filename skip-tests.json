@@ -1746,6 +1746,14 @@
             }
         }
     },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": "linear and inverse values are same"
+        }
+    },
     "cryptomus": {
         "skipMethods": {
             "fetchCurrencies": {
