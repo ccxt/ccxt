@@ -1,6 +1,6 @@
 {
     "exchange": "cryptomus",
-    "skipKeys": [ ],
+    "skipKeys": [ "timestamp" ],
     "methods": {
         "fetchMarkets": [
             {
