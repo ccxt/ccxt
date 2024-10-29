@@ -32,6 +32,8 @@ const exchangesWsIds = exchanges.ws;
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
+const logsEnabled = !process.env.DISABLE_EXTRA_BUILD_LOGS;
+
 function overwriteSafe (path, content) {
     try {
         overwriteFile (path, content);
@@ -51,7 +53,6 @@ if (platform === 'win32') {
     }
 }
 class Transpiler {
-
 
     baseMethodsList = null;
 
@@ -1161,7 +1162,7 @@ class Transpiler {
 
         const async = asyncFilePath
         const sync = syncFilePath
-        log.magenta ('Transpiling ' + async.yellow + ' → ' + sync.yellow)
+        if (logsEnabled) log.magenta ('Transpiling ' + async.yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         let lines = fileContents.split ("\n")
 
@@ -1206,7 +1207,7 @@ class Transpiler {
 
         const async = asyncFilePath
         const sync = syncFilePath
-        log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
+        if (logsEnabled) log.magenta ('Transpiling ' + async .yellow + ' → ' + sync.yellow)
         const fileContents = fs.readFileSync (async, 'utf8')
         const syncBody = this.transpileAsyncPHPToSyncPHP (fileContents)
 
@@ -1302,7 +1303,7 @@ class Transpiler {
                 (phpAsyncFolder && (tsMtime > phpAsyncMtime)) ||
                 (python2Folder  && (tsMtime > python2Mtime))) {
                 const { python2, python3, php, phpAsync, className, baseClass } = this.transpileClass (contents)
-                log.cyan ('Transpiling from', filename.yellow)
+                if (logsEnabled) log.cyan ('Transpiling from', filename.yellow)
 
                 ;[
                     [ python2Folder, pythonFilename, python2 ],
@@ -1626,7 +1627,7 @@ class Transpiler {
         const jsDelimiter = '// ' + delimiter
         const parts = classBody.split (jsDelimiter)
         if (parts.length > 1) {
-            log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
+            if (logsEnabled) log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
             const secondPart = parts[1]
             const methods = secondPart.trim ().split (/\n\s*\n/)
             const {
@@ -1652,13 +1653,13 @@ class Transpiler {
             const python3File = './python/ccxt/async_support/base/exchange.py'
             const phpFile = './php/Exchange.php'
             const phpAsyncFile = './php/async/Exchange.php'
-            log.magenta ('→', python2File.yellow)
+            if (logsEnabled) log.magenta ('→', python2File.yellow)
             replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
-            log.magenta ('→', python3File.yellow)
+            if (logsEnabled) log.magenta ('→', python3File.yellow)
             replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
-            log.magenta ('→', phpFile.yellow)
+            if (logsEnabled) log.magenta ('→', phpFile.yellow)
             replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
-            log.magenta ('→', phpAsyncFile.yellow)
+            if (logsEnabled) log.magenta ('→', phpAsyncFile.yellow)
             replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
         }
     }
@@ -1765,7 +1766,7 @@ class Transpiler {
 
         const pythonFilename = './python/ccxt/base/errors.py'
         if (fs.existsSync (pythonFilename)) {
-            log.bright.cyan (message, pythonFilename.yellow)
+            if (logsEnabled) log.bright.cyan (message, pythonFilename.yellow)
             fs.writeFileSync (pythonFilename, python3BodyIntellisense)
         }
 
@@ -1785,7 +1786,7 @@ class Transpiler {
                 '',
             ].join ("\n")
             const phpFilename = './php/' + name + '.php'
-            log.bright.cyan (message, phpFilename.yellow)
+            if (logsEnabled) log.bright.cyan (message, phpFilename.yellow)
             fs.writeFileSync (phpFilename, phpBody)
             return "require_once PATH_TO_CCXT . '" + name + ".php';"
         }
@@ -1795,7 +1796,7 @@ class Transpiler {
         if (fs.existsSync (phpFilename)) {
             const phpErrors = intellisense (errorHierarchy, 'Exception', phpMakeErrorClassFile)
             const phpBodyIntellisense = phpErrors.join ("\n") + "\n\n"
-            log.bright.cyan (message, phpFilename.yellow)
+            if (logsEnabled) log.bright.cyan (message, phpFilename.yellow)
             const phpRegex = /require_once PATH_TO_CCXT \. \'BaseError\.php\'\;\n(?:require_once PATH_TO_CCXT[^\n]+\n)+\n/m
             replaceInFile (phpFilename, phpRegex, phpBodyIntellisense)
         }
@@ -1808,7 +1809,7 @@ class Transpiler {
         const pyFile = './python/ccxt/test/base/test_cryptography.py'
         const phpFile = './php/test/base/test_cryptography.php'
 
-        log.magenta ('Transpiling from', jsFile.yellow)
+        if (logsEnabled) log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
 
         js = this.regexAll (js, [
@@ -1886,8 +1887,8 @@ class Transpiler {
         const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
         const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
+        if (logsEnabled) log.magenta ('→', pyFile.yellow)
+        if (logsEnabled) log.magenta ('→', phpFile.yellow)
 
         overwriteSafe (pyFile, python)
         overwriteSafe (phpFile, php)
@@ -2027,7 +2028,7 @@ class Transpiler {
     }
 
     transpileMainTests (files) {
-        log.magenta ('Transpiling from', files.tsFile.yellow)
+        if (logsEnabled) log.magenta ('Transpiling from', files.tsFile.yellow)
         let ts = fs.readFileSync (files.tsFile).toString ()
 
         ts = this.regexAll (ts, [
@@ -2235,7 +2236,7 @@ class Transpiler {
         }
 
         const fileSaveFunc = (path, content) => {
-            log.magenta ('→', path);
+            if (logsEnabled) log.magenta ('→', path);
             overwriteSafe (path, content);
         };
 
@@ -2498,7 +2499,7 @@ class Transpiler {
             let tsContent = fs.readFileSync (tsFile).toString ()
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
-                log.magenta ('Transpiling from', tsFile.yellow)
+                if (logsEnabled) log.magenta ('Transpiling from', tsFile.yellow)
                 const fileName = filenameWithExtenstion.replace ('.ts', '')
                 // temporary: avoid console.log with + (plos) because it may break in python.
                 if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
