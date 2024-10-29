@@ -538,7 +538,7 @@ export default class Exchange {
         this.uid           = undefined
         this.login         = undefined
         this.password      = undefined
-        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.privateKey    = undefined // "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
         this.token         = undefined // reserved for HTTP auth in some cases
         // placeholders for cached data
@@ -594,7 +594,7 @@ export default class Exchange {
         const agentOptions = {
             'keepAlive': true,
         }
-        // ssl options
+        // SSL options
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
