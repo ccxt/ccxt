@@ -13,13 +13,6 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
-function set_travis_env_var {
-  export DISABLE_EXTRA_BUILD_LOGS="true"
-  # Add the variable to your shell's configuration file
-  echo "export DISABLE_EXTRA_BUILD_LOGS=\"$DISABLE_EXTRA_BUILD_LOGS\"" >> ~/.bashrc
-  source ~/.bashrc
-}
-
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
@@ -117,7 +110,13 @@ if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [
   build_and_test_all
 fi
 
-set_travis_env_var
+# only if this is travis build, and not master commit, set ENV var to disable extra logs
+if { [ "$IS_TRAVIS" = "TRUE" ] }; then
+  export DISABLE_EXTRA_BUILD_LOGS="true"
+  # Add the variable to your shell's configuration file
+  echo "export DISABLE_EXTRA_BUILD_LOGS=\"$DISABLE_EXTRA_BUILD_LOGS\"" >> ~/.bashrc
+  source ~/.bashrc
+fi
 
 ##### DETECT CHANGES #####
 # in appveyor, there is no origin/master locally, so we need to fetch it.
