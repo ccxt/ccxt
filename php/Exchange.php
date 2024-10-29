@@ -2211,8 +2211,9 @@ class Exchange {
         return (int)$number;
     }
 
-    public function clean() {
-        // This is the language-specific method to cleanup WS & REST resources
+    public function close() {
+        // Here happens the language-specific cleanup of WS & REST resources
+        // [REST]
         if ($this->curl !== null) {
             curl_close($this->curl);
         }

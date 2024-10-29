@@ -1385,7 +1385,7 @@ export default class Exchange {
     }
 
     async close () {
-        // This method is language specific cleanup for WS & REST
+        // Here happens the language-specific cleanup of WS & REST resources
         // [WS]
         const clients = Object.values (this.clients || {});
         const closedClients = [];
@@ -1400,7 +1400,7 @@ export default class Exchange {
             delete this.clients[client.url];
         }
         // [REST]
-        // todo
+        // todo if any
         return;
     }
 
@@ -1928,7 +1928,7 @@ export default class Exchange {
         };
     }
 
-    cleanRest () {
+    cleanRestData () {
         this.ids = [];
         this.markets = {};
         this.markets_by_id = {};
@@ -1944,7 +1944,7 @@ export default class Exchange {
         this.last_request_headers = undefined;
     }
 
-    cleanWs () {
+    cleanWsData () {
         this.balance = this.createSafeDictionary ();
         this.orderbooks = this.createSafeDictionary ();
         this.tickers = this.createSafeDictionary ();
@@ -1960,9 +1960,9 @@ export default class Exchange {
 
     async clean () {
         // this method can be used as a successor of `.close()`
-        this.cleanRest ();
         await this.close ();
-        this.cleanWs ();
+        this.cleanWsData ();
+        this.cleanRestData ();
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {

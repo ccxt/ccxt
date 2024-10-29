@@ -87,9 +87,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
 
-    public function clean() {
-        // This is the language-specific method to cleanup WS & REST resources
-        parent::clean();
+    public function close() {
+        // Here happens the language-specific cleanup of WS & REST resources
+        // [REST]
         if ($this->browser) {
             unset($this->browser);
             $this->browser = null;
@@ -98,6 +98,7 @@ class Exchange extends \ccxt\Exchange {
             unset($this->default_connector);
             $this->default_connector = null;
         }
+        parent::clean();
     }
 
     private $proxyDictionaries = [];
