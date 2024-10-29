@@ -1749,10 +1749,10 @@ public partial class xt : Exchange
         market = this.safeMarket(marketId, market, "_", marketType);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger(ticker, "t");
-        object percentage = this.safeNumber2(ticker, "cr", "r");
+        object percentage = this.safeString2(ticker, "cr", "r");
         if (isTrue(!isEqual(percentage, null)))
         {
-            percentage = multiply(percentage, 100);
+            percentage = Precise.stringMul(percentage, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1770,7 +1770,7 @@ public partial class xt : Exchange
             { "last", this.safeString(ticker, "c") },
             { "previousClose", null },
             { "change", this.safeNumber(ticker, "cv") },
-            { "percentage", percentage },
+            { "percentage", this.parseNumber(percentage) },
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeNumber2(ticker, "a", "v") },
