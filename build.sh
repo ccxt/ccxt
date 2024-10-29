@@ -13,6 +13,13 @@ fi
 
 [[ -n "$TRAVIS_BUILD_ID" ]] && IS_TRAVIS="TRUE" || IS_TRAVIS="FALSE"
 
+function set_travis_env_var {
+  export DISABLE_EXTRA_BUILD_LOGS="true"
+  # Add the variable to your shell's configuration file
+  echo "export DISABLE_EXTRA_BUILD_LOGS=\"$DISABLE_EXTRA_BUILD_LOGS\"" >> ~/.bashrc
+  source ~/.bashrc
+}
+
 msgPrefix="⬤ BUILD.SH : "
 
 function run_tests {
@@ -106,10 +113,11 @@ build_and_test_all () {
 ### CHECK IF THIS IS A PR ###
 # for appveyor, when PR is from fork, APPVEYOR_REPO_BRANCH is "master" and "APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" is branch name. if PR is from same repo, only APPVEYOR_REPO_BRANCH is set (and it is branch name)
 if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [ "$IS_TRAVIS" != "TRUE" ] && [ -z "$APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH" ]; }; then
-
   echo "$msgPrefix This is a master commit (not a PR), will build everything"
   build_and_test_all
 fi
+
+set_travis_env_var
 
 ##### DETECT CHANGES #####
 # in appveyor, there is no origin/master locally, so we need to fetch it.
