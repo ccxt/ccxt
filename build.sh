@@ -112,8 +112,8 @@ fi
 
 # only if this is travis build, and not master commit, set ENV var to disable extra logs
 if [[ "$IS_TRAVIS" = "TRUE" ]]; then
-  export DISABLE_EXTRA_BUILD_LOGS="true"
-  echo "export DISABLE_EXTRA_BUILD_LOGS=\"$DISABLE_EXTRA_BUILD_LOGS\"" >> ~/.bashrc
+  DISABLE_EXTRA_BUILD_LOGS="true"
+  echo "export DISABLE_EXTRA_BUILD_LOGS=\"true\"" >> ~/.bashrc
   source ~/.bashrc
 fi
 
@@ -202,10 +202,10 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
 fi
 
 # build dotnet project
-if [ -z "${DISABLE_EXTRA_BUILD_LOGS+x}" ]; then
-  npm run buildCS
+if [[ -n "$DISABLE_EXTRA_BUILD_LOGS" ]]; then
+  npm run buildCS -- -- -- -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
 else
-  npm run buildCS -- -- -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
+  npm run buildCS
 fi;
 
 # run base tests (base js,py,php, brokerId )
