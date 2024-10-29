@@ -2851,6 +2851,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2881,6 +2882,10 @@ class bingx extends Exchange {
                 $request['batchOrders'] = $this->json($ordersRequests);
                 $response = Async\await($this->swapV2PrivatePostTradeBatchOrders ($request));
             } else {
+                $sync = $this->safe_bool($params, 'sync', false);
+                if ($sync) {
+                    $request['sync'] = true;
+                }
                 $request['data'] = $this->json($ordersRequests);
                 $response = Async\await($this->spotV1PrivatePostTradeBatchOrders ($request));
             }
