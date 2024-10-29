@@ -859,7 +859,8 @@ class hitbtc(Exchange, ImplicitAPI):
             for j in range(0, len(rawNetworks)):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string_2(rawNetwork, 'protocol', 'network')
-                network = self.safe_network(networkId)
+                networkCode = self.network_id_to_code(networkId)
+                networkCode = networkCode.upper() if (networkCode is not None) else None
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
                 payinEnabledNetwork = self.safe_bool(rawNetwork, 'payin_enabled', False)
@@ -873,10 +874,10 @@ class hitbtc(Exchange, ImplicitAPI):
                     withdrawEnabled = True
                 elif not payoutEnabledNetwork:
                     withdrawEnabled = False
-                networks[network] = {
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'fee': fee,
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
@@ -910,12 +911,6 @@ class hitbtc(Exchange, ImplicitAPI):
                 },
             }
         return result
-
-    def safe_network(self, networkId):
-        if networkId is None:
-            return None
-        else:
-            return networkId.upper()
 
     async def create_deposit_address(self, code: str, params={}):
         """
@@ -3298,6 +3293,7 @@ class hitbtc(Exchange, ImplicitAPI):
             networkEntry = networks[j]
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId)
+            networkCode = networkCode.upper() if (networkCode is not None) else None
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_value(networkEntry, 'default')
             withdrawResult: dict = {

@@ -887,7 +887,7 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price a trigger order is triggered at
     /// </description>
