@@ -925,6 +925,7 @@ export default class gate extends Exchange {
             const result = this.safeDict (response, 'key', {});
             this.options['unifiedAccount'] = this.safeInteger (result, 'mode') === 2;
         }
+        return true;
     }
 
     async upgradeUnifiedTradeAccount (params = {}) {
