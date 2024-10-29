@@ -48,10 +48,6 @@
                     ]
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "message": "",
@@ -75,7 +71,11 @@
                                 "memo": ""
                             }
                         ]
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TQrDjvr1uKceBUUXVHkrYV4UZdMNtLAg6V",
+                    "tag": null
                 }
             }
         ],

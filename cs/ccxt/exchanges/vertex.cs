@@ -3079,6 +3079,19 @@ public partial class vertex : Exchange
                 url = add(url, add("?", this.urlencode(parameters)));
             }
         }
+        if (isTrue(!isEqual(path, "execute")))
+        {
+            // required encoding for public methods
+            if (isTrue(!isEqual(headers, null)))
+            {
+                ((IDictionary<string,object>)headers)["Accept-Encoding"] = "gzip";
+            } else
+            {
+                headers = new Dictionary<string, object>() {
+                    { "Accept-Encoding", "gzip" },
+                };
+            }
+        }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

@@ -53,6 +53,8 @@ public partial class bitfinex2 : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", "emulated" },

@@ -791,6 +791,19 @@
                 ]
             },
             {
+                "description": "inverse balance should use unified when account is > UTA 1.0",
+                "method": "fetchBalance",
+                "options": {
+                    "unifiedMarginStatus": 5
+                },
+                "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
+                "input": [
+                  {
+                    "subType": "inverse"
+                  }
+                ]
+            },
+            {
                 "description": "fetch funding balance using options",
                 "method": "fetchBalance",
                 "options": {
@@ -1343,6 +1356,27 @@
                   "USDT",
                   null,
                   3
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "fetch the long short ratio history for a linear swap market",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api-testnet.bybit.com/v5/market/account-ratio?symbol=BTCUSDT&period=1d&category=linear",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "url": "https://api-testnet.bybit.com/v5/spot-margin-trade/interest-rate-history?currency=USDT&startTime=1726652765781&endTime=1729244765781",
+                "input": [
+                  "USDT",
+                  1726652765781
                 ]
             }
         ]

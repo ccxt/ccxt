@@ -58,6 +58,7 @@ class bingx extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -71,6 +72,7 @@ class bingx extends Exchange {
                 'fetchMarginMode' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
                 'fetchMarkPrices' => true,
                 'fetchMyLiquidations' => true,
                 'fetchOHLCV' => true,
@@ -497,6 +499,7 @@ class bingx extends Exchange {
                 ),
                 'networks' => array(
                     'ARB' => 'ARBITRUM',
+                    'MATIC' => 'POLYGON',
                 ),
             ),
         ));
@@ -611,10 +614,11 @@ class bingx extends Exchange {
                             'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
                         ),
                     );
+                    $fee = $this->safe_number($rawNetwork, 'withdrawFee');
                     if ($isDefault) {
-                        $fee = $this->safe_number($rawNetwork, 'withdrawFee');
                         $defaultLimits = $limits;
                     }
+                    $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
                     $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
                     $networks[$networkCode] = array(
                         'info' => $rawNetwork,
@@ -624,7 +628,7 @@ class bingx extends Exchange {
                         'active' => $networkActive,
                         'deposit' => $networkDepositEnabled,
                         'withdraw' => $networkWithdrawEnabled,
-                        'precision' => null,
+                        'precision' => $precision,
                         'limits' => $limits,
                     );
                 }
@@ -786,7 +790,7 @@ class bingx extends Exchange {
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
-        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_number($market, 'status') === 1)) {
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy') && ($this->safe_string($market, 'status') === '1')) {
             $isActive = true; // $spot active
         }
         $isInverse = ($spot) ? null : $checkIsInverse;
@@ -1746,6 +1750,64 @@ class bingx extends Exchange {
             //
             $tickers = $this->safe_list($response, 'data');
             return $this->parse_tickers($tickers, $symbols);
+        }) ();
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches mark prices for the $market
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrice', $market, $params, 'linear');
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($subType === 'inverse') {
+                $response = Async\await($this->cswapV1PublicGetMarketPremiumIndex ($this->extend($request, $params)));
+                //
+                // {
+                //     "code" => 0,
+                //     "msg" => "",
+                //     "timestamp" => 1728577213289,
+                //     "data" => array(
+                //         {
+                //             "symbol" => "ETH-USD",
+                //             "lastFundingRate" => "0.0001",
+                //             "markPrice" => "2402.68",
+                //             "indexPrice" => "2404.92",
+                //             "nextFundingTime" => 1728604800000
+                //         }
+                //     )
+                // }
+                //
+            } else {
+                $response = Async\await($this->swapV2PublicGetQuotePremiumIndex ($this->extend($request, $params)));
+                //
+                // {
+                //     "code" => 0,
+                //     "msg" => "",
+                //     "data" => {
+                //         "symbol" => "ETH-USDT",
+                //         "markPrice" => "2408.40",
+                //         "indexPrice" => "2409.62",
+                //         "lastFundingRate" => "0.00009900",
+                //         "nextFundingTime" => 1728604800000
+                //     }
+                // }
+                //
+            }
+            if (gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data']))) {
+                return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
+            }
+            return $this->parse_ticker($response['data'], $market);
         }) ();
     }
 
@@ -4432,7 +4494,7 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit addresses for a $currency associated with this account
@@ -4476,7 +4538,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -4505,7 +4567,7 @@ class bingx extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coinId" => "799",
@@ -4540,11 +4602,11 @@ class bingx extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $depositAddress,
         );
     }
 
@@ -5263,7 +5325,7 @@ class bingx extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
-             * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -5272,6 +5334,8 @@ class bingx extends Exchange {
              * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $walletType = $this->safe_integer($params, 'walletType');
@@ -5290,6 +5354,9 @@ class bingx extends Exchange {
             $network = $this->safe_string_upper($params, 'network');
             if ($network !== null) {
                 $request['network'] = $this->network_code_to_id($network);
+            }
+            if ($tag !== null) {
+                $request['addressTag'] = $tag;
             }
             $params = $this->omit($params, array( 'walletType', 'network' ));
             $response = Async\await($this->walletsV1PrivatePostCapitalWithdrawApply ($this->extend($request, $params)));

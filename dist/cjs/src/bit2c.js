@@ -40,6 +40,8 @@ class bit2c extends bit2c$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -866,11 +868,11 @@ class bit2c extends bit2c$1 {
         this.checkAddress(address);
         const code = this.safeCurrencyCode(undefined, currency);
         return {
+            'info': depositAddress,
             'currency': code,
             'network': undefined,
             'address': address,
             'tag': undefined,
-            'info': depositAddress,
         };
     }
     nonce() {

@@ -41,6 +41,8 @@ export default class bitbank extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -837,11 +839,11 @@ export default class bitbank extends Exchange {
         const firstAccount = this.safeValue(accounts, 0, {});
         const address = this.safeString(firstAccount, 'address');
         return {
+            'info': response,
             'currency': currency,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {

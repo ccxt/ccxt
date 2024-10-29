@@ -3698,7 +3698,7 @@ class coinbase extends coinbase$1 {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'cursor', 'cursor', undefined, 250);
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -4071,9 +4071,9 @@ class coinbase extends coinbase$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId, code),
             'address': address,
             'tag': this.safeString(addressInfo, 'destination_tag'),
-            'network': this.networkIdToCode(networkId, code),
         };
     }
     async deposit(code, amount, id, params = {}) {

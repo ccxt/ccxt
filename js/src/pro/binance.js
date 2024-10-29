@@ -249,7 +249,7 @@ export default class binance extends binanceRest {
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);
         if (type === 'spot') {
-            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for swap symbols');
+            throw new BadRequest(this.id + 'watchLiquidationsForSymbols is not supported for spot symbols');
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('watchLiquidationsForSymbols', firstMarket, params);

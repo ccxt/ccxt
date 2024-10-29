@@ -65,6 +65,8 @@ class xt extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawals' => false,
                 'fetchDepositWithdrawFee' => false,
@@ -1756,6 +1758,10 @@ class xt extends Exchange {
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
+        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1772,7 +1778,7 @@ class xt extends Exchange {
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'cv'),
-            'percentage' => $this->safe_number_2($ticker, 'cr', 'r'),
+            'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
@@ -3617,7 +3623,7 @@ class xt extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -3654,7 +3660,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null): array {
         //
         //     {
         //         "address" => "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3664,11 +3670,11 @@ class xt extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 

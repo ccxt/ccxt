@@ -56,6 +56,7 @@ class ImplicitAPI:
     spot_private_get_rebate_affiliate_commission_detail = spotPrivateGetRebateAffiliateCommissionDetail = Entry('rebate/affiliate/commission/detail', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_mxdeduct_enable = spotPrivateGetMxDeductEnable = Entry('mxDeduct/enable', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_get_userdatastream = spotPrivateGetUserDataStream = Entry('userDataStream', ['spot', 'private'], 'GET', {'cost': 1})
+    spot_private_get_selfsymbols = spotPrivateGetSelfSymbols = Entry('selfSymbols', ['spot', 'private'], 'GET', {'cost': 1})
     spot_private_post_order = spotPrivatePostOrder = Entry('order', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_order_test = spotPrivatePostOrderTest = Entry('order/test', ['spot', 'private'], 'POST', {'cost': 1})
     spot_private_post_sub_account_virtualsubaccount = spotPrivatePostSubAccountVirtualSubAccount = Entry('sub-account/virtualSubAccount', ['spot', 'private'], 'POST', {'cost': 1})

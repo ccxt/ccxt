@@ -282,13 +282,7 @@ public partial class timex : Exchange
         //         },
         //     ]
         //
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            ((IList<object>)result).Add(this.parseCurrency(currency));
-        }
-        return this.indexBy(result, "code");
+        return this.parseCurrencies(response);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1293,7 +1287,7 @@ public partial class timex : Exchange
         };
     }
 
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //     {
@@ -1362,7 +1356,7 @@ public partial class timex : Exchange
                 fee = this.parseNumber(add(fraction, feeString));
             }
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", code },
             { "code", code },
             { "info", currency },
@@ -1384,7 +1378,7 @@ public partial class timex : Exchange
                 } },
             } },
             { "networks", new Dictionary<string, object>() {} },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1651,9 +1645,9 @@ public partial class timex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
-            { "network", null },
         };
     }
 

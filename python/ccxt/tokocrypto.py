@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.tokocrypto import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1950,10 +1950,10 @@ class tokocrypto(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'list', [])
         return self.parse_trades(trades, market, since, limit)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://www.tokocrypto.com/apidocs/#deposit-address-signed
         fetch the deposit address for a currency associated with self account
+        :see: https://www.tokocrypto.com/apidocs/#deposit-address-signed
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1995,11 +1995,11 @@ class tokocrypto(Exchange, ImplicitAPI):
             tag = None
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': self.safe_string(data, 'network'),
             'address': address,
             'tag': tag,
-            'network': self.safe_string(data, 'network'),
-            'info': response,
         }
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:

@@ -241,6 +241,7 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         // handle options
         var extendedOptions = safeDict(extendedProperties, "options");

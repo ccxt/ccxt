@@ -61,6 +61,8 @@ export default class xt extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawals': false,
                 'fetchDepositWithdrawFee': false,
@@ -1745,6 +1747,10 @@ export default class xt extends Exchange {
         market = this.safeMarket(marketId, market, '_', marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(ticker, 't');
+        let percentage = this.safeString2(ticker, 'cr', 'r');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul(percentage, '100');
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1761,7 +1767,7 @@ export default class xt extends Exchange {
             'last': this.safeString(ticker, 'c'),
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'cv'),
-            'percentage': this.safeNumber2(ticker, 'cr', 'r'),
+            'percentage': this.parseNumber(percentage),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
@@ -3684,11 +3690,11 @@ export default class xt extends Exchange {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(undefined, currency),
+            'network': undefined,
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

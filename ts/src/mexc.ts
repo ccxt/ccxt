@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -81,7 +81,7 @@ export default class mexc extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': undefined,
+                'fetchFundingRates': false,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -230,6 +230,7 @@ export default class mexc extends Exchange {
                             'rebate/affiliate/commission/detail': 1,
                             'mxDeduct/enable': 1,
                             'userDataStream': 1,
+                            'selfSymbols': 1,
                         },
                         'post': {
                             'order': 1,
@@ -2273,8 +2274,12 @@ export default class mexc extends Exchange {
         const order = this.parseOrder (response, market);
         order['side'] = side;
         order['type'] = type;
-        order['price'] = price;
-        order['amount'] = amount;
+        if (this.safeString (order, 'price') === undefined) {
+            order['price'] = price;
+        }
+        if (this.safeString (order, 'amount') === undefined) {
+            order['amount'] = amount;
+        }
         return order;
     }
 
@@ -4511,7 +4516,7 @@ export default class mexc extends Exchange {
         return tiers;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        coin: "USDT",
@@ -4525,15 +4530,15 @@ export default class mexc extends Exchange {
         const networkId = this.safeString (depositAddress, 'netWork');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode (currencyId, currency),
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.networkIdToCode (networkId),
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name mexc#fetchDepositAddressesByNetwork
@@ -4551,7 +4556,16 @@ export default class mexc extends Exchange {
         const networkCode = this.safeString (params, 'network');
         let networkId = undefined;
         if (networkCode !== undefined) {
-            networkId = this.networkCodeToId (networkCode, code);
+            // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+            const networkUnified = this.networkIdToCode (networkCode, code);
+            const networks = this.safeDict (currency, 'networks', {});
+            if (networkUnified in networks) {
+                const network = this.safeDict (networks, networkUnified, {});
+                const networkInfo = this.safeValue (network, 'info', {});
+                networkId = this.safeString (networkInfo, 'network');
+            } else {
+                networkId = this.networkCodeToId (networkCode, code);
+            }
         }
         if (networkId !== undefined) {
             request['network'] = networkId;
@@ -4570,7 +4584,7 @@ export default class mexc extends Exchange {
         //    ]
         //
         const addressStructures = this.parseDepositAddresses (response, undefined, false);
-        return this.indexBy (addressStructures, 'network');
+        return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
 
     async createDepositAddress (code: string, params = {}) {
@@ -4593,7 +4607,17 @@ export default class mexc extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' createDepositAddress requires a `network` parameter');
         }
-        const networkId = this.networkCodeToId (networkCode, code);
+        // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
+        let networkId = undefined;
+        const networkUnified = this.networkIdToCode (networkCode, code);
+        const networks = this.safeDict (currency, 'networks', {});
+        if (networkUnified in networks) {
+            const network = this.safeDict (networks, networkUnified, {});
+            const networkInfo = this.safeValue (network, 'info', {});
+            networkId = this.safeString (networkInfo, 'network');
+        } else {
+            networkId = this.networkCodeToId (networkCode, code);
+        }
         if (networkId !== undefined) {
             request['network'] = networkId;
         }
@@ -4608,7 +4632,7 @@ export default class mexc extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name mexc#fetchDepositAddress
@@ -4620,8 +4644,7 @@ export default class mexc extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const network = this.safeString (params, 'network');
-        params = this.omit (params, [ 'network' ]);
-        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        const addressStructures = await this.fetchDepositAddressesByNetwork (code, params) as DepositAddress[];
         let result = undefined;
         if (network !== undefined) {
             result = this.safeDict (addressStructures, this.networkIdToCode (network, code));
@@ -4639,7 +4662,7 @@ export default class mexc extends Exchange {
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', and network' + network + 'consider creating one using .createDepositAddress() method or in MEXC website');
         }
-        return result;
+        return result as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

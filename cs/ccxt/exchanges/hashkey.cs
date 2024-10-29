@@ -58,6 +58,8 @@ public partial class hashkey : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -1836,11 +1838,11 @@ public partial class hashkey : Exchange
             tag = null;
         }
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", getValue(currency, "code") },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

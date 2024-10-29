@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blockchaincom import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -45,6 +45,8 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -770,7 +772,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         trades = await self.privateGetFills(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit, params)  # need to define
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://api.blockchain.com/v3/#getdepositaddress
@@ -792,12 +794,13 @@ class blockchaincom(Exchange, ImplicitAPI):
             # if a tag or memo is used it is separated by a colon in the 'address' value
             tag = self.safe_string(addressParts, 0)
             address = self.safe_string(addressParts, 1)
-        result: dict = {'info': response}
-        result['currency'] = currency['code']
-        result['address'] = address
-        if tag is not None:
-            result['tag'] = tag
-        return result
+        return {
+            'info': response,
+            'currency': currency['code'],
+            'network': None,
+            'address': address,
+            'tag': tag,
+        }
 
     def parse_transaction_state(self, state):
         states: dict = {

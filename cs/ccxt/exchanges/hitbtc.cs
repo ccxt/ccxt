@@ -41,6 +41,8 @@ public partial class hitbtc : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -665,7 +667,8 @@ public partial class hitbtc : Exchange
             {
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString2(rawNetwork, "protocol", "network");
-                object network = this.safeNetwork(networkId);
+                object networkCode = this.networkIdToCode(networkId);
+                networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
                 fee = this.safeNumber(rawNetwork, "payout_fee");
                 object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
                 object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
@@ -685,10 +688,10 @@ public partial class hitbtc : Exchange
                 {
                     withdrawEnabled = false;
                 }
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "info", rawNetwork },
                     { "id", networkId },
-                    { "network", network },
+                    { "network", networkCode },
                     { "fee", fee },
                     { "active", activeNetwork },
                     { "deposit", payinEnabledNetwork },
@@ -724,17 +727,6 @@ public partial class hitbtc : Exchange
             };
         }
         return result;
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        if (isTrue(isEqual(networkId, null)))
-        {
-            return null;
-        } else
-        {
-            return ((string)networkId).ToUpper();
-        }
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)
@@ -818,11 +810,10 @@ public partial class hitbtc : Exchange
         object parsedCode = this.safeCurrencyCode(currencyId);
         return new Dictionary<string, object>() {
             { "info", response },
-            { "address", address },
-            { "tag", tag },
-            { "code", parsedCode },
             { "currency", parsedCode },
             { "network", null },
+            { "address", address },
+            { "tag", tag },
         };
     }
 
@@ -3670,6 +3661,7 @@ public partial class hitbtc : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "network");
             object networkCode = this.networkIdToCode(networkId);
+            networkCode = ((bool) isTrue((!isEqual(networkCode, null)))) ? ((string)networkCode).ToUpper() : null;
             object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             object isDefault = this.safeValue(networkEntry, "default");
             object withdrawResult = new Dictionary<string, object>() {

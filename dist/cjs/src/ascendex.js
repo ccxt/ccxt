@@ -2389,11 +2389,11 @@ class ascendex extends ascendex$1 {
         const chainName = this.safeString(depositAddress, 'blockchain');
         const network = this.networkIdToCode(chainName, code);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {

@@ -55,6 +55,7 @@ interface Exchange {
     publicGetRubikStatTakerVolume (params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatMarginLoanRatio (params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsLongShortAccountRatio (params?: {}): Promise<implicitReturnType>;
+    publicGetRubikStatContractsLongShortAccountRatioContract (params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolume (params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolumeRatio (params?: {}): Promise<implicitReturnType>;
@@ -160,6 +161,9 @@ interface Exchange {
     privateGetAccountFixedLoanBorrowingLimit (params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingQuote (params?: {}): Promise<implicitReturnType>;
     privateGetAccountFixedLoanBorrowingOrdersList (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotManualBorrowRepay (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSetAutoRepay (params?: {}): Promise<implicitReturnType>;
+    privateGetAccountSpotBorrowRepayHistory (params?: {}): Promise<implicitReturnType>;
     privateGetUsersSubaccountList (params?: {}): Promise<implicitReturnType>;
     privateGetAccountSubaccountBalances (params?: {}): Promise<implicitReturnType>;
     privateGetAssetSubaccountBalances (params?: {}): Promise<implicitReturnType>;

@@ -1320,7 +1320,8 @@ public partial class kucoin : ccxt.kucoin
         }
         object data = this.safeDict(message, "data");
         object parsed = this.parseWsTrade(data);
-        callDynamically(this.myTrades, "append", new object[] {parsed});
+        object myTrades = this.myTrades;
+        callDynamically(myTrades, "append", new object[] {parsed});
         object messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
         object symbolSpecificMessageHash = add(add(messageHash, ":"), getValue(parsed, "symbol"));

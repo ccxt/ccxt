@@ -253,7 +253,7 @@ class binance extends \ccxt\async\binance {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);
             if ($type === 'spot') {
-                throw new BadRequest($this->id . 'watchLiquidationsForSymbols is not supported for swap symbols');
+                throw new BadRequest($this->id . 'watchLiquidationsForSymbols is not supported for spot symbols');
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchLiquidationsForSymbols', $firstMarket, $params);

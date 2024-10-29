@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -39,6 +39,8 @@ export default class blockchaincom extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -829,7 +831,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTrades (trades, market, since, limit, params); // need to define
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name blockchaincom#fetchDepositAddress
@@ -854,13 +856,13 @@ export default class blockchaincom extends Exchange {
             tag = this.safeString (addressParts, 0);
             address = this.safeString (addressParts, 1);
         }
-        const result: Dict = { 'info': response };
-        result['currency'] = currency['code'];
-        result['address'] = address;
-        if (tag !== undefined) {
-            result['tag'] = tag;
-        }
-        return result;
+        return {
+            'info': response,
+            'currency': currency['code'],
+            'network': undefined,
+            'address': address,
+            'tag': tag,
+        } as DepositAddress;
     }
 
     parseTransactionState (state) {

@@ -49,6 +49,8 @@ class hitbtc extends hitbtc$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -849,7 +851,8 @@ class hitbtc extends hitbtc$1 {
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
-                const network = this.safeNetwork(networkId);
+                let networkCode = this.networkIdToCode(networkId);
+                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
@@ -867,10 +870,10 @@ class hitbtc extends hitbtc$1 {
                 else if (!payoutEnabledNetwork) {
                     withdrawEnabled = false;
                 }
-                networks[network] = {
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'fee': fee,
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
@@ -906,14 +909,6 @@ class hitbtc extends hitbtc$1 {
             };
         }
         return result;
-    }
-    safeNetwork(networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        else {
-            return networkId.toUpperCase();
-        }
     }
     async createDepositAddress(code, params = {}) {
         /**
@@ -987,11 +982,10 @@ class hitbtc extends hitbtc$1 {
         const parsedCode = this.safeCurrencyCode(currencyId);
         return {
             'info': response,
-            'address': address,
-            'tag': tag,
-            'code': parsedCode,
             'currency': parsedCode,
             'network': undefined,
+            'address': address,
+            'tag': tag,
         };
     }
     parseBalance(response) {
@@ -3556,7 +3550,8 @@ class hitbtc extends hitbtc$1 {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = this.networkIdToCode(networkId);
+            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeValue(networkEntry, 'default');
             const withdrawResult = {

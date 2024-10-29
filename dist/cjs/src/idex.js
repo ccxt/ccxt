@@ -1809,9 +1809,9 @@ class idex extends idex$1 {
         return {
             'info': depositAddress,
             'currency': undefined,
+            'network': 'MATIC',
             'address': address,
             'tag': undefined,
-            'network': 'MATIC',
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

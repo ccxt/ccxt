@@ -1169,19 +1169,20 @@ class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a $timestamp
             $timestamp = 0; // see comments above
         }
+        $fee = null;
         $feeCost = $this->safe_string($item, 'fee');
         if ($feeCost !== null) {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
+            $fee = array(
+                'cost' => $this->parse_number($feeCost),
+                'currency' => $code,
+            );
         }
-        $fee = array(
-            'cost' => $this->parse_to_numeric($feeCost),
-            'currency' => $code,
-        );
         $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
         }
-        $before = $this->parse_to_numeric(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
+        $before = $this->parse_number(Precise::string_sub($this->number_to_string($after), $this->number_to_string($amount)));
         $direction = null;
         if (Precise::string_lt($amountString, '0')) {
             $direction = 'out';
@@ -1201,9 +1202,9 @@ class bitmex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $this->parse_to_numeric($amount),
+            'amount' => $this->parse_number($amount),
             'before' => $before,
-            'after' => $this->parse_to_numeric($after),
+            'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => $fee,
         ), $currency);
@@ -2709,7 +2710,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2736,11 +2737,11 @@ class bitmex extends Exchange {
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $networkCode,
                 'address' => str_replace('"', '', $response->replace ('"', '')), // Done twice because some languages only replace the first instance
                 'tag' => null,
-                'network' => $networkCode,
-                'info' => $response,
             );
         }) ();
     }

@@ -42,7 +42,9 @@ class coinone extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
+                'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -1051,7 +1053,7 @@ class coinone extends Exchange {
         return $this->safe_order($response);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null
@@ -1090,10 +1092,11 @@ class coinone extends Exchange {
             $depositAddress = $this->safe_value($result, $code);
             if ($depositAddress === null) {
                 $depositAddress = array(
+                    'info' => $value,
                     'currency' => $code,
+                    'network' => null,
                     'address' => null,
                     'tag' => null,
-                    'info' => $value,
                 );
             }
             $address = $this->safe_string($depositAddress, 'address', $value);

@@ -2016,11 +2016,11 @@ public partial class coinsph : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "addressTag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

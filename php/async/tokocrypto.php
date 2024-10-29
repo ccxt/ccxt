@@ -2046,11 +2046,11 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
-             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -2094,11 +2094,11 @@ class tokocrypto extends Exchange {
             }
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $this->safe_string($data, 'network'),
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $this->safe_string($data, 'network'),
-                'info' => $response,
             );
         }) ();
     }
