@@ -415,6 +415,23 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
     assert (deepEqual (a, b), 'two dicts do not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
 }
 
+
+function assertAmountPriceCost (exchange: Exchange, skippedProperties: any, method: string, symbol: string, entry: any, amountKey: string | number, priceKey: string | number, costKey: string | number) {
+    const logText = logTemplate (exchange, method, entry);
+    // check `cost, amount, price` correlation
+    const market = exchange.market (symbol);
+    const precision = market['precision'];
+    const amountPrecision = exchange.safeString (precision, 'amount');
+    const amount = exchange.safeString (entry, amountKey);
+    const price = exchange.safeString (entry, priceKey);
+    const cost = exchange.safeString (entry, costKey);
+    const amountCalculated = Precise.stringDiv (cost, price);
+    const compareResult = Precise.stringSub (amount, amountCalculated);
+    // the remainder should be >= 0 and < amountPrecision
+    const isValid = Precise.stringGe (compareResult, '0') && Precise.stringLt (compareResult, amountPrecision);
+    assert (isValid, 'cost & amount & price math is not correct' + logText);
+}
+
 export default {
     deepEqual,
     assertDeepEqual,
@@ -443,4 +460,5 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    assertAmountPriceCost,
 };
