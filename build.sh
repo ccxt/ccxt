@@ -113,7 +113,6 @@ fi
 # only if this is travis build, and not master commit, set ENV var to disable extra logs
 if [[ "$IS_TRAVIS" = "TRUE" ]]; then
   export DISABLE_EXTRA_BUILD_LOGS="true"
-  # Add the variable to your shell's configuration file
   echo "export DISABLE_EXTRA_BUILD_LOGS=\"$DISABLE_EXTRA_BUILD_LOGS\"" >> ~/.bashrc
   source ~/.bashrc
 fi
@@ -206,7 +205,7 @@ fi
 if [ -z "$DISABLE_EXTRA_BUILD_LOGS" ]; then
   npm run buildCS
 else
-  npm run buildCS  -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
+  npm run buildCS -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
 fi;
 
 # run base tests (base js,py,php, brokerId )
