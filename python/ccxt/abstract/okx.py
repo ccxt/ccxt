@@ -189,6 +189,7 @@ class ImplicitAPI:
     private_get_finance_staking_defi_orders_history = privateGetFinanceStakingDefiOrdersHistory = Entry('finance/staking-defi/orders-history', 'private', 'GET', {'cost': 3.3333333333333335})
     private_get_finance_staking_defi_eth_balance = privateGetFinanceStakingDefiEthBalance = Entry('finance/staking-defi/eth/balance', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_finance_staking_defi_eth_purchase_redeem_history = privateGetFinanceStakingDefiEthPurchaseRedeemHistory = Entry('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', {'cost': 1.6666666666666667})
+    private_get_finance_staking_defi_eth_product_info = privateGetFinanceStakingDefiEthProductInfo = Entry('finance/staking-defi/eth/product-info', 'private', 'GET', {'cost': 3})
     private_get_copytrading_current_subpositions = privateGetCopytradingCurrentSubpositions = Entry('copytrading/current-subpositions', 'private', 'GET', {'cost': 1})
     private_get_copytrading_subpositions_history = privateGetCopytradingSubpositionsHistory = Entry('copytrading/subpositions-history', 'private', 'GET', {'cost': 1})
     private_get_copytrading_instruments = privateGetCopytradingInstruments = Entry('copytrading/instruments', 'private', 'GET', {'cost': 4})

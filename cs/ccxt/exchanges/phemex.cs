@@ -156,6 +156,7 @@ public partial class phemex : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "public/products", 5 },
+                        { "public/products-plus", 5 },
                         { "md/v2/orderbook", 5 },
                         { "md/v2/trade", 5 },
                         { "md/v2/ticker/24hr", 5 },

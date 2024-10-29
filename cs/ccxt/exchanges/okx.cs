@@ -372,6 +372,7 @@ public partial class okx : Exchange
                         { "finance/staking-defi/orders-history", divide(10, 3) },
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
+                        { "finance/staking-defi/eth/product-info", 3 },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
