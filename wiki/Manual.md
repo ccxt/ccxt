@@ -4876,6 +4876,7 @@ To cancel an existing order use
 - `cancelAllOrders ()` for all open orders
 - `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
+Note: typically batch order-canceling methods return an array of orders, where orders statuses would be noted e.g. `status: success/rejected/etc`. However, there might also be cases, for example, if only one order was not cancelled and exchange responded with `{success:false, reason:"order id 123 does not exist"}`. In such cases, CCXT might also throw an exception instead of returning an array.
 
 #### cancelOrder
 
@@ -4907,7 +4908,7 @@ Parameters
 
 Returns
 
-- An array of [order structures](#order-structure) (Note, that if any specific exchange returns an exception on partial success, for example if only one order was not cancelled, but it responds with `{success:false, reason:"order id does not exist"}` then CCXT might also throw an exception instead of returning an array)
+- An array of [order structures](#order-structure)
 
 #### cancelAllOrders
 
