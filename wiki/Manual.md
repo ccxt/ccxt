@@ -4902,7 +4902,7 @@ Parameters
 
 Returns
 
-- An array of [order structures](#order-structure)
+- An array of [order structures](#order-structure) (Note, that if any specific exchange returns an exception on partial success, for example if only one order was not cancelled, but it responds with `{success:false, reason:"order id does not exist"}` then CCXT might also throw an exception instead of returning an array)
 
 ```javascript
 async cancelAllOrders (symbol = undefined, params = {})
