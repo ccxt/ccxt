@@ -202,7 +202,7 @@ if [ ${#REST_EXCHANGES[@]} -eq 0 ] && [ ${#WS_EXCHANGES[@]} -eq 0 ]; then
 fi
 
 # build dotnet project
-if [ -z "$DISABLE_EXTRA_BUILD_LOGS" ]; then
+if [ -z "${DISABLE_EXTRA_BUILD_LOGS+x}" ]; then
   npm run buildCS
 else
   npm run buildCS -nowarn:CS8765,CS3021,CS4014,CS8629,CS4014,CS0162,CS0472
