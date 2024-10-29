@@ -1143,7 +1143,8 @@
                 "httpResponse": {
                     "code": "200000",
                     "data":
-                    [{
+                    [
+                        {
                             "currency": "CSP",
                             "name": "CSP",
                             "fullName": "Caspian",
@@ -1152,110 +1153,119 @@
                             "contractAddress": null,
                             "isMarginEnabled": false,
                             "isDebitEnabled": false,
-                            "chains":
-                            [{
-                                    "chainName": "ERC20",
-                                    "withdrawalMinSize": "2999",
-                                    "depositMinSize": null,
-                                    "withdrawFeeRate": "0",
-                                    "withdrawalMinFee": "2999",
-                                    "isWithdrawEnabled": false,
-                                    "isDepositEnabled": false,
-                                    "confirms": 64,
-                                    "preConfirms": 12,
-                                    "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-                                    "withdrawPrecision": 8,
-                                    "maxWithdraw": null,
-                                    "maxDeposit": null,
-                                    "needTag": false,
-                                    "chainId": "eth"
-                                }
+                            "chains": [
+                              {
+                                "chainName": "ERC20",
+                                "withdrawalMinSize": "2999",
+                                "depositMinSize": null,
+                                "withdrawFeeRate": "0",
+                                "withdrawalMinFee": "2999",
+                                "isWithdrawEnabled": false,
+                                "isDepositEnabled": false,
+                                "confirms": 64,
+                                "preConfirms": 12,
+                                "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                                "withdrawPrecision": 8,
+                                "maxWithdraw": null,
+                                "maxDeposit": null,
+                                "needTag": false,
+                                "chainId": "eth"
+                              }
                             ]
                         }
                     ]
                 },
                 "parsedResponse": {
                     "CSP": {
-                        "id": "CSP",
-                        "name": "Caspian",
-                        "code": "CSP",
-                        "type": "crypto",
-                        "precision": 1e-8,
-                        "info": {
-                            "currency": "CSP",
-                            "name": "CSP",
-                            "fullName": "Caspian",
-                            "precision": 8,
-                            "confirms": null,
-                            "contractAddress": null,
-                            "isMarginEnabled": false,
-                            "isDebitEnabled": false,
-                            "chains": [{
-                                    "chainName": "ERC20",
-                                    "withdrawalMinSize": "2999",
-                                    "depositMinSize": null,
-                                    "withdrawFeeRate": "0",
-                                    "withdrawalMinFee": "2999",
-                                    "isWithdrawEnabled": false,
-                                    "isDepositEnabled": false,
-                                    "confirms": 64,
-                                    "preConfirms": 12,
-                                    "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-                                    "withdrawPrecision": 8,
-                                    "maxWithdraw": null,
-                                    "maxDeposit": null,
-                                    "needTag": false,
-                                    "chainId": "eth"
-                                }
-                            ]
-                        },
-                        "active": false,
-                        "deposit": false,
-                        "withdraw": false,
-                        "fee": 2999,
-                        "limits": {
-                            "deposit":{"min":null,"max":null},
-                            "withdraw":{"min":2999,"max":null}
-                        },
-                        "networks": {
-                            "ERC20": {
-                                "info": {
-                                    "chainName": "ERC20",
-                                    "withdrawalMinSize": "2999",
-                                    "depositMinSize": null,
-                                    "withdrawFeeRate": "0",
-                                    "withdrawalMinFee": "2999",
-                                    "isWithdrawEnabled": false,
-                                    "isDepositEnabled": false,
-                                    "confirms": 64,
-                                    "preConfirms": 12,
-                                    "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
-                                    "withdrawPrecision": 8,
-                                    "maxWithdraw": null,
-                                    "maxDeposit": null,
-                                    "needTag": false,
-                                    "chainId": "eth"
-                                },
-                                "id": "eth",
-                                "name": "ERC20",
-                                "code": "ERC20",
-                                "active": false,
-                                "fee": 2999,
-                                "deposit": false,
-                                "withdraw": false,
-                                "precision": 1e-8,
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 2999,
-                                        "max": null
-                                    },
-                                    "deposit": {
-                                        "min": null,
-                                        "max": null
-                                    }
-                                }
+                      "info": {
+                        "currency": "CSP",
+                        "name": "CSP",
+                        "fullName": "Caspian",
+                        "precision": 8,
+                        "confirms": null,
+                        "contractAddress": null,
+                        "isMarginEnabled": false,
+                        "isDebitEnabled": false,
+                        "chains": [
+                          {
+                            "chainName": "ERC20",
+                            "withdrawalMinSize": "2999",
+                            "depositMinSize": null,
+                            "withdrawFeeRate": "0",
+                            "withdrawalMinFee": "2999",
+                            "isWithdrawEnabled": false,
+                            "isDepositEnabled": false,
+                            "confirms": 64,
+                            "preConfirms": 12,
+                            "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                            "withdrawPrecision": 8,
+                            "maxWithdraw": null,
+                            "maxDeposit": null,
+                            "needTag": false,
+                            "chainId": "eth"
+                          }
+                        ]
+                      },
+                      "id": "CSP",
+                      "numericId": null,
+                      "code": "CSP",
+                      "precision": 1e-8,
+                      "type": "crypto",
+                      "name": "Caspian",
+                      "active": false,
+                      "deposit": false,
+                      "withdraw": false,
+                      "fee": 2999,
+                      "fees": {},
+                      "networks": {
+                        "ERC20": {
+                          "info": {
+                            "chainName": "ERC20",
+                            "withdrawalMinSize": "2999",
+                            "depositMinSize": null,
+                            "withdrawFeeRate": "0",
+                            "withdrawalMinFee": "2999",
+                            "isWithdrawEnabled": false,
+                            "isDepositEnabled": false,
+                            "confirms": 64,
+                            "preConfirms": 12,
+                            "contractAddress": "0xa6446d655a0c34bc4f05042ee88170d056cbaf45",
+                            "withdrawPrecision": 8,
+                            "maxWithdraw": null,
+                            "maxDeposit": null,
+                            "needTag": false,
+                            "chainId": "eth"
+                          },
+                          "id": "eth",
+                          "name": "ERC20",
+                          "code": "ERC20",
+                          "active": false,
+                          "fee": 2999,
+                          "deposit": false,
+                          "withdraw": false,
+                          "precision": 1e-8,
+                          "limits": {
+                            "withdraw": {
+                              "min": 2999,
+                              "max": null
+                            },
+                            "deposit": {
+                              "min": null,
+                              "max": null
                             }
+                          }
                         }
+                      },
+                      "limits": {
+                        "deposit": {
+                          "min": null,
+                          "max": null
+                        },
+                        "withdraw": {
+                          "min": 2999,
+                          "max": null
+                        }
+                      }
                     }
                 }
             }
