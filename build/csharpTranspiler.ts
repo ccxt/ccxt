@@ -23,8 +23,7 @@ const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
-const isTravisPullRequest = process.env.IS_TRAVIS_PR_BUILD;
-const logsEnabled = !isTravisPullRequest;
+const logsEnabled = !process.env.DISABLE_EXTRA_BUILD_LOGS;
 
 function overwriteFileAndFolder (path, content) {
     if (!(fs.existsSync(path))) {
