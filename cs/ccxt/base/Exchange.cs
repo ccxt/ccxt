@@ -654,8 +654,6 @@ public partial class Exchange
 
     public async Task Close()
     {
-        // This is the language-specific method to cleanup WS & REST resources
-        // [WS]
         var tasks = new List<Task>();
         if (this.clients.Keys.Count > 0)
         {
@@ -668,13 +666,25 @@ public partial class Exchange
             }
             await Task.WhenAll(tasks);
         }
-        // [REST]
-        // todo
     }
 
     public async Task close()
     {
         await this.Close();
+    }
+
+    public async Task Clean()
+    {
+        // This is the language-specific method to cleanup WS & REST resources
+        // [WS]
+        await this.Close();
+        // [REST]
+        // todo
+    }
+
+    public async Task clean()
+    {
+        await this.Clean();
     }
 
     public virtual object parseNumber(object value, object defaultValue = null)

@@ -87,14 +87,16 @@ class Exchange extends \ccxt\Exchange {
     }
 
 
-    public function close() {
+    public function clean() {
         // This is the language-specific method to cleanup WS & REST resources
-        parent::close();
+        parent::clean();
         if ($this->browser) {
             unset($this->browser);
+            $this->browser = null;
         }
         if ($this->default_connector) {
             unset($this->default_connector);
+            $this->default_connector = null;
         }
     }
 

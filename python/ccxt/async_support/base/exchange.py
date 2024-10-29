@@ -119,7 +119,6 @@ class Exchange(BaseExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
-        # This is the language-specific method to cleanup WS & REST resources
         # [WS]
         await self.ws_close()
         if self.session is not None:
@@ -144,6 +143,11 @@ class Exchange(BaseExchange):
             for url in self.socks_proxy_sessions:
                 await self.socks_proxy_sessions[url].close()
             self.socks_proxy_sessions = None
+
+    async def clean(self):
+        # This is the language-specific method to cleanup WS & REST resources
+        await self.close()
+        # todo: add more cleanup code here in future
 
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""

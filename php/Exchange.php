@@ -1701,7 +1701,7 @@ class Exchange {
     }
 
     public function __destruct() {
-        $this->close();
+        $this->clean();
     }
 
     public function has($feature = null) {
@@ -2211,7 +2211,7 @@ class Exchange {
         return (int)$number;
     }
 
-    public function close() {
+    public function clean() {
         // This is the language-specific method to cleanup WS & REST resources
         if ($this->curl !== null) {
             curl_close($this->curl);
