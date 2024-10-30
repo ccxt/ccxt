@@ -1,0 +1,22 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "USDC": {
+        "id": "USDC",
+        "code": "USDC",
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

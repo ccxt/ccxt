@@ -1,0 +1,155 @@
+{
+    "exchange": "defx",
+    "skipKeys": [
+        "startTime",
+        "endTime"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.defx.com/v1/open/healthcheck/ping",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.defx.com/v1/open/healthcheck/ping",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "disabled": true,
+                "url": "https://api.defx.com/v1/open/c/markets/metadata?type=perps",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/ticker/24hr",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.defx.com/v1/open/ticker/24HrAgg",
+                "input": [
+                    [
+                        "SOL/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/ohlc?endTime=1730271905312&interval=1m&limit=100&startTime=1730265905312",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/trades?limit=50",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/depth/10/1",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/prices",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://api.defx.com/v1/open/symbols/SOL_USDC/prices",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.defx.com/v1/auth/api/wallet/balance",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://api.defx.com/v1/auth/api/order",
+                "input": [
+                    "SOL/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.5,
+                    200,
+                    {
+                        "timeInForce": "GTC"
+                    }
+                ],
+                "output": "{\"price\":\"200\",\"quantity\":\"0.5\",\"side\":\"SELL\",\"symbol\":\"SOL_USDC\",\"timeInForce\":\"GTC\",\"type\":\"LIMIT\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.defx.com/v1/auth/api/order/752101209672255152?idType=orderId",
+                "input": [
+                    "752101209672255152",
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.defx.com/v1/auth/api/orders/allOpen",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "output": "{\"symbols\":[\"SOL_USDC\"]}"
+            }
+        ]
+    }
+}
