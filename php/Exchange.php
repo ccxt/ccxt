@@ -122,6 +122,7 @@ class Exchange {
     public $hostname = null; // in case of inaccessibility of the "main" domain
 
     public $options = array(); // exchange-specific options if any
+    public $isSandboxModeEnabled = false;
 
     public $skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
