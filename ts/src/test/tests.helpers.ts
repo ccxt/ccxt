@@ -64,7 +64,7 @@ const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
 const PROXY_TEST_FILE_NAME = "proxies";
 
-function dump (...args) {
+function dump (...args: any[]) {
     console.log (...args);
 }
 
