@@ -209,6 +209,7 @@ class kucoin extends Exchange {
                         'market/orderbook/level{level}' => 3, // 3SW
                         'market/orderbook/level2' => 3, // 3SW
                         'market/orderbook/level3' => 3, // 3SW
+                        'hf/accounts/opened' => 2, //
                         'hf/orders/active' => 2, // 2SW
                         'hf/orders/active/symbols' => 2, // 2SW
                         'hf/margin/order/active/symbols' => 2, // 2SW
@@ -638,7 +639,7 @@ class kucoin extends Exchange {
                 'FUD' => 'FTX Users\' Debt',
             ),
             'options' => array(
-                'hf' => false,
+                'hf' => null, // would be auto set to `true/false` after first load
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
@@ -1079,7 +1080,8 @@ class kucoin extends Exchange {
             //                 "enableTrading" => true
             //             ),
             //
-            $requestMarginables = $this->check_required_credentials(false);
+            $credentialsSet = $this->check_required_credentials(false);
+            $requestMarginables = $credentialsSet && $this->safe_bool($params, 'marginables', true);
             if ($requestMarginables) {
                 $promises[] = $this->privateGetMarginSymbols ($params); // cross margin symbols
                 //
@@ -1143,6 +1145,10 @@ class kucoin extends Exchange {
                 //                     "makerCoefficient" => "1" // Maker Fee Coefficient
                 //                 }
                 //
+            }
+            if ($credentialsSet) {
+                // load migration status for account
+                $promises[] = $this->load_migration_status();
             }
             $responses = Async\await(Promise\all($promises));
             $symbolsData = $this->safe_list($responses[0], 'data');
@@ -1234,17 +1240,19 @@ class kucoin extends Exchange {
 
     public function load_migration_status(bool $force = false) {
         return Async\async(function () use ($force) {
-            if (!(is_array($this->options) && array_key_exists('hfMigrated', $this->options)) || ($this->options['hfMigrated'] === null) || $force) {
-                $result = Async\await($this->privateGetMigrateUserAccountStatus ());
-                $data = $this->safe_dict($result, 'data', array());
-                $status = $this->safe_integer($data, 'status');
-                $this->options['hfMigrated'] = ($status === 2);
+            /**
+             * loads the migration status for the account (hf or not)
+             * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+             */
+            if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
+                $result = Async\await($this->privateGetHfAccountsOpened ());
+                $this->options['hf'] = $this->safe_bool($result, 'data');
             }
         }) ();
     }
 
     public function handle_hf_and_params($params = array ()) {
-        $migrated = $this->safe_bool_2($this->options, 'hfMigrated', 'hf', false);
+        $migrated = $this->safe_bool($this->options, 'hf', false);
         $loadedHf = null;
         if ($migrated !== null) {
             if ($migrated) {
@@ -4421,7 +4429,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the interest owed by the user for borrowing $currency for margin trading
@@ -4522,7 +4530,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         // Cross
         //
@@ -4586,15 +4594,15 @@ class kucoin extends Exchange {
             $currencyId = $this->safe_string($info, 'currency');
         }
         return array(
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($currencyId),
             'interest' => $interest,
             'interestRate' => $this->safe_number($info, 'dailyIntRate'),
             'amountBorrowed' => $amountBorrowed,
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,  // create time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

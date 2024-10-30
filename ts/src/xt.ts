@@ -1749,6 +1749,10 @@ export default class xt extends Exchange {
         market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
+        let percentage = this.safeString2 (ticker, 'cr', 'r');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1765,7 +1769,7 @@ export default class xt extends Exchange {
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
             'change': this.safeNumber (ticker, 'cv'),
-            'percentage': this.safeNumber2 (ticker, 'cr', 'r'),
+            'percentage': this.parseNumber (percentage),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber2 (ticker, 'a', 'v'),

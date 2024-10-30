@@ -2139,7 +2139,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
             'collateral': self.safe_number(entry, 'marginUsed'),
-            'initialMargin': initialMargin,
+            'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,

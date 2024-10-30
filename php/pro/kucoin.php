@@ -1224,7 +1224,8 @@ class kucoin extends \ccxt\async\kucoin {
         }
         $data = $this->safe_dict($message, 'data');
         $parsed = $this->parse_ws_trade($data);
-        $this->myTrades.append ($parsed);
+        $myTrades = $this->myTrades;
+        $myTrades->append ($parsed);
         $messageHash = 'myTrades';
         $client->resolve ($this->myTrades, $messageHash);
         $symbolSpecificMessageHash = $messageHash . ':' . $parsed['symbol'];

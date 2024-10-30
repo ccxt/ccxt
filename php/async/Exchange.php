@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.23';
+$version = '4.4.25';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.23';
+    const VERSION = '4.4.25';
 
     public $browser;
     public $marketsLoading = null;
@@ -1055,6 +1055,8 @@ class Exchange extends \ccxt\Exchange {
             } else {
                 throw new NotSupported($this->id . ' does not have a sandbox URL');
             }
+            // set flag
+            $this->isSandboxModeEnabled = true;
         } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
             if (gettype($this->urls['api']) === 'string') {
                 $this->urls['api'] = $this->urls['apiBackup'];
@@ -1063,6 +1065,8 @@ class Exchange extends \ccxt\Exchange {
             }
             $newUrls = $this->omit($this->urls, 'apiBackup');
             $this->urls = $newUrls;
+            // set flag
+            $this->isSandboxModeEnabled = false;
         }
     }
 
@@ -1791,9 +1795,10 @@ class Exchange extends \ccxt\Exchange {
         $isTriggerOrSLTpOrder = (($this->safe_string($order, 'triggerPrice') !== null || ($this->safe_string($order, 'stopLossPrice') !== null)) || ($this->safe_string($order, 'takeProfitPrice') !== null));
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
-            $oldNumber = $this->number;
+            // $oldNumber = $this->number;
             // we parse $trades here!
-            $this->number = 'strval';
+            // $i don't think this is needed anymore
+            // $this->number = 'strval';
             $firstTrade = $this->safe_value($rawTrades, 0);
             // parse $trades if they haven't already been parsed
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id', $firstTrade)));
@@ -1802,7 +1807,7 @@ class Exchange extends \ccxt\Exchange {
             } else {
                 $trades = $rawTrades;
             }
-            $this->number = $oldNumber;
+            // $this->number = $oldNumber; why parse $trades if you read the value using `safeString` ?
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
             if ($isArray) {
@@ -2398,15 +2403,15 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function fetch_borrow_rate(string $code, $amount, $params = array ()) {
+    public function fetch_borrow_rate(string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' repayCrossMargin is not support yet');
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' repayIsolatedMargin is not support yet');
     }
 
@@ -2418,11 +2423,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' borrowIsolatedMargin is not support yet');
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 

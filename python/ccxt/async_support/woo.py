@@ -2332,7 +2332,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    async def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://docs.woo.org/#repay-interest

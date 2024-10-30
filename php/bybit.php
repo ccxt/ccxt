@@ -998,7 +998,6 @@ class bybit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
-                'sandboxMode' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'createOrder' => array(
@@ -1006,6 +1005,7 @@ class bybit extends Exchange {
                 ),
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
+                'unifiedMarginStatus' => null,
                 'createMarketBuyOrderRequiresPrice' => true, // only true for classic accounts
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
@@ -1084,22 +1084,13 @@ class bybit extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode(bool $enable) {
-        /**
-         * enables or disables sandbox mode
-         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
-         */
-        parent::set_sandbox_mode($enable);
-        $this->options['sandboxMode'] = $enable;
-    }
-
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
-        if ($this->options['sandboxMode']) {
+        if ($this->isSandboxModeEnabled) {
             throw new NotSupported($this->id . ' demo trading does not support in sandbox environment');
         }
         // $enable demo trading in bybit, see => https://bybit-exchange.github.io/docs/v5/demo
@@ -1133,6 +1124,8 @@ class bybit extends Exchange {
 
     public function is_unified_enabled($params = array ()) {
         /**
+         * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+         * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1146,9 +1139,13 @@ class bybit extends Exchange {
                 // so we're assuming UTA is enabled
                 $this->options['enableUnifiedMargin'] = false;
                 $this->options['enableUnifiedAccount'] = true;
+                $this->options['unifiedMarginStatus'] = 3;
                 return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
             }
-            $response = $this->privateGetV5UserQueryApi ($params);
+            $rawPromises = array( $this->privateGetV5UserQueryApi ($params), $this->privateGetV5AccountInfo ($params) );
+            $promises = $rawPromises;
+            $response = $promises[0];
+            $accountInfo = $promises[1];
             //
             //     {
             //         "retCode" => 0,
@@ -1188,15 +1185,36 @@ class bybit extends Exchange {
             //         "retExtInfo" => array(),
             //         "time" => 1676891757649
             //     }
+            // account info
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "marginMode" => "REGULAR_MARGIN",
+            //             "updatedTime" => "1697078946000",
+            //             "unifiedMarginStatus" => 4,
+            //             "dcpStatus" => "OFF",
+            //             "timeWindow" => 10,
+            //             "smpGroup" => 0,
+            //             "isMasterTrader" => false,
+            //             "spotHedgingStatus" => "OFF"
+            //         }
+            //     }
             //
             $result = $this->safe_dict($response, 'result', array());
+            $accountResult = $this->safe_dict($accountInfo, 'result', array());
             $this->options['enableUnifiedMargin'] = $this->safe_integer($result, 'unified') === 1;
             $this->options['enableUnifiedAccount'] = $this->safe_integer($result, 'uta') === 1;
+            $this->options['unifiedMarginStatus'] = $this->safe_integer($accountResult, 'unifiedMarginStatus', 3); // default to uta.1 if not found
         }
         return [ $this->options['enableUnifiedMargin'], $this->options['enableUnifiedAccount'] ];
     }
 
     public function upgrade_unified_trade_account($params = array ()) {
+        /**
+         * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+         * upgrades the account to unified trade account *warning* this is irreversible
+         */
         return $this->privatePostV5AccountUpgradeToUta ($params);
     }
 
@@ -3127,10 +3145,16 @@ class bybit extends Exchange {
         $isInverse = ($type === 'inverse');
         $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
         if ($isUnifiedAccount) {
-            if ($isInverse) {
-                $type = 'contract';
+            $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 3);
+            if ($unifiedMarginStatus < 5) {
+                // it's not uta.20 where inverse are unified
+                if ($isInverse) {
+                    $type = 'contract';
+                } else {
+                    $type = 'unified';
+                }
             } else {
-                $type = 'unified';
+                $type = 'unified'; // uta.20 where inverse are unified
             }
         } else {
             if ($isLinear || $isInverse) {
@@ -7209,7 +7233,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
@@ -7304,7 +7328,7 @@ class bybit extends Exchange {
         return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -7316,15 +7340,15 @@ class bybit extends Exchange {
         //     ),
         //
         return array(
+            'info' => $info,
             'symbol' => null,
-            'marginMode' => 'cross',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'tokenId')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => null,
             'amountBorrowed' => $this->safe_number($info, 'loan'),
+            'marginMode' => 'cross',
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 

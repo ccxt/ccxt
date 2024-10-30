@@ -4177,7 +4177,7 @@ class bitmart extends Exchange {
         return $this->parse_transfers($records, $currency, $since, $limit);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
@@ -4230,7 +4230,7 @@ class bitmart extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
@@ -4247,15 +4247,15 @@ class bitmart extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($info, 'create_time');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => 'isolated',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest_amount'),
             'interestRate' => $this->safe_number($info, 'hourly_interest'),
             'amountBorrowed' => $this->safe_number($info, 'borrow_amount'),
+            'marginMode' => 'isolated',
             'timestamp' => $timestamp,  // borrow creation time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

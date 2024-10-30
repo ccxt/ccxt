@@ -9,7 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -223,6 +223,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'market/orderbook/level{level}': 3,  # 3SW
                         'market/orderbook/level2': 3,  # 3SW
                         'market/orderbook/level3': 3,  # 3SW
+                        'hf/accounts/opened': 2,  #
                         'hf/orders/active': 2,  # 2SW
                         'hf/orders/active/symbols': 2,  # 2SW
                         'hf/margin/order/active/symbols': 2,  # 2SW
@@ -652,7 +653,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'FUD': 'FTX Users\' Debt',
             },
             'options': {
-                'hf': False,
+                'hf': None,  # would be auto set to `true/false` after first load
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1084,7 +1085,8 @@ class kucoin(Exchange, ImplicitAPI):
         #                 "enableTrading": True
         #             },
         #
-        requestMarginables = self.check_required_credentials(False)
+        credentialsSet = self.check_required_credentials(False)
+        requestMarginables = credentialsSet and self.safe_bool(params, 'marginables', True)
         if requestMarginables:
             promises.append(self.privateGetMarginSymbols(params))  # cross margin symbols
             #
@@ -1147,6 +1149,9 @@ class kucoin(Exchange, ImplicitAPI):
             #                     "makerCoefficient": "1"  # Maker Fee Coefficient
             #                 }
             #
+        if credentialsSet:
+            # load migration status for account
+            promises.append(self.load_migration_status())
         responses = await asyncio.gather(*promises)
         symbolsData = self.safe_list(responses[0], 'data')
         crossData = self.safe_dict(responses[1], 'data', {}) if requestMarginables else {}
@@ -1233,14 +1238,16 @@ class kucoin(Exchange, ImplicitAPI):
         return result
 
     async def load_migration_status(self, force: bool = False):
-        if not ('hfMigrated' in self.options) or (self.options['hfMigrated'] is None) or force:
-            result: dict = await self.privateGetMigrateUserAccountStatus()
-            data: dict = self.safe_dict(result, 'data', {})
-            status: Int = self.safe_integer(data, 'status')
-            self.options['hfMigrated'] = (status == 2)
+        """
+        loads the migration status for the account(hf or not)
+        :see: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+        """
+        if not ('hf' in self.options) or (self.options['hf'] is None) or force:
+            result: dict = await self.privateGetHfAccountsOpened()
+            self.options['hf'] = self.safe_bool(result, 'data')
 
     def handle_hf_and_params(self, params={}):
-        migrated: Bool = self.safe_bool_2(self.options, 'hfMigrated', 'hf', False)
+        migrated: Bool = self.safe_bool(self.options, 'hf', False)
         loadedHf: Bool = None
         if migrated is not None:
             if migrated:
@@ -4147,7 +4154,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://docs.kucoin.com/#get-repay-record
@@ -4242,7 +4249,7 @@ class kucoin(Exchange, ImplicitAPI):
         assets = self.safe_list(data, 'assets', []) if (marginMode == 'isolated') else self.safe_list(data, 'accounts', [])
         return self.parse_borrow_interests(assets, None)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         # Cross
         #
@@ -4305,15 +4312,15 @@ class kucoin(Exchange, ImplicitAPI):
             interest = self.safe_number(info, 'accruedInterest')
             currencyId = self.safe_string(info, 'currency')
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(currencyId),
             'interest': interest,
             'interestRate': self.safe_number(info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
+            'marginMode': marginMode,
             'timestamp': timestamp,  # create time
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):

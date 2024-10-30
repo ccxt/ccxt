@@ -443,9 +443,42 @@ public partial class coinex : Exchange
                     { "FUTURES", "swap" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
                     { "BEP20", "BSC" },
-                    { "TRX", "TRC20" },
-                    { "ETH", "ERC20" },
+                    { "TRC20", "TRC20" },
+                    { "ERC20", "ERC20" },
+                    { "BRC20", "BRC20" },
+                    { "SOL", "SOL" },
+                    { "TON", "SOL" },
+                    { "BSV", "BSV" },
+                    { "AVAXC", "AVA_C" },
+                    { "AVAXX", "AVA" },
+                    { "SUI", "SUI" },
+                    { "ACA", "ACA" },
+                    { "CHZ", "CHILIZ" },
+                    { "ADA", "ADA" },
+                    { "ARB", "ARBITRUM" },
+                    { "ARBNOVA", "ARBITRUM_NOVA" },
+                    { "OP", "OPTIMISM" },
+                    { "APT", "APTOS" },
+                    { "ATOM", "ATOM" },
+                    { "FTM", "FTM" },
+                    { "BCH", "BCH" },
+                    { "ASTR", "ASTR" },
+                    { "LTC", "LTC" },
+                    { "MATIC", "MATIC" },
+                    { "CRONOS", "CRONOS" },
+                    { "DASH", "DASH" },
+                    { "DOT", "DOT" },
+                    { "ETC", "ETC" },
+                    { "ETHW", "ETHPOW" },
+                    { "FIL", "FIL" },
+                    { "ZIL", "ZIL" },
+                    { "DOGE", "DOGE" },
+                    { "TIA", "CELESTIA" },
+                    { "SEI", "SEI" },
+                    { "XRP", "XRP" },
+                    { "XMR", "XMR" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -2838,26 +2871,18 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString2(parameters, "network", "chain");
-        parameters = this.omit(parameters, "network");
-        object networksKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object numOfNetworks = getArrayLength(networksKeys);
-        if (isTrue(isTrue(!isEqual(networks, null)) && isTrue(isGreaterThan(numOfNetworks, 1))))
-        {
-            if (isTrue(isEqual(network, null)))
-            {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() "), code), " requires a network parameter")) ;
-            }
-            if (!isTrue((inOp(networks, network))))
-            {
-                throw new ExchangeError ((string)add(add(add(add(this.id, " fetchDepositAddress() "), network), " network not supported for "), code)) ;
-            }
-        }
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
-            { "chain", network },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
+        }
+        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
         object response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -2870,14 +2895,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object depositAddress = this.parseDepositAddress(data, currency);
-        object options = this.safeDict(this.options, "fetchDepositAddress", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(options, "fillResponseFromRequest", true);
-        if (isTrue(fillResponseFromRequest))
-        {
-            ((IDictionary<string,object>)depositAddress)["network"] = ((string)this.networkIdToCode(network, currency)).ToUpper();
-        }
-        return depositAddress;
+        return this.parseDepositAddress(data, currency);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -3811,8 +3829,6 @@ public partial class coinex : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networkCode = this.safeStringUpper2(parameters, "network", "chain");
-        parameters = this.omit(parameters, "network");
         if (isTrue(tag))
         {
             address = add(add(address, ":"), tag);
@@ -3822,6 +3838,10 @@ public partial class coinex : Exchange
             { "to_address", address },
             { "amount", this.numberToString(amount) },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
             ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
@@ -3862,6 +3882,7 @@ public partial class coinex : Exchange
         object statuses = new Dictionary<string, object>() {
             { "audit", "pending" },
             { "pass", "pending" },
+            { "audit_required", "pending" },
             { "processing", "pending" },
             { "confirming", "pending" },
             { "not_pass", "failed" },
@@ -4513,17 +4534,15 @@ public partial class coinex : Exchange
         market = this.safeMarket(marketId, market, null, "spot");
         object timestamp = this.safeInteger(info, "expired_at");
         return new Dictionary<string, object>() {
-            { "account", null },
+            { "info", info },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", "isolated" },
-            { "marginType", null },
             { "currency", this.safeCurrencyCode(this.safeString(info, "ccy")) },
             { "interest", this.safeNumber(info, "to_repaied_amount") },
             { "interestRate", this.safeNumber(info, "daily_interest_rate") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

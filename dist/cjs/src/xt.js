@@ -1744,6 +1744,10 @@ class xt extends xt$1 {
         market = this.safeMarket(marketId, market, '_', marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(ticker, 't');
+        let percentage = this.safeString2(ticker, 'cr', 'r');
+        if (percentage !== undefined) {
+            percentage = Precise["default"].stringMul(percentage, '100');
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1760,7 +1764,7 @@ class xt extends xt$1 {
             'last': this.safeString(ticker, 'c'),
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'cv'),
-            'percentage': this.safeNumber2(ticker, 'cr', 'r'),
+            'percentage': this.parseNumber(percentage),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),

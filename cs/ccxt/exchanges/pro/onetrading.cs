@@ -1052,7 +1052,8 @@ public partial class onetrading : ccxt.onetrading
         {
             object parsed = this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
-            callDynamically(this.myTrades, "append", new object[] {parsed});
+            object myTrades = this.myTrades;
+            callDynamically(myTrades, "append", new object[] {parsed});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, add("myTrades:", symbol)});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, "myTrades"});
         }

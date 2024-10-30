@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2144,7 +2144,7 @@ class whitebit(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
@@ -2186,7 +2186,7 @@ class whitebit(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "positionId": 191823,
@@ -2210,15 +2210,15 @@ class whitebit(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(info, 'modifyDate')
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': self.safe_number(info, 'unrealizedFunding'),
             'interestRate': 0.00098,  # https://whitebit.com/fees
             'amountBorrowed': self.safe_number(info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:

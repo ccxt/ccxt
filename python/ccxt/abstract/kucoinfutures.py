@@ -49,6 +49,7 @@ class ImplicitAPI:
     private_get_market_orderbook_level_level = privateGetMarketOrderbookLevelLevel = Entry('market/orderbook/level{level}', 'private', 'GET', {'cost': 3})
     private_get_market_orderbook_level2 = privateGetMarketOrderbookLevel2 = Entry('market/orderbook/level2', 'private', 'GET', {'cost': 3})
     private_get_market_orderbook_level3 = privateGetMarketOrderbookLevel3 = Entry('market/orderbook/level3', 'private', 'GET', {'cost': 3})
+    private_get_hf_accounts_opened = privateGetHfAccountsOpened = Entry('hf/accounts/opened', 'private', 'GET', {'cost': 2})
     private_get_hf_orders_active = privateGetHfOrdersActive = Entry('hf/orders/active', 'private', 'GET', {'cost': 2})
     private_get_hf_orders_active_symbols = privateGetHfOrdersActiveSymbols = Entry('hf/orders/active/symbols', 'private', 'GET', {'cost': 2})
     private_get_hf_margin_order_active_symbols = privateGetHfMarginOrderActiveSymbols = Entry('hf/margin/order/active/symbols', 'private', 'GET', {'cost': 2})

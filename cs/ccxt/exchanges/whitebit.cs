@@ -2448,15 +2448,15 @@ public partial class whitebit : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         object timestamp = this.safeTimestamp(info, "modifyDate");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", "cross" },
             { "currency", "USDT" },
             { "interest", this.safeNumber(info, "unrealizedFunding") },
             { "interestRate", 0.00098 },
             { "amountBorrowed", this.safeNumber(info, "amount") },
+            { "marginMode", "cross" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

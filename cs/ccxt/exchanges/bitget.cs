@@ -9006,15 +9006,15 @@ public partial class bitget : Exchange
         object marginMode = ((bool) isTrue((!isEqual(marketId, null)))) ? "isolated" : "cross";
         object timestamp = this.safeInteger(info, "cTime");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", this.safeString(market, "symbol") },
-            { "marginMode", marginMode },
             { "currency", this.safeCurrencyCode(this.safeString(info, "interestCoin")) },
             { "interest", this.safeNumber(info, "interestAmount") },
             { "interestRate", this.safeNumber(info, "dailyInterestRate") },
             { "amountBorrowed", null },
+            { "marginMode", marginMode },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

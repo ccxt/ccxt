@@ -2207,15 +2207,6 @@
                 },
                 "parsedResponse": [
                     {
-                        "account": "cross",
-                        "symbol": null,
-                        "marginMode": "cross",
-                        "currency": "USDT",
-                        "interest": 1e-8,
-                        "interestRate": 0.00089489,
-                        "amountBorrowed": 0.00011146,
-                        "timestamp": 1707562800000,
-                        "datetime": "2024-02-10T11:00:00.000Z",
                         "info": {
                             "txId": "1656373250307228092",
                             "interestAccuredTime": "1707562800000",
@@ -2225,7 +2216,15 @@
                             "interest": "0.000000010",
                             "interestRate": "0.00089489",
                             "type": "PERIODIC"
-                        }
+                        },
+                        "symbol": null,
+                        "currency": "USDT",
+                        "interest": 1e-8,
+                        "interestRate": 0.00089489,
+                        "amountBorrowed": 0.00011146,
+                        "marginMode": "cross",
+                        "timestamp": 1707562800000,
+                        "datetime": "2024-02-10T11:00:00.000Z"
                     }
                 ]
             }

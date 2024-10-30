@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5175,16 +5175,16 @@ export default class htx extends Exchange {
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
+        if (triggerPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a stop order');
             }
         } else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             const stopOperator = this.safeString (params, 'operator', defaultOperator);
-            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
+            request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
             request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
@@ -5252,7 +5252,7 @@ export default class htx extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        params = this.omit (params, [ 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ]);
         return this.extend (request, params);
     }
 
@@ -5290,16 +5290,16 @@ export default class htx extends Exchange {
         } else if (timeInForce === 'IOC') {
             type = 'ioc';
         }
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callback_rate');
         const trailingTriggerPrice = this.safeNumber (params, 'trailingTriggerPrice', price);
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        if (isStop) {
+        if (isTrigger) {
             const triggerType = this.safeString2 (params, 'triggerType', 'trigger_type', 'le');
             request['trigger_type'] = triggerType;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -5348,7 +5348,7 @@ export default class htx extends Exchange {
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
         return this.extend (request, params);
     }
 
@@ -5372,7 +5372,7 @@ export default class htx extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.stopPrice] the price a trigger order is triggered at
+         * @param {float} [params.triggerPrice] the price a trigger order is triggered at
          * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
          * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
          * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
@@ -5388,12 +5388,12 @@ export default class htx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeNumber (params, 'trailingPercent');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
@@ -5410,7 +5410,7 @@ export default class htx extends Exchange {
                 [ marginMode, contractRequest ] = this.handleMarginModeAndParams ('createOrder', contractRequest);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (contractRequest);
@@ -5420,7 +5420,7 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (marginMode === 'cross') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (contractRequest);
@@ -5436,7 +5436,7 @@ export default class htx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
                 if (market['swap']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (contractRequest);
@@ -5446,7 +5446,7 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (market['future']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostApiV1ContractTpslOrder (contractRequest);
@@ -7024,7 +7024,7 @@ export default class htx extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name htx#fetchBorrowInterest
@@ -7091,7 +7091,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7139,17 +7139,16 @@ export default class htx extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (info, 'accrued-at');
         return {
-            'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
             'amountBorrowed': this.safeNumber (info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

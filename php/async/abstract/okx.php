@@ -568,6 +568,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_finance_staking_defi_eth_purchase_redeem_history($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function private_get_finance_staking_defi_eth_product_info($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function private_get_copytrading_current_subpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1554,6 +1557,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetFinanceStakingDefiEthPurchaseRedeemHistory($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetFinanceStakingDefiEthProductInfo($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
