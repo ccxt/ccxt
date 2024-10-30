@@ -3415,7 +3415,8 @@ export default class Exchange {
             if (contractSize !== undefined) {
                 const inverse = this.safeBool (market, 'inverse', false);
                 if (inverse) {
-                    multiplyPrice = Precise.stringDiv ('1', price);
+                    const precision = this.getPrecisionInteger (market);
+                    multiplyPrice = Precise.stringDiv ('1', price, precision);
                 }
                 multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
             }
@@ -3611,19 +3612,13 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                let precision = 18;
-                if (market !== undefined && this.isTickPrecision ()) {
-                    const marketPrecision = this.safeDict (market, 'precision');
-                    const precisionPrice = this.safeString (marketPrecision, 'price');
-                    if (precisionPrice !== undefined) {
-                        precision = this.precisionFromString (precisionPrice);
-                    }
-                }
+                const precision = this.getPrecisionInteger (market);
                 average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
-            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            const precision = this.getPrecisionInteger (market);
+            percentage = Precise.stringMul (Precise.stringDiv (change, open, precision), '100');
         }
         if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
             change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
@@ -3653,6 +3648,22 @@ export default class Exchange {
             'indexPrice': this.safeNumber (ticker, 'indexPrice'),
             'markPrice': this.safeNumber (ticker, 'markPrice'),
         });
+    }
+
+    getPrecisionInteger (market: Market = undefined) {
+        let precision = 18;
+        if (market !== undefined) {
+            const marketPrecision = this.safeDict (market, 'precision');
+            const precisionPrice = this.safeString (marketPrecision, 'price');
+            if (precisionPrice !== undefined) {
+                if (this.isTickPrecision ()) {
+                    precision = this.precisionFromString (precisionPrice);
+                } else {
+                    precision = parseInt (precisionPrice);
+                }
+            }
+        }
+        return precision;
     }
 
     async fetchBorrowRate (code: string, amount, params = {}): Promise<{}> {
