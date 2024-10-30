@@ -57,6 +57,7 @@ const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, index
  */
 class Exchange {
     constructor(userConfig = {}) {
+        this.isSandboxModeEnabled = false;
         this.throttleProp = undefined;
         this.sleep = sleep;
         this.api = undefined;
@@ -1978,6 +1979,8 @@ class Exchange {
             else {
                 throw new errors.NotSupported(this.id + ' does not have a sandbox URL');
             }
+            // set flag
+            this.isSandboxModeEnabled = true;
         }
         else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
@@ -1988,6 +1991,8 @@ class Exchange {
             }
             const newUrls = this.omit(this.urls, 'apiBackup');
             this.urls = newUrls;
+            // set flag
+            this.isSandboxModeEnabled = false;
         }
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

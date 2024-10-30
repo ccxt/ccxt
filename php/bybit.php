@@ -998,7 +998,6 @@ class bybit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
-                'sandboxMode' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'createOrder' => array(
@@ -1085,22 +1084,13 @@ class bybit extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode(bool $enable) {
-        /**
-         * enables or disables sandbox mode
-         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
-         */
-        parent::set_sandbox_mode($enable);
-        $this->options['sandboxMode'] = $enable;
-    }
-
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
-        if ($this->options['sandboxMode']) {
+        if ($this->isSandboxModeEnabled) {
             throw new NotSupported($this->id . ' demo trading does not support in sandbox environment');
         }
         // $enable demo trading in bybit, see => https://bybit-exchange.github.io/docs/v5/demo

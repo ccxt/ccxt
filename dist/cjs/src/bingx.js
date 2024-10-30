@@ -204,6 +204,7 @@ class bingx extends bingx$1 {
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -3344,7 +3345,7 @@ class bingx extends bingx$1 {
                 'cost': Precise["default"].stringAbs(feeCost),
             },
             'trades': undefined,
-            'reduceOnly': this.safeBool(order, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(order, 'reduceOnly', 'ro'),
         }, market);
     }
     parseOrderStatus(status) {

@@ -197,6 +197,7 @@ public partial class bingx : Exchange
                                 { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "positionMargin/history", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
@@ -3357,7 +3358,7 @@ public partial class bingx : Exchange
                 { "cost", Precise.stringAbs(feeCost) },
             } },
             { "trades", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "ro") },
         }, market);
     }
 

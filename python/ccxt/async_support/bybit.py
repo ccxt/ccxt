@@ -1019,7 +1019,6 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': False,
-                'sandboxMode': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
@@ -1105,21 +1104,13 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable: bool):
-        """
-        enables or disables sandbox mode
-        :param boolean [enable]: True if demo trading should be enabled, False otherwise
-        """
-        super(bybit, self).set_sandbox_mode(enable)
-        self.options['sandboxMode'] = enable
-
     def enable_demo_trading(self, enable: bool):
         """
         enables or disables demo trading mode
         :see: https://bybit-exchange.github.io/docs/v5/demo
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
-        if self.options['sandboxMode']:
+        if self.isSandboxModeEnabled:
             raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
         # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if enable:

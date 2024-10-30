@@ -220,6 +220,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -3144,7 +3145,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cost': Precise.string_abs(feeCost),
             },
             'trades': None,
-            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'ro'),
         }, market)
 
     def parse_order_status(self, status: Str):

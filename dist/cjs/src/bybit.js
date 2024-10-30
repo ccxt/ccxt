@@ -1002,7 +1002,6 @@ class bybit extends bybit$1 {
             'precisionMode': number.TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': false,
-                'sandboxMode': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
@@ -1088,16 +1087,6 @@ class bybit extends bybit$1 {
             },
         });
     }
-    setSandboxMode(enable) {
-        /**
-         * @method
-         * @name bybit#setSandboxMode
-         * @description enables or disables sandbox mode
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
-        super.setSandboxMode(enable);
-        this.options['sandboxMode'] = enable;
-    }
     enableDemoTrading(enable) {
         /**
          * @method
@@ -1106,7 +1095,7 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
          */
-        if (this.options['sandboxMode']) {
+        if (this.isSandboxModeEnabled) {
             throw new errors.NotSupported(this.id + ' demo trading does not support in sandbox environment');
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo

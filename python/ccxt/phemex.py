@@ -121,7 +121,7 @@ class phemex(Exchange, ImplicitAPI):
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
-                'doc': 'https://github.com/phemex/phemex-api-docs',
+                'doc': 'https://phemex-docs.github.io/#overview',
                 'fees': 'https://phemex.com/fees-conditions',
                 'referral': {
                     'url': 'https://phemex.com/register?referralCode=EDNVJ',
@@ -747,13 +747,14 @@ class phemex(Exchange, ImplicitAPI):
                     'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
                 },
             },
-            'created': None,
+            'created': self.safe_integer(market, 'listTime'),
             'info': market,
         })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for phemex
+        :see: https://phemex-docs.github.io/#query-product-information-3
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """

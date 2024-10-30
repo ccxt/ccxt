@@ -201,6 +201,7 @@ class bingx extends Exchange {
                                 'market/markPriceKlines' => 1,
                                 'trade/batchCancelReplace' => 5,
                                 'trade/fullOrder' => 2,
+                                'positionMargin/history' => 2,
                             ),
                             'post' => array(
                                 'trade/cancelReplace' => 2,
@@ -3282,7 +3283,7 @@ class bingx extends Exchange {
                 'cost' => Precise::string_abs($feeCost),
             ),
             'trades' => null,
-            'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
+            'reduceOnly' => $this->safe_bool_2($order, 'reduceOnly', 'ro'),
         ), $market);
     }
 

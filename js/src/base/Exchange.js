@@ -32,6 +32,7 @@ import * as Starknet from '../static_dependencies/starknet/index.js';
  */
 export default class Exchange {
     constructor(userConfig = {}) {
+        this.isSandboxModeEnabled = false;
         this.throttleProp = undefined;
         this.sleep = sleep;
         this.api = undefined;
@@ -1961,6 +1962,8 @@ export default class Exchange {
             else {
                 throw new NotSupported(this.id + ' does not have a sandbox URL');
             }
+            // set flag
+            this.isSandboxModeEnabled = true;
         }
         else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
@@ -1971,6 +1974,8 @@ export default class Exchange {
             }
             const newUrls = this.omit(this.urls, 'apiBackup');
             this.urls = newUrls;
+            // set flag
+            this.isSandboxModeEnabled = false;
         }
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

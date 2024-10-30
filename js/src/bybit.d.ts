@@ -6,7 +6,6 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  */
 export default class bybit extends Exchange {
     describe(): any;
-    setSandboxMode(enable: boolean): void;
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
     addPaginationCursorToResult(response: any): any;
