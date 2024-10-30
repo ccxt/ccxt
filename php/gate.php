@@ -6298,7 +6298,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records
@@ -6350,21 +6350,21 @@ class gate extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'currency_pair');
         $market = $this->safe_market($marketId, $market);
         $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
         $timestamp = $this->safe_integer($info, 'create_time');
         return array(
             'info' => $info,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'symbol' => $this->safe_string($market, 'symbol'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
-            'marginMode' => $marginMode,
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'actual_rate'),
             'amountBorrowed' => null,
+            'marginMode' => $marginMode,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

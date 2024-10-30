@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitmart.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class bitmart
  * @augments Exchange
@@ -97,18 +97,8 @@ export default class bitmart extends Exchange {
     parseTransferFromAccount(type: any): string;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        symbol: string;
-        marginMode: string;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: number;
-        timestamp: number;
-        datetime: string;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     fetchOpenInterest(symbol: string, params?: {}): Promise<import("./base/types.js").OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): import("./base/types.js").OpenInterest;
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

@@ -1098,7 +1098,7 @@ export default class Exchange {
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseDepositAddresses(addresses: any, codes?: Strings, indexed?: boolean, params?: {}): DepositAddress[];
-    parseBorrowInterests(response: any, market?: Market): any[];
+    parseBorrowInterests(response: any, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;
     parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any;
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;

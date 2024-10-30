@@ -6981,14 +6981,14 @@ public partial class gate : Exchange
         object timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
             { "symbol", this.safeString(market, "symbol") },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
-            { "marginMode", marginMode },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", this.safeNumber(info, "actual_rate") },
             { "amountBorrowed", null },
+            { "marginMode", marginMode },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 

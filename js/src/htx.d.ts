@@ -1,5 +1,5 @@
 import Exchange from './abstract/htx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class huobi
  * @augments Exchange
@@ -119,19 +119,8 @@ export default class htx extends Exchange {
     parseFundingInterval(interval: any): string;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        account: string;
-        symbol: string;
-        marginMode: string;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: number;
-        timestamp: number;
-        datetime: string;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

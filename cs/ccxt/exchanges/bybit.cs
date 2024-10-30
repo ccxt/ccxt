@@ -8039,15 +8039,15 @@ public partial class bybit : Exchange
         //     },
         //
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", null },
-            { "marginMode", "cross" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "tokenId")) },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", null },
             { "amountBorrowed", this.safeNumber(info, "loan") },
+            { "marginMode", "cross" },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 

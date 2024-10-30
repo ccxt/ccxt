@@ -7479,15 +7479,15 @@ export default class bybit extends Exchange {
         //     },
         //
         return {
+            'info': info,
             'symbol': undefined,
-            'marginMode': 'cross',
             'currency': this.safeCurrencyCode(this.safeString(info, 'tokenId')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': undefined,
             'amountBorrowed': this.safeNumber(info, 'loan'),
+            'marginMode': 'cross',
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
         };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
