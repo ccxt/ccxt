@@ -5940,14 +5940,15 @@ Returns
 
 ```javascript
 {
-    account: 'BTC/USDT',                    // The market that the interest was accrued in
+    info: { ... }                           // Unparsed exchange response
+    symbol: 'BTC/USDT',                    // The market that the interest was accrued in
     currency: 'USDT',                       // The currency of the interest
     interest: 0.00004842,                   // The amount of interest that was charged
     interestRate: 0.0002,                   // The borrow interest rate
     amountBorrowed: 5.81,                   // The amount of currency that was borrowed
+    marginMode: 'cross',                    // The margin mode of the borrowed amount
     timestamp: 1648699200000,               // The timestamp that the interest was charged
     datetime: '2022-03-31T04:00:00.000Z',   // The datetime that the interest was charged
-    info: { ... }                           // Unparsed exchange response
 }
 ```
 
