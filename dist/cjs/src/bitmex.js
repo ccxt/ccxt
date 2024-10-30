@@ -1153,19 +1153,20 @@ class bitmex extends bitmex$1 {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        let fee = undefined;
         let feeCost = this.safeString(item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount(code, feeCost);
+            fee = {
+                'cost': this.parseNumber(feeCost),
+                'currency': code,
+            };
         }
-        const fee = {
-            'cost': this.parseToNumeric(feeCost),
-            'currency': code,
-        };
         let after = this.safeString(item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount(code, after);
         }
-        const before = this.parseToNumeric(Precise["default"].stringSub(this.numberToString(after), this.numberToString(amount)));
+        const before = this.parseNumber(Precise["default"].stringSub(this.numberToString(after), this.numberToString(amount)));
         let direction = undefined;
         if (Precise["default"].stringLt(amountString, '0')) {
             direction = 'out';
@@ -1186,9 +1187,9 @@ class bitmex extends bitmex$1 {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': this.parseToNumeric(amount),
+            'amount': this.parseNumber(amount),
             'before': before,
-            'after': this.parseToNumeric(after),
+            'after': this.parseNumber(after),
             'status': status,
             'fee': fee,
         }, currency);

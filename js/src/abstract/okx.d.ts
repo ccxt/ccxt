@@ -47,6 +47,7 @@ interface Exchange {
     publicGetRubikStatTakerVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatMarginLoanRatio(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsLongShortAccountRatio(params?: {}): Promise<implicitReturnType>;
+    publicGetRubikStatContractsLongShortAccountRatioContract(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatContractsOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolume(params?: {}): Promise<implicitReturnType>;
     publicGetRubikStatOptionOpenInterestVolumeRatio(params?: {}): Promise<implicitReturnType>;
@@ -187,6 +188,7 @@ interface Exchange {
     privateGetFinanceStakingDefiOrdersHistory(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthBalance(params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthProductInfo(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory(params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments(params?: {}): Promise<implicitReturnType>;

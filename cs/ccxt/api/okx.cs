@@ -241,6 +241,11 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatio",parameters);
     }
 
+    public async Task<object> publicGetRubikStatContractsLongShortAccountRatioContract (object parameters = null)
+    {
+        return await this.callAsync ("publicGetRubikStatContractsLongShortAccountRatioContract",parameters);
+    }
+
     public async Task<object> publicGetRubikStatContractsOpenInterestVolume (object parameters = null)
     {
         return await this.callAsync ("publicGetRubikStatContractsOpenInterestVolume",parameters);
@@ -939,6 +944,11 @@ public partial class okx : Exchange
     public async Task<object> privateGetFinanceStakingDefiEthPurchaseRedeemHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetFinanceStakingDefiEthPurchaseRedeemHistory",parameters);
+    }
+
+    public async Task<object> privateGetFinanceStakingDefiEthProductInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceStakingDefiEthProductInfo",parameters);
     }
 
     public async Task<object> privateGetCopytradingCurrentSubpositions (object parameters = null)

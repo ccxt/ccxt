@@ -89,5 +89,6 @@ declare class testMainClass {
     testVertex(): Promise<boolean>;
     testParadex(): Promise<boolean>;
     testHashkey(): Promise<boolean>;
+    testCoincatch(): Promise<boolean>;
 }
 export default testMainClass;

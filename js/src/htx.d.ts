@@ -37,7 +37,7 @@ export default class htx extends Exchange {
     };
     costToPrecision(symbol: any, cost: any): string;
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsByTypeAndSubType(type: any, subType: any, params?: {}): Promise<any[]>;
+    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<any[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -66,7 +66,7 @@ export default class htx extends Exchange {
         type: any;
         code: any;
     };
-    fetchAccountIdByType(type: any, marginMode?: any, symbol?: any, params?: {}): Promise<any>;
+    fetchAccountIdByType(type: string, marginMode?: Str, symbol?: Str, params?: {}): Promise<any>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     networkIdToCode(networkId?: Str, currencyCode?: Str): string;
     networkCodeToId(networkCode: string, currencyCode?: Str): any;

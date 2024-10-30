@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -106,6 +106,8 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
@@ -1025,6 +1027,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
+                'unifiedMarginStatus': None,
                 'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
@@ -1144,6 +1147,8 @@ class bybit(Exchange, ImplicitAPI):
 
     async def is_unified_enabled(self, params={}):
         """
+        :see: https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+        :see: https://bybit-exchange.github.io/docs/v5/account/account-info
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1157,8 +1162,12 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
+                self.options['unifiedMarginStatus'] = 3
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
-            response = await self.privateGetV5UserQueryApi(params)
+            rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
+            promises = await asyncio.gather(*rawPromises)
+            response = promises[0]
+            accountInfo = promises[1]
             #
             #     {
             #         "retCode": 0,
@@ -1198,13 +1207,34 @@ class bybit(Exchange, ImplicitAPI):
             #         "retExtInfo": {},
             #         "time": 1676891757649
             #     }
+            # account info
+            #     {
+            #         "retCode": 0,
+            #         "retMsg": "OK",
+            #         "result": {
+            #             "marginMode": "REGULAR_MARGIN",
+            #             "updatedTime": "1697078946000",
+            #             "unifiedMarginStatus": 4,
+            #             "dcpStatus": "OFF",
+            #             "timeWindow": 10,
+            #             "smpGroup": 0,
+            #             "isMasterTrader": False,
+            #             "spotHedgingStatus": "OFF"
+            #         }
+            #     }
             #
             result = self.safe_dict(response, 'result', {})
+            accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     async def upgrade_unified_trade_account(self, params={}):
+        """
+        :see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+        upgrades the account to unified trade account *warning* self is irreversible
+        """
         return await self.privatePostV5AccountUpgradeToUta(params)
 
     def create_expired_option_market(self, symbol: str):
@@ -3017,10 +3047,15 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            if isInverse:
-                type = 'contract'
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            if unifiedMarginStatus < 5:
+                # it's not uta.20 where inverse are unified
+                if isInverse:
+                    type = 'contract'
+                else:
+                    type = 'unified'
             else:
-                type = 'unified'
+                type = 'unified'  # uta.20 where inverse are unified
         else:
             if isLinear or isInverse:
                 type = 'contract'
@@ -7086,13 +7121,13 @@ class bybit(Exchange, ImplicitAPI):
 
     def parse_margin_loan(self, info, currency: Currency = None):
         #
-        # borrowMargin
+        # borrowCrossMargin
         #
         #     {
         #         "transactId": "14143"
         #     }
         #
-        # repayMargin
+        # repayCrossMargin
         #
         #     {
         #         "repayId": "12128"
@@ -8663,6 +8698,77 @@ class bybit(Exchange, ImplicitAPI):
             'toAmount': self.safe_number(conversion, 'toAmount'),
             'price': None,
             'fee': None,
+        }
+
+    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio, default is 24 hours
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        type = None
+        type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
+        if type == 'spot' or type == 'option':
+            raise NotSupported(self.id + ' fetchLongShortRatioHistory() only support linear and inverse markets')
+        if timeframe is None:
+            timeframe = '1d'
+        request: dict = {
+            'symbol': market['id'],
+            'period': timeframe,
+            'category': type,
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicGetV5MarketAccountRatio(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "buyRatio": "0.5707",
+        #                     "sellRatio": "0.4293",
+        #                     "timestamp": "1729123200000"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1729147842516
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'list', [])
+        return self.parse_long_short_ratio_history(data, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "buyRatio": "0.5707",
+        #         "sellRatio": "0.4293",
+        #         "timestamp": "1729123200000"
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_omit_zero(info, 'timestamp')
+        longString = self.safe_string(info, 'buyRatio')
+        shortString = self.safe_string(info, 'sellRatio')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

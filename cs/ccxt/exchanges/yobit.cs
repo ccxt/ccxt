@@ -1248,7 +1248,7 @@ public partial class yobit : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
+            object id = this.safeString(ids, i);
             object trade = this.parseTrade(this.extend(getValue(trades, id), new Dictionary<string, object>() {
                 { "trade_id", id },
             }), market);
