@@ -150,6 +150,16 @@
                 ],
                 "output": "{\"symbols\":[\"SOL_USDC\"]}"
             }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.defx.com/v1/auth/api/position/active?symbol=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
         ]
     }
 }

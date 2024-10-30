@@ -901,6 +901,68 @@
                     }
                 }
             }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                            "symbol": "SOL_USDC",
+                            "positionSide": "SHORT",
+                            "entryPrice": "172.34300000",
+                            "quantity": "0.80",
+                            "marginAmount": "20.11561173",
+                            "marginAsset": "USDC",
+                            "pnl": "0.00000000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                        "symbol": "SOL_USDC",
+                        "positionSide": "SHORT",
+                        "entryPrice": "172.34300000",
+                        "quantity": "0.80",
+                        "marginAmount": "20.11561173",
+                        "marginAsset": "USDC",
+                        "pnl": "0.00000000"
+                    },
+                    "id": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                    "symbol": "SOL/USDC:USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": null,
+                    "initialMargin": 20.11561173,
+                    "initialMarginPercentage": null,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "entryPrice": 172.343,
+                    "notional": null,
+                    "leverage": null,
+                    "unrealizedPnl": null,
+                    "realizedPnl": null,
+                    "contracts": 0.8,
+                    "contractSize": 1,
+                    "marginRatio": null,
+                    "liquidationPrice": null,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "collateral": null,
+                    "marginMode": null,
+                    "side": "short",
+                    "percentage": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "hedged": null
+                }
+            }
         ]
     }
 }

@@ -9,6 +9,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported, ArgumentsRequired } from './base/errors.js';
 import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
+import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1351,6 +1352,98 @@ export default class defx extends Exchange {
         // }
         //
         return response;
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name defx#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PrivateGetApiPositionActive (this.extend (request, params));
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+        //             "symbol": "SOL_USDC",
+        //             "positionSide": "SHORT",
+        //             "entryPrice": "172.34300000",
+        //             "quantity": "0.80",
+        //             "marginAmount": "20.11561173",
+        //             "marginAsset": "USDC",
+        //             "pnl": "0.00000000"
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parsePosition (first, market);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        // {
+        //     "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+        //     "symbol": "SOL_USDC",
+        //     "positionSide": "SHORT",
+        //     "entryPrice": "172.34300000",
+        //     "quantity": "0.80",
+        //     "marginAmount": "20.11561173",
+        //     "marginAsset": "USDC",
+        //     "pnl": "0.00000000"
+        // }
+        //
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const size = Precise.stringAbs (this.safeString (position, 'quantity'));
+        const side = this.safeStringLower (position, 'positionSide');
+        const unrealisedPnl = this.omitZero (this.safeString (position, 'pnl'));
+        const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
+        const initialMargin = this.safeString (position, 'marginAmount');
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString (position, 'positionId'),
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.parseNumber (entryPrice),
+            'notional': undefined,
+            'leverage': undefined,
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'realizedPnl': undefined,
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': undefined,
+            'side': side,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'hedged': undefined,
+        });
     }
 
     nonce () {
