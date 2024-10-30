@@ -1171,7 +1171,7 @@ export default class defx extends Exchange {
         }
         request['quantity'] = this.amountToPrecision (symbol, amount);
         params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'takeProfitPrice' ]);
-        const response = await this.v1PrivatePostApiOrder (this.extend (request, params))
+        const response = await this.v1PrivatePostApiOrder (this.extend (request, params));
         //
         // {
         //     "success": true,
@@ -1300,7 +1300,7 @@ export default class defx extends Exchange {
             'orderId': id,
             'idType': 'orderId',
         };
-        const clientOrderId = this.safeStringN (params, ['clOrdID', 'clientOrderId', 'client_order_id']);
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         const isByClientOrder = clientOrderId !== undefined;
         if (isByClientOrder) {
             if (symbol === undefined) {
@@ -1327,6 +1327,32 @@ export default class defx extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://api-docs.defx.com/#db5531da-3692-4a53-841f-6ad6495f823a
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbols': [ market['id'] ],
+        };
+        const response = await this.v1PrivateDeleteApiOrdersAllOpen (this.extend (request, params));
+        //
+        // {
+        //     "data": {
+        //         "msg": "The operation of cancel all open order is done."
+        //     }
+        // }
+        //
+        return response;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -1350,7 +1376,7 @@ export default class defx extends Exchange {
             url += 'auth/' + pathWithParams;
             const nonce = this.milliseconds ().toString ();
             let payload = nonce;
-            if (method === 'GET' || method === 'DELETE') {
+            if (method === 'GET' || path === 'api/order/{orderId}') {
                 payload += this.urlencode (params);
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
