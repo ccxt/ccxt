@@ -1001,7 +1001,8 @@ export default class onetrading extends onetradingRest {
         if (updateType === 'TRADE_SETTLED') {
             const parsed = this.parseTrade(update);
             symbol = this.safeString(parsed, 'symbol', '');
-            this.myTrades.append(parsed);
+            const myTrades = this.myTrades;
+            myTrades.append(parsed);
             client.resolve(this.myTrades, 'myTrades:' + symbol);
             client.resolve(this.myTrades, 'myTrades');
         }

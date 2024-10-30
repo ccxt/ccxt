@@ -12945,16 +12945,15 @@ public partial class binance : Exchange
         object timestamp = this.safeInteger(info, "interestAccuredTime");
         object marginMode = ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
-            { "account", ((bool) isTrue((isEqual(symbol, null)))) ? "cross" : symbol },
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", marginMode },
             { "currency", this.safeCurrencyCode(this.safeString(info, "asset")) },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", this.safeNumber(info, "interestRate") },
             { "amountBorrowed", this.safeNumber(info, "principal") },
+            { "marginMode", marginMode },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

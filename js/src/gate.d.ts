@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -69,7 +69,7 @@ export default class gate extends Exchange {
     fetchOptionUnderlyings(): Promise<any[]>;
     prepareRequest(market?: any, type?: any, params?: {}): Dict[];
     spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
-    multiOrderSpotPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
+    multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
     getMarginMode(stop: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
@@ -198,18 +198,8 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        info: Dict;
-        timestamp: number;
-        datetime: string;
-        symbol: string;
-        currency: string;
-        marginMode: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: any;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

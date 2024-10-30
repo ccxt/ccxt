@@ -2296,7 +2296,7 @@ class hyperliquid extends Exchange {
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
             'collateral' => $this->safe_number($entry, 'marginUsed'),
-            'initialMargin' => $initialMargin,
+            'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,

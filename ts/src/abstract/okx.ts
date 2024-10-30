@@ -196,6 +196,7 @@ interface Exchange {
     privateGetFinanceStakingDefiOrdersHistory (params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthBalance (params?: {}): Promise<implicitReturnType>;
     privateGetFinanceStakingDefiEthPurchaseRedeemHistory (params?: {}): Promise<implicitReturnType>;
+    privateGetFinanceStakingDefiEthProductInfo (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingCurrentSubpositions (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingSubpositionsHistory (params?: {}): Promise<implicitReturnType>;
     privateGetCopytradingInstruments (params?: {}): Promise<implicitReturnType>;

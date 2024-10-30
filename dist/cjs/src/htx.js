@@ -5253,17 +5253,17 @@ class htx extends htx$1 {
         let orderType = type.replace('buy-', '');
         orderType = orderType.replace('sell-', '');
         const options = this.safeValue(this.options, market['type'], {});
-        const stopPrice = this.safeString2(params, 'stopPrice', 'stop-price');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop-price']);
+        if (triggerPrice === undefined) {
             const stopOrderTypes = this.safeValue(options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice for a stop order');
             }
         }
         else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             const stopOperator = this.safeString(params, 'operator', defaultOperator);
-            request['stop-price'] = this.priceToPrecision(symbol, stopPrice);
+            request['stop-price'] = this.priceToPrecision(symbol, triggerPrice);
             request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
@@ -5340,7 +5340,7 @@ class htx extends htx$1 {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        params = this.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce']);
+        params = this.omit(params, ['triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce']);
         return this.extend(request, params);
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -5378,16 +5378,16 @@ class htx extends htx$1 {
         else if (timeInForce === 'IOC') {
             type = 'ioc';
         }
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeString2(params, 'trailingPercent', 'callback_rate');
         const trailingTriggerPrice = this.safeNumber(params, 'trailingTriggerPrice', price);
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        if (isStop) {
+        if (isTrigger) {
             const triggerType = this.safeString2(params, 'triggerType', 'trigger_type', 'le');
             request['trigger_type'] = triggerType;
             request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
@@ -5440,7 +5440,7 @@ class htx extends htx$1 {
         const broker = this.safeValue(this.options, 'broker', {});
         const brokerId = this.safeString(broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice']);
+        params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -5463,7 +5463,7 @@ class htx extends htx$1 {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.stopPrice] the price a trigger order is triggered at
+         * @param {float} [params.triggerPrice] the price a trigger order is triggered at
          * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
          * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
          * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
@@ -5479,12 +5479,12 @@ class htx extends htx$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const triggerPrice = this.safeNumber2(params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPrice', 'trigger_price']);
         const stopLossTriggerPrice = this.safeNumber2(params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2(params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeNumber(params, 'trailingPercent');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
@@ -5502,7 +5502,7 @@ class htx extends htx$1 {
                 [marginMode, contractRequest] = this.handleMarginModeAndParams('createOrder', contractRequest);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest);
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -5516,7 +5516,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (marginMode === 'cross') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest);
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -5536,7 +5536,7 @@ class htx extends htx$1 {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
                 if (market['swap']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest);
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -5550,7 +5550,7 @@ class htx extends htx$1 {
                     }
                 }
                 else if (market['future']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder(contractRequest);
                     }
                     else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
@@ -7301,16 +7301,15 @@ class htx extends htx$1 {
         const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(info, 'accrued-at');
         return {
-            'account': (marginMode === 'isolated') ? symbol : 'cross',
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
             'interest': this.safeNumber(info, 'interest-amount'),
             'interestRate': this.safeNumber(info, 'interest-rate'),
             'amountBorrowed': this.safeNumber(info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

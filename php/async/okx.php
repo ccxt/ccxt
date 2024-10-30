@@ -402,6 +402,7 @@ class okx extends Exchange {
                         // eth staking
                         'finance/staking-defi/eth/balance' => 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history' => 5 / 3,
+                        'finance/staking-defi/eth/product-info' => 3,
                         // copytrading
                         'copytrading/current-subpositions' => 1,
                         'copytrading/subpositions-history' => 1,
@@ -7013,7 +7014,7 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -7077,22 +7078,22 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
         }
         $timestamp = $this->safe_integer($info, 'ts');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
             'amountBorrowed' => $this->safe_number($info, 'liab'),
+            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

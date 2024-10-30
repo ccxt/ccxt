@@ -56,6 +56,7 @@ interface Exchange {
     privateGetMarketOrderbookLevelLevel (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel2 (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderbookLevel3 (params?: {}): Promise<implicitReturnType>;
+    privateGetHfAccountsOpened (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActive (params?: {}): Promise<implicitReturnType>;
     privateGetHfOrdersActiveSymbols (params?: {}): Promise<implicitReturnType>;
     privateGetHfMarginOrderActiveSymbols (params?: {}): Promise<implicitReturnType>;

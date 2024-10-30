@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.23'
+__version__ = '4.4.25'
 
 # -----------------------------------------------------------------------------
 
@@ -296,6 +296,7 @@ class Exchange(object):
     quote_currencies = None
     currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
+    isSandboxModeEnabled = False
     accounts = None
     positions = None
 
@@ -2403,6 +2404,8 @@ class Exchange(object):
                     self.urls['api'] = self.clone(self.urls['test'])
             else:
                 raise NotSupported(self.id + ' does not have a sandbox URL')
+            # set flag
+            self.isSandboxModeEnabled = True
         elif 'apiBackup' in self.urls:
             if isinstance(self.urls['api'], str):
                 self.urls['api'] = self.urls['apiBackup']
@@ -2410,6 +2413,8 @@ class Exchange(object):
                 self.urls['api'] = self.clone(self.urls['apiBackup'])
             newUrls = self.omit(self.urls, 'apiBackup')
             self.urls = newUrls
+            # set flag
+            self.isSandboxModeEnabled = False
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
         return {}
@@ -3001,9 +3006,10 @@ class Exchange(object):
         isTriggerOrSLTpOrder = ((self.safe_string(order, 'triggerPrice') is not None or (self.safe_string(order, 'stopLossPrice') is not None)) or (self.safe_string(order, 'takeProfitPrice') is not None))
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
-            oldNumber = self.number
+            # oldNumber = self.number
             # we parse trades here!
-            self.number = str
+            # i don't think self is needed anymore
+            # self.number = str
             firstTrade = self.safe_value(rawTrades, 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
@@ -3011,7 +3017,7 @@ class Exchange(object):
                 trades = self.parse_trades(rawTrades, market)
             else:
                 trades = rawTrades
-            self.number = oldNumber
+            # self.number = oldNumber; why parse trades if you read the value using `safeString` ?
             tradesLength = 0
             isArray = isinstance(trades, list)
             if isArray:
@@ -3508,13 +3514,13 @@ class Exchange(object):
             'markPrice': self.safe_number(ticker, 'markPrice'),
         })
 
-    def fetch_borrow_rate(self, code: str, amount, params={}):
+    def fetch_borrow_rate(self, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead')
 
-    def repay_cross_margin(self, code: str, amount, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' repayCrossMargin is not support yet')
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' repayIsolatedMargin is not support yet')
 
     def borrow_cross_margin(self, code: str, amount: float, params={}):
@@ -3523,10 +3529,10 @@ class Exchange(object):
     def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         raise NotSupported(self.id + ' borrowIsolatedMargin is not support yet')
 
-    def borrow_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def borrow_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead')
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead')
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):

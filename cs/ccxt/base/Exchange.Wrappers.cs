@@ -287,7 +287,7 @@ public partial class Exchange
         var res = this.setMarkets(markets, currencies);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchBorrowRate(string code, object amount, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchBorrowRate(string code, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowRate(code, amount, parameters);
         return ((Dictionary<string, object>)res);

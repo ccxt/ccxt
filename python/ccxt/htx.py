@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4904,15 +4904,15 @@ class htx(Exchange, ImplicitAPI):
         orderType = type.replace('buy-', '')
         orderType = orderType.replace('sell-', '')
         options = self.safe_value(self.options, market['type'], {})
-        stopPrice = self.safe_string_2(params, 'stopPrice', 'stop-price')
-        if stopPrice is None:
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop-price'])
+        if triggerPrice is None:
             stopOrderTypes = self.safe_value(options, 'stopOrderTypes', {})
             if orderType in stopOrderTypes:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order')
+                raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for a stop order')
         else:
             defaultOperator = 'lte' if (side == 'sell') else 'gte'
             stopOperator = self.safe_string(params, 'operator', defaultOperator)
-            request['stop-price'] = self.price_to_precision(symbol, stopPrice)
+            request['stop-price'] = self.price_to_precision(symbol, triggerPrice)
             request['operator'] = stopOperator
             if (orderType == 'limit') or (orderType == 'limit-fok'):
                 orderType = 'stop-' + orderType
@@ -4970,7 +4970,7 @@ class htx(Exchange, ImplicitAPI):
         limitOrderTypes = self.safe_value(options, 'limitOrderTypes', {})
         if orderType in limitOrderTypes:
             request['price'] = self.price_to_precision(symbol, price)
-        params = self.omit(params, ['stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
+        params = self.omit(params, ['triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce'])
         return self.extend(request, params)
 
     def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -5003,16 +5003,16 @@ class htx(Exchange, ImplicitAPI):
             type = 'fok'
         elif timeInForce == 'IOC':
             type = 'ioc'
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
         trailingPercent = self.safe_string_2(params, 'trailingPercent', 'callback_rate')
         trailingTriggerPrice = self.safe_number(params, 'trailingTriggerPrice', price)
         isTrailingPercentOrder = trailingPercent is not None
-        isStop = triggerPrice is not None
+        isTrigger = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
-        if isStop:
+        if isTrigger:
             triggerType = self.safe_string_2(params, 'triggerType', 'trigger_type', 'le')
             request['trigger_type'] = triggerType
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
@@ -5051,7 +5051,7 @@ class htx(Exchange, ImplicitAPI):
         broker = self.safe_value(self.options, 'broker', {})
         brokerId = self.safe_string(broker, 'id')
         request['channel_code'] = brokerId
-        params = self.omit(params, ['reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
+        params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -5072,7 +5072,7 @@ class htx(Exchange, ImplicitAPI):
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.stopPrice]: the price a trigger order is triggered at
+        :param float [params.triggerPrice]: the price a trigger order is triggered at
         :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
         :param float [params.stopLossPrice]: *contract only* the price a stop-loss order is triggered at
         :param float [params.takeProfitPrice]: *contract only* the price a take-profit order is triggered at
@@ -5088,12 +5088,12 @@ class htx(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        triggerPrice = self.safe_number_2(params, 'stopPrice', 'trigger_price')
+        triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'trigger_price'])
         stopLossTriggerPrice = self.safe_number_2(params, 'stopLossPrice', 'sl_trigger_price')
         takeProfitTriggerPrice = self.safe_number_2(params, 'takeProfitPrice', 'tp_trigger_price')
         trailingPercent = self.safe_number(params, 'trailingPercent')
         isTrailingPercentOrder = trailingPercent is not None
-        isStop = triggerPrice is not None
+        isTrigger = triggerPrice is not None
         isStopLossTriggerOrder = stopLossTriggerPrice is not None
         isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
         response = None
@@ -5109,7 +5109,7 @@ class htx(Exchange, ImplicitAPI):
                 marginMode, contractRequest = self.handle_margin_mode_and_params('createOrder', contractRequest)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    if isStop:
+                    if isTrigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest)
@@ -5118,7 +5118,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostLinearSwapApiV1SwapOrder(contractRequest)
                 elif marginMode == 'cross':
-                    if isStop:
+                    if isTrigger:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest)
@@ -5131,7 +5131,7 @@ class htx(Exchange, ImplicitAPI):
                 if offset is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets')
                 if market['swap']:
-                    if isStop:
+                    if isTrigger:
                         response = self.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostSwapApiV1SwapTpslOrder(contractRequest)
@@ -5140,7 +5140,7 @@ class htx(Exchange, ImplicitAPI):
                     else:
                         response = self.contractPrivatePostSwapApiV1SwapOrder(contractRequest)
                 elif market['future']:
-                    if isStop:
+                    if isTrigger:
                         response = self.contractPrivatePostApiV1ContractTriggerOrder(contractRequest)
                     elif isStopLossTriggerOrder or isTakeProfitTriggerOrder:
                         response = self.contractPrivatePostApiV1ContractTpslOrder(contractRequest)
@@ -6574,7 +6574,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
@@ -6633,7 +6633,7 @@ class htx(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         # isolated
         #    {
         #        "interest-rate":"0.000040830000000000",
@@ -6681,16 +6681,15 @@ class htx(Exchange, ImplicitAPI):
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_integer(info, 'accrued-at')
         return {
-            'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),
             'amountBorrowed': self.safe_number(info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

@@ -1728,6 +1728,10 @@ class xt extends Exchange {
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
+        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1744,7 +1748,7 @@ class xt extends Exchange {
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'cv'),
-            'percentage' => $this->safe_number_2($ticker, 'cr', 'r'),
+            'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),

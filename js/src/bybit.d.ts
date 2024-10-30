@@ -1,12 +1,11 @@
 import Exchange from './abstract/bybit.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 /**
  * @class bybit
  * @augments Exchange
  */
 export default class bybit extends Exchange {
     describe(): any;
-    setSandboxMode(enable: boolean): void;
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
     addPaginationCursorToResult(response: any): any;
@@ -105,19 +104,9 @@ export default class bybit extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        symbol: any;
-        marginMode: string;
-        currency: string;
-        interest: number;
-        interestRate: any;
-        amountBorrowed: number;
-        timestamp: any;
-        datetime: any;
-        info: Dict;
-    };
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<any>;

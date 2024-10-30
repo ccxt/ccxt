@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1004,7 +1004,6 @@ export default class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': false,
-                'sandboxMode': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
                 'createOrder': {
@@ -1091,17 +1090,6 @@ export default class bybit extends Exchange {
         });
     }
 
-    setSandboxMode (enable: boolean) {
-        /**
-         * @method
-         * @name bybit#setSandboxMode
-         * @description enables or disables sandbox mode
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
-        super.setSandboxMode (enable);
-        this.options['sandboxMode'] = enable;
-    }
-
     enableDemoTrading (enable: boolean) {
         /**
          * @method
@@ -1110,7 +1098,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
          */
-        if (this.options['sandboxMode']) {
+        if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' demo trading does not support in sandbox environment');
         }
         // enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
@@ -7353,7 +7341,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name bybit#fetchBorrowInterest
@@ -7452,7 +7440,7 @@ export default class bybit extends Exchange {
         return this.parseBorrowRateHistory (rows, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "tokenId": "BTC",
@@ -7464,16 +7452,16 @@ export default class bybit extends Exchange {
         //     },
         //
         return {
+            'info': info,
             'symbol': undefined,
-            'marginMode': 'cross',
             'currency': this.safeCurrencyCode (this.safeString (info, 'tokenId')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': undefined,
             'amountBorrowed': this.safeNumber (info, 'loan'),
+            'marginMode': 'cross',
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {

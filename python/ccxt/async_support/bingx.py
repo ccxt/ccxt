@@ -220,6 +220,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -2677,6 +2678,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2704,6 +2706,9 @@ class bingx(Exchange, ImplicitAPI):
             request['batchOrders'] = self.json(ordersRequests)
             response = await self.swapV2PrivatePostTradeBatchOrders(request)
         else:
+            sync = self.safe_bool(params, 'sync', False)
+            if sync:
+                request['sync'] = True
             request['data'] = self.json(ordersRequests)
             response = await self.spotV1PrivatePostTradeBatchOrders(request)
         #
@@ -3140,7 +3145,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cost': Precise.string_abs(feeCost),
             },
             'trades': None,
-            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'ro'),
         }, market)
 
     def parse_order_status(self, status: Str):

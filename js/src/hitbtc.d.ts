@@ -9,7 +9,6 @@ export default class hitbtc extends Exchange {
     nonce(): number;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    safeNetwork(networkId: any): any;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

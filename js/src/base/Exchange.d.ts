@@ -15,6 +15,7 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
+    isSandboxModeEnabled: boolean;
     throttleProp: any;
     sleep: (ms: any) => Promise<unknown>;
     api: any;
@@ -864,13 +865,13 @@ export default class Exchange {
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
-    fetchBorrowRate(code: string, amount: any, params?: {}): Promise<{}>;
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{}>;
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{}>;
+    fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{}>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{}>;
+    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -1097,7 +1098,7 @@ export default class Exchange {
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseDepositAddresses(addresses: any, codes?: Strings, indexed?: boolean, params?: {}): DepositAddress[];
-    parseBorrowInterests(response: any, market?: Market): any[];
+    parseBorrowInterests(response: any, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;
     parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any;
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;

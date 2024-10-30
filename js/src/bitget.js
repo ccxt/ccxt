@@ -8352,15 +8352,15 @@ export default class bitget extends Exchange {
         const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
         const timestamp = this.safeInteger(info, 'cTime');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'interestCoin')),
             'interest': this.safeNumber(info, 'interestAmount'),
             'interestRate': this.safeNumber(info, 'dailyInterestRate'),
             'amountBorrowed': undefined,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async closePosition(symbol, side = undefined, params = {}) {

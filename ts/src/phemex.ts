@@ -107,7 +107,7 @@ export default class phemex extends Exchange {
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
-                'doc': 'https://github.com/phemex/phemex-api-docs',
+                'doc': 'https://phemex-docs.github.io/#overview',
                 'fees': 'https://phemex.com/fees-conditions',
                 'referral': {
                     'url': 'https://phemex.com/register?referralCode=EDNVJ',
@@ -165,6 +165,7 @@ export default class phemex extends Exchange {
                 'v2': {
                     'get': {
                         'public/products': 5,
+                        'public/products-plus': 5,
                         'md/v2/orderbook': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade': 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5, // ?symbol=<symbol>&id=<id>
@@ -738,7 +739,7 @@ export default class phemex extends Exchange {
                     'max': this.parseSafeNumber (this.safeString (market, 'maxOrderValue')),
                 },
             },
-            'created': undefined,
+            'created': this.safeInteger (market, 'listTime'),
             'info': market,
         });
     }
@@ -748,6 +749,7 @@ export default class phemex extends Exchange {
          * @method
          * @name phemex#fetchMarkets
          * @description retrieves data on all markets for phemex
+         * @see https://phemex-docs.github.io/#query-product-information-3
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
