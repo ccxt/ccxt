@@ -3334,7 +3334,7 @@ export default class bingx extends Exchange {
                 'cost': Precise.stringAbs (feeCost),
             },
             'trades': undefined,
-            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'reduceOnly': this.safeBool2 (order, 'reduceOnly', 'ro'),
         }, market);
     }
 
