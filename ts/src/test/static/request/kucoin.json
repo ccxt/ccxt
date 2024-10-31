@@ -843,6 +843,30 @@
                 ],
                 "output": "{\"currency\":\"USDT\",\"chain\":\"eth\"}"
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "cross fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.kucoin.com/api/v3/margin/accounts?quoteCurrency=USDT",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "isolated fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.kucoin.com/api/v3/isolated/accounts?quoteCurrency=USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            }
         ]
     }
 }
