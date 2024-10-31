@@ -2357,15 +2357,15 @@ class whitebit extends whitebit$1 {
         const symbol = this.safeSymbol(marketId, market, '_');
         const timestamp = this.safeTimestamp(info, 'modifyDate');
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': this.safeNumber(info, 'unrealizedFunding'),
             'interestRate': 0.00098,
             'amountBorrowed': this.safeNumber(info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

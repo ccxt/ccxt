@@ -5342,17 +5342,15 @@ export default class coinex extends Exchange {
         market = this.safeMarket(marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger(info, 'expired_at');
         return {
-            'account': undefined,
+            'info': info,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'marginType': undefined,
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'to_repaied_amount'),
             'interestRate': this.safeNumber(info, 'daily_interest_rate'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {

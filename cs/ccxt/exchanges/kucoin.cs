@@ -4724,15 +4724,15 @@ public partial class kucoin : Exchange
             currencyId = this.safeString(info, "currency");
         }
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", marginMode },
             { "currency", this.safeCurrencyCode(currencyId) },
             { "interest", interest },
             { "interestRate", this.safeNumber(info, "dailyIntRate") },
             { "amountBorrowed", amountBorrowed },
+            { "marginMode", marginMode },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

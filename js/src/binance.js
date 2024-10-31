@@ -12378,16 +12378,15 @@ export default class binance extends Exchange {
         const timestamp = this.safeInteger(info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
-            'account': (symbol === undefined) ? 'cross' : symbol,
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'asset')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'principal'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async repayCrossMargin(code, amount, params = {}) {

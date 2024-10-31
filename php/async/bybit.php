@@ -7367,7 +7367,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
@@ -7466,7 +7466,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -7478,15 +7478,15 @@ class bybit extends Exchange {
         //     ),
         //
         return array(
+            'info' => $info,
             'symbol' => null,
-            'marginMode' => 'cross',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'tokenId')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => null,
             'amountBorrowed' => $this->safe_number($info, 'loan'),
+            'marginMode' => 'cross',
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 

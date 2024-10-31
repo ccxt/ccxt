@@ -6491,14 +6491,14 @@ export default class gate extends Exchange {
         const timestamp = this.safeInteger(info, 'create_time');
         return {
             'info': info,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
             'symbol': this.safeString(market, 'symbol'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
-            'marginMode': marginMode,
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'actual_rate'),
             'amountBorrowed': undefined,
+            'marginMode': marginMode,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

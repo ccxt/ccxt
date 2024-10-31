@@ -7042,7 +7042,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -7109,7 +7109,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7157,16 +7157,15 @@ class htx extends Exchange {
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
-            'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
             'amountBorrowed' => $this->safe_number($info, 'loan-amount'),
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

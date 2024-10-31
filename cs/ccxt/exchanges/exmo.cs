@@ -148,6 +148,7 @@ public partial class exmo : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "140333", typeof(InvalidOrder) },
                     { "140434", typeof(BadRequest) },
                     { "40005", typeof(AuthenticationError) },
                     { "40009", typeof(InvalidNonce) },

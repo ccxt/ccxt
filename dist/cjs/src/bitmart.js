@@ -4336,15 +4336,15 @@ class bitmart extends bitmart$1 {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(info, 'create_time');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': 'isolated',
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
             'interest': this.safeNumber(info, 'interest_amount'),
             'interestRate': this.safeNumber(info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchOpenInterest(symbol, params = {}) {

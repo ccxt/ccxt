@@ -7077,15 +7077,15 @@ export default class okx extends Exchange {
         }
         const timestamp = this.safeInteger(info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': this.safeString(info, 'mgnMode'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'liab'),
+            'marginMode': this.safeString(info, 'mgnMode'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowCrossMargin(code, amount, params = {}) {
