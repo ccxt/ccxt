@@ -45,7 +45,6 @@
  *
  */
 
-
 var isNumeric = /^-?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i
 var mathceil = Math.ceil
 var mathfloor = Math.floor

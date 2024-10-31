@@ -171,6 +171,7 @@ import * as Starknet from '../static_dependencies/starknet/index.js';
 import Client from './ws/Client.js'
 import { buildSafeTransaction, buildSafeTransactionRecipient, encodeSafeTransaction, getUnspentOutputsForRecipients, signSafeTransaction } from '../static_dependencies/mixin-node-sdk/client/utils/safe.js'
 import { blake3Hash } from '../static_dependencies/mixin-node-sdk/client/utils/uniq.js'
+import { base64RawURLEncode } from '../static_dependencies/mixin-node-sdk/client/utils/base64.js'
 // ----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -1557,6 +1558,10 @@ export default class Exchange {
 
     mixinBlake3Hash(raw) {
         return blake3Hash(Buffer.from(raw, 'hex')).toString('hex');
+    }
+
+    base64RawURLEncode(raw) {
+        return base64RawURLEncode(raw);
     }
 
     intToBase16(elem): string {

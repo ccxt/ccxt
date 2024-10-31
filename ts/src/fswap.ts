@@ -2,12 +2,10 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/fswap.js';
 import { Precise } from './base/Precise.js';
+import { TRUNCATE } from './base/functions.js';
+import { signAuthenticationToken } from './static_dependencies/mixin-node-sdk/client/utils/auth.js';
 import { BadRequest, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidOrder } from './base/errors.js';
-import { eddsa, TRUNCATE } from './base/functions.js';
-import { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry } from './base/types.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { base64 } from './static_dependencies/scure-base/index.js';
+import { Balances, Currencies, DepositAddress, Dict, Int, Market, MarketInterface, Num, Order, OrderSide, OrderType, Str, Strings, Trade, Transaction, TransferEntry } from './base/types.js';
 //  ---------------------------------------------------------------------------
 
 //
@@ -28,20 +26,20 @@ export default class fswap extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'createOrder': true,
                 'cancelOrder': false,
-                'withdraw': true,
-                'fetchOrder': true,
-                'fetchTicker': true,
-                'fetchTrades': true,
+                'createDepositAddress': true,
+                'createOrder': true,
                 'fetchBalance': true,
-                'fetchMarkets': true,
-                'fetchMyTrades': true,
-                'fetchOrderBook': false,
-                'fetchOpenOrders': false,
                 'fetchClosedOrders': false,
                 'fetchDepositAddress': true,
-                'createDepositAddress': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOpenOrders': false,
+                'fetchOrder': true,
+                'fetchOrderBook': false,
+                'fetchTicker': true,
+                'fetchTrades': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://mixin-images.zeromesh.net/A2jrSrBJzt0QA4uxeLVlgt67uaXKt8NvBhGzNeLOxxZfwRMz2FjlcMfmM5ZFoXXiynj_6vzsxZiLVloxW478pIdBnLWBJJ8SJu8y=s256',
@@ -1195,7 +1193,7 @@ export default class fswap extends Exchange {
         const outputs = this.safeValue (resp, 'data', {});
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
-            recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
+            recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, this.numberToString (change)));
         }
         const recipientDetails = [];
         for (let i = 0; i < recipients.length; i++) {
@@ -1271,17 +1269,16 @@ export default class fswap extends Exchange {
         const preOrderResp = await this.ccxtProxyPost4swapPreorder (this.extend ({
             'payAssetId': payAssetId,
             'fillAssetId': fillAssetId,
-            'payAmount': amount.toString (),
+            'payAmount': this.numberToString (amount),
             'followID': followID,
         }, params));
-        console.log ('preOrderResp:', preOrderResp);
         const memo = this.safeString (preOrderResp, 'memo');
-        const resp = await this.safeTransfer (payAssetId, amount.toString (), memo);
+        const resp = await this.safeTransfer (payAssetId, this.numberToString (amount), memo);
         const order: Order = {
             'id': followID,
             'clientOrderId': undefined,
-            'datetime': new Date ().toISOString (),
-            'timestamp': Date.now (),
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': 'open',
@@ -1334,9 +1331,7 @@ export default class fswap extends Exchange {
             'expireDuration': expireDuration,
         }, params));
         const baseMemo = this.safeString (baseResp, 'memo');
-        const followIDBase = this.safeString (baseResp, 'follow_id');
-        console.log ('baseMemo:', baseMemo);
-        console.log ('followIDBase:', followIDBase);
+        // const followIDBase = this.safeString (baseResp, 'follow_id');
         // Request proxy /fswap/add_liquidity to get quote memo
         const quoteResp = await this.ccxtProxyPost4swapAddLiquidity (this.extend ({
             'followID': followID,
@@ -1345,9 +1340,7 @@ export default class fswap extends Exchange {
             'expireDuration': expireDuration,
         }, params));
         const quoteMemo = this.safeString (quoteResp, 'memo');
-        const followIDQuote = this.safeString (quoteResp, 'follow_id');
-        console.log ('quoteMemo:', quoteMemo);
-        console.log ('followIDQuote:', followIDQuote);
+        // const followIDQuote = this.safeString (quoteResp, 'follow_id');
         // Calculate base and quote amount
         let baseAmount = '';
         let quoteAmount = '';
@@ -1366,17 +1359,13 @@ export default class fswap extends Exchange {
         }
         if (side === 'buy') {
             // pay quote, opposite base
-            baseAmount = this.calculateAddLiquidityBaseAmount (amount.toString (), poolBaseAmount, poolQuoteAmount);
-            quoteAmount = amount.toString ();
-            console.log ('calculated base:', baseSymbol, baseAmount);
-            console.log ('quote:', quoteSymbol, quoteAmount);
+            baseAmount = this.calculateAddLiquidityBaseAmount (this.numberToString (amount), poolBaseAmount, poolQuoteAmount);
+            quoteAmount = this.numberToString (amount);
         }
         if (side === 'sell') {
             // pay base, opposite quote
-            baseAmount = amount.toString ();
-            quoteAmount = this.calculateAddLiquidityQuoteAmount (amount.toString (), poolBaseAmount, poolQuoteAmount);
-            console.log ('base:', baseSymbol, baseAmount);
-            console.log ('calculated quote:', quoteSymbol, quoteAmount);
+            baseAmount = this.numberToString (amount);
+            quoteAmount = this.calculateAddLiquidityQuoteAmount (this.numberToString (amount), poolBaseAmount, poolQuoteAmount);
         }
         // Send base token and quote token to fswap mtg
         const addBaseResp = await this.safeTransfer (baseId, baseAmount, baseMemo);
@@ -1384,8 +1373,8 @@ export default class fswap extends Exchange {
         const order: Order = {
             'id': followID,
             'clientOrderId': undefined,
-            'datetime': new Date ().toISOString (),
-            'timestamp': Date.now (),
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': 'open',
@@ -1412,29 +1401,24 @@ export default class fswap extends Exchange {
     }
 
     async createRemoveLiquidityOrder (symbol: string, amount: number, params?: {}): Promise<Order> {
-        // // Map symbol to lp token asset id
-        // const lpTokenAssetId = this.getLpTokenAssetIdBySymbol (symbol);
-        // if (!lpTokenAssetId) {
-        //     throw new Error ('Unable to find lp token asset id for ' + symbol);
-        // }
-
         // For remove liquidity, symbol is the asset id of lp token
         const lpTokenAssetId = symbol;
+        if (lpTokenAssetId.length !== 36) {
+            throw new Error ('Invalid symbol length, use asset id of lp token as symbol instead');
+        }
         // Request proxy /fswap/remove_liquidity to get memo
         const followID = this.uuid ();
         const rmMemoResp = await this.ccxtProxyPost4swapRemoveLiquidity (this.extend ({
             'followID': followID,
         }, params));
-        console.log ('rmMemoResp:', rmMemoResp);
         // Send lp token to fswap
         const removeLiquidityMemo = this.safeString (rmMemoResp, 'memo');
-        const removeLiquidityResp = await this.safeTransfer (lpTokenAssetId, amount.toString (), removeLiquidityMemo);
-        console.log ('removeLiquidityResp:', removeLiquidityResp);
+        const removeLiquidityResp = await this.safeTransfer (lpTokenAssetId, this.numberToString (amount), removeLiquidityMemo);
         const order: Order = {
             'id': followID,
             'clientOrderId': undefined,
-            'datetime': new Date ().toISOString (),
-            'timestamp': Date.now (),
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': 'open',
@@ -1474,32 +1458,24 @@ export default class fswap extends Exchange {
         return lpTokenAssetId;
     }
 
-    calculateAddLiquidityBaseAmount (
-        quoteTokenAmount: string,
-        baseTokenReserve: string,
-        quoteTokenReserve: string
-    ) {
+    calculateAddLiquidityBaseAmount (quoteTokenAmount: string, baseTokenReserve: string, quoteTokenReserve: string) {
         const yAmount = new Precise (quoteTokenAmount);
         const xReserve = new Precise (baseTokenReserve);
         const yReserve = new Precise (quoteTokenReserve);
         // Calculate the amount of token X based on the reserve ratio
         const xAmount = yAmount.mul (xReserve).div (yReserve);
         // Return the amount of token X as a string with 8 decimal places
-        return this.decimalToPrecision (xAmount.toString (), TRUNCATE, 8);
+        return this.decimalToPrecision (this.numberToString (xAmount), TRUNCATE, 8);
     }
 
-    calculateAddLiquidityQuoteAmount (
-        baseTokenAmount: string,
-        baseTokenReserve: string,
-        quoteTokenReserve: string
-    ) {
+    calculateAddLiquidityQuoteAmount (baseTokenAmount: string, baseTokenReserve: string, quoteTokenReserve: string) {
         const xAmount = new Precise (baseTokenAmount);
         const xReserve = new Precise (baseTokenReserve);
         const yReserve = new Precise (quoteTokenReserve);
         // Calculate the amount of token Y based on the reserve ratio
         const yAmount = xAmount.mul (yReserve).div (xReserve);
         // Return the amount of token Y as a string with 8 decimal places
-        return this.decimalToPrecision (yAmount.toString (), TRUNCATE, 8);
+        return this.decimalToPrecision (this.numberToString (yAmount), TRUNCATE, 8);
     }
 
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
@@ -1513,7 +1489,7 @@ export default class fswap extends Exchange {
             });
             if (resp.error) {
                 const error = resp.error;
-                throw new Error (`Error ${error.code}: ${error.description} - ${error.extra.field}: ${error.extra.reason}`);
+                throw new Error ('Error ' + error.code + ': ' + error.description + ' - ' + error.extra.field + ': ' + error.extra.reason);
             }
             const data = this.safeValue (resp, 'data', []);
             if (data.length === 0) {
@@ -1579,8 +1555,7 @@ export default class fswap extends Exchange {
         return fees;
     }
 
-    async withdrawSameAsset (code: string, amount: number, address: string, assetId: string, feeAmount: string, tag = undefined, params = {}): Promise<Transaction> {
-        console.log ('Same chain, one asset');
+    async withdrawSameAsset (code: string, amount: number, address: string, assetId: string, feeAmount: string, tag: string = undefined, params = {}): Promise<Transaction> {
         // Same chain, one asset
         const safeOutputsResp = await this.mixinPrivateGetSafeOutputs (this.extend ({
             'asset': assetId,
@@ -1593,19 +1568,16 @@ export default class fswap extends Exchange {
         const feeRecipient = this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount);
         const recipients = [
             {
-                'amount': amount.toString (),
+                'amount': this.numberToString (amount),
                 'destination': address,
+                'tag': tag,
             },
             feeRecipient,
         ];
-        console.log ('recipients:', recipients);
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
-        console.log ('utxos:', utxos);
-        console.log ('change:', change);
         if (!change.isZero () && !change.isNegative ()) {
-            recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
+            recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, this.numberToString (change)));
         }
-        console.log ('recipients:', recipients);
         const recipientDetails = [];
         let index = 1;
         for (let i = 0; i < recipients.length; i++) {
@@ -1621,18 +1593,55 @@ export default class fswap extends Exchange {
                 index = index + 1;
             }
         }
-        console.log ('recipientDetails:', recipientDetails);
         const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
-        console.log ('ghostsResp:', ghostsResp);
         const ghosts = this.safeValue (ghostsResp, 'data', {});
-        const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+        const ghostArray = [ undefined ];
+        const ghostKeys = Object.keys (ghosts);
+        for (let i = 0; i < ghostKeys.length; i++) {
+            const key = ghostKeys[i];
+            ghostArray.push (ghosts[key]);
+        }
+        const tx = this.mixinBuildSafeTransaction (utxos, recipients, ghostArray, 'withdrawal-memo');
         const encodedTx = this.mixinEncodeSafeTransaction (tx);
-        const resp = await this.safeTransferWithTx (encodedTx, tx);
-        return resp;
+        const withdrawResp = await this.safeTransferWithTx (encodedTx, tx);
+        if (withdrawResp.length === 0) {
+            throw new Error ('No transactions found in response');
+        }
+        const firstTransaction = this.safeValue (withdrawResp, 0, {});
+        const withdrawTxHash = this.safeString (firstTransaction, 'transaction_hash');
+        const withdrawTxId = this.safeString (firstTransaction, 'request_id');
+        if (!withdrawTxHash) {
+            throw new Error ('Transaction hash not found');
+        }
+        return {
+            'info': withdrawResp,
+            'id': withdrawTxId,
+            'txid': withdrawTxHash,
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': 'pending',
+            'updated': Date.now (),
+            'fee': {
+                'currency': code,
+                'cost': Number (feeAmount),
+                'rate': undefined,
+            },
+            'network': assetId,
+            'comment': undefined,
+            'internal': false,
+        };
     }
 
-    async withdrawDifferentAsset (code: string, amount: number, address: string, assetId: string, feeAssetId: string, feeAmount: string, tag = undefined, params = {}): Promise<Transaction> {
-        console.log ('Different chain, two assets');
+    async withdrawDifferentAsset (code: string, amount: number, address: string, assetId: string, feeAssetId: string, feeAmount: string, tag: string = undefined, params = {}): Promise<Transaction> {
         // Different chain, two assets
         const safeOutputsResp = await this.mixinPrivateGetSafeOutputs (this.extend ({
             'asset': assetId,
@@ -1650,22 +1659,18 @@ export default class fswap extends Exchange {
         if (feeOutputs.length === 0) {
             throw new Error ('No unspent outputs found for fee asset ' + feeAssetId);
         }
-        console.log ('outputs:', outputs);
-        console.log ('feeOutputs:', feeOutputs);
         const recipients = [
             {
-                'amount': amount.toString (),
+                'amount': this.numberToString (amount),
                 'destination': address,
+                'tag': tag,
             },
         ];
         const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
         if (!change.isZero () && !change.isNegative ()) {
-            const changeRecipient = this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ());
-            const changeRecipientWithDefault = {
-                'amount': changeRecipient.amount,
-                'destination': 'default',
-            };
-            recipients.push (changeRecipientWithDefault);
+            const recipient = this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, this.numberToString (change));
+            // @ts-expect-error
+            recipients.push (recipient);
         }
         const recipientDetails = [];
         let index = 1;
@@ -1682,22 +1687,27 @@ export default class fswap extends Exchange {
                 index = index + 1;
             }
         }
-        console.log ('recipientDetails:', recipientDetails);
         const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
-        // spare the 0 inedx for withdrawal output, withdrawal output doesnt need ghost key
         const ghosts = this.safeValue (ghostsResp, 'data', {});
-        console.log ('ghosts:', ghosts);
-        const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+        const ghostArray = [ undefined ];
+        const ghostKeys = Object.keys (ghosts);
+        for (let i = 0; i < ghostKeys.length; i++) {
+            const key = ghostKeys[i];
+            ghostArray.push (ghosts[key]);
+        }
+        // spare the 0 inedx for withdrawal output, withdrawal output doesnt need ghost key
+        const tx = this.mixinBuildSafeTransaction (utxos, recipients, ghostArray, 'withdrawal-memo');
         const raw = this.mixinEncodeSafeTransaction (tx);
         const ref = this.mixinBlake3Hash (raw);
         // fee
         const feeRecipients = [
             this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
         ];
-        const { 'utxos': feeUtxos, 'change': feeChange } = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
+        const feeUtxosAndChange = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
+        const feeUtxos = feeUtxosAndChange['utxos'];
+        const feeChange = feeUtxosAndChange['change'];
         if (!feeChange.isZero () && !feeChange.isNegative ()) {
-            // add fee change output if needed
-            feeRecipients.push (this.mixinBuildSafeTransactionRecipient (feeOutputs[0].receivers, feeOutputs[0].receivers_threshold, feeChange.toString ()));
+            feeRecipients.push (this.mixinBuildSafeTransactionRecipient (feeOutputs[0].receivers, feeOutputs[0].receivers_threshold, this.numberToString (feeChange)));
         }
         const feeRecipientDetails = [];
         for (let i = 0; i < feeRecipients.length; i++) {
@@ -1711,10 +1721,8 @@ export default class fswap extends Exchange {
         }
         const feeGhostsResp = await this.mixinPrivatePostSafeKeys (feeRecipientDetails);
         const feeGhosts = this.safeValue (feeGhostsResp, 'data', {});
-        console.log ('feeGhosts:', feeGhosts);
         const feeTx = this.mixinBuildSafeTransaction (feeUtxos, feeRecipients, feeGhosts, 'withdrawal-fee-memo', [ ref ]);
         const feeRaw = this.mixinEncodeSafeTransaction (feeTx);
-        console.log ('feeRaw:', feeRaw);
         const txId = this.uuid ();
         const feeId = this.uuid ();
         const txsResp = await this.mixinPrivatePostSafeTransactionRequests ([
@@ -1727,7 +1735,6 @@ export default class fswap extends Exchange {
                 'request_id': feeId,
             },
         ]);
-        console.log ('txsResp:', txsResp);
         const txs = this.safeValue (txsResp, 'data', []);
         const txViews = this.safeValue (txs[0], 'views');
         const feeViews = this.safeValue (txs[1], 'views');
@@ -1739,7 +1746,7 @@ export default class fswap extends Exchange {
         }
         const signedRaw = this.mixinSignSafeTransaction (tx, txViews, this.privateKey);
         const signedFeeRaw = this.mixinSignSafeTransaction (feeTx, feeViews, this.privateKey);
-        const res = await this.mixinPrivatePostSafeTransactions ([
+        const resp = await this.mixinPrivatePostSafeTransactions ([
             {
                 'raw': signedRaw,
                 'request_id': txId,
@@ -1749,74 +1756,41 @@ export default class fswap extends Exchange {
                 'request_id': feeId,
             },
         ]);
-        console.log (res);
-        // {
-        //     data: [
-        //       {
-        //         type: 'kernel_transaction_request',
-        //         request_id: 'd98c01c0-4501-406c-aaf3-1879cc89aa12',
-        //         transaction_hash: '41b193228bf97e60d56ce42e1bc6421c930cb42afc544134d88c41a07833f371',
-        //         asset: '74b82acde4d113fc0340f201054f5eafb82f5d325c9f2e9ad2ccb6c1e7750a96',
-        //         amount: '1',
-        //         extra: '7769746864726177616c2d6d656d6f',
-        //         state: 'signed',
-        //         raw_transaction: '7777000574b82acde4d113fc0340f201054f5eafb82f5d325c9f2e9ad2ccb6c1e7750a9600011d9936c9e52681f597eb6aa73afb927eca0fa924b3b5b4ffbb1c2eeb572710720000000000000000000200a1000405f5e1000000000000000000000000000000000000000000000000000000000000000000000000007777000c6f6b62746f7468656d6f6f6e00000000000417d784000001b88b49159081276396bbfc56071c280c9f7f7c95550b659f2421e4d82f057d47376cc81b695ad1eb5ecd17bb5428bc0403df3508bd6027069e10aa378c71d4a40003fffe01000000000000000f7769746864726177616c2d6d656d6f0001000100002ede5dae1165f3a3a1389eac9c2e8828fed23c004d390c28013851a6a84f326f724ce409ed730a1b4eb1c47d22e8711c149ef4e3a2fea15872319c2235d4050d',
-        //         created_at: '2024-10-31T06:30:01.132406893Z',
-        //         updated_at: '0001-01-01T00:00:00Z',
-        //         snapshot_hash: '',
-        //         snapshot_at: '0001-01-01T00:00:00Z',
-        //         snapshot_id: 'aadb70cd-5ed3-3f10-bcc1-bff91297dc0f',
-        //         senders_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
-        //         senders_threshold: '1',
-        //         senders: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
-        //         signers: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
-        //         receivers: [
-        //           null,
-        //           {
-        //             members: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
-        //             members_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
-        //             threshold: '1',
-        //             destination: '',
-        //             tag: '',
-        //             withdrawal_hash: ''
-        //           }
-        //         ],
-        //         user_id: '51186d7e-d488-417d-a031-b4e34f4fdf86'
-        //       },
-        //       {
-        //         type: 'kernel_transaction_request',
-        //         request_id: 'e52d93a5-e978-444a-9dd3-c0be641ef23a',
-        //         transaction_hash: '6d4c2a391d287b0b828b8b92f3722b513e06a92adbc9abfef3131198adfd6d50',
-        //         asset: '6ac4cbffda9952e7f0d924e4cfb6beb29d21854ac00bfbf749f086302d0f7e5d',
-        //         amount: '1',
-        //         extra: '7769746864726177616c2d6665652d6d656d6f',
-        //         state: 'signed',
-        //         raw_transaction: '777700056ac4cbffda9952e7f0d924e4cfb6beb29d21854ac00bfbf749f086302d0f7e5d0001d557cda66adda2ea344546fe0bcbb197f4804fa40a2a71acbcb924eb3966396f000000000000000000010000000405f5e10000018e1f1bf0175a656a92f503d57cf35f92ed8d169b2d1c1dca8fe8d158563421e809a40638e47a46f25c39c8b5afabadadce7f2484bdca0790514c2ad7054ea1a60003fffe010000000141b193228bf97e60d56ce42e1bc6421c930cb42afc544134d88c41a07833f371000000137769746864726177616c2d6665652d6d656d6f000100010000e6ef34bf52e907d673fd077a6d92733ca8e5afaa0adf83c1f937bd1a0e3fe5c6ff125bd2fa7998e80e0774597cadea919f3242b87b18611294587c4cae0e4602',
-        //         created_at: '2024-10-31T06:30:01.136573994Z',
-        //         updated_at: '0001-01-01T00:00:00Z',
-        //         snapshot_hash: '',
-        //         snapshot_at: '0001-01-01T00:00:00Z',
-        //         snapshot_id: 'b27e5ee8-5b39-3cee-9744-06b9bc90eb51',
-        //         senders_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
-        //         senders_threshold: '1',
-        //         senders: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
-        //         signers: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
-        //         receivers: [
-        //           {
-        //             members: [ '674d6776-d600-4346-af46-58e77d8df185' ],
-        //             members_hash: '18f8af01630ac1736c7d1103de8e4eec697101f982d53dab692474a6d4ea10cf',
-        //             threshold: '1',
-        //             destination: '',
-        //             tag: '',
-        //             withdrawal_hash: ''
-        //           }
-        //         ],
-        //         user_id: '51186d7e-d488-417d-a031-b4e34f4fdf86'
-        //       }
-        //     ]
-        //   }
-          
-        return res;
+        const withdrawTxResp = this.safeValue (resp, 'data', []);
+        if (withdrawTxResp.length === 0) {
+            throw new Error ('No transactions found in response');
+        }
+        const firstTransaction = this.safeValue (withdrawTxResp, 0, {});
+        const withdrawTxHash = this.safeString (firstTransaction, 'transaction_hash');
+        if (!withdrawTxHash) {
+            throw new Error ('Transaction hash not found');
+        }
+        return {
+            'info': resp,
+            'id': txId,
+            'txid': withdrawTxHash,
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'type': 'withdrawal',
+            'amount': amount,
+            'currency': code,
+            'status': 'pending',
+            'updated': Date.now (),
+            'fee': {
+                'currency': code,
+                'cost': Number (feeAmount),
+                'rate': undefined,
+            },
+            'network': assetId,
+            'comment': undefined,
+            'internal': false,
+        };
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
@@ -1846,27 +1820,35 @@ export default class fswap extends Exchange {
         // fromAccount is the app_id in keystore
         // toAccoutn is the user_id or the app_id of the bot
         const asset_id = this.mapSymbolToAssetId (code);
-        const transferResp = await this.safeTransfer (asset_id, amount.toString(), '');
+        const transferResp = await this.safeTransfer (asset_id, this.numberToString (amount), '');
         return {
             'info': transferResp,
             'id': '',
-            'timestamp': Date.now (),
-            'datetime': new Date ().toISOString (),
+            'datetime': this.iso8601 (this.now ()),
+            'timestamp': this.now (),
             'currency': code,
             'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
             'status': 'success',
-        }
+        };
     }
 
     sign (path, api = 'fswapPublic', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const keystore = {
+            'app_id': this.uid,
+            'session_id': this.login,
+            'server_public_key': this.apiKey,
+            'session_private_key': this.password,
+        };
         // Construct the base URL
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         if (api === 'fswapPrivate' || api === 'ccxtProxy') {
             this.checkRequiredCredentials ();
             const requestID = this.uuid ();
-            const jwtToken = this.signAuthenticationToken ('GET', '/me', '', requestID);
+            // const jwtToken = this.signAuthenticationToken ('GET', '/me', '', requestID);
+            // console.log ('this.signAuthenticationToken:', jwtToken);
+            const jwtToken = signAuthenticationToken ('GET', '/me', '', requestID, keystore);
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + jwtToken,
@@ -1879,9 +1861,6 @@ export default class fswap extends Exchange {
                     body = this.json (params);
                 }
             }
-            console.log ('path:', path);
-            console.log (method, 'url:', url);
-            console.log ('params:', params);
         } else {
             if (method === 'GET') {
                 if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
@@ -1896,14 +1875,14 @@ export default class fswap extends Exchange {
                         path = path.replace ('{asset_id}', params['asset_id']);
                     }
                     const requestID = this.uuid ();
-                    const jwtToken = this.signAuthenticationToken (method, '/' + path, encodedParams, requestID);
+                    // const jwtToken = this.signAuthenticationToken (method, '/' + path, encodedParams, requestID);
+                    // console.log ('this.signAuthenticationToken:', jwtToken);
+                    const jwtToken = signAuthenticationToken (method, '/' + path, encodedParams, requestID, keystore);
                     headers = {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + jwtToken,
                         'X-Request-Id': requestID,
                     };
-                    console.log ('path:', path);
-                    console.log ('encodedParams:', encodedParams);
                 } else {
                     if (Object.keys (params).length) {
                         url = url + '?' + this.urlencode (params);
@@ -1913,7 +1892,9 @@ export default class fswap extends Exchange {
                 if (api === 'mixinPrivate' || api === 'fswapPrivate' || api === 'ccxtProxy') {
                     body = this.json (params);
                     const requestID = this.uuid ();
-                    const jwtToken = this.signAuthenticationToken (method, '/' + path, params, requestID);
+                    // const jwtToken = this.signAuthenticationToken (method, '/' + path, params, requestID);
+                    // console.log ('this.signAuthenticationToken:', jwtToken);
+                    const jwtToken = signAuthenticationToken (method, '/' + path, params, requestID, keystore);
                     headers = {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + jwtToken,
@@ -1923,65 +1904,8 @@ export default class fswap extends Exchange {
                     body = this.json (params);
                 }
             }
-            console.log (method, 'url:', url);
-            console.log ('params:', params);
         }
         // Return the constructed request object
         return { url, method, body, headers };
-    }
-
-    base64RawURLEncode (raw: Buffer | Uint8Array | string): string {
-        let buf = raw;
-        if (typeof raw === 'string') {
-            buf = Buffer.from (raw);
-        } else if (raw instanceof Uint8Array) {
-            buf = Buffer.from (raw);
-        }
-        if (buf.length === 0) {
-            return '';
-        }
-        return buf.toString ('base64').replace (/=+$/, '').replace (/\+/g, '-').replace (/\//g, '_');
-    }
-
-    signToken (payload: Object, private_key: string): string {
-        const header = this.base64RawURLEncode (this.json ({ 'alg': 'EdDSA', 'typ': 'JWT' }));
-        const payloadStr = this.base64RawURLEncode (this.json (payload));
-        const message = header + '.' + payloadStr;
-        const privateKey = Buffer.from (private_key, 'hex');
-        const signData = eddsa (this.encode (message), privateKey, ed25519);
-        const sign = this.base64RawURLEncode (base64.decode (signData));
-        return header + '.' + payloadStr + '.' + sign;
-    }
-
-    signAuthenticationToken (methodRaw: string, uri: string, params = {}, requestID: string = '') {
-        const app_id = this.uid;
-        const session_id = this.login;
-        const session_private_key = this.password;
-        let method = 'GET';
-        if (methodRaw) {
-            method = methodRaw.toUpperCase ();
-        }
-        let data = '';
-        if (typeof params === 'object') {
-            data = this.json (params);
-        } else if (typeof params === 'string') {
-            data = params;
-        }
-        if (data === '{}') {
-            data = '';
-        }
-        const iat = Math.floor (Date.now () / 1000);
-        const exp = iat + 3600;
-        const sig = this.hash (new TextEncoder ().encode (method + uri + data), sha256, 'hex');
-        const payload = {
-            'uid': app_id,
-            'sid': session_id,
-            'iat': iat,
-            'exp': exp,
-            'jti': requestID,
-            'sig': sig,
-            'scp': 'FULL',
-        };
-        return this.signToken (payload, session_private_key);
     }
 }
