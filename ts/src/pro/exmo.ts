@@ -5,7 +5,7 @@ import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Dict, Strings, Tickers, Order } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -693,10 +693,13 @@ export default class exmo extends exmoRest {
         let rawOrders = [];
         if (event === 'snapshot') {
             rawOrders = this.safeValue (message, 'data', []);
+        } else if (event === 'update') {
+            const rawOrder = this.safeDict (message, 'data', {});
+            rawOrders.push (rawOrder);
         }
         const symbols: Dict = {};
         for (let j = 0; j < rawOrders.length; j++) {
-            const order = this.parseOrder (rawOrders[j]);
+            const order = this.parseWsOrder (rawOrders[j]);
             cachedOrders.append (order);
             symbols[order['symbol']] = true;
         }
@@ -707,6 +710,99 @@ export default class exmo extends exmoRest {
             client.resolve (cachedOrders, symbolSpecificMessageHash);
         }
         client.resolve (cachedOrders, messageHash);
+    }
+
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // {
+        //     order_id: '43226756791',
+        //     client_id: 0,
+        //     created: '1730371416',
+        //     type: 'market_buy',
+        //     pair: 'TRX_USD',
+        //     quantity: '0',
+        //     original_quantity: '30',
+        //     status: 'cancelled',
+        //     last_trade_id: '726480870',
+        //     last_trade_price: '0.17',
+        //     last_trade_quantity: '30'
+        // }
+        //
+        const id = this.safeString (order, 'order_id');
+        const timestamp = this.safeTimestamp (order, 'created');
+        const orderType = this.safeString (order, 'type');
+        const side = this.parseSide (orderType);
+        const marketId = this.safeString (order, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        let amount = this.safeString (order, 'quantity');
+        if (amount === undefined) {
+            const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
+            amount = this.safeString (order, amountField);
+        }
+        const price = this.safeString (order, 'price');
+        const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
+        let triggerPrice = this.safeString (order, 'stop_price');
+        if (triggerPrice === '0') {
+            triggerPrice = undefined;
+        }
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
+        let trades = undefined;
+        if ('last_trade_id' in order) {
+            const trade = this.parseWsTrade (order, market);
+            trades = [ trade ];
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'status': this.parseStatus (this.safeString (order, 'status')),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'cost': undefined,
+            'amount': this.safeString (order, 'original_quantity'),
+            'filled': undefined,
+            'remaining': this.safeString (order, 'quantity'),
+            'average': undefined,
+            'trades': trades,
+            'fee': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+        const id = this.safeString (trade, 'order_id');
+        const orderType = this.safeString (trade, 'type');
+        const side = this.parseSide (orderType);
+        const marketId = this.safeString (trade, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        let type = undefined;
+        if ((orderType !== 'buy') && (orderType !== 'sell')) {
+            type = orderType;
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'last_trade_id'),
+            'symbol': symbol,
+            'order': id,
+            'type': type,
+            'side': side,
+            'price': this.safeString (trade, 'last_trade_price'),
+            'amount': this.safeString (trade, 'last_trade_quantity'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     handleMessage (client: Client, message) {
