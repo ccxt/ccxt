@@ -2,7 +2,7 @@ import assert from 'assert';
 import ccxt from '../../../../ccxt.js';
 
 
-async function sleep (seconds) {
+async function sleep (seconds: number) {
     return new Promise ((resolve) => setTimeout (resolve, seconds * 1000));
 }
 
