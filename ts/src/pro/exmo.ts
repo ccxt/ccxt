@@ -20,7 +20,7 @@ export default class exmo extends exmoRest {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
-                'watchOrders': false, // TODO
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': false,
             },
