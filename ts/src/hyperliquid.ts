@@ -802,7 +802,13 @@ export default class hyperliquid extends Exchange {
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         const useTail = (since === undefined);
         if (since === undefined) {
-            since = 0;
+            if (limit !== undefined) {
+                // optimization if limit is provided
+                const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 60 * 1000;
+                since = this.sum (until, timeframeInMilliseconds * limit * -1);
+            } else {
+                since = 0;
+            }
         }
         params = this.omit (params, [ 'until' ]);
         const request: Dict = {
