@@ -1579,6 +1579,246 @@ export default class fswap extends Exchange {
         return fees;
     }
 
+    async withdrawSameAsset (code: string, amount: number, address: string, assetId: string, feeAmount: string, tag = undefined, params = {}): Promise<Transaction> {
+        console.log ('Same chain, one asset');
+        // Same chain, one asset
+        const safeOutputsResp = await this.mixinPrivateGetSafeOutputs (this.extend ({
+            'asset': assetId,
+            'state': 'unspent',
+        }, params));
+        const outputs = this.safeValue (safeOutputsResp, 'data', []);
+        if (outputs.length === 0) {
+            throw new Error ('No unspent outputs found for ' + code);
+        }
+        const feeRecipient = this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount);
+        const recipients = [
+            {
+                'amount': amount.toString (),
+                'destination': address,
+            },
+            feeRecipient,
+        ];
+        console.log ('recipients:', recipients);
+        const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
+        console.log ('utxos:', utxos);
+        console.log ('change:', change);
+        if (!change.isZero () && !change.isNegative ()) {
+            recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
+        }
+        console.log ('recipients:', recipients);
+        const recipientDetails = [];
+        let index = 1;
+        for (let i = 0; i < recipients.length; i++) {
+            const r = recipients[i];
+            const receivers = this.safeValue (r, 'members');
+            if (receivers) {
+                const hint = this.uuid ();
+                recipientDetails.push ({
+                    'hint': hint,
+                    'receivers': receivers,
+                    'index': index,
+                });
+                index = index + 1;
+            }
+        }
+        console.log ('recipientDetails:', recipientDetails);
+        const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
+        console.log ('ghostsResp:', ghostsResp);
+        const ghosts = this.safeValue (ghostsResp, 'data', {});
+        const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+        const encodedTx = this.mixinEncodeSafeTransaction (tx);
+        const resp = await this.safeTransferWithTx (encodedTx, tx);
+        return resp;
+    }
+
+    async withdrawDifferentAsset (code: string, amount: number, address: string, assetId: string, feeAssetId: string, feeAmount: string, tag = undefined, params = {}): Promise<Transaction> {
+        console.log ('Different chain, two assets');
+        // Different chain, two assets
+        const safeOutputsResp = await this.mixinPrivateGetSafeOutputs (this.extend ({
+            'asset': assetId,
+            'state': 'unspent',
+        }, params));
+        const feeOutputsResp = await this.mixinPrivateGetSafeOutputs (this.extend ({
+            'asset': feeAssetId,
+            'state': 'unspent',
+        }, params));
+        const outputs = this.safeValue (safeOutputsResp, 'data', []);
+        const feeOutputs = this.safeValue (feeOutputsResp, 'data', []);
+        if (outputs.length === 0) {
+            throw new Error ('No unspent outputs found for ' + code);
+        }
+        if (feeOutputs.length === 0) {
+            throw new Error ('No unspent outputs found for fee asset ' + feeAssetId);
+        }
+        console.log ('outputs:', outputs);
+        console.log ('feeOutputs:', feeOutputs);
+        const recipients = [
+            {
+                'amount': amount.toString (),
+                'destination': address,
+            },
+        ];
+        const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
+        if (!change.isZero () && !change.isNegative ()) {
+            const changeRecipient = this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ());
+            const changeRecipientWithDefault = {
+                'amount': changeRecipient.amount,
+                'destination': 'default',
+            };
+            recipients.push (changeRecipientWithDefault);
+        }
+        const recipientDetails = [];
+        let index = 1;
+        for (let i = 0; i < recipients.length; i++) {
+            const r = recipients[i];
+            const receivers = this.safeValue (r, 'members');
+            if (receivers) {
+                const hint = this.uuid ();
+                recipientDetails.push ({
+                    'hint': hint,
+                    'receivers': receivers,
+                    'index': index,
+                });
+                index = index + 1;
+            }
+        }
+        console.log ('recipientDetails:', recipientDetails);
+        const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
+        // spare the 0 inedx for withdrawal output, withdrawal output doesnt need ghost key
+        const ghosts = this.safeValue (ghostsResp, 'data', {});
+        console.log ('ghosts:', ghosts);
+        const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
+        const raw = this.mixinEncodeSafeTransaction (tx);
+        const ref = this.mixinBlake3Hash (raw);
+        // fee
+        const feeRecipients = [
+            this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
+        ];
+        const { 'utxos': feeUtxos, 'change': feeChange } = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
+        if (!feeChange.isZero () && !feeChange.isNegative ()) {
+            // add fee change output if needed
+            feeRecipients.push (this.mixinBuildSafeTransactionRecipient (feeOutputs[0].receivers, feeOutputs[0].receivers_threshold, feeChange.toString ()));
+        }
+        const feeRecipientDetails = [];
+        for (let i = 0; i < feeRecipients.length; i++) {
+            const r = feeRecipients[i];
+            const receivers = this.safeValue (r, 'members');
+            feeRecipientDetails.push ({
+                'hint': this.uuid (),
+                'receivers': receivers,
+                'index': i,
+            });
+        }
+        const feeGhostsResp = await this.mixinPrivatePostSafeKeys (feeRecipientDetails);
+        const feeGhosts = this.safeValue (feeGhostsResp, 'data', {});
+        console.log ('feeGhosts:', feeGhosts);
+        const feeTx = this.mixinBuildSafeTransaction (feeUtxos, feeRecipients, feeGhosts, 'withdrawal-fee-memo', [ ref ]);
+        const feeRaw = this.mixinEncodeSafeTransaction (feeTx);
+        console.log ('feeRaw:', feeRaw);
+        const txId = this.uuid ();
+        const feeId = this.uuid ();
+        const txsResp = await this.mixinPrivatePostSafeTransactionRequests ([
+            {
+                'raw': raw,
+                'request_id': txId,
+            },
+            {
+                'raw': feeRaw,
+                'request_id': feeId,
+            },
+        ]);
+        console.log ('txsResp:', txsResp);
+        const txs = this.safeValue (txsResp, 'data', []);
+        const txViews = this.safeValue (txs[0], 'views');
+        const feeViews = this.safeValue (txs[1], 'views');
+        if (!txViews) {
+            throw new Error ('Unable to find views for tx');
+        }
+        if (!feeViews) {
+            throw new Error ('Unable to find views for fee tx');
+        }
+        const signedRaw = this.mixinSignSafeTransaction (tx, txViews, this.privateKey);
+        const signedFeeRaw = this.mixinSignSafeTransaction (feeTx, feeViews, this.privateKey);
+        const res = await this.mixinPrivatePostSafeTransactions ([
+            {
+                'raw': signedRaw,
+                'request_id': txId,
+            },
+            {
+                'raw': signedFeeRaw,
+                'request_id': feeId,
+            },
+        ]);
+        console.log (res);
+        // {
+        //     data: [
+        //       {
+        //         type: 'kernel_transaction_request',
+        //         request_id: 'd98c01c0-4501-406c-aaf3-1879cc89aa12',
+        //         transaction_hash: '41b193228bf97e60d56ce42e1bc6421c930cb42afc544134d88c41a07833f371',
+        //         asset: '74b82acde4d113fc0340f201054f5eafb82f5d325c9f2e9ad2ccb6c1e7750a96',
+        //         amount: '1',
+        //         extra: '7769746864726177616c2d6d656d6f',
+        //         state: 'signed',
+        //         raw_transaction: '7777000574b82acde4d113fc0340f201054f5eafb82f5d325c9f2e9ad2ccb6c1e7750a9600011d9936c9e52681f597eb6aa73afb927eca0fa924b3b5b4ffbb1c2eeb572710720000000000000000000200a1000405f5e1000000000000000000000000000000000000000000000000000000000000000000000000007777000c6f6b62746f7468656d6f6f6e00000000000417d784000001b88b49159081276396bbfc56071c280c9f7f7c95550b659f2421e4d82f057d47376cc81b695ad1eb5ecd17bb5428bc0403df3508bd6027069e10aa378c71d4a40003fffe01000000000000000f7769746864726177616c2d6d656d6f0001000100002ede5dae1165f3a3a1389eac9c2e8828fed23c004d390c28013851a6a84f326f724ce409ed730a1b4eb1c47d22e8711c149ef4e3a2fea15872319c2235d4050d',
+        //         created_at: '2024-10-31T06:30:01.132406893Z',
+        //         updated_at: '0001-01-01T00:00:00Z',
+        //         snapshot_hash: '',
+        //         snapshot_at: '0001-01-01T00:00:00Z',
+        //         snapshot_id: 'aadb70cd-5ed3-3f10-bcc1-bff91297dc0f',
+        //         senders_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
+        //         senders_threshold: '1',
+        //         senders: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
+        //         signers: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
+        //         receivers: [
+        //           null,
+        //           {
+        //             members: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
+        //             members_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
+        //             threshold: '1',
+        //             destination: '',
+        //             tag: '',
+        //             withdrawal_hash: ''
+        //           }
+        //         ],
+        //         user_id: '51186d7e-d488-417d-a031-b4e34f4fdf86'
+        //       },
+        //       {
+        //         type: 'kernel_transaction_request',
+        //         request_id: 'e52d93a5-e978-444a-9dd3-c0be641ef23a',
+        //         transaction_hash: '6d4c2a391d287b0b828b8b92f3722b513e06a92adbc9abfef3131198adfd6d50',
+        //         asset: '6ac4cbffda9952e7f0d924e4cfb6beb29d21854ac00bfbf749f086302d0f7e5d',
+        //         amount: '1',
+        //         extra: '7769746864726177616c2d6665652d6d656d6f',
+        //         state: 'signed',
+        //         raw_transaction: '777700056ac4cbffda9952e7f0d924e4cfb6beb29d21854ac00bfbf749f086302d0f7e5d0001d557cda66adda2ea344546fe0bcbb197f4804fa40a2a71acbcb924eb3966396f000000000000000000010000000405f5e10000018e1f1bf0175a656a92f503d57cf35f92ed8d169b2d1c1dca8fe8d158563421e809a40638e47a46f25c39c8b5afabadadce7f2484bdca0790514c2ad7054ea1a60003fffe010000000141b193228bf97e60d56ce42e1bc6421c930cb42afc544134d88c41a07833f371000000137769746864726177616c2d6665652d6d656d6f000100010000e6ef34bf52e907d673fd077a6d92733ca8e5afaa0adf83c1f937bd1a0e3fe5c6ff125bd2fa7998e80e0774597cadea919f3242b87b18611294587c4cae0e4602',
+        //         created_at: '2024-10-31T06:30:01.136573994Z',
+        //         updated_at: '0001-01-01T00:00:00Z',
+        //         snapshot_hash: '',
+        //         snapshot_at: '0001-01-01T00:00:00Z',
+        //         snapshot_id: 'b27e5ee8-5b39-3cee-9744-06b9bc90eb51',
+        //         senders_hash: '5aef036cc6ac530369c113f8fa2ffbeab6889bc0caeb19de0561f8375375afe5',
+        //         senders_threshold: '1',
+        //         senders: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
+        //         signers: [ '51186d7e-d488-417d-a031-b4e34f4fdf86' ],
+        //         receivers: [
+        //           {
+        //             members: [ '674d6776-d600-4346-af46-58e77d8df185' ],
+        //             members_hash: '18f8af01630ac1736c7d1103de8e4eec697101f982d53dab692474a6d4ea10cf',
+        //             threshold: '1',
+        //             destination: '',
+        //             tag: '',
+        //             withdrawal_hash: ''
+        //           }
+        //         ],
+        //         user_id: '51186d7e-d488-417d-a031-b4e34f4fdf86'
+        //       }
+        //     ]
+        //   }
+          
+        return res;
+    }
+
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         const assetId = this.mapSymbolToAssetId (code);
         const feesResp = await this.mixinPrivateGetSafeAssetsAssetIdFees ({
@@ -1595,141 +1835,10 @@ export default class fswap extends Exchange {
             throw new Error ('Unable to find fee amount or fee asset id');
         }
         if (feeAssetId === assetId) {
-            // Same chain, one asset
-            const safeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
-                'asset_id': assetId,
-                'state': 'unspent',
-            });
-            const outputs = this.safeValue (safeOutputsResp, 'data', []);
-            if (outputs.length === 0) {
-                throw new Error ('No unspent outputs found for ' + code);
-            }
-            const recipients = [
-                {
-                    'amount': amount.toString (),
-                    'destination': address,
-                },
-                this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
-            ];
-            const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
-            if (!change.isZero () && !change.isNegative ()) {
-                recipients.push (this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ()));
-            }
-            const recipientDetails = [];
-            for (let i = 0; i < recipients.length; i++) {
-                const r = recipients[i];
-                const receivers = this.safeValue (r, 'members');
-                recipientDetails.push ({
-                    'hint': this.uuid (),
-                    'receivers': receivers,
-                    'index': i,
-                });
-            }
-            const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
-            const ghosts = this.safeValue (ghostsResp, 'data', {});
-            const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
-            const encodedTx = this.mixinEncodeSafeTransaction (tx);
-            const resp = await this.safeTransferWithTx (encodedTx, tx);
-            return resp;
+            return await this.withdrawSameAsset (code, amount, address, assetId, feeAmount, tag, params);
         } else {
-            // Different chain, two assets
-            const safeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
-                'asset_id': assetId,
-                'state': 'unspent',
-            });
-            const feeOutputsResp = await this.mixinPrivateGetSafeOutputs ({
-                'asset_id': feeAssetId,
-                'state': 'unspent',
-            });
-            const outputs = this.safeValue (safeOutputsResp, 'data', []);
-            const feeOutputs = this.safeValue (feeOutputsResp, 'data', []);
-            if (outputs.length === 0) {
-                throw new Error ('No unspent outputs found for ' + code);
-            }
-            if (feeOutputs.length === 0) {
-                throw new Error ('No unspent outputs found for fee asset ' + feeAssetId);
-            }
-            const recipients = [
-                {
-                    'amount': amount.toString (),
-                    'destination': address,
-                },
-            ];
-            const { utxos, change } = this.mixinGetUnspentOutputsForRecipients (outputs, recipients);
-            if (!change.isZero () && !change.isNegative ()) {
-                const changeRecipient = this.mixinBuildSafeTransactionRecipient (outputs[0].receivers, outputs[0].receivers_threshold, change.toString ());
-                // Destination added here as a placeholder to avoid ts error
-                recipients.push ({
-                    ...changeRecipient,
-                    'destination': 'default',
-                });
-            }
-            const recipientDetails = [];
-            for (let i = 0; i < recipients.length; i++) {
-                const r = recipients[i];
-                const receivers = this.safeValue (r, 'members');
-                recipientDetails.push ({
-                    'hint': this.uuid (),
-                    'receivers': receivers,
-                    'index': i,
-                });
-            }
-            const ghostsResp = await this.mixinPrivatePostSafeKeys (recipientDetails);
-            // spare the 0 inedx for withdrawal output, withdrawal output doesnt need ghost key
-            const ghosts = this.safeValue (ghostsResp, 'data', {});
-            const tx = this.mixinBuildSafeTransaction (utxos, recipients, [ undefined, ...ghosts ], 'withdrawal-memo');
-            const raw = this.mixinEncodeSafeTransaction (tx);
-            const ref = this.mixinBlake3Hash (raw);
-            // fee
-            const feeRecipients = [
-                this.mixinBuildSafeTransactionRecipient ([ this.options.MixinWithdrawalCashier ], 1, feeAmount),
-            ];
-            const { 'utxos': feeUtxos, 'change': feeChange } = this.mixinGetUnspentOutputsForRecipients (feeOutputs, feeRecipients);
-            if (!feeChange.isZero () && !feeChange.isNegative ()) {
-                // add fee change output if needed
-                feeRecipients.push (this.mixinBuildSafeTransactionRecipient (feeOutputs[0].receivers, feeOutputs[0].receivers_threshold, feeChange.toString ()));
-            }
-            const feeRecipientDetails = [];
-            for (let i = 0; i < feeRecipients.length; i++) {
-                const r = feeRecipients[i];
-                const receivers = this.safeValue (r, 'members');
-                feeRecipientDetails.push ({
-                    'hint': this.uuid (),
-                    'receivers': receivers,
-                    'index': i,
-                });
-            }
-            const feeGhostsResp = await this.mixinPrivatePostSafeKeys (feeRecipientDetails);
-            const feeGhosts = this.safeValue (feeGhostsResp, 'data', {});
-            const feeTx = this.mixinBuildSafeTransaction (feeUtxos, feeRecipients, feeGhosts, 'withdrawal-fee-memo', [ ref ]);
-            const feeRaw = this.mixinEncodeSafeTransaction (feeTx);
-            const txId = this.uuid ();
-            const feeId = this.uuid ();
-            const txs = await this.mixinPrivatePostSafeTransactionRequests ([
-                {
-                    'raw': raw,
-                    'request_id': txId,
-                },
-                {
-                    'raw': feeRaw,
-                    'request_id': feeId,
-                },
-            ]);
-            const signedRaw = this.mixinSignSafeTransaction (tx, txs[0].views, this.privateKey);
-            const signedFeeRaw = this.mixinSignSafeTransaction (feeTx, txs[1].views, this.privateKey);
-            const res = await this.mixinPrivatePostSafeTransactions ([
-                {
-                    'raw': signedRaw,
-                    'request_id': txId,
-                },
-                {
-                    'raw': signedFeeRaw,
-                    'request_id': feeId,
-                },
-            ]);
-            console.log (res);
+            return await this.withdrawDifferentAsset (code, amount, address, assetId, feeAssetId, feeAmount, tag, params);
         }
-        return undefined;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
