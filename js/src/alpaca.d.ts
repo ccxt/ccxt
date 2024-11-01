@@ -23,6 +23,7 @@ export default class alpaca extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     parseTimeInForce(timeInForce: Str): string;
+    fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;

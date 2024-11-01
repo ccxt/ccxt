@@ -770,9 +770,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until', self.milliseconds())
-        useTail = (since is None)
+        useTail = since is None
+        originalSince = since
         if since is None:
-            since = 0
+            if limit is not None:
+                # optimization if limit is provided
+                timeframeInMilliseconds = self.parse_timeframe(timeframe) * 1000
+                since = self.sum(until, timeframeInMilliseconds * limit * -1)
+                useTail = False
+            else:
+                since = 0
         params = self.omit(params, ['until'])
         request: dict = {
             'type': 'candleSnapshot',
@@ -800,7 +807,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit, useTail)
+        return self.parse_ohlcvs(response, market, timeframe, originalSince, limit, useTail)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #

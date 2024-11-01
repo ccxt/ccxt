@@ -74,7 +74,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchL1OrderBook': True,
                 'fetchL2OrderBook': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
@@ -1014,7 +1014,54 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all trades made by the user
+        :see: https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        self.load_markets()
+        market = None
+        request: dict = {
+            'activity_type': 'FILL',
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        request, params = self.handle_until_option('until', request, params)
+        response = self.traderPrivateGetV2AccountActivitiesActivityType(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        #             "activity_type": "FILL",
+        #             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        #             "type": "fill",
+        #             "price": "67.31",
+        #             "qty": "0.07",
+        #             "side": "sell",
+        #             "symbol": "LTC/USD",
+        #             "leaves_qty": "0",
+        #             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        #             "cum_qty": "0.07",
+        #             "order_status": "filled",
+        #             "swap_rate": "1"
+        #         },
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
+
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # fetchTrades
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",
@@ -1025,25 +1072,43 @@ class alpaca(Exchange, ImplicitAPI):
         #       "i":"355681339"
         #   }
         #
-        marketId = self.safe_string(trade, 'S')
+        # fetchMyTrades
+        #
+        #     {
+        #         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        #         "activity_type": "FILL",
+        #         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        #         "type": "fill",
+        #         "price": "67.31",
+        #         "qty": "0.07",
+        #         "side": "sell",
+        #         "symbol": "LTC/USD",
+        #         "leaves_qty": "0",
+        #         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        #         "cum_qty": "0.07",
+        #         "order_status": "filled",
+        #         "swap_rate": "1"
+        #     },
+        #
+        marketId = self.safe_string_2(trade, 'S', 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        datetime = self.safe_string(trade, 't')
+        datetime = self.safe_string_2(trade, 't', 'transaction_time')
         timestamp = self.parse8601(datetime)
         alpacaSide = self.safe_string(trade, 'tks')
-        side: str
+        side = self.safe_string(trade, 'side')
         if alpacaSide == 'B':
             side = 'buy'
         elif alpacaSide == 'S':
             side = 'sell'
-        priceString = self.safe_string(trade, 'p')
-        amountString = self.safe_string(trade, 's')
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 's', 'qty')
         return self.safe_trade({
             'info': trade,
-            'id': self.safe_string(trade, 'i'),
+            'id': self.safe_string_2(trade, 'i', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'order': self.safe_string(trade, 'order_id'),
             'type': None,
             'side': side,
             'takerOrMaker': 'taker',

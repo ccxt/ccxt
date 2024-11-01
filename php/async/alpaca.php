@@ -68,7 +68,7 @@ class alpaca extends Exchange {
                 'fetchL1OrderBook' => true,
                 'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
-                'fetchMyTrades' => false,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
@@ -1068,7 +1068,60 @@ class alpaca extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch trades for
+             * @param {int} [$limit] the maximum number of trade structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] the latest time in ms to fetch trades for
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'activity_type' => 'FILL',
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            if ($since !== null) {
+                $request['after'] = $since;
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            list($request, $params) = $this->handle_until_option('until', $request, $params);
+            $response = Async\await($this->traderPrivateGetV2AccountActivitiesActivityType ($this->extend($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+            //             "activity_type" => "FILL",
+            //             "transaction_time" => "2022-12-28T12:19:29.579352Z",
+            //             "type" => "fill",
+            //             "price" => "67.31",
+            //             "qty" => "0.07",
+            //             "side" => "sell",
+            //             "symbol" => "LTC/USD",
+            //             "leaves_qty" => "0",
+            //             "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+            //             "cum_qty" => "0.07",
+            //             "order_status" => "filled",
+            //             "swap_rate" => "1"
+            //         ),
+            //     )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        // fetchTrades
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1079,25 +1132,44 @@ class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        $marketId = $this->safe_string($trade, 'S');
+        // fetchMyTrades
+        //
+        //     array(
+        //         "id" => "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type" => "FILL",
+        //         "transaction_time" => "2022-12-28T12:19:29.579352Z",
+        //         "type" => "fill",
+        //         "price" => "67.31",
+        //         "qty" => "0.07",
+        //         "side" => "sell",
+        //         "symbol" => "LTC/USD",
+        //         "leaves_qty" => "0",
+        //         "order_id" => "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty" => "0.07",
+        //         "order_status" => "filled",
+        //         "swap_rate" => "1"
+        //     ),
+        //
+        $marketId = $this->safe_string_2($trade, 'S', 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $datetime = $this->safe_string($trade, 't');
+        $datetime = $this->safe_string_2($trade, 't', 'transaction_time');
         $timestamp = $this->parse8601($datetime);
         $alpacaSide = $this->safe_string($trade, 'tks');
+        $side = $this->safe_string($trade, 'side');
         if ($alpacaSide === 'B') {
             $side = 'buy';
         } elseif ($alpacaSide === 'S') {
             $side = 'sell';
         }
-        $priceString = $this->safe_string($trade, 'p');
-        $amountString = $this->safe_string($trade, 's');
+        $priceString = $this->safe_string_2($trade, 'p', 'price');
+        $amountString = $this->safe_string_2($trade, 's', 'qty');
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $this->safe_string($trade, 'i'),
+            'id' => $this->safe_string_2($trade, 'i', 'id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $symbol,
-            'order' => null,
+            'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $side,
             'takerOrMaker' => 'taker',

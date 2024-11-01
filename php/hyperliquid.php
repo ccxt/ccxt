@@ -777,9 +777,17 @@ class hyperliquid extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $useTail = ($since === null);
+        $useTail = $since === null;
+        $originalSince = $since;
         if ($since === null) {
-            $since = 0;
+            if ($limit !== null) {
+                // optimization if $limit is provided
+                $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+                $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                $useTail = false;
+            } else {
+                $since = 0;
+            }
         }
         $params = $this->omit($params, array( 'until' ));
         $request = array(
@@ -808,7 +816,7 @@ class hyperliquid extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit, $useTail);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $originalSince, $limit, $useTail);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {

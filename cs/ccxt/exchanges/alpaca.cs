@@ -57,7 +57,7 @@ public partial class alpaca : Exchange
                 { "fetchL1OrderBook", true },
                 { "fetchL2OrderBook", false },
                 { "fetchMarkets", true },
-                { "fetchMyTrades", false },
+                { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
@@ -1007,8 +1007,68 @@ public partial class alpaca : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchMyTrades
+        * @description fetch all trades made by the user
+        * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch trades for
+        * @param {int} [limit] the maximum number of trade structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
+        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object request = new Dictionary<string, object>() {
+            { "activity_type", "FILL" },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["after"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit);
+    }
+
     public override object parseTrade(object trade, object market = null)
     {
+        //
+        // fetchTrades
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1019,12 +1079,30 @@ public partial class alpaca : Exchange
         //       "i":"355681339"
         //   }
         //
-        object marketId = this.safeString(trade, "S");
+        // fetchMyTrades
+        //
+        //     {
+        //         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type": "FILL",
+        //         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //         "type": "fill",
+        //         "price": "67.31",
+        //         "qty": "0.07",
+        //         "side": "sell",
+        //         "symbol": "LTC/USD",
+        //         "leaves_qty": "0",
+        //         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty": "0.07",
+        //         "order_status": "filled",
+        //         "swap_rate": "1"
+        //     },
+        //
+        object marketId = this.safeString2(trade, "S", "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object datetime = this.safeString(trade, "t");
+        object datetime = this.safeString2(trade, "t", "transaction_time");
         object timestamp = this.parse8601(datetime);
         object alpacaSide = this.safeString(trade, "tks");
-        object side = null;
+        object side = this.safeString(trade, "side");
         if (isTrue(isEqual(alpacaSide, "B")))
         {
             side = "buy";
@@ -1032,15 +1110,15 @@ public partial class alpaca : Exchange
         {
             side = "sell";
         }
-        object priceString = this.safeString(trade, "p");
-        object amountString = this.safeString(trade, "s");
+        object priceString = this.safeString2(trade, "p", "price");
+        object amountString = this.safeString2(trade, "s", "qty");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
-            { "id", this.safeString(trade, "i") },
+            { "id", this.safeString2(trade, "i", "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
-            { "order", null },
+            { "order", this.safeString(trade, "order_id") },
             { "type", null },
             { "side", side },
             { "takerOrMaker", "taker" },
