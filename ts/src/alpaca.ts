@@ -65,7 +65,7 @@ export default class alpaca extends Exchange {
                 'fetchL1OrderBook': true,
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -1065,7 +1065,60 @@ export default class alpaca extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let request: Dict = {
+            'activity_type': 'FILL',
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('until', request, params);
+        const response = await this.traderPrivateGetV2AccountActivitiesActivityType (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1076,26 +1129,44 @@ export default class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        const marketId = this.safeString (trade, 'S');
+        // fetchMyTrades
+        //
+        //     {
+        //         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type": "FILL",
+        //         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //         "type": "fill",
+        //         "price": "67.31",
+        //         "qty": "0.07",
+        //         "side": "sell",
+        //         "symbol": "LTC/USD",
+        //         "leaves_qty": "0",
+        //         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty": "0.07",
+        //         "order_status": "filled",
+        //         "swap_rate": "1"
+        //     },
+        //
+        const marketId = this.safeString2 (trade, 'S', 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const datetime = this.safeString (trade, 't');
+        const datetime = this.safeString2 (trade, 't', 'transaction_time');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');
-        let side: string;
+        let side = this.safeString (trade, 'side');
         if (alpacaSide === 'B') {
             side = 'buy';
         } else if (alpacaSide === 'S') {
             side = 'sell';
         }
-        const priceString = this.safeString (trade, 'p');
-        const amountString = this.safeString (trade, 's');
+        const priceString = this.safeString2 (trade, 'p', 'price');
+        const amountString = this.safeString2 (trade, 's', 'qty');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'i'),
+            'id': this.safeString2 (trade, 'i', 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': this.safeString (trade, 'order_id'),
             'type': undefined,
             'side': side,
             'takerOrMaker': 'taker',
