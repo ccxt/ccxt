@@ -186,6 +186,18 @@
                     "LTC/USDT"
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot fetch my trades with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api.alpaca.markets/v2/account/activities/FILL?page_size=3",
+                "input": [
+                  "LTC/USD",
+                  null,
+                  3
+                ]
+            }
         ]
     }
 }
