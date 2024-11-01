@@ -804,7 +804,7 @@ export default class hyperliquid extends Exchange {
         if (since === undefined) {
             if (limit !== undefined) {
                 // optimization if limit is provided
-                const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 60 * 1000;
+                const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
                 since = this.sum (until, timeframeInMilliseconds * limit * -1);
             } else {
                 since = 0;
