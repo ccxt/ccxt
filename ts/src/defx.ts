@@ -1515,6 +1515,121 @@ export default class defx extends Exchange {
         return this.parseOrder (data);
     }
 
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name defx#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbols'] = market['id'];
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end'] = this.iso8601 (until);
+        }
+        if (since !== undefined) {
+            request['start'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.v1PrivateGetApiOrders (this.extend (request, params));
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "orderId": "746472647227344528",
+        //             "createdAt": "2024-10-25T16:49:31.077Z",
+        //             "updatedAt": "2024-10-25T16:49:31.378Z",
+        //             "clientOrderId": "0192c495-49c3-71ee-b3d3-7442a2090807",
+        //             "reduceOnly": false,
+        //             "side": "SELL",
+        //             "status": "FILLED",
+        //             "symbol": "SOL_USDC",
+        //             "timeInForce": "GTC",
+        //             "type": "MARKET",
+        //             "origQty": "0.80",
+        //             "executedQty": "0.80",
+        //             "cumulativeQuote": "137.87440000",
+        //             "avgPrice": "172.34300000",
+        //             "totalPnL": "0.00000000",
+        //             "totalFee": "0.07583092",
+        //             "workingType": null,
+        //             "postOnly": false,
+        //             "linkedOrderParentType": null,
+        //             "isTriggered": false,
+        //             "slippagePercentage": 5
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOrders (data, undefined, since, limit);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name defx#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['statuses'] = 'OPEN';
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name defx#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['statuses'] = 'FILLED';
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name defx#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['statuses'] = 'CANCELED';
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
     nonce () {
         return this.milliseconds ();
     }

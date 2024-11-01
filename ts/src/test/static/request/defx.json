@@ -183,6 +183,46 @@
                     }
                 ]
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api.defx.com/v1/auth/api/orders?symbols=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.defx.com/v1/auth/api/orders?statuses=OPEN&symbols=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.defx.com/v1/auth/api/orders?statuses=FILLED&symbols=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.defx.com/v1/auth/api/orders?statuses=CANCELED&symbols=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
         ]
     }
 }
