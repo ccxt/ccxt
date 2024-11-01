@@ -1054,12 +1054,14 @@ export default class valr extends Exchange {
          * @method
          * @name valr#fetchOpenOrders
          * @description fetches information on all closed order made by the user
-         * @see https://docs.valr.com/#0d7cc0ff-b8ca-4e1f-980e-36d07672e53d
+         * @see https://docs.valr.com/#5f0ef16a-4f9d-40f3-bcdf-b1a63a0b42a4
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.skip] number of items to skip to skip from list
+         * @param {object} [params.skip] number of items to skip from list
+         * @param {object} [params.endTime] Include only records before this ISO 8601 end time
+         * @param {object} [params.statuses]  Include only orders that have this status. Comma-seperated list
          * @returns {object} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const query = {};
@@ -1068,6 +1070,9 @@ export default class valr extends Exchange {
         }
         if (limit !== undefined) {
             query['limit'] = limit;
+        }
+        if (symbol !== undefined) {
+            query['currencyPair'] = this.marketId (symbol);
         }
         await this.loadMarkets ();
         const response = await this.privateGetOrdersHistory (this.extend (query, params));
