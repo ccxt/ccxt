@@ -536,7 +536,7 @@ export default class bitfinex2 extends Exchange {
         spotMarketsInfo = this.safeList (spotMarketsInfo, 0, []);
         futuresMarketsInfo = this.safeList (futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat (spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue (marginIds, 0, []);
+        marginIds = this.safeList (marginIds, 0, []);
         //
         //    [
         //        "1INCH:USD",
@@ -560,7 +560,7 @@ export default class bitfinex2 extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const pair = markets[i];
             const id = this.safeStringUpper (pair, 0);
-            const market = this.safeValue (pair, 1, {});
+            const market = this.safeDict (pair, 1, {});
             let spot = true;
             if (id.indexOf ('F0') >= 0) {
                 spot = false;
@@ -755,15 +755,15 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const indexed: Dict = {
-            'sym': this.indexBy (this.safeValue (response, 1, []), 0),
-            'label': this.indexBy (this.safeValue (response, 2, []), 0),
-            'unit': this.indexBy (this.safeValue (response, 3, []), 0),
-            'undl': this.indexBy (this.safeValue (response, 4, []), 0),
-            'pool': this.indexBy (this.safeValue (response, 5, []), 0),
-            'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
-            'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+            'sym': this.indexBy (this.safeList (response, 1, []), 0),
+            'label': this.indexBy (this.safeList (response, 2, []), 0),
+            'unit': this.indexBy (this.safeList (response, 3, []), 0),
+            'undl': this.indexBy (this.safeList (response, 4, []), 0),
+            'pool': this.indexBy (this.safeList (response, 5, []), 0),
+            'explorer': this.indexBy (this.safeList (response, 6, []), 0),
+            'fees': this.indexBy (this.safeList (response, 7, []), 0),
         };
-        const ids = this.safeValue (response, 0, []);
+        const ids = this.safeList (response, 0, []);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -772,15 +772,15 @@ export default class bitfinex2 extends Exchange {
                 continue;
             }
             const code = this.safeCurrencyCode (id);
-            const label = this.safeValue (indexed['label'], id, []);
+            const label = this.safeList (indexed['label'], id, []);
             const name = this.safeString (label, 1);
-            const pool = this.safeValue (indexed['pool'], id, []);
+            const pool = this.safeList (indexed['pool'], id, []);
             const rawType = this.safeString (pool, 1);
             const type = (rawType === undefined) ? 'other' : 'crypto';
-            const feeValues = this.safeValue (indexed['fees'], id, []);
-            const fees = this.safeValue (feeValues, 1, []);
+            const feeValues = this.safeList (indexed['fees'], id, []);
+            const fees = this.safeList (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
-            const undl = this.safeValue (indexed['undl'], id, []);
+            const undl = this.safeList (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
             result[code] = {
@@ -808,12 +808,12 @@ export default class bitfinex2 extends Exchange {
                 'networks': {},
             };
             const networks: Dict = {};
-            const currencyNetworks = this.safeValue (response, 8, []);
+            const currencyNetworks = this.safeList (response, 8, []);
             const cleanId = id.replace ('F0', '');
             for (let j = 0; j < currencyNetworks.length; j++) {
                 const pair = currencyNetworks[j];
                 const networkId = this.safeString (pair, 0);
-                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
+                const currencyId = this.safeString (this.safeList (pair, 1, []), 0);
                 if (currencyId === cleanId) {
                     const network = this.networkIdToCode (networkId);
                     networks[network] = {
@@ -855,7 +855,7 @@ export default class bitfinex2 extends Exchange {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -905,7 +905,7 @@ export default class bitfinex2 extends Exchange {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets ();
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
@@ -984,7 +984,7 @@ export default class bitfinex2 extends Exchange {
         //         "1.0 Tether USDt transfered from Exchange to Margin"
         //     ]
         //
-        const result = this.safeList (transfer, 'result');
+        const result = this.safeList (transfer, 'result', []);
         const timestamp = this.safeInteger (result, 0);
         const info = this.safeValue (result, 4);
         const fromAccount = this.safeString (info, 1);
@@ -1021,7 +1021,7 @@ export default class bitfinex2 extends Exchange {
         //   "info": [ 'USTF0', [], [], [], [ "USTF0", "UST" ] ],
         const info = this.safeValue (currency, 'info');
         const transferId = this.safeString (info, 0);
-        const underlying = this.safeValue (info, 4, []);
+        const underlying = this.safeList (info, 4, []);
         let currencyId = undefined;
         if (type === 'derivatives') {
             currencyId = this.safeString (underlying, 0, transferId);
@@ -2246,7 +2246,7 @@ export default class bitfinex2 extends Exchange {
         const currency = this.currency (code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2279,7 +2279,7 @@ export default class bitfinex2 extends Exchange {
         //         "success", // TEXT Text of the notification
         //     ]
         //
-        const result = this.safeValue (response, 4, []);
+        const result = this.safeList (response, 4, []);
         const poolAddress = this.safeString (result, 5);
         const address = (poolAddress === undefined) ? this.safeString (result, 4) : poolAddress;
         const tag = (poolAddress === undefined) ? undefined : this.safeString (result, 4);
@@ -2377,7 +2377,7 @@ export default class bitfinex2 extends Exchange {
         let network = undefined;
         let comment = undefined;
         if (transactionLength === 8) {
-            const data = this.safeValue (transaction, 4, []);
+            const data = this.safeList (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
@@ -2528,10 +2528,10 @@ export default class bitfinex2 extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const fiat = this.safeValue (this.options, 'fiat', {});
-        const feeData = this.safeValue (response, 4, []);
-        const makerData = this.safeValue (feeData, 0, []);
-        const takerData = this.safeValue (feeData, 1, []);
+        const fiat = this.safeDict (this.options, 'fiat', {});
+        const feeData = this.safeList (response, 4, []);
+        const makerData = this.safeList (feeData, 0, []);
+        const takerData = this.safeList (feeData, 1, []);
         const makerFee = this.safeNumber (makerData, 0);
         const makerFeeFiat = this.safeNumber (makerData, 2);
         const makerFeeDeriv = this.safeNumber (makerData, 5);
@@ -2642,7 +2642,7 @@ export default class bitfinex2 extends Exchange {
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString (params, 'network', code);
         params = this.omit (params, 'network');
-        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const currencyNetworks = this.safeDict (currency, 'networks', {});
         const currencyNetwork = this.safeValue (currencyNetworks, network);
         const networkId = this.safeString (currencyNetwork, 'id');
         if (networkId === undefined) {
@@ -2659,7 +2659,7 @@ export default class bitfinex2 extends Exchange {
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
         if (includeFee) {
             request['fee_deduct'] = 1;
