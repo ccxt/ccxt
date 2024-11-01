@@ -1203,6 +1203,10 @@ export default class defx extends Exchange {
         if (status !== undefined) {
             const statuses: Dict = {
                 'NEW': 'open',
+                'OPEN': 'open',
+                'CANCELLED': 'canceled',
+                'REJECTED': 'rejected',
+                'FILLED': 'closed',
             };
             return this.safeString (statuses, status, status);
         }
@@ -1212,21 +1216,27 @@ export default class defx extends Exchange {
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
-        //     "orderId": "",
-        //     "clientOrderId": "",
-        //     "cumulativeQty": "",
-        //     "cumulativeQuote": "",
-        //     "executedQty": "",
-        //     "avgPrice": "",
-        //     "origQty": "",
-        //     "price": "",
-        //     "reduceOnly": true,
-        //     "side": "",
-        //     "status": "",
-        //     "symbol": "",
-        //     "timeInForce": "",
-        //     "type": "",
-        //     "workingType": ""
+        //     "orderId": "746472647227344528",
+        //     "createdAt": "2024-10-25T16:49:31.077Z",
+        //     "updatedAt": "2024-10-25T16:49:31.378Z",
+        //     "clientOrderId": "0192c495-49c3-71ee-b3d3-7442a2090807",
+        //     "reduceOnly": false,
+        //     "side": "SELL",
+        //     "status": "FILLED",
+        //     "symbol": "SOL_USDC",
+        //     "timeInForce": "GTC",
+        //     "type": "MARKET",
+        //     "origQty": "0.80",
+        //     "executedQty": "0.80",
+        //     "cumulativeQuote": "137.87440000",
+        //     "avgPrice": "172.34300000",
+        //     "totalPnL": "0.00000000",
+        //     "totalFee": "0.07583092",
+        //     "workingType": null,
+        //     "postOnly": false,
+        //     "linkedOrderParentType": null,
+        //     "isTriggered": false,
+        //     "slippagePercentage": "5"
         // }
         //
         const orderId = this.safeString (order, 'orderId');
@@ -1251,13 +1261,15 @@ export default class defx extends Exchange {
                 stopPrice = this.safeString (order, 'stopPrice');
             }
         }
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'updatedAt'));
         return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastTradeTimestamp,
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': orderType,
@@ -1277,8 +1289,8 @@ export default class defx extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': {
-                'cost': undefined,
-                'currency': undefined,
+                'cost': this.safeString (order, 'totalFee'),
+                'currency': 'USDC',
             },
             'info': order,
         }, market);
@@ -1444,6 +1456,63 @@ export default class defx extends Exchange {
             'takeProfitPrice': undefined,
             'hedged': undefined,
         });
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://api-docs.defx.com/#44f82dd5-26b3-4e1f-b4aa-88ceddd65237
+         * @param {string} id the order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'orderId': id,
+            'idType': 'orderId',
+        };
+        const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        if (clientOrderId !== undefined) {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+            }
+            const market = this.market (symbol);
+            request['orderId'] = clientOrderId;
+            request['idType'] = 'clientOrderId';
+            request['symbol'] = market['id'];
+        }
+        const response = await this.v1PrivateGetApiOrderOrderId (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "data": {
+        //         "orderId": "555068654076559792",
+        //         "createdAt": "2024-05-08T05:45:42.148Z",
+        //         "updatedAt": "2024-05-08T05:45:42.166Z",
+        //         "clientOrderId": "dummyClientOrderId",
+        //         "reduceOnly": false,
+        //         "side": "SELL",
+        //         "status": "REJECTED",
+        //         "symbol": "BTC_USDC",
+        //         "timeInForce": "GTC",
+        //         "type": "TAKE_PROFIT_MARKET",
+        //         "origQty": "1.000",
+        //         "executedQty": "0.000",
+        //         "cumulativeQuote": "0.00",
+        //         "avgPrice": "0.00",
+        //         "stopPrice": "65000.00",
+        //         "totalPnL": "0.00",
+        //         "workingType": "MARK_PRICE",
+        //         "postOnly": false
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        return this.parseOrder (data);
     }
 
     nonce () {

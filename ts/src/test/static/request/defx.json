@@ -160,6 +160,29 @@
                     "SOL/USDC:USDC"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.defx.com/v1/auth/api/order/752101209672255152?idType=orderId",
+                "input": [
+                    "752101209672255152",
+                    "SOL/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://api.defx.com/v1/auth/api/order/0192e678-02d9-7657-96fb-fbfaa03e604d?idType=clientOrderId&symbol=SOL_USDC",
+                "input": [
+                    null,
+                    "SOL/USDC:USDC",
+                    {
+                        "clientOrderId": "0192e678-02d9-7657-96fb-fbfaa03e604d"
+                    }
+                ]
+            }
         ]
     }
 }

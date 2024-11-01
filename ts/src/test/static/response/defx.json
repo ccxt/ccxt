@@ -963,6 +963,101 @@
                     "hedged": null
                 }
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    "754353041298163336",
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "orderId": "754353041298163336",
+                        "createdAt": "2024-11-01T06:44:37.724Z",
+                        "updatedAt": "2024-11-01T06:44:38.252Z",
+                        "clientOrderId": "0192e678-02d9-7657-96fb-fbfaa03e604d",
+                        "reduceOnly": false,
+                        "side": "SELL",
+                        "status": "OPEN",
+                        "symbol": "SOL_USDC",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "origQty": "0.50",
+                        "executedQty": "0.00",
+                        "cumulativeQuote": "0.00000000",
+                        "avgPrice": "0.00000000",
+                        "price": "200.00000000",
+                        "totalPnL": "0.00000000",
+                        "workingType": null,
+                        "postOnly": false,
+                        "linkedOrderParentType": null,
+                        "isTriggered": false,
+                        "slippagePercentage": 0
+                    }
+                },
+                "parsedResponse": {
+                    "id": "754353041298163336",
+                    "clientOrderId": "0192e678-02d9-7657-96fb-fbfaa03e604d",
+                    "timestamp": 1730443477724,
+                    "datetime": "2024-11-01T06:44:37.724Z",
+                    "lastTradeTimestamp": 1730443478252,
+                    "lastUpdateTimestamp": 1730443478252,
+                    "status": "open",
+                    "symbol": "SOL/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "gtc",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 200,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.5,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "orderId": "754353041298163336",
+                        "createdAt": "2024-11-01T06:44:37.724Z",
+                        "updatedAt": "2024-11-01T06:44:38.252Z",
+                        "clientOrderId": "0192e678-02d9-7657-96fb-fbfaa03e604d",
+                        "reduceOnly": false,
+                        "side": "SELL",
+                        "status": "OPEN",
+                        "symbol": "SOL_USDC",
+                        "timeInForce": "GTC",
+                        "type": "LIMIT",
+                        "origQty": "0.50",
+                        "executedQty": "0.00",
+                        "cumulativeQuote": "0.00000000",
+                        "avgPrice": "0.00000000",
+                        "price": "200.00000000",
+                        "totalPnL": "0.00000000",
+                        "workingType": null,
+                        "postOnly": false,
+                        "linkedOrderParentType": null,
+                        "isTriggered": false,
+                        "slippagePercentage": 0
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ]
+                }
+            }
         ]
     }
 }
