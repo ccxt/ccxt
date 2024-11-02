@@ -1,7 +1,7 @@
 //
 // Usage:
 //
-// 1) add a new item in response tests:
+// add a new item in response tests:
 //
 //   npm run cli.ts xt fetchTrades BTC/USDT undefined 5 -- -- --response --name "My description"
 //
@@ -65,7 +65,8 @@ function add_static_result (requestOrResponse: string, exchangeId: string, metho
     if (spacesAmount === undefined) {
         spacesAmount = fileContent.includes('{\n    "exchange"') ? 4 : 2;
     }
-    const useJsonParsing = false;
+    // either Parse JSON or use string manipulation
+    const useJsonParsing = false; 
     if (useJsonParsing) {
         const jsonFull = JSON.parse (fileContent);
         const jsonMethods = jsonFull['methods']
@@ -79,17 +80,23 @@ function add_static_result (requestOrResponse: string, exchangeId: string, metho
         jsonFull['methods'] = Object.fromEntries(orderedMap);
         write(filePath, jsonFull, spacesAmount);
     } else {
-        // check if regex matches and if so, then append an entry to it
-        const regex = new RegExp(`    "${method}":\\s*\\[`, 'g');
-        const match = fileContent.match(regex);
-        if (match === null) {
-            throw new Error(`Method ${method} not found in ${filePath}`);
-        }
+        // stringify the new entry
         const entryString = JSON.stringify(entry, null, spacesAmount);
         // typically, method entries are at 3 levels deep, so add 3 indents
         const indentedContent = prependWhitespace(entryString, spacesAmount, 3);
-        const newContent = fileContent.replace(regex, `    "${method}": [\n${indentedContent},`);
-        writeString(filePath, newContent);
+        // check if regex matches and if so, then append an entry to it
+        const regex = new RegExp(`    "${method}":\\s*\\[`, 'g');
+        const match = fileContent.match(regex);
+        // if method exists
+        if (match !== null) {
+            const newContent = fileContent.replace(regex, `    "${method}": [\n${indentedContent},`);
+            writeString(filePath, newContent);
+        } else {
+            // inject it after "methods": { line
+            const methodsRegex = new RegExp(`  "methods":\\s*\\{`, '');
+            const newContent = fileContent.replace(methodsRegex, `  "methods": {\n    "${method}": [\n${indentedContent}\n    ],`);
+            writeString(filePath, newContent);
+        }
     }
 }
 
