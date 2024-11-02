@@ -1087,7 +1087,12 @@ export default class Exchange {
             return d
         } else {
             try {
-                return this.number (value)
+                // we should handle scientific notation here
+                // so if the exchanges returns 1e-8
+                // this function will return 0.00000001
+                // check https://github.com/ccxt/ccxt/issues/24135
+                const numberNormalized = this.numberToString(value)
+                return this.number (numberNormalized)
             } catch (e) {
                 return d
             }
