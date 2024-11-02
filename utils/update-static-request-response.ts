@@ -43,18 +43,19 @@ function die (errorMessage = undefined, code = 1) {
     process.exit(code);
 }
 
-const exchangeId = args[0];
-if (!exchangeId) {
-    die ();
-}
-
-if (!ccxt.exchanges.includes(exchangeId)) {
-    console.log('Exchange id ' + exchangeId + ' not found in exchanges.json');
-    process.exit(1);
-}
-
 
 function add_static_result (requestOrResponse: string, exchangeId: string, method: string, entry: any, spacesIndent = undefined) {
+        
+    const exchangeId = args[0];
+    if (!exchangeId) {
+        die ();
+    }
+
+    if (!ccxt.exchanges.includes(exchangeId)) {
+        console.log('Exchange id ' + exchangeId + ' not found in exchanges.json');
+        process.exit(1);
+    }
+
     if (requestOrResponse !== 'request' && requestOrResponse !== 'response') {
         throw new Error ('should be either "request" or "response"');
     }
