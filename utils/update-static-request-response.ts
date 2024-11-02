@@ -46,7 +46,6 @@ function die (errorMessage = undefined, code = 1) {
 
 function add_static_result (requestOrResponse: string, exchangeId: string, method: string, entry: any, spacesIndent = undefined) {
         
-    const exchangeId = args[0];
     if (!exchangeId) {
         die ();
     }
