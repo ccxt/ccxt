@@ -2084,7 +2084,7 @@ export default class xt extends Exchange {
             takerOrMaker = 'taker'; // public trades always taker
         } else {
             const takerMaker = this.safeStringLower (trade, 'takerMaker');
-            if (takerOrMaker !== undefined) {
+            if (takerMaker !== undefined) {
                 takerOrMaker = takerMaker;
             } else {
                 const isMaker = this.safeBool (trade, 'isMaker');
