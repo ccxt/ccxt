@@ -111,8 +111,9 @@ if { [ "$IS_TRAVIS" = "TRUE" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; } || { [
 fi
 
 # only if this is travis build, and not master commit, set ENV var to disable extra logs
-if [[ "$IS_TRAVIS" = "TRUE" ]]; then
-  DISABLE_EXTRA_BUILD_LOGS="true"
+export DISABLE_EXTRA_BUILD_LOGS=$IS_TRAVIS
+if [[ "$DISABLE_EXTRA_BUILD_LOGS" = "TRUE" ]]; then
+  echo "Disabling extra build logs"
   echo "export DISABLE_EXTRA_BUILD_LOGS=\"true\"" >> ~/.bashrc
   source ~/.bashrc
 fi
