@@ -240,6 +240,11 @@ trait ClientTrait {
         parent::close();
     }
 
+    public function clean() {
+        $this->close();
+        parent::clean();
+    }
+
     public function __destruct() {
         parent::__destruct();
         $this->close();
