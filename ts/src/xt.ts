@@ -2077,7 +2077,7 @@ export default class xt extends Exchange {
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         let side = undefined;
-        let takerOrMaker = undefined
+        let takerOrMaker = undefined;
         const isBuyerMaker = this.safeBool (trade, 'b');
         if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
