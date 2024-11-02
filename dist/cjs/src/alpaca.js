@@ -80,8 +80,8 @@ class alpaca extends alpaca$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -681,6 +681,136 @@ class alpaca extends alpaca$1 {
             this.safeNumber(ohlcv, 'c'),
             this.safeNumber(ohlcv, 'v'), // volume
         ];
+    }
+    async fetchTicker(symbol, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const tickers = await this.fetchTickers([symbol], params);
+        return this.safeDict(tickers, symbol);
+    }
+    async fetchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+         * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.loc] crypto location, default: us
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        if (symbols === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchTickers() requires a symbols argument');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const loc = this.safeString(params, 'loc', 'us');
+        const ids = this.marketIds(symbols);
+        const request = {
+            'symbols': ids.join(','),
+            'loc': loc,
+        };
+        params = this.omit(params, 'loc');
+        const response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, params));
+        //
+        //     {
+        //         "snapshots": {
+        //             "BTC/USD": {
+        //                 "dailyBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69609.6515,
+        //                     "l": 69013.26,
+        //                     "n": 9,
+        //                     "o": 69536.7,
+        //                     "t": "2024-11-01T05:00:00Z",
+        //                     "v": 0.210809181,
+        //                     "vw": 69327.655393908
+        //                 },
+        //                 "latestQuote": {
+        //                     "ap": 69424.19,
+        //                     "as": 0.68149,
+        //                     "bp": 69366.086,
+        //                     "bs": 0.68312,
+        //                     "t": "2024-11-01T08:31:41.880246926Z"
+        //                 },
+        //                 "latestTrade": {
+        //                     "i": 5272941104897543146,
+        //                     "p": 69416.9,
+        //                     "s": 0.014017324,
+        //                     "t": "2024-11-01T08:14:28.245088803Z",
+        //                     "tks": "B"
+        //                 },
+        //                 "minuteBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69403.554,
+        //                     "l": 69399.125,
+        //                     "n": 0,
+        //                     "o": 69399.125,
+        //                     "t": "2024-11-01T08:30:00Z",
+        //                     "v": 0,
+        //                     "vw": 0
+        //                 },
+        //                 "prevDailyBar": {
+        //                     "c": 69515.1415,
+        //                     "h": 72668.837,
+        //                     "l": 68796.85,
+        //                     "n": 129,
+        //                     "o": 72258.9,
+        //                     "t": "2024-10-31T05:00:00Z",
+        //                     "v": 2.217683307,
+        //                     "vw": 70782.6811608144
+        //                 }
+        //             },
+        //         }
+        //     }
+        //
+        const results = [];
+        const snapshots = this.safeDict(response, 'snapshots', {});
+        const marketIds = Object.keys(snapshots);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket(marketId);
+            const entry = this.safeDict(snapshots, marketId);
+            const dailyBar = this.safeDict(entry, 'dailyBar', {});
+            const prevDailyBar = this.safeDict(entry, 'prevDailyBar', {});
+            const latestQuote = this.safeDict(entry, 'latestQuote', {});
+            const latestTrade = this.safeDict(entry, 'latestTrade', {});
+            const datetime = this.safeString(latestQuote, 't');
+            const ticker = this.safeTicker({
+                'info': entry,
+                'symbol': market['symbol'],
+                'timestamp': this.parse8601(datetime),
+                'datetime': datetime,
+                'high': this.safeString(dailyBar, 'h'),
+                'low': this.safeString(dailyBar, 'l'),
+                'bid': this.safeString(latestQuote, 'bp'),
+                'bidVolume': this.safeString(latestQuote, 'bs'),
+                'ask': this.safeString(latestQuote, 'ap'),
+                'askVolume': this.safeString(latestQuote, 'as'),
+                'vwap': this.safeString(dailyBar, 'vw'),
+                'open': this.safeString(dailyBar, 'o'),
+                'close': this.safeString(dailyBar, 'c'),
+                'last': this.safeString(latestTrade, 'p'),
+                'previousClose': this.safeString(prevDailyBar, 'c'),
+                'change': undefined,
+                'percentage': undefined,
+                'average': undefined,
+                'baseVolume': this.safeString(dailyBar, 'v'),
+                'quoteVolume': this.safeString(dailyBar, 'n'),
+            }, market);
+            results.push(ticker);
+        }
+        return this.filterByArray(results, 'symbol', symbols);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**

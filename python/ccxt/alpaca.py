@@ -5,10 +5,11 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -89,8 +90,8 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchStatus': False,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -670,6 +671,130 @@ class alpaca(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'c'),  # close
             self.safe_number(ohlcv, 'v'),  # volume
         ]
+
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.loc]: crypto location, default: us
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        self.load_markets()
+        symbol = self.symbol(symbol)
+        tickers = self.fetch_tickers([symbol], params)
+        return self.safe_dict(tickers, symbol)
+
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+        :param str[] symbols: unified symbols of the markets to fetch tickers for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.loc]: crypto location, default: us
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        loc = self.safe_string(params, 'loc', 'us')
+        ids = self.market_ids(symbols)
+        request = {
+            'symbols': ','.join(ids),
+            'loc': loc,
+        }
+        params = self.omit(params, 'loc')
+        response = self.marketPublicGetV1beta3CryptoLocSnapshots(self.extend(request, params))
+        #
+        #     {
+        #         "snapshots": {
+        #             "BTC/USD": {
+        #                 "dailyBar": {
+        #                     "c": 69403.554,
+        #                     "h": 69609.6515,
+        #                     "l": 69013.26,
+        #                     "n": 9,
+        #                     "o": 69536.7,
+        #                     "t": "2024-11-01T05:00:00Z",
+        #                     "v": 0.210809181,
+        #                     "vw": 69327.655393908
+        #                 },
+        #                 "latestQuote": {
+        #                     "ap": 69424.19,
+        #                     "as": 0.68149,
+        #                     "bp": 69366.086,
+        #                     "bs": 0.68312,
+        #                     "t": "2024-11-01T08:31:41.880246926Z"
+        #                 },
+        #                 "latestTrade": {
+        #                     "i": 5272941104897543146,
+        #                     "p": 69416.9,
+        #                     "s": 0.014017324,
+        #                     "t": "2024-11-01T08:14:28.245088803Z",
+        #                     "tks": "B"
+        #                 },
+        #                 "minuteBar": {
+        #                     "c": 69403.554,
+        #                     "h": 69403.554,
+        #                     "l": 69399.125,
+        #                     "n": 0,
+        #                     "o": 69399.125,
+        #                     "t": "2024-11-01T08:30:00Z",
+        #                     "v": 0,
+        #                     "vw": 0
+        #                 },
+        #                 "prevDailyBar": {
+        #                     "c": 69515.1415,
+        #                     "h": 72668.837,
+        #                     "l": 68796.85,
+        #                     "n": 129,
+        #                     "o": 72258.9,
+        #                     "t": "2024-10-31T05:00:00Z",
+        #                     "v": 2.217683307,
+        #                     "vw": 70782.6811608144
+        #                 }
+        #             },
+        #         }
+        #     }
+        #
+        results = []
+        snapshots = self.safe_dict(response, 'snapshots', {})
+        marketIds = list(snapshots.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            entry = self.safe_dict(snapshots, marketId)
+            dailyBar = self.safe_dict(entry, 'dailyBar', {})
+            prevDailyBar = self.safe_dict(entry, 'prevDailyBar', {})
+            latestQuote = self.safe_dict(entry, 'latestQuote', {})
+            latestTrade = self.safe_dict(entry, 'latestTrade', {})
+            datetime = self.safe_string(latestQuote, 't')
+            ticker = self.safe_ticker({
+                'info': entry,
+                'symbol': market['symbol'],
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'high': self.safe_string(dailyBar, 'h'),
+                'low': self.safe_string(dailyBar, 'l'),
+                'bid': self.safe_string(latestQuote, 'bp'),
+                'bidVolume': self.safe_string(latestQuote, 'bs'),
+                'ask': self.safe_string(latestQuote, 'ap'),
+                'askVolume': self.safe_string(latestQuote, 'as'),
+                'vwap': self.safe_string(dailyBar, 'vw'),
+                'open': self.safe_string(dailyBar, 'o'),
+                'close': self.safe_string(dailyBar, 'c'),
+                'last': self.safe_string(latestTrade, 'p'),
+                'previousClose': self.safe_string(prevDailyBar, 'c'),
+                'change': None,
+                'percentage': None,
+                'average': None,
+                'baseVolume': self.safe_string(dailyBar, 'v'),
+                'quoteVolume': self.safe_string(dailyBar, 'n'),
+            }, market)
+            results.append(ticker)
+        return self.filter_by_array(results, 'symbol', symbols)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
