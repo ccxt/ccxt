@@ -849,6 +849,64 @@
                     ]
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                        "activity_type": "FILL",
+                        "transaction_time": "2022-12-28T12:19:29.579352Z",
+                        "type": "fill",
+                        "price": "67.31",
+                        "qty": "0.07",
+                        "side": "sell",
+                        "symbol": "LTC/USD",
+                        "leaves_qty": "0",
+                        "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                        "cum_qty": "0.07",
+                        "order_status": "filled",
+                        "swap_rate": "1"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                            "activity_type": "FILL",
+                            "transaction_time": "2022-12-28T12:19:29.579352Z",
+                            "type": "fill",
+                            "price": "67.31",
+                            "qty": "0.07",
+                            "side": "sell",
+                            "symbol": "LTC/USD",
+                            "leaves_qty": "0",
+                            "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                            "cum_qty": "0.07",
+                            "order_status": "filled",
+                            "swap_rate": "1"
+                        },
+                        "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+                        "timestamp": 1672229969579,
+                        "datetime": "2022-12-28T12:19:29.579Z",
+                        "symbol": "LTC/USD",
+                        "order": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 67.31,
+                        "amount": 0.07,
+                        "cost": 4.7117,
+                        "fee": {"cost":null,"currency":null},
+                        "fees": []
+                    }
+                ]
+            }
         ]
     }
 }
