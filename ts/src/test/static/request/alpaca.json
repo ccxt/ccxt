@@ -87,6 +87,29 @@
                 ]
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD",
+                "input": [
+                  "BTC/USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot fetch multiple tickers at once",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CLTC%2FUSD",
+                "input": [
+                  [
+                    "BTC/USD",
+                    "LTC/USD"
+                  ]
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
