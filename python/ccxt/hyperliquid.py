@@ -1540,7 +1540,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         else:
-            request['startTime'] = self.milliseconds() - 100 * 60 * 60 * 1000
+            maxLimit = 500 if (limit is None) else limit
+            request['startTime'] = self.milliseconds() - maxLimit * 60 * 60 * 1000
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is not None:
