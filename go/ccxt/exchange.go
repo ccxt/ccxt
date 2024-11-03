@@ -132,6 +132,8 @@ type Exchange struct {
 
 	// tests only
 	FetchResponse interface{}
+
+	IsSandboxModeEnabled bool
 }
 
 const DECIMAL_PLACES int = 2
