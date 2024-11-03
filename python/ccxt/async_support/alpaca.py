@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -64,7 +64,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
@@ -130,6 +130,7 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/assets/{symbol_or_asset_id}',
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
+                            'v2/wallets',
                         ],
                         'post': [
                             'v2/orders',
@@ -1242,6 +1243,48 @@ class alpaca(Exchange, ImplicitAPI):
             'cost': None,
             'fee': None,
         }, market)
+
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://docs.alpaca.markets/reference/listcryptofundingwallets
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = await self.traderPrivateGetV2Wallets(self.extend(request, params))
+        #
+        #     {
+        #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        #         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        #         "created_at": "2024-11-03T07:30:05.609976344Z"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        #         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        #         "created_at": "2024-11-03T07:30:05.609976344Z"
+        #     }
+        #
+        parsedCurrency = None
+        if currency is not None:
+            parsedCurrency = currency['id']
+        return {
+            'info': depositAddress,
+            'currency': parsedCurrency,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)

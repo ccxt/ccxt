@@ -58,7 +58,7 @@ class alpaca extends Exchange {
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => false,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
@@ -124,6 +124,7 @@ class alpaca extends Exchange {
                             'v2/assets/{symbol_or_asset_id}',
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
+                            'v2/wallets',
                         ),
                         'post' => array(
                             'v2/orders',
@@ -1311,6 +1312,53 @@ class alpaca extends Exchange {
             'cost' => null,
             'fee' => null,
         ), $market);
+    }
+
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+             * @param {string} $code unified $currency $code
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+            );
+            $response = Async\await($this->traderPrivateGetV2Wallets ($this->extend($request, $params)));
+            //
+            //     {
+            //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+            //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+            //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+            //     }
+            //
+            return $this->parse_deposit_address($response, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+        //
+        //     {
+        //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address" => "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at" => "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        $parsedCurrency = null;
+        if ($currency !== null) {
+            $parsedCurrency = $currency['id'];
+        }
+        return array(
+            'info' => $depositAddress,
+            'currency' => $parsedCurrency,
+            'network' => null,
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
