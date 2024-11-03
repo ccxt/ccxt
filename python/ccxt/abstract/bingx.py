@@ -36,6 +36,7 @@ class ImplicitAPI:
     swap_v1_private_get_market_markpriceklines = swapV1PrivateGetMarketMarkPriceKlines = Entry('market/markPriceKlines', ['swap', 'v1', 'private'], 'GET', {'cost': 1})
     swap_v1_private_get_trade_batchcancelreplace = swapV1PrivateGetTradeBatchCancelReplace = Entry('trade/batchCancelReplace', ['swap', 'v1', 'private'], 'GET', {'cost': 5})
     swap_v1_private_get_trade_fullorder = swapV1PrivateGetTradeFullOrder = Entry('trade/fullOrder', ['swap', 'v1', 'private'], 'GET', {'cost': 2})
+    swap_v1_private_get_positionmargin_history = swapV1PrivateGetPositionMarginHistory = Entry('positionMargin/history', ['swap', 'v1', 'private'], 'GET', {'cost': 2})
     swap_v1_private_post_trade_cancelreplace = swapV1PrivatePostTradeCancelReplace = Entry('trade/cancelReplace', ['swap', 'v1', 'private'], 'POST', {'cost': 2})
     swap_v1_private_post_positionside_dual = swapV1PrivatePostPositionSideDual = Entry('positionSide/dual', ['swap', 'v1', 'private'], 'POST', {'cost': 5})
     swap_v1_private_post_trade_closeposition = swapV1PrivatePostTradeClosePosition = Entry('trade/closePosition', ['swap', 'v1', 'private'], 'POST', {'cost': 2})

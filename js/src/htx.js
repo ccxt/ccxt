@@ -7304,16 +7304,15 @@ export default class htx extends Exchange {
         const symbol = this.safeString(market, 'symbol');
         const timestamp = this.safeInteger(info, 'accrued-at');
         return {
-            'account': (marginMode === 'isolated') ? symbol : 'cross',
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
             'interest': this.safeNumber(info, 'interest-amount'),
             'interestRate': this.safeNumber(info, 'interest-rate'),
             'amountBorrowed': this.safeNumber(info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

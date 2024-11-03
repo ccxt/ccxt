@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -6574,7 +6574,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
@@ -6633,7 +6633,7 @@ class htx(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(data, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         # isolated
         #    {
         #        "interest-rate":"0.000040830000000000",
@@ -6681,16 +6681,15 @@ class htx(Exchange, ImplicitAPI):
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_integer(info, 'accrued-at')
         return {
-            'account': symbol if (marginMode == 'isolated') else 'cross',  # deprecated
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest-amount'),
             'interestRate': self.safe_number(info, 'interest-rate'),
             'amountBorrowed': self.safe_number(info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,  # Interest accrued time
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

@@ -111,7 +111,7 @@ class phemex extends Exchange {
                     'private' => 'https://{hostname}',
                 ),
                 'www' => 'https://phemex.com',
-                'doc' => 'https://github.com/phemex/phemex-api-docs',
+                'doc' => 'https://phemex-docs.github.io/#overview',
                 'fees' => 'https://phemex.com/fees-conditions',
                 'referral' => array(
                     'url' => 'https://phemex.com/register?referralCode=EDNVJ',
@@ -169,6 +169,7 @@ class phemex extends Exchange {
                 'v2' => array(
                     'get' => array(
                         'public/products' => 5,
+                        'public/products-plus' => 5,
                         'md/v2/orderbook' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade' => 5, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => 5, // ?symbol=<symbol>&id=<id>
@@ -742,7 +743,7 @@ class phemex extends Exchange {
                     'max' => $this->parse_safe_number($this->safe_string($market, 'maxOrderValue')),
                 ),
             ),
-            'created' => null,
+            'created' => $this->safe_integer($market, 'listTime'),
             'info' => $market,
         ));
     }
@@ -751,6 +752,7 @@ class phemex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for phemex
+             * @see https://phemex-docs.github.io/#query-product-information-3
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */

@@ -815,10 +815,20 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until", this.milliseconds());
-        object useTail = (isEqual(since, null));
+        object useTail = isEqual(since, null);
+        object originalSince = since;
         if (isTrue(isEqual(since, null)))
         {
-            since = 0;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                // optimization if limit is provided
+                object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
+                since = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                useTail = false;
+            } else
+            {
+                since = 0;
+            }
         }
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
@@ -847,7 +857,7 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1752,7 +1762,8 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
-            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(100, 60), 60), 1000));
+            object maxLimit = ((bool) isTrue((isEqual(limit, null)))) ? 500 : limit;
+            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");

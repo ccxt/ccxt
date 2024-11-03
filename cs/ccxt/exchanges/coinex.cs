@@ -4534,17 +4534,15 @@ public partial class coinex : Exchange
         market = this.safeMarket(marketId, market, null, "spot");
         object timestamp = this.safeInteger(info, "expired_at");
         return new Dictionary<string, object>() {
-            { "account", null },
+            { "info", info },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", "isolated" },
-            { "marginType", null },
             { "currency", this.safeCurrencyCode(this.safeString(info, "ccy")) },
             { "interest", this.safeNumber(info, "to_repaied_amount") },
             { "interestRate", this.safeNumber(info, "daily_interest_rate") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

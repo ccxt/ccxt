@@ -1711,7 +1711,7 @@ public partial class bitmart : Exchange
             }
         } else
         {
-            object maxLimit = 1200;
+            object maxLimit = 500;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = maxLimit;
@@ -4487,15 +4487,15 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", this.safeString(market, "symbol") },
-            { "marginMode", "isolated" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
             { "interest", this.safeNumber(info, "interest_amount") },
             { "interestRate", this.safeNumber(info, "hourly_interest") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

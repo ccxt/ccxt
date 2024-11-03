@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -7629,7 +7629,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
@@ -7726,7 +7726,7 @@ class bitget(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         # isolated
         #
@@ -7760,15 +7760,15 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = 'isolated' if (marketId is not None) else 'cross'
         timestamp = self.safe_integer(info, 'cTime')
         return {
+            'info': info,
             'symbol': self.safe_string(market, 'symbol'),
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'interestCoin')),
             'interest': self.safe_number(info, 'interestAmount'),
             'interestRate': self.safe_number(info, 'dailyInterestRate'),
             'amountBorrowed': None,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:

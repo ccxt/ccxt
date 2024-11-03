@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1018,7 +1018,6 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': False,
-                'sandboxMode': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
@@ -1104,21 +1103,13 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable: bool):
-        """
-        enables or disables sandbox mode
-        :param boolean [enable]: True if demo trading should be enabled, False otherwise
-        """
-        super(bybit, self).set_sandbox_mode(enable)
-        self.options['sandboxMode'] = enable
-
     def enable_demo_trading(self, enable: bool):
         """
         enables or disables demo trading mode
         :see: https://bybit-exchange.github.io/docs/v5/demo
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
-        if self.options['sandboxMode']:
+        if self.isSandboxModeEnabled:
             raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
         # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if enable:
@@ -6832,7 +6823,7 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
@@ -6923,7 +6914,7 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'list', [])
         return self.parse_borrow_rate_history(rows, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "tokenId": "BTC",
@@ -6935,15 +6926,15 @@ class bybit(Exchange, ImplicitAPI):
         #     },
         #
         return {
+            'info': info,
             'symbol': None,
-            'marginMode': 'cross',
             'currency': self.safe_currency_code(self.safe_string(info, 'tokenId')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': None,
             'amountBorrowed': self.safe_number(info, 'loan'),
+            'marginMode': 'cross',
             'timestamp': None,
             'datetime': None,
-            'info': info,
         }
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

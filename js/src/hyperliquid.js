@@ -785,9 +785,18 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets();
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until', this.milliseconds());
-        const useTail = (since === undefined);
+        let useTail = since === undefined;
+        const originalSince = since;
         if (since === undefined) {
-            since = 0;
+            if (limit !== undefined) {
+                // optimization if limit is provided
+                const timeframeInMilliseconds = this.parseTimeframe(timeframe) * 1000;
+                since = this.sum(until, timeframeInMilliseconds * limit * -1);
+                useTail = false;
+            }
+            else {
+                since = 0;
+            }
         }
         params = this.omit(params, ['until']);
         const request = {
@@ -816,7 +825,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1618,7 +1627,8 @@ export default class hyperliquid extends Exchange {
             request['startTime'] = since;
         }
         else {
-            request['startTime'] = this.milliseconds() - 100 * 60 * 60 * 1000;
+            const maxLimit = (limit === undefined) ? 500 : limit;
+            request['startTime'] = this.milliseconds() - maxLimit * 60 * 60 * 1000;
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');

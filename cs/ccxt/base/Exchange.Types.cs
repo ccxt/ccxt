@@ -944,27 +944,27 @@ public struct IsolatedBorrowRates
 
 public struct BorrowInterest
 {
-    public string? account;
+    public Dictionary<string, object> info;
+    public string? symbol;
     public string? currency;
     public double? interest;
     public double? interestRate;
     public double? amountBorrowed;
+    public string? marginMode;
     public Int64? timestamp;
     public string? datetime;
-    public string? marginMode;
-    public Dictionary<string, object> info;
 
     public BorrowInterest(object borrowInterest)
     {
-        account = Exchange.SafeString(borrowInterest, "account");
+        info = Helper.GetInfo(borrowInterest);
+        symbol = Exchange.SafeString(borrowInterest, "symbol");
         currency = Exchange.SafeString(borrowInterest, "currency");
         interest = Exchange.SafeFloat(borrowInterest, "interest");
         interestRate = Exchange.SafeFloat(borrowInterest, "interestRate");
         amountBorrowed = Exchange.SafeFloat(borrowInterest, "amountBorrowed");
+        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
         timestamp = Exchange.SafeInteger(borrowInterest, "timestamp");
         datetime = Exchange.SafeString(borrowInterest, "datetime");
-        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
-        info = Helper.GetInfo(borrowInterest);
     }
 }
 

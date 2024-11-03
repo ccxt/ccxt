@@ -800,9 +800,17 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $until = $this->safe_integer($params, 'until', $this->milliseconds());
-            $useTail = ($since === null);
+            $useTail = $since === null;
+            $originalSince = $since;
             if ($since === null) {
-                $since = 0;
+                if ($limit !== null) {
+                    // optimization if $limit is provided
+                    $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+                    $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                    $useTail = false;
+                } else {
+                    $since = 0;
+                }
             }
             $params = $this->omit($params, array( 'until' ));
             $request = array(
@@ -831,7 +839,7 @@ class hyperliquid extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit, $useTail);
+            return $this->parse_ohlcvs($response, $market, $timeframe, $originalSince, $limit, $useTail);
         }) ();
     }
 
@@ -1644,7 +1652,8 @@ class hyperliquid extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             } else {
-                $request['startTime'] = $this->milliseconds() - 100 * 60 * 60 * 1000;
+                $maxLimit = ($limit === null) ? 500 : $limit;
+                $request['startTime'] = $this->milliseconds() - $maxLimit * 60 * 60 * 1000;
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');

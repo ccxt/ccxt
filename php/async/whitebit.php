@@ -2312,7 +2312,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
@@ -2358,7 +2358,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "positionId" => 191823,
@@ -2382,15 +2382,15 @@ class whitebit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($info, 'modifyDate');
         return array(
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => 'cross',
             'currency' => 'USDT',
             'interest' => $this->safe_number($info, 'unrealizedFunding'),
             'interestRate' => 0.00098, // https://whitebit.com/fees
             'amountBorrowed' => $this->safe_number($info, 'amount'),
+            'marginMode' => 'cross',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

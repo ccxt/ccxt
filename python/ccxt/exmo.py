@@ -223,6 +223,7 @@ class exmo(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder,  # {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': BadRequest,
                     '40005': AuthenticationError,  # Authorization error, incorrect signature
                     '40009': InvalidNonce,  #

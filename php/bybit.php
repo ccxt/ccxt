@@ -998,7 +998,6 @@ class bybit extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'usePrivateInstrumentsInfo' => false,
-                'sandboxMode' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
                 'createOrder' => array(
@@ -1085,22 +1084,13 @@ class bybit extends Exchange {
         ));
     }
 
-    public function set_sandbox_mode(bool $enable) {
-        /**
-         * enables or disables sandbox mode
-         * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
-         */
-        parent::set_sandbox_mode($enable);
-        $this->options['sandboxMode'] = $enable;
-    }
-
     public function enable_demo_trading(bool $enable) {
         /**
          * enables or disables demo trading mode
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [$enable] true if demo trading should be enabled, false otherwise
          */
-        if ($this->options['sandboxMode']) {
+        if ($this->isSandboxModeEnabled) {
             throw new NotSupported($this->id . ' demo trading does not support in sandbox environment');
         }
         // $enable demo trading in bybit, see => https://bybit-exchange.github.io/docs/v5/demo
@@ -7243,7 +7233,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
@@ -7338,7 +7328,7 @@ class bybit extends Exchange {
         return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     array(
         //         "tokenId" => "BTC",
@@ -7350,15 +7340,15 @@ class bybit extends Exchange {
         //     ),
         //
         return array(
+            'info' => $info,
             'symbol' => null,
-            'marginMode' => 'cross',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'tokenId')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => null,
             'amountBorrowed' => $this->safe_number($info, 'loan'),
+            'marginMode' => 'cross',
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 

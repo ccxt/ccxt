@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -4960,7 +4960,7 @@ class coinex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_isolated_borrow_rate(data, market)
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
@@ -5008,7 +5008,7 @@ class coinex(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "borrow_id": 2642934,
@@ -5027,17 +5027,15 @@ class coinex(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, 'spot')
         timestamp = self.safe_integer(info, 'expired_at')
         return {
-            'account': None,  # deprecated
+            'info': info,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'marginType': None,  # deprecated
             'currency': self.safe_currency_code(self.safe_string(info, 'ccy')),
             'interest': self.safe_number(info, 'to_repaied_amount'),
             'interestRate': self.safe_number(info, 'daily_interest_rate'),
             'amountBorrowed': self.safe_number(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,  # expiry time
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):

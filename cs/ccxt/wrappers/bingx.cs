@@ -662,6 +662,12 @@ public partial class bingx
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// boolean : *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

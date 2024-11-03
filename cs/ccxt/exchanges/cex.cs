@@ -25,6 +25,7 @@ public partial class cex : Exchange
                 { "createOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
@@ -36,6 +37,7 @@ public partial class cex : Exchange
                 { "fetchLedger", true },
                 { "fetchMarkets", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrderBook", true },
                 { "fetchTicker", true },
@@ -1009,6 +1011,7 @@ public partial class cex : Exchange
         /**
         * @method
         * @name cex#fetchClosedOrders
+        * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
         * @description fetches information on multiple canceled orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -1025,6 +1028,7 @@ public partial class cex : Exchange
         /**
         * @method
         * @name cex#fetchOpenOrders
+        * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
         * @description fetches information on multiple canceled orders made by the user
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -1034,6 +1038,48 @@ public partial class cex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
+    }
+
+    public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cex#fetchOpenOrder
+        * @description fetches information on an open order made by the user
+        * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+        * @param {string} id order id
+        * @param {string} [symbol] unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderId", parseInt(id) },
+        };
+        object result = await this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters));
+        return getValue(result, 0);
+    }
+
+    public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cex#fetchClosedOrder
+        * @description fetches information on an closed order made by the user
+        * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+        * @param {string} id order id
+        * @param {string} [symbol] unified symbol of the market the order was made in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "orderId", parseInt(id) },
+        };
+        object result = await this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters));
+        return getValue(result, 0);
     }
 
     public virtual object parseOrderStatus(object status)

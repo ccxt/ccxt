@@ -36,6 +36,7 @@ class cex extends Exchange {
                 'createOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -47,6 +48,7 @@ class cex extends Exchange {
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenOrder' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchTicker' => true,
@@ -963,6 +965,7 @@ class cex extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
              * fetches information on multiple canceled orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -977,6 +980,7 @@ class cex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
              * fetches information on multiple canceled orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -985,6 +989,44 @@ class cex extends Exchange {
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an open order made by the user
+             * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             * @param {string} $id order $id
+             * @param {string} [$symbol] unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'orderId' => intval($id),
+            );
+            $result = Async\await($this->fetch_open_orders($symbol, null, null, $this->extend($request, $params)));
+            return $result[0];
+        }) ();
+    }
+
+    public function fetch_closed_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an closed order made by the user
+             * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             * @param {string} $id order $id
+             * @param {string} [$symbol] unified $symbol of the market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'orderId' => intval($id),
+            );
+            $result = Async\await($this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params)));
+            return $result[0];
         }) ();
     }
 

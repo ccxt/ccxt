@@ -941,7 +941,6 @@ public partial class bybit : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "usePrivateInstrumentsInfo", false },
-                { "sandboxMode", false },
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
                 { "createOrder", new Dictionary<string, object>() {
@@ -1028,18 +1027,6 @@ public partial class bybit : Exchange
         });
     }
 
-    public override void setSandboxMode(object enable)
-    {
-        /**
-         * @method
-         * @name bybit#setSandboxMode
-         * @description enables or disables sandbox mode
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
-        base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-    }
-
     public virtual void enableDemoTrading(object enable)
     {
         /**
@@ -1049,7 +1036,7 @@ public partial class bybit : Exchange
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
          */
-        if (isTrue(getValue(this.options, "sandboxMode")))
+        if (isTrue(this.isSandboxModeEnabled))
         {
             throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment")) ;
         }
@@ -8052,15 +8039,15 @@ public partial class bybit : Exchange
         //     },
         //
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", null },
-            { "marginMode", "cross" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "tokenId")) },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", null },
             { "amountBorrowed", this.safeNumber(info, "loan") },
+            { "marginMode", "cross" },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 
