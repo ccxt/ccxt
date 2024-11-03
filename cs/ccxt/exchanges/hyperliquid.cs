@@ -1762,7 +1762,8 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
-            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(100, 60), 60), 1000));
+            object maxLimit = ((bool) isTrue((isEqual(limit, null)))) ? 500 : limit;
+            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");

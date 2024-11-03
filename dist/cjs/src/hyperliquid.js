@@ -1624,7 +1624,8 @@ class hyperliquid extends hyperliquid$1 {
             request['startTime'] = since;
         }
         else {
-            request['startTime'] = this.milliseconds() - 100 * 60 * 60 * 1000;
+            const maxLimit = (limit === undefined) ? 500 : limit;
+            request['startTime'] = this.milliseconds() - maxLimit * 60 * 60 * 1000;
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');

@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\alpaca as Exchange;
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -83,8 +84,8 @@ class alpaca extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchStatus' => false,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -688,6 +689,138 @@ class alpaca extends Exchange {
             $this->safe_number($ohlcv, 'c'), // close
             $this->safe_number($ohlcv, 'v'), // volume
         );
+    }
+
+    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->loc] crypto location, default => us
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
+            return $this->safe_dict($tickers, $symbol);
+        }) ();
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->loc] crypto location, default => us
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $loc = $this->safe_string($params, 'loc', 'us');
+            $ids = $this->market_ids($symbols);
+            $request = array(
+                'symbols' => implode(',', $ids),
+                'loc' => $loc,
+            );
+            $params = $this->omit($params, 'loc');
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocSnapshots ($this->extend($request, $params)));
+            //
+            //     {
+            //         "snapshots" => {
+            //             "BTC/USD" => {
+            //                 "dailyBar" => array(
+            //                     "c" => 69403.554,
+            //                     "h" => 69609.6515,
+            //                     "l" => 69013.26,
+            //                     "n" => 9,
+            //                     "o" => 69536.7,
+            //                     "t" => "2024-11-01T05:00:00Z",
+            //                     "v" => 0.210809181,
+            //                     "vw" => 69327.655393908
+            //                 ),
+            //                 "latestQuote" => array(
+            //                     "ap" => 69424.19,
+            //                     "as" => 0.68149,
+            //                     "bp" => 69366.086,
+            //                     "bs" => 0.68312,
+            //                     "t" => "2024-11-01T08:31:41.880246926Z"
+            //                 ),
+            //                 "latestTrade" => array(
+            //                     "i" => 5272941104897543146,
+            //                     "p" => 69416.9,
+            //                     "s" => 0.014017324,
+            //                     "t" => "2024-11-01T08:14:28.245088803Z",
+            //                     "tks" => "B"
+            //                 ),
+            //                 "minuteBar" => array(
+            //                     "c" => 69403.554,
+            //                     "h" => 69403.554,
+            //                     "l" => 69399.125,
+            //                     "n" => 0,
+            //                     "o" => 69399.125,
+            //                     "t" => "2024-11-01T08:30:00Z",
+            //                     "v" => 0,
+            //                     "vw" => 0
+            //                 ),
+            //                 "prevDailyBar" => array(
+            //                     "c" => 69515.1415,
+            //                     "h" => 72668.837,
+            //                     "l" => 68796.85,
+            //                     "n" => 129,
+            //                     "o" => 72258.9,
+            //                     "t" => "2024-10-31T05:00:00Z",
+            //                     "v" => 2.217683307,
+            //                     "vw" => 70782.6811608144
+            //                 }
+            //             ),
+            //         }
+            //     }
+            //
+            $results = array();
+            $snapshots = $this->safe_dict($response, 'snapshots', array());
+            $marketIds = is_array($snapshots) ? array_keys($snapshots) : array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $market = $this->safe_market($marketId);
+                $entry = $this->safe_dict($snapshots, $marketId);
+                $dailyBar = $this->safe_dict($entry, 'dailyBar', array());
+                $prevDailyBar = $this->safe_dict($entry, 'prevDailyBar', array());
+                $latestQuote = $this->safe_dict($entry, 'latestQuote', array());
+                $latestTrade = $this->safe_dict($entry, 'latestTrade', array());
+                $datetime = $this->safe_string($latestQuote, 't');
+                $ticker = $this->safe_ticker(array(
+                    'info' => $entry,
+                    'symbol' => $market['symbol'],
+                    'timestamp' => $this->parse8601($datetime),
+                    'datetime' => $datetime,
+                    'high' => $this->safe_string($dailyBar, 'h'),
+                    'low' => $this->safe_string($dailyBar, 'l'),
+                    'bid' => $this->safe_string($latestQuote, 'bp'),
+                    'bidVolume' => $this->safe_string($latestQuote, 'bs'),
+                    'ask' => $this->safe_string($latestQuote, 'ap'),
+                    'askVolume' => $this->safe_string($latestQuote, 'as'),
+                    'vwap' => $this->safe_string($dailyBar, 'vw'),
+                    'open' => $this->safe_string($dailyBar, 'o'),
+                    'close' => $this->safe_string($dailyBar, 'c'),
+                    'last' => $this->safe_string($latestTrade, 'p'),
+                    'previousClose' => $this->safe_string($prevDailyBar, 'c'),
+                    'change' => null,
+                    'percentage' => null,
+                    'average' => null,
+                    'baseVolume' => $this->safe_string($dailyBar, 'v'),
+                    'quoteVolume' => $this->safe_string($dailyBar, 'n'),
+                ), $market);
+                $results[] = $ticker;
+            }
+            return $this->filter_by_array($results, 'symbol', $symbols);
+        }) ();
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

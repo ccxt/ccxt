@@ -1859,7 +1859,7 @@ export default class bitmart extends Exchange {
                 request['after'] = this.parseToInt ((since / 1000)) - 1;
             }
         } else {
-            const maxLimit = 1200;
+            const maxLimit = 500;
             if (limit === undefined) {
                 limit = maxLimit;
             }

@@ -72,8 +72,8 @@ public partial class alpaca : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchStatus", false },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -597,6 +597,144 @@ public partial class alpaca : Exchange
         object datetime = this.safeString(ohlcv, "t");
         object timestamp = this.parse8601(datetime);
         return new List<object>() {timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
+    }
+
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchTicker
+        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.loc] crypto location, default: us
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
+        return this.safeDict(tickers, symbol);
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+        * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.loc] crypto location, default: us
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires a symbols argument")) ;
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object loc = this.safeString(parameters, "loc", "us");
+        object ids = this.marketIds(symbols);
+        object request = new Dictionary<string, object>() {
+            { "symbols", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "loc", loc },
+        };
+        parameters = this.omit(parameters, "loc");
+        object response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters));
+        //
+        //     {
+        //         "snapshots": {
+        //             "BTC/USD": {
+        //                 "dailyBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69609.6515,
+        //                     "l": 69013.26,
+        //                     "n": 9,
+        //                     "o": 69536.7,
+        //                     "t": "2024-11-01T05:00:00Z",
+        //                     "v": 0.210809181,
+        //                     "vw": 69327.655393908
+        //                 },
+        //                 "latestQuote": {
+        //                     "ap": 69424.19,
+        //                     "as": 0.68149,
+        //                     "bp": 69366.086,
+        //                     "bs": 0.68312,
+        //                     "t": "2024-11-01T08:31:41.880246926Z"
+        //                 },
+        //                 "latestTrade": {
+        //                     "i": 5272941104897543146,
+        //                     "p": 69416.9,
+        //                     "s": 0.014017324,
+        //                     "t": "2024-11-01T08:14:28.245088803Z",
+        //                     "tks": "B"
+        //                 },
+        //                 "minuteBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69403.554,
+        //                     "l": 69399.125,
+        //                     "n": 0,
+        //                     "o": 69399.125,
+        //                     "t": "2024-11-01T08:30:00Z",
+        //                     "v": 0,
+        //                     "vw": 0
+        //                 },
+        //                 "prevDailyBar": {
+        //                     "c": 69515.1415,
+        //                     "h": 72668.837,
+        //                     "l": 68796.85,
+        //                     "n": 129,
+        //                     "o": 72258.9,
+        //                     "t": "2024-10-31T05:00:00Z",
+        //                     "v": 2.217683307,
+        //                     "vw": 70782.6811608144
+        //                 }
+        //             },
+        //         }
+        //     }
+        //
+        object results = new List<object>() {};
+        object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
+        object marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = this.safeMarket(marketId);
+            object entry = this.safeDict(snapshots, marketId);
+            object dailyBar = this.safeDict(entry, "dailyBar", new Dictionary<string, object>() {});
+            object prevDailyBar = this.safeDict(entry, "prevDailyBar", new Dictionary<string, object>() {});
+            object latestQuote = this.safeDict(entry, "latestQuote", new Dictionary<string, object>() {});
+            object latestTrade = this.safeDict(entry, "latestTrade", new Dictionary<string, object>() {});
+            object datetime = this.safeString(latestQuote, "t");
+            object ticker = this.safeTicker(new Dictionary<string, object>() {
+                { "info", entry },
+                { "symbol", getValue(market, "symbol") },
+                { "timestamp", this.parse8601(datetime) },
+                { "datetime", datetime },
+                { "high", this.safeString(dailyBar, "h") },
+                { "low", this.safeString(dailyBar, "l") },
+                { "bid", this.safeString(latestQuote, "bp") },
+                { "bidVolume", this.safeString(latestQuote, "bs") },
+                { "ask", this.safeString(latestQuote, "ap") },
+                { "askVolume", this.safeString(latestQuote, "as") },
+                { "vwap", this.safeString(dailyBar, "vw") },
+                { "open", this.safeString(dailyBar, "o") },
+                { "close", this.safeString(dailyBar, "c") },
+                { "last", this.safeString(latestTrade, "p") },
+                { "previousClose", this.safeString(prevDailyBar, "c") },
+                { "change", null },
+                { "percentage", null },
+                { "average", null },
+                { "baseVolume", this.safeString(dailyBar, "v") },
+                { "quoteVolume", this.safeString(dailyBar, "n") },
+            }, market);
+            ((IList<object>)results).Add(ticker);
+        }
+        return this.filterByArray(results, "symbol", symbols);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)

@@ -1652,7 +1652,8 @@ class hyperliquid extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             } else {
-                $request['startTime'] = $this->milliseconds() - 100 * 60 * 60 * 1000;
+                $maxLimit = ($limit === null) ? 500 : $limit;
+                $request['startTime'] = $this->milliseconds() - $maxLimit * 60 * 60 * 1000;
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');

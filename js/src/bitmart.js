@@ -1858,7 +1858,7 @@ export default class bitmart extends Exchange {
             }
         }
         else {
-            const maxLimit = 1200;
+            const maxLimit = 500;
             if (limit === undefined) {
                 limit = maxLimit;
             }
