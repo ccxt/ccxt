@@ -2580,6 +2580,10 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const tickerList = this.safeList (data, 'list', []);
+        const timestamp = this.safeInteger (response, 'time');
+        for (let i = 0; i < tickerList.length; i++) {
+            tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
+        }
         const result = this.parseFundingRates (tickerList);
         return this.filterByArray (result, 'symbol', symbols);
     }
