@@ -221,6 +221,16 @@
                   3
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch the BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.alpaca.markets/v2/wallets?asset=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
         ]
     }
 }
