@@ -826,7 +826,7 @@ export default class coinbase extends Exchange {
          */
         await this.loadMarkets ();
         const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
-        return this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ]);
+        return this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ], false);
     }
 
     parseTransactionStatus (status: Str) {
@@ -980,7 +980,7 @@ export default class coinbase extends Exchange {
         //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
         //        "status": "completed",
         //        "type": "send",
-        //        "from": { // field not present in withdrawals
+        //        "from": { // in some cases, field might be present for deposit
         //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
         //            "name": "Coinbase",
         //            "resource": "user"
@@ -989,22 +989,25 @@ export default class coinbase extends Exchange {
         //            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
         //            "resource": "address"
         //        },
-        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", // field only present for deposit
+        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
         //    }
         //
         const transactionType = this.safeString (transaction, 'type');
         let amountAndCurrencyObject = undefined;
         let feeObject = undefined;
+        const network = this.safeDict (transaction, 'network', {});
         if (transactionType === 'send') {
-            const network = this.safeDict (transaction, 'network', {});
             amountAndCurrencyObject = this.safeDict (network, 'transaction_amount');
             feeObject = this.safeDict (network, 'transaction_fee', {});
         } else {
-            const amountObject = this.safeDict (transaction, 'amount');
-            amountAndCurrencyObject = this.safeDict (transaction, 'subtotal', amountObject);
+            amountAndCurrencyObject = this.safeDict (transaction, 'subtotal');
             feeObject = this.safeDict (transaction, 'fee', {});
         }
+        if (amountAndCurrencyObject === undefined) {
+            amountAndCurrencyObject = this.safeDict (transaction, 'amount');
+        }
         const amountString = this.safeString (amountAndCurrencyObject, 'amount');
+        const amountStringAbs = Precise.stringAbs (amountString);
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeBool (transaction, 'committed');
@@ -1023,30 +1026,24 @@ export default class coinbase extends Exchange {
                 type = 'withdrawal';
             }
         }
-        let addressFrom = undefined;
-        let addressTo = undefined;
         const toObject = this.safeDict (transaction, 'to');
-        const fromObject = this.safeDict (transaction, 'from');
-        if (toObject !== undefined) {
-            addressTo = this.safeString (toObject, 'address');
-        } else if (fromObject !== undefined) {
-            addressFrom = this.safeString (fromObject, 'address');
-        }
+        const addressTo = this.safeString (toObject, 'address');
+        const networkId = this.safeString (network, 'network_name');
         return {
             'info': transaction,
             'id': id,
-            'txid': id,
+            'txid': this.safeString (network, 'hash', id),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': undefined,
-            'address': this.safeString (toObject, 'address', addressTo),
+            'network': this.networkIdToCode (networkId),
+            'address': addressTo,
             'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': this.safeNumber (amountAndCurrencyObject, 'amount'),
+            'amount': this.parseNumber (amountStringAbs),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': status,
             'updated': this.parse8601 (this.safeString (transaction, 'updated_at')),
