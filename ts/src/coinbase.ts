@@ -980,7 +980,7 @@ export default class coinbase extends Exchange {
         //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
         //        "status": "completed",
         //        "type": "send",
-        //        "from": { // field only present for deposit
+        //        "from": { // field not present in withdrawals
         //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
         //            "name": "Coinbase",
         //            "resource": "user"
@@ -997,12 +997,14 @@ export default class coinbase extends Exchange {
         let feeObject = undefined;
         if (transactionType === 'send') {
             const network = this.safeDict (transaction, 'network', {});
-            amountAndCurrencyObject = this.safeDict (network, 'transaction_amount', {});
+            amountAndCurrencyObject = this.safeDict (network, 'transaction_amount');
             feeObject = this.safeDict (network, 'transaction_fee', {});
         } else {
-            amountAndCurrencyObject = this.safeDict (transaction, 'subtotal', {});
+            const amountObject = this.safeDict (transaction, 'amount');
+            amountAndCurrencyObject = this.safeDict (transaction, 'subtotal', amountObject);
             feeObject = this.safeDict (transaction, 'fee', {});
         }
+        const amountString = this.safeString (amountAndCurrencyObject, 'amount');
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         if (status === undefined) {
             const committed = this.safeBool (transaction, 'committed');
@@ -1012,22 +1014,23 @@ export default class coinbase extends Exchange {
         const currencyId = this.safeString (amountAndCurrencyObject, 'currency');
         const feeCurrencyId = this.safeString (feeObject, 'currency');
         const datetime = this.safeString (transaction, 'created_at');
-        const toObject = this.safeDict (transaction, 'to', {});
-        const toAddress = this.safeString (toObject, 'address');
         const resource = this.safeString (transaction, 'resource');
         let type = resource;
+        if (!this.inArray (type, [ 'deposit', 'withdrawal' ])) {
+            if (Precise.stringGt (amountString, '0')) {
+                type = 'deposit';
+            } else if (Precise.stringLt (amountString, '0')) {
+                type = 'withdrawal';
+            }
+        }
         let addressFrom = undefined;
         let addressTo = undefined;
-        if (!this.inArray (type, [ 'deposit', 'withdrawal' ])) {
-            const to = this.safeDict (transaction, 'to');
-            const from = this.safeDict (transaction, 'from');
-            if (to !== undefined) {
-                type = 'withdrawal';
-                addressTo = this.safeString (to, 'address');
-            } else if (from !== undefined) {
-                type = 'deposit';
-                addressFrom = this.safeString (from, 'address');
-            }
+        const toObject = this.safeDict (transaction, 'to');
+        const fromObject = this.safeDict (transaction, 'from');
+        if (toObject !== undefined) {
+            addressTo = this.safeString (toObject, 'address');
+        } else if (fromObject !== undefined) {
+            addressFrom = this.safeString (fromObject, 'address');
         }
         return {
             'info': transaction,
@@ -1036,9 +1039,9 @@ export default class coinbase extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'network': undefined,
-            'address': toAddress,
-            'addressTo': toAddress,
-            'addressFrom': undefined,
+            'address': this.safeString (toObject, 'address', addressTo),
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
