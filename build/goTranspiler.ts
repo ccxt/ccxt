@@ -978,7 +978,7 @@ ${caseStatements.join('\n')}
         }
 
         this.transpileBaseMethods (exchangeBase)
-        // this.createDynamicInstanceFile();
+        this.createDynamicInstanceFile();
 
         if (baseOnly) {
             return;
