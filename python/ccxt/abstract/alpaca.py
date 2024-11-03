@@ -20,6 +20,7 @@ class ImplicitAPI:
     trader_private_get_v2_assets_symbol_or_asset_id = traderPrivateGetV2AssetsSymbolOrAssetId = Entry('v2/assets/{symbol_or_asset_id}', ['trader', 'private'], 'GET', {})
     trader_private_get_v2_corporate_actions_announcements_id = traderPrivateGetV2CorporateActionsAnnouncementsId = Entry('v2/corporate_actions/announcements/{id}', ['trader', 'private'], 'GET', {})
     trader_private_get_v2_corporate_actions_announcements = traderPrivateGetV2CorporateActionsAnnouncements = Entry('v2/corporate_actions/announcements', ['trader', 'private'], 'GET', {})
+    trader_private_get_v2_wallets = traderPrivateGetV2Wallets = Entry('v2/wallets', ['trader', 'private'], 'GET', {})
     trader_private_post_v2_orders = traderPrivatePostV2Orders = Entry('v2/orders', ['trader', 'private'], 'POST', {})
     trader_private_post_v2_watchlists = traderPrivatePostV2Watchlists = Entry('v2/watchlists', ['trader', 'private'], 'POST', {})
     trader_private_post_v2_watchlists_watchlist_id = traderPrivatePostV2WatchlistsWatchlistId = Entry('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'POST', {})

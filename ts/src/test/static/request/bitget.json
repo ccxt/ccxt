@@ -1772,6 +1772,36 @@
                   "BTC/USDT"
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/isolated/interest-history?coin=USDT&startTime=1722564280941&symbol=BTCUSDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/interest-history?coin=USDT&startTime=1722564342903",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
+            }
         ]
     }
 }

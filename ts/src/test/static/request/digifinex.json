@@ -704,6 +704,16 @@
                   "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://openapi.digifinex.com/v3/margin/positions",
+                "input": [
+                  "USDT"
+                ]
+            }
         ]
     }
 }
