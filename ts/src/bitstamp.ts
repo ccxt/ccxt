@@ -96,7 +96,7 @@ export default class bitstamp extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/500dfe5c-b5ff-467b-9444-87180fb6ef25',
+                'logo': 'https://github.com/user-attachments/assets/d5480572-1fee-43cb-b900-d38c522d0024',
                 'api': {
                     'public': 'https://www.bitstamp.net/api',
                     'private': 'https://www.bitstamp.net/api',
