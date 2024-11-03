@@ -81,6 +81,7 @@ export default class coinbase extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -787,7 +788,7 @@ export default class coinbase extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod (method, code, since, limit, params);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -802,7 +803,24 @@ export default class coinbase extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod (method, code, since, limit, params);
+    }
+
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name coinbase#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+        return this.filterByArray (results, 'type', [ 'deposit', 'withdrawal' ]);
     }
 
     parseTransactionStatus (status: Str) {
@@ -929,6 +947,45 @@ export default class coinbase extends Exchange {
         //         "hide_native_amount": false
         //     }
         //
+        //
+        // crypto deposit & withdrawal (using `/transactions` endpoint)
+        //    {
+        //        "amount": {
+        //            "amount": "0.00014200", (negative for withdrawal)
+        //            "currency": "BTC"
+        //        },
+        //        "created_at": "2024-03-29T15:48:30Z",
+        //        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount": {
+        //            "amount": "9.85", (negative for withdrawal)
+        //            "currency": "USD"
+        //        },
+        //        "network": {
+        //            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
+        //            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name": "solana",
+        //            "transaction_fee": {
+        //                "amount": "0.000100000",
+        //                "currency": "SOL"
+        //            }
+        //        },
+        //        "resource": "transaction",
+        //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status": "completed",
+        //        "type": "send",
+        //        "from": { // field only present for deposit
+        //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name": "Coinbase",
+        //            "resource": "user"
+        //        },
+        //        "to": { // field only present for withdrawal
+        //            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource": "address"
+        //        },
+        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", // field only present for deposit
+        //    }
+        //
         const transactionType = this.safeString (transaction, 'type');
         let amountAndCurrencyObject = undefined;
         let feeObject = undefined;
@@ -951,6 +1008,21 @@ export default class coinbase extends Exchange {
         const datetime = this.safeString (transaction, 'created_at');
         const toObject = this.safeDict (transaction, 'to', {});
         const toAddress = this.safeString (toObject, 'address');
+        const resource = this.safeString (transaction, 'resource');
+        let type = resource;
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (!this.inArray (type, [ 'deposit', 'withdrawal' ])) {
+            const to = this.safeDict (transaction, 'to');
+            const from = this.safeDict (transaction, 'from');
+            if (to !== undefined) {
+                type = 'withdrawal';
+                addressTo = this.safeString (to, 'address');
+            } else if (from !== undefined) {
+                type = 'deposit';
+                addressFrom = this.safeString (from, 'address');
+            }
+        }
         return {
             'info': transaction,
             'id': id,
@@ -964,7 +1036,7 @@ export default class coinbase extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': this.safeString (transaction, 'resource'),
+            'type': type,
             'amount': this.safeNumber (amountAndCurrencyObject, 'amount'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'status': status,
