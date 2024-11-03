@@ -396,6 +396,7 @@
         "fetchDepositAddress": [
             {
                 "description": "fetch USDT deposit address",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&timestamp=1699460640223&recvWindow=5000&signature=04c87095842f1fc7c122a8d44739b14eb01733fe99ce6f25ed84899f8c5802f4",
                 "input": [
@@ -404,6 +405,7 @@
             },
             {
                 "description": "fetch address with network",
+                "disabledGO": true,
                 "method": "fetchDepositAddress",
                 "url": "https://api.mexc.com/api/v3/capital/deposit/address?coin=USDT&network=Solana%28SOL%29&timestamp=1728223738994&recvWindow=5000&signature=ccfd37c930d89725783e5ee1f8c1cba2445fa303a641bd030b838f6edbf8250b",
                 "input": [

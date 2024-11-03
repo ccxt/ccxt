@@ -444,7 +444,7 @@
             {
                 "description": "spot & trigger",
                 "method": "fetchOpenOrders",
-                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=open",      
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=open",
                 "input": [
                   "BTC/USDT",
                   null,
@@ -517,9 +517,9 @@
                 ]
             },
             {
-                "description": "spot & trigger",
+                "description": "closed spot & trigger",
                 "method": "fetchClosedOrders",
-                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",  
+                "url": "https://api.gateio.ws/api/v4/spot/price_orders?market=BTC_USDT&status=finished",
                 "input": [
                   "BTC/USDT",
                   null,
