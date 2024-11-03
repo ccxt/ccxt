@@ -124,6 +124,7 @@ const VIRTUAL_BASE_METHODS = [
     "parseLiquidation",
     "parseMarketLeverageTiers",
     "parseDepositWithdrawFee",
+    "parseBorrowRate",
     "sign"
 ]
 
