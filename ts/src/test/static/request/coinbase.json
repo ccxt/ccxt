@@ -619,15 +619,14 @@
                 "input": []
             }
         ],
-        "fetchDepositsWithdrawals": [
-            {
-                "description": "spot",
-                "method": "fetchDeposits",
-                "url": "https://api.coinbase.com/v2/accounts/952ea6fb-7422-5097-841f-23749355aca5/deposits",
-                "input": [
-                  "USDT"
-                ]
-            }
+        "fetchDepositsWithdrawals": [{
+            "description": "spot",
+            "method": "fetchDepositsWithdrawals",
+            "url": "https://api.coinbase.com/v2/accounts/myAccount/transactions",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }
