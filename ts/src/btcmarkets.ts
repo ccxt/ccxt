@@ -86,7 +86,7 @@ export default class btcmarkets extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'ttps://github.com/user-attachments/assets/8c8d6907-3873-4cc4-ad20-e22fba28247e',
+                'logo': 'https://github.com/user-attachments/assets/8c8d6907-3873-4cc4-ad20-e22fba28247e',
                 'api': {
                     'public': 'https://api.btcmarkets.net',
                     'private': 'https://api.btcmarkets.net',
