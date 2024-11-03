@@ -907,6 +907,31 @@
                     }
                 ]
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch the BTC deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "BTC"
+                ],
+                "httpResponse": {
+                  "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+                  "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                  "created_at": "2024-11-03T07:30:05.609149Z"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+                    "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                    "created_at": "2024-11-03T07:30:05.609149Z"
+                  },
+                  "currency": "BTC",
+                  "network": null,
+                  "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+                  "tag": null
+                }
+            }
         ]
     }
 }
