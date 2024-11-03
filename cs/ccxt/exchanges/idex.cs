@@ -1937,9 +1937,9 @@ public partial class idex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", null },
+            { "network", "MATIC" },
             { "address", address },
             { "tag", null },
-            { "network", "MATIC" },
         };
     }
 

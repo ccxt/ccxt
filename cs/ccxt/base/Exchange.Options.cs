@@ -66,6 +66,8 @@ public partial class Exchange
     public Dictionary<string, object> has { get; set; } = new dict();
     public Dictionary<string, object> features { get; set; } = new dict();
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
+    public bool isSandboxModeEnabled { get; set; } = false;
+
     public object markets { get; set; } = null;
     public object currencies { get; set; } = null;
     public object fees { get; set; } = new dict();
@@ -242,6 +244,7 @@ public partial class Exchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         // handle options
         var extendedOptions = safeDict(extendedProperties, "options");

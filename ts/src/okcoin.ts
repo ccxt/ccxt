@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, LedgerEntry, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -47,10 +47,13 @@ export default class okcoin extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true, // see below
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -2143,7 +2146,7 @@ export default class okcoin extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addr": "okbtothemoon",
@@ -2227,18 +2230,18 @@ export default class okcoin extends Exchange {
         //
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
-         * @name okx#fetchDepositAddress
+         * @name okcoin#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
@@ -2255,13 +2258,13 @@ export default class okcoin extends Exchange {
         if (result === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + networkCode + ' deposit address for ' + code);
         }
-        return result;
+        return result as DepositAddress;
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
-         * @name okx#fetchDepositAddressesByNetwork
+         * @name okcoin#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
@@ -2298,7 +2301,7 @@ export default class okcoin extends Exchange {
         const data = this.safeValue (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
         const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network');
+        return this.indexBy (parsed, 'network') as DepositAddress[];
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {

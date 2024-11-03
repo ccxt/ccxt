@@ -1092,6 +1092,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'volumeQuote'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'index'),
         ));
     }
 

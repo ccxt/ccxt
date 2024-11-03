@@ -74,11 +74,14 @@ class bitget extends bitget$1 {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -89,11 +92,14 @@ class bitget extends bitget$1 {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
                 'fetchMyLiquidations': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -263,6 +269,7 @@ class bitget extends bitget$1 {
                             'v2/mix/market/current-fund-rate': 1,
                             'v2/mix/market/contracts': 1,
                             'v2/mix/market/query-position-lever': 2,
+                            'v2/mix/market/account-long-short': 20,
                         },
                     },
                     'margin': {
@@ -273,6 +280,7 @@ class bitget extends bitget$1 {
                             'margin/v1/isolated/public/tierData': 2,
                             'margin/v1/public/currencies': 1,
                             'v2/margin/currencies': 2,
+                            'v2/margin/market/long-short-ratio': 20,
                         },
                     },
                     'earn': {
@@ -435,6 +443,7 @@ class bitget extends bitget$1 {
                             'v2/mix/order/orders-history': 2,
                             'v2/mix/order/orders-plan-pending': 2,
                             'v2/mix/order/orders-plan-history': 2,
+                            'v2/mix/market/position-long-short': 20,
                         },
                         'post': {
                             'mix/v1/account/sub-account-contract-assets': 200,
@@ -1419,7 +1428,7 @@ class bitget extends bitget$1 {
                     'ARB': 'ArbitrumOne',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'APT': 'APTOS',
+                    'APT': 'Aptos',
                     'MATIC': 'Polygon',
                     'VIC': 'VICTION',
                     'AVAXC': 'C-Chain',
@@ -2472,11 +2481,11 @@ class bitget extends bitget$1 {
             network = this.networkIdToCode(networkId, parsedCurrency);
         }
         return {
+            'info': depositAddress,
             'currency': parsedCurrency,
+            'network': network,
             'address': this.safeString(depositAddress, 'address'),
             'tag': this.safeString(depositAddress, 'tag'),
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -2534,6 +2543,14 @@ class bitget extends bitget$1 {
         return this.parseOrderBook(data, market['symbol'], timestamp);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //   {
+        //       "symbol": "BTCUSDT",
+        //       "price": "26242",
+        //       "indexPrice": "34867",
+        //       "markPrice": "25555",
+        //       "ts": "1695793390482"
+        //   }
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -2640,6 +2657,8 @@ class bitget extends bitget$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'baseVolume'),
             'quoteVolume': this.safeString(ticker, 'quoteVolume'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2740,6 +2759,42 @@ class bitget extends bitget$1 {
         //         ]
         //     }
         //
+        const data = this.safeList(response, 'data', []);
+        return this.parseTicker(data[0], market);
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchMarkPrice
+         * @description fetches the mark price for a specific market
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        }
+        else {
+            market = this.market(symbol);
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            throw new errors.NotSupported(this.id + ' fetchMarkPrice() is not supported for spot markets');
+        }
+        else {
+            let productType = undefined;
+            [productType, params] = this.handleProductTypeAndParams(market, params);
+            request['productType'] = productType;
+            response = await this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, params));
+        }
         const data = this.safeList(response, 'data', []);
         return this.parseTicker(data[0], market);
     }
@@ -6793,13 +6848,29 @@ class bitget extends bitget$1 {
     }
     parseFundingRate(contract, market = undefined) {
         //
+        // fetchFundingRate
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "fundingRate": "-0.000182"
         //     }
         //
+        // fetchFundingInterval
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "nextFundingTime": "1727942400000",
+        //         "ratePeriod": "8"
+        //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
+        const fundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
+        const interval = this.safeString(contract, 'ratePeriod');
+        let intervalString = undefined;
+        if (interval !== undefined) {
+            intervalString = interval + 'h';
+        }
         return {
             'info': contract,
             'symbol': symbol,
@@ -6810,15 +6881,15 @@ class bitget extends bitget$1 {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -8278,15 +8349,15 @@ class bitget extends bitget$1 {
         const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
         const timestamp = this.safeInteger(info, 'cTime');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'interestCoin')),
             'interest': this.safeNumber(info, 'interestAmount'),
             'interestRate': this.safeNumber(info, 'dailyInterestRate'),
             'amountBorrowed': undefined,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async closePosition(symbol, side = undefined, params = {}) {
@@ -8788,6 +8859,123 @@ class bitget extends bitget$1 {
             };
         }
         return result;
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        let market = undefined;
+        if (sandboxMode) {
+            const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+            market = this.market(sandboxSymbol);
+        }
+        else {
+            market = this.market(symbol);
+        }
+        let productType = undefined;
+        [productType, params] = this.handleProductTypeAndParams(market, params);
+        const request = {
+            'symbol': market['id'],
+            'productType': productType,
+        };
+        const response = await this.publicMixGetV2MixMarketFundingTime(this.extend(request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1727930153888,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "nextFundingTime": "1727942400000",
+        //                 "ratePeriod": "8"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        return this.parseFundingRate(first, market);
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+         * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
+        }
+        let response = undefined;
+        if (market['swap'] || market['future']) {
+            response = await this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729321233281,
+            //         "data": [
+            //             {
+            //                 "longAccountRatio": "0.58",
+            //                 "shortAccountRatio": "0.42",
+            //                 "longShortAccountRatio": "0.0138",
+            //                 "ts": "1729312200000"
+            //             },
+            //         ]
+            //     }
+            //
+        }
+        else {
+            response = await this.publicMarginGetV2MarginMarketLongShortRatio(this.extend(request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729306974712,
+            //         "data": [
+            //             {
+            //                 "longShortRatio": "40.66",
+            //                 "ts": "1729306800000"
+            //             },
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
+        return this.parseLongShortRatioHistory(data, market);
+    }
+    parseLongShortRatio(info, market = undefined) {
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeIntegerOmitZero(info, 'ts');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.safeNumber2(info, 'longShortRatio', 'longShortAccountRatio'),
+        };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {

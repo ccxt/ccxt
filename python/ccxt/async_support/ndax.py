@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -48,29 +48,51 @@ class ndax(Exchange, ImplicitAPI):
                 'editOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -83,16 +105,22 @@ class ndax(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'signIn': True,
@@ -1871,7 +1899,7 @@ class ndax(Exchange, ImplicitAPI):
         trades = self.safe_list(grouped, 'Trade', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -1906,7 +1934,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         # fetchDepositAddress, createDepositAddress
         #
@@ -1933,11 +1961,11 @@ class ndax(Exchange, ImplicitAPI):
             code = currency['code']
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': depositAddress,
         }
 
     async def create_deposit_address(self, code: str, params={}):

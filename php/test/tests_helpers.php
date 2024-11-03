@@ -309,6 +309,26 @@ function close($exchange) {
     }
 }
 
+function is_sync(){
+    return IS_SYNCHRONOUS;
+}
+
+function get_root_dir(){
+    return ROOT_DIR;
+}
+
+function get_lang() {
+    return LANG;
+}
+
+function get_ext(){
+    return EXT;
+}
+
+function get_env_vars() {
+    return ENV_VARS;
+}
+
 function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
     return $exchange;

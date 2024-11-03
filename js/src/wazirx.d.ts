@@ -1,5 +1,5 @@
 import Exchange from './abstract/wazirx.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, DepositAddress } from './base/types.js';
 /**
  * @class wazirx
  * @augments Exchange
@@ -34,13 +34,7 @@ export default class wazirx extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: any;
-        network: string;
-        info: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;

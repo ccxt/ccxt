@@ -45,10 +45,13 @@ class okcoin extends okcoin$1 {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -2247,17 +2250,17 @@ class okcoin extends okcoin$1 {
         //
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddress(code, params = {}) {
         /**
          * @method
-         * @name okx#fetchDepositAddress
+         * @name okcoin#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code
@@ -2279,7 +2282,7 @@ class okcoin extends okcoin$1 {
     async fetchDepositAddressesByNetwork(code, params = {}) {
         /**
          * @method
-         * @name okx#fetchDepositAddressesByNetwork
+         * @name okcoin#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address

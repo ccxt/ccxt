@@ -25,7 +25,11 @@ declare function removeProxyOptions(exchange: Exchange, skippedProperties: objec
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string): void;
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
+declare function deepEqual(a: any, b: any): boolean;
+declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare const _default: {
+    deepEqual: typeof deepEqual;
+    assertDeepEqual: typeof assertDeepEqual;
     logTemplate: typeof logTemplate;
     isTemporaryFailure: typeof isTemporaryFailure;
     assertTimestamp: typeof assertTimestamp;

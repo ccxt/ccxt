@@ -70,6 +70,8 @@ class woofipro extends woofipro$1 {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -124,7 +126,7 @@ class woofipro extends woofipro$1 {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69',
+                'logo': 'https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -798,6 +800,18 @@ class woofipro extends woofipro$1 {
             '86400000': '24h',
         };
         return this.safeString(intervals, interval, interval);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name woofipro#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     async fetchFundingRate(symbol, params = {}) {
         /**

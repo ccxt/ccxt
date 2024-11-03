@@ -547,6 +547,8 @@ class blofin extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -566,6 +568,28 @@ class blofin extends Exchange {
                 'instId' => $market['id'],
             );
             $response = Async\await($this->publicGetMarketTickers ($this->extend($request, $params)));
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_ticker($first, $market);
+        }) ();
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches mark price for the $market
+             * @see https://docs.blofin.com/index.html#get-mark-price
+             * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketMarkPrice ($this->extend($request, $params)));
             $data = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($data, 0, array());
             return $this->parse_ticker($first, $market);

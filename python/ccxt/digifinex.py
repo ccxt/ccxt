@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.digifinex import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -67,10 +67,14 @@ class digifinex(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -1163,6 +1167,8 @@ class digifinex(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': self.safe_string(ticker, 'base_vol'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market)
 
@@ -2512,7 +2518,7 @@ class digifinex(Exchange, ImplicitAPI):
             ledger = self.safe_value(data, 'finance', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addressTag":"",
@@ -2528,12 +2534,12 @@ class digifinex(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2810,7 +2816,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         self.load_markets()
         request: dict = {}
         market = None
@@ -2843,7 +2849,7 @@ class digifinex(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "amount": 0.0006103,
@@ -2865,15 +2871,15 @@ class digifinex(Exchange, ImplicitAPI):
         currency = None if (market is None) else market['base']
         symbol = self.safe_symbol(marketId, market)
         return {
-            'account': symbol,
+            'info': info,
             'symbol': symbol,
             'currency': currency,
             'interest': None,
             'interestRate': 0.001,  # all interest rates on digifinex are 0.1%
             'amountBorrowed': self.parse_number(amountBorrowed),
+            'marginMode': None,
             'timestamp': None,
             'datetime': None,
-            'info': info,
         }
 
     def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
@@ -3008,8 +3014,18 @@ class digifinex(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
+
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

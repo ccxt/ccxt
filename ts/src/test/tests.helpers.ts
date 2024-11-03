@@ -58,12 +58,11 @@ function getCliArgValue (arg) {
 const fileParts = import.meta.url.split ('.');
 const EXT = fileParts[fileParts.length - 1];
 const LANG = 'JS';
-const IS_SYNCHRONOUS = false;
-const PROXY_TEST_FILE_NAME = 'proxies';
 const ROOT_DIR = DIR_NAME + '/../../../';
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
+const PROXY_TEST_FILE_NAME = "proxies";
 
 function dump (...args) {
     console.log (...args);
@@ -202,6 +201,26 @@ async function close (exchange: Exchange) {
     await exchange.close ();
 }
 
+function isSync () {
+    return false;
+}
+
+function getRootDir () {
+    return ROOT_DIR;
+}
+
+function getEnvVars () {
+    return ENV_VARS;
+}
+
+function getLang () {
+    return LANG;
+}
+
+function getExt () {
+    return EXT;
+}
+
 
 export {
     // errors
@@ -238,16 +257,18 @@ export {
     setFetchResponse,
     isNullValue,
     close,
+    getRootDir,
     argvExchange,
     argvSymbol,
     argvMethod,
-    IS_SYNCHRONOUS,
+    isSync,
     LANG,
     ENV_VARS,
     NEW_LINE,
     EXT,
-    ROOT_DIR,
-    PROXY_TEST_FILE_NAME,
+    getEnvVars,
+    getLang,
+    getExt
 };
 
 export default {};

@@ -44,11 +44,18 @@ export default class poloniex extends Exchange {
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -630,6 +637,7 @@ export default class poloniex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'quantity'),
             'quoteVolume': this.safeString(ticker, 'amount'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1832,11 +1840,11 @@ export default class poloniex extends Exchange {
             }
         }
         return {
+            'info': response,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': response,
         };
     }
     async transfer(code, amount, fromAccount, toAccount, params = {}) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/kraken.js';
-import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry } from './base/types.js';
+import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class kraken
  * @augments Exchange
@@ -72,28 +72,10 @@ export default class kraken extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     addPaginationCursorToResult(result: any): any;
-    createDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
+    createDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchDepositMethods(code: string, params?: {}): Promise<any>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchPositions(symbols?: Strings, params?: {}): Promise<import("./base/types.js").Position[]>;
     parsePosition(position: Dict, market?: Market): import("./base/types.js").Position;

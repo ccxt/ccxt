@@ -1729,7 +1729,7 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
-    public function fetch_deposit_address(?string $code = null, $params = array ()) {
+    public function fetch_deposit_address(?string $code = null, $params = array ()): array {
         /**
          * fetch the Polygon address of the wallet
          * @see https://api-docs-v3.idex.io/#get-wallets
@@ -1757,7 +1757,7 @@ class idex extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    array(
         //        array(
@@ -1779,9 +1779,9 @@ class idex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => null,
+            'network' => 'MATIC',
             'address' => $address,
             'tag' => null,
-            'network' => 'MATIC',
         );
     }
 

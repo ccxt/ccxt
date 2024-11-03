@@ -1219,21 +1219,22 @@ public partial class bitmex : Exchange
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        object fee = null;
         object feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
             feeCost = this.convertToRealAmount(code, feeCost);
+            fee = new Dictionary<string, object>() {
+                { "cost", this.parseNumber(feeCost) },
+                { "currency", code },
+            };
         }
-        object fee = new Dictionary<string, object>() {
-            { "cost", this.parseToNumeric(feeCost) },
-            { "currency", code },
-        };
         object after = this.safeString(item, "walletBalance");
         if (isTrue(!isEqual(after, null)))
         {
             after = this.convertToRealAmount(code, after);
         }
-        object before = this.parseToNumeric(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         object direction = null;
         if (isTrue(Precise.stringLt(amountString, "0")))
         {
@@ -1255,9 +1256,9 @@ public partial class bitmex : Exchange
             { "referenceAccount", referenceAccount },
             { "type", type },
             { "currency", code },
-            { "amount", this.parseToNumeric(amount) },
+            { "amount", this.parseNumber(amount) },
             { "before", before },
-            { "after", this.parseToNumeric(after) },
+            { "after", this.parseNumber(after) },
             { "status", status },
             { "fee", fee },
         }, currency);
@@ -1530,6 +1531,7 @@ public partial class bitmex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "homeNotional24h") },
             { "quoteVolume", this.safeString(ticker, "foreignNotional24h") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
             { "info", ticker },
         }, market);
     }
@@ -2923,11 +2925,11 @@ public partial class bitmex : Exchange
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", networkCode },
             { "address", ((string)((string)response).Replace((string)"\"", (string)"")).Replace((string)"\"", (string)"") },
             { "tag", null },
-            { "network", networkCode },
-            { "info", response },
         };
     }
 

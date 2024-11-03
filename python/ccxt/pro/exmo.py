@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Int, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -23,7 +23,7 @@ class exmo(ccxt.async_support.exmo):
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
-                'watchOrders': False,  # TODO
+                'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': False,
             },
@@ -546,6 +546,206 @@ class exmo(ccxt.async_support.exmo):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+        :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+        watches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate(params)
+        type, query = self.handle_market_type_and_params('watchOrders', None, params)
+        url = self.urls['api']['ws'][type]
+        messageHash = None
+        if symbol is None:
+            messageHash = 'orders:' + type
+        else:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = 'orders:' + market['symbol']
+        message: dict = {
+            'method': 'subscribe',
+            'topics': [
+                type + '/orders',
+            ],
+            'id': self.request_id(),
+        }
+        request = self.deep_extend(message, query)
+        orders = await self.watch(url, messageHash, request, messageHash, request)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client: Client, message):
+        #
+        #  spot
+        # {
+        #     "ts": 1574427585174,
+        #     "event": "snapshot",
+        #     "topic": "spot/orders",
+        #     "data": [
+        #       {
+        #         "order_id": "14",
+        #         "client_id":"100500",
+        #         "created": "1574427585",
+        #         "pair": "BTC_USD",
+        #         "price": "7750",
+        #         "quantity": "0.1",
+        #         "amount": "775",
+        #         "original_quantity": "0.1",
+        #         "original_amount": "775",
+        #         "type": "sell",
+        #         "status": "open"
+        #       }
+        #     ]
+        # }
+        #
+        #  margin
+        # {
+        #     "ts":1624371281773,
+        #     "event":"snapshot",
+        #     "topic":"margin/orders",
+        #     "data":[
+        #        {
+        #           "order_id":"692844278081168665",
+        #           "created":"1624371250919761600",
+        #           "type":"limit_buy",
+        #           "previous_type":"limit_buy",
+        #           "pair":"BTC_USD",
+        #           "leverage":"2",
+        #           "price":"10000",
+        #           "stop_price":"0",
+        #           "distance":"0",
+        #           "trigger_price":"10000",
+        #           "init_quantity":"0.1",
+        #           "quantity":"0.1",
+        #           "funding_currency":"USD",
+        #           "funding_quantity":"1000",
+        #           "funding_rate":"0",
+        #           "client_id":"111111",
+        #           "expire":0,
+        #           "src":1,
+        #           "comment":"comment1",
+        #           "updated":1624371250938136600,
+        #           "status":"active"
+        #        }
+        #     ]
+        # }
+        #
+        topic = self.safe_string(message, 'topic')
+        parts = topic.split('/')
+        type = self.safe_string(parts, 0)
+        messageHash = 'orders:' + type
+        event = self.safe_string(message, 'event')
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
+        rawOrders = []
+        if event == 'snapshot':
+            rawOrders = self.safe_value(message, 'data', [])
+        elif event == 'update':
+            rawOrder = self.safe_dict(message, 'data', {})
+            rawOrders.append(rawOrder)
+        symbols: dict = {}
+        for j in range(0, len(rawOrders)):
+            order = self.parse_ws_order(rawOrders[j])
+            cachedOrders.append(order)
+            symbols[order['symbol']] = True
+        symbolKeys = list(symbols.keys())
+        for i in range(0, len(symbolKeys)):
+            symbol = symbolKeys[i]
+            symbolSpecificMessageHash = 'orders:' + symbol
+            client.resolve(cachedOrders, symbolSpecificMessageHash)
+        client.resolve(cachedOrders, messageHash)
+
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
+        #
+        # {
+        #     order_id: '43226756791',
+        #     client_id: 0,
+        #     created: '1730371416',
+        #     type: 'market_buy',
+        #     pair: 'TRX_USD',
+        #     quantity: '0',
+        #     original_quantity: '30',
+        #     status: 'cancelled',
+        #     last_trade_id: '726480870',
+        #     last_trade_price: '0.17',
+        #     last_trade_quantity: '30'
+        # }
+        #
+        id = self.safe_string(order, 'order_id')
+        timestamp = self.safe_timestamp(order, 'created')
+        orderType = self.safe_string(order, 'type')
+        side = self.parseSide(orderType)
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        amount = self.safe_string(order, 'quantity')
+        if amount is None:
+            amountField = 'in_amount' if (side == 'buy') else 'out_amount'
+            amount = self.safe_string(order, amountField)
+        price = self.safe_string(order, 'price')
+        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'stop_price'))
+        type = None
+        if (orderType != 'buy') and (orderType != 'sell'):
+            type = orderType
+        trades = None
+        if 'last_trade_id' in order:
+            trade = self.parse_ws_trade(order, market)
+            trades = [trade]
+        return self.safe_order({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': None,
+            'status': self.parseStatus(self.safe_string(order, 'status')),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'cost': None,
+            'amount': self.safe_string(order, 'original_quantity'),
+            'filled': None,
+            'remaining': self.safe_string(order, 'quantity'),
+            'average': None,
+            'trades': trades,
+            'fee': None,
+            'info': order,
+        }, market)
+
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+        id = self.safe_string(trade, 'order_id')
+        orderType = self.safe_string(trade, 'type')
+        side = self.parseSide(orderType)
+        marketId = self.safe_string(trade, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        type = None
+        if (orderType != 'buy') and (orderType != 'sell'):
+            type = orderType
+        return self.safe_trade({
+            'id': self.safe_string(trade, 'last_trade_id'),
+            'symbol': symbol,
+            'order': id,
+            'type': type,
+            'side': side,
+            'price': self.safe_string(trade, 'last_trade_price'),
+            'amount': self.safe_string(trade, 'last_trade_quantity'),
+            'cost': None,
+            'fee': None,
+        }, market)
+
     def handle_message(self, client: Client, message):
         #
         # {
@@ -585,8 +785,8 @@ class exmo(ccxt.async_support.exmo):
                     'spot/trades': self.handle_trades,
                     'margin/trades': self.handle_trades,
                     'spot/order_book_updates': self.handle_order_book,
-                    # 'spot/orders': self.handleOrders,
-                    # 'margin/orders': self.handleOrders,
+                    'spot/orders': self.handle_orders,
+                    'margin/orders': self.handle_orders,
                     'spot/user_trades': self.handle_my_trades,
                     'margin/user_trades': self.handle_my_trades,
                 }

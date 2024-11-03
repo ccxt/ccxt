@@ -115,7 +115,7 @@ public partial class testMainClass : BaseTest
             var value = vars[key];
             parsedObject[key] = value;
         }
-        envVars = parsedObject;
+        ENV_VARS = parsedObject;
     }
 
     async static Task close(object exchange)
@@ -165,7 +165,8 @@ public partial class testMainClass : BaseTest
         return fileNameOnly;
     }
 
-    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args) {
+    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args)
+    {
         return null; // empty in c#
     }
 
@@ -174,6 +175,7 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+            if (arg == null) continue; // skip if no arguments passed into method
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -309,6 +311,31 @@ public partial class testMainClass : BaseTest
         return value == null;
     }
 
+    public bool isSync()
+    {
+        return false;
+    }
+
+    public string getExt()
+    {
+        return EXT;
+    }
+
+    public string getLang()
+    {
+        return LANG;
+    }
+
+    public object getEnvVars()
+    {
+        return ENV_VARS;
+    }
+
+    public string getRootDir()
+    {
+        return ROOT_DIR;
+    }
+
     public object convertAscii(object input)
     {
         // tmp fix the issue inside ascii-encoded json values
@@ -333,6 +360,11 @@ public partial class testMainClass : BaseTest
 
     public partial class SharedMethods
     {
-        // stub, the actual content is generated inside Generated/Exchange
+        // ast-transpiler uses "json()" method in transpiled C# content,
+        // which should pre-exist in the language-specific helpers for project
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }
     }
 }

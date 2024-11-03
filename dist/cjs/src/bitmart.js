@@ -1294,11 +1294,12 @@ class bitmart extends bitmart$1 {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }
@@ -1854,7 +1855,7 @@ class bitmart extends bitmart$1 {
             }
         }
         else {
-            const maxLimit = 1200;
+            const maxLimit = 500;
             if (limit === undefined) {
                 limit = maxLimit;
             }
@@ -3507,9 +3508,9 @@ class bitmart extends bitmart$1 {
         return {
             'info': depositAddress,
             'currency': this.safeString(currency, 'code'),
+            'network': network,
             'address': address,
             'tag': this.safeString(depositAddress, 'address_memo'),
-            'network': network,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -4335,15 +4336,15 @@ class bitmart extends bitmart$1 {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(info, 'create_time');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': 'isolated',
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
             'interest': this.safeNumber(info, 'interest_amount'),
             'interestRate': this.safeNumber(info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchOpenInterest(symbol, params = {}) {

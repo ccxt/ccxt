@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -44,8 +44,13 @@ export default class bigone extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -728,6 +733,8 @@ export default class bigone extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'volume', 'volume24h'),
             'quoteVolume': this.safeString (ticker, 'volume24hInUsd'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -1811,7 +1818,7 @@ export default class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bigone#fetchDepositAddress
@@ -1857,12 +1864,12 @@ export default class bigone extends Exchange {
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.networkIdToCode (selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (selectedNetworkId),
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     parseTransactionStatus (status: Str) {

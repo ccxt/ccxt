@@ -642,9 +642,9 @@ class hyperliquid extends hyperliquid$1 {
                 const code = this.safeCurrencyCode(this.safeString(balance, 'coin'));
                 const account = this.account();
                 const total = this.safeString(balance, 'total');
-                const free = this.safeString(balance, 'hold');
+                const used = this.safeString(balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -653,8 +653,8 @@ class hyperliquid extends hyperliquid$1 {
         const result = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat(data, 'accountValue'),
-                'used': this.safeFloat(data, 'totalMarginUsed'),
+                'total': this.safeNumber(data, 'accountValue'),
+                'free': this.safeNumber(response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger(response, 'time');
@@ -782,9 +782,18 @@ class hyperliquid extends hyperliquid$1 {
         await this.loadMarkets();
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until', this.milliseconds());
-        const useTail = (since === undefined);
+        let useTail = since === undefined;
+        const originalSince = since;
         if (since === undefined) {
-            since = 0;
+            if (limit !== undefined) {
+                // optimization if limit is provided
+                const timeframeInMilliseconds = this.parseTimeframe(timeframe) * 1000;
+                since = this.sum(until, timeframeInMilliseconds * limit * -1);
+                useTail = false;
+            }
+            else {
+                since = 0;
+            }
         }
         params = this.omit(params, ['until']);
         const request = {
@@ -813,7 +822,7 @@ class hyperliquid extends hyperliquid$1 {
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1615,7 +1624,8 @@ class hyperliquid extends hyperliquid$1 {
             request['startTime'] = since;
         }
         else {
-            request['startTime'] = this.milliseconds() - 100 * 60 * 60 * 1000;
+            const maxLimit = (limit === undefined) ? 500 : limit;
+            request['startTime'] = this.milliseconds() - maxLimit * 60 * 60 * 1000;
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
@@ -1983,6 +1993,10 @@ class hyperliquid extends hyperliquid$1 {
         const statuses = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         };
         return this.safeString(statuses, status, status);
     }
@@ -2221,15 +2235,19 @@ class hyperliquid extends hyperliquid$1 {
         market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict(entry, 'leverage', {});
-        const isIsolated = (this.safeString(leverage, 'type') === 'isolated');
-        const quantity = this.safeNumber(leverage, 'rawUsd');
+        const marginMode = this.safeString(leverage, 'type');
+        const isIsolated = (marginMode === 'isolated');
+        const rawSize = this.safeString(entry, 'szi');
+        let size = rawSize;
         let side = undefined;
-        if (quantity !== undefined) {
-            side = (quantity > 0) ? 'short' : 'long';
+        if (size !== undefined) {
+            side = Precise["default"].stringGt(rawSize, '0') ? 'long' : 'short';
+            size = Precise["default"].stringAbs(size);
         }
-        const unrealizedPnl = this.safeNumber(entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber(entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString(entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise["default"].stringAbs(rawUnrealizedPnl);
+        const initialMargin = this.safeString(entry, 'marginUsed');
+        const percentage = Precise["default"].stringMul(Precise["default"].stringDiv(absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -2239,21 +2257,21 @@ class hyperliquid extends hyperliquid$1 {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': this.safeNumber(entry, 'szi'),
+            'contracts': this.parseNumber(size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber(entry, 'entryPx'),
             'markPrice': undefined,
             'notional': this.safeNumber(entry, 'positionValue'),
             'leverage': this.safeNumber(leverage, 'value'),
-            'collateral': undefined,
-            'initialMargin': initialMargin,
+            'collateral': this.safeNumber(entry, 'marginUsed'),
+            'initialMargin': this.parseNumber(initialMargin),
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber(entry, 'liquidationPx'),
-            'marginMode': undefined,
-            'percentage': percentage,
+            'marginMode': marginMode,
+            'percentage': this.parseNumber(percentage),
         });
     }
     async setMarginMode(marginMode, symbol = undefined, params = {}) {

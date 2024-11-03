@@ -17,6 +17,7 @@ class upbit extends \ccxt\async\upbit {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchTicker' => true,
+                'watchTickers' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchOrders' => true,
@@ -63,6 +64,36 @@ class upbit extends \ccxt\async\upbit {
         }) ();
     }
 
+    public function watch_public_multiple(?array $symbols, $channel, $params = array ()) {
+        return Async\async(function () use ($symbols, $channel, $params) {
+            Async\await($this->load_markets());
+            if ($symbols === null) {
+                $symbols = $this->symbols;
+            }
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $url = $this->implode_params($this->urls['api']['ws'], array(
+                'hostname' => $this->hostname,
+            ));
+            $messageHashes = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $messageHashes[] = $channel . ':' . $marketIds[$i];
+            }
+            $request = array(
+                array(
+                    'ticket' => $this->uuid(),
+                ),
+                array(
+                    'type' => $channel,
+                    'codes' => $marketIds,
+                    // 'isOnlySnapshot' => false,
+                    // 'isOnlyRealtime' => false,
+                ),
+            );
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
+        }) ();
+    }
+
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -73,6 +104,25 @@ class upbit extends \ccxt\async\upbit {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
             return Async\await($this->watch_public($symbol, 'ticker'));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://global-docs.upbit.com/reference/websocket-ticker
+             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            $newTickers = Async\await($this->watch_public_multiple($symbols, 'ticker'));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 

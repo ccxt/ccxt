@@ -42,6 +42,8 @@ class exmo extends exmo$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -209,6 +211,7 @@ class exmo extends exmo$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': errors.InvalidOrder,
                     '140434': errors.BadRequest,
                     '40005': errors.AuthenticationError,
                     '40009': errors.InvalidNonce,
@@ -2129,11 +2132,11 @@ class exmo extends exmo$1 {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     getMarketFromTrades(trades) {

@@ -19,6 +19,7 @@ public partial class woo : ccxt.woo
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
                 { "watchPositions", true },
@@ -448,6 +449,86 @@ public partial class woo : ccxt.woo
             ((IList<object>)result).Add(ticker);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+    }
+
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woo#watchBidsAsks
+        * @see https://docs.woox.io/#bbos
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object name = "bbos";
+        object topic = name;
+        object request = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "topic", topic },
+        };
+        object message = this.extend(request, parameters);
+        object tickers = await this.watchPublic(topic, message);
+        if (isTrue(this.newUpdates))
+        {
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "topic": "bbos",
+        //         "ts": 1618822376000,
+        //         "data": [
+        //             {
+        //                 "symbol": "SPOT_FIL_USDT",
+        //                 "ask": 159.0318,
+        //                 "askSize": 370.43,
+        //                 "bid": 158.9158,
+        //                 "bidSize": 16
+        //             }
+        //         ]
+        //     }
+        //
+        object topic = this.safeString(message, "topic");
+        object data = this.safeList(message, "data", new List<object>() {});
+        object timestamp = this.safeInteger(message, "ts");
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object ticker = this.safeDict(data, i);
+            ((IDictionary<string,object>)ticker)["ts"] = timestamp;
+            object parsedTicker = this.parseWsBidAsk(ticker);
+            object symbol = getValue(parsedTicker, "symbol");
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = parsedTicker;
+            ((IDictionary<string,object>)result)[(string)symbol] = parsedTicker;
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "ts");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "ask") },
+            { "askVolume", this.safeString(ticker, "askSize") },
+            { "bid", this.safeString(ticker, "bid") },
+            { "bidVolume", this.safeString(ticker, "bidSize") },
+            { "info", ticker },
+        }, market);
     }
 
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1325,6 +1406,7 @@ public partial class woo : ccxt.woo
             { "trade", this.handleTrade },
             { "balance", this.handleBalance },
             { "position", this.handlePositions },
+            { "bbos", this.handleBidAsk },
         };
         object eventVar = this.safeString(message, "event");
         object method = this.safeValue(methods, eventVar);

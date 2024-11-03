@@ -57,10 +57,14 @@ class digifinex extends Exchange {
                 'fetchCrossBorrowRates' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -1204,6 +1208,8 @@ class digifinex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
             'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $indexPrice,
             'info' => $ticker,
         ), $market);
     }
@@ -2692,7 +2698,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addressTag":"",
@@ -2708,13 +2714,13 @@ class digifinex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -3020,7 +3026,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array();
@@ -3057,7 +3063,7 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -3079,15 +3085,15 @@ class digifinex extends Exchange {
         $currency = ($market === null) ? null : $market['base'];
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'account' => $symbol,
+            'info' => $info,
             'symbol' => $symbol,
             'currency' => $currency,
             'interest' => null,
             'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed' => $this->parse_number($amountBorrowed),
+            'marginMode' => null,
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 
@@ -3236,8 +3242,21 @@ class digifinex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_funding_rate($data, $market);
+        }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
         }) ();
     }
 

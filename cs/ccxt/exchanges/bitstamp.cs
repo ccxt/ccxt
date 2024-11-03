@@ -39,6 +39,8 @@ public partial class bitstamp : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -2251,11 +2253,11 @@ public partial class bitstamp : Exchange
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

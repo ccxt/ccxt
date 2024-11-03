@@ -52,6 +52,8 @@ export default class whitebit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -1948,11 +1950,11 @@ export default class whitebit extends Exchange {
         const tag = this.safeString(account, 'memo');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -2358,15 +2360,15 @@ export default class whitebit extends Exchange {
         const symbol = this.safeSymbol(marketId, market, '_');
         const timestamp = this.safeTimestamp(info, 'modifyDate');
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': this.safeNumber(info, 'unrealizedFunding'),
             'interestRate': 0.00098,
             'amountBorrowed': this.safeNumber(info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

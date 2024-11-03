@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,10 +50,14 @@ export default class digifinex extends Exchange {
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -1193,6 +1197,8 @@ export default class digifinex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString (ticker, 'base_vol'),
+            'markPrice': this.safeString (ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market);
     }
@@ -2683,7 +2689,7 @@ export default class digifinex extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addressTag":"",
@@ -2699,13 +2705,13 @@ export default class digifinex extends Exchange {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-        };
+        } as DepositAddress;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name digifinex#fetchDepositAddress
@@ -2739,7 +2745,7 @@ export default class digifinex extends Exchange {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.');
         }
-        return address;
+        return address as DepositAddress;
     }
 
     async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3009,7 +3015,7 @@ export default class digifinex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         await this.loadMarkets ();
         const request: Dict = {};
         let market = undefined;
@@ -3044,7 +3050,7 @@ export default class digifinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "amount": 0.0006103,
@@ -3066,16 +3072,16 @@ export default class digifinex extends Exchange {
         const currency = (market === undefined) ? undefined : market['base'];
         const symbol = this.safeSymbol (marketId, market);
         return {
-            'account': symbol,
+            'info': info,
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed': this.parseNumber (amountBorrowed),
+            'marginMode': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
@@ -3224,8 +3230,21 @@ export default class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market) as any;
+    }
+
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name digifinex#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
     }
 
     parseFundingRate (contract, market: Market = undefined): FundingRate {

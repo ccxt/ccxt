@@ -69,7 +69,9 @@ parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
-parser.add_argument('--requestTests', action='store_true', help='run response tests')
+parser.add_argument('--response', action='store_true', help='run response tests')
+parser.add_argument('--requestTests', action='store_true', help='run request tests')
+parser.add_argument('--request', action='store_true', help='run request tests')
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
@@ -264,6 +266,20 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     exchange.fetch = fetch
     return exchange
 
+def get_lang():
+    return LANG
+
+def get_ext():
+    return EXT
+
+def get_root_dir():
+    return ROOT_DIR
+
+def get_env_vars():
+    return ENV_VARS
+
+def is_sync():
+    return IS_SYNCHRONOUS
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

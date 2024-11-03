@@ -2940,6 +2940,16 @@ class vertex extends Exchange {
                 $url .= '?' . $this->urlencode($params);
             }
         }
+        if ($path !== 'execute') {
+            // required encoding for public methods
+            if ($headers !== null) {
+                $headers['Accept-Encoding'] = 'gzip';
+            } else {
+                $headers = array(
+                    'Accept-Encoding' => 'gzip',
+                );
+            }
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

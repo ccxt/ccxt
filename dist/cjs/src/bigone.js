@@ -42,8 +42,13 @@ class bigone extends bigone$1 {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -722,6 +727,8 @@ class bigone extends bigone$1 {
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'volume', 'volume24h'),
             'quoteVolume': this.safeString(ticker, 'volume24hInUsd'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -1848,11 +1855,11 @@ class bigone extends bigone$1 {
         const tag = this.safeString(addressObject, 'memo');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.networkIdToCode(selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode(selectedNetworkId),
-            'info': response,
         };
     }
     parseTransactionStatus(status) {

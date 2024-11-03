@@ -131,6 +131,7 @@ public struct Limits
     public MinMax? cost;
     public MinMax? leverage;
     public MinMax? price;
+    public MinMax? market;
 
     public Limits(object limits2)
     {
@@ -139,6 +140,7 @@ public struct Limits
         cost = limits.ContainsKey("cost") ? new MinMax(limits["cost"]) : null;
         leverage = limits.ContainsKey("leverage") ? new MinMax(limits["leverage"]) : null;
         price = limits.ContainsKey("price") ? new MinMax(limits["price"]) : null;
+        market = limits.ContainsKey("market") ? new MinMax(limits["market"]) : null;
     }
 }
 
@@ -348,6 +350,9 @@ public struct Ticker
     public double? average;
     public double? baseVolume;
     public double? quoteVolume;
+
+    public double? indexPrice;
+    public double? markPrice;
     public Dictionary<string, object> info;
 
     public Ticker(object ticker2)
@@ -373,6 +378,8 @@ public struct Ticker
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
         info = Helper.GetInfo(ticker);
+        indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
+        markPrice = Exchange.SafeFloat(ticker, "markPrice");
     }
 }
 
@@ -791,6 +798,25 @@ public struct DepositAddressResponse
     }
 }
 
+public struct DepositAddress
+{
+    public Dictionary<string, object>? info;
+    public string currency;
+    public string? network;
+    public string address;
+    public string? tag;
+
+    public DepositAddress(object depositAddress2)
+    {
+        var depositAddress = (Dictionary<string, object>)depositAddress2;
+        info = Helper.GetInfo(depositAddress);
+        currency = Exchange.SafeString(depositAddress, "currency");
+        network = Exchange.SafeString(depositAddress, "network");
+        address = Exchange.SafeString(depositAddress, "address");
+        tag = Exchange.SafeString(depositAddress, "tag");
+    }
+}
+
 public struct CrossBorrowRate
 {
     public string? currency;
@@ -918,27 +944,27 @@ public struct IsolatedBorrowRates
 
 public struct BorrowInterest
 {
-    public string? account;
+    public Dictionary<string, object> info;
+    public string? symbol;
     public string? currency;
     public double? interest;
     public double? interestRate;
     public double? amountBorrowed;
+    public string? marginMode;
     public Int64? timestamp;
     public string? datetime;
-    public string? marginMode;
-    public Dictionary<string, object> info;
 
     public BorrowInterest(object borrowInterest)
     {
-        account = Exchange.SafeString(borrowInterest, "account");
+        info = Helper.GetInfo(borrowInterest);
+        symbol = Exchange.SafeString(borrowInterest, "symbol");
         currency = Exchange.SafeString(borrowInterest, "currency");
         interest = Exchange.SafeFloat(borrowInterest, "interest");
         interestRate = Exchange.SafeFloat(borrowInterest, "interestRate");
         amountBorrowed = Exchange.SafeFloat(borrowInterest, "amountBorrowed");
+        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
         timestamp = Exchange.SafeInteger(borrowInterest, "timestamp");
         datetime = Exchange.SafeString(borrowInterest, "datetime");
-        marginMode = Exchange.SafeString(borrowInterest, "marginMode");
-        info = Helper.GetInfo(borrowInterest);
     }
 }
 
@@ -1885,5 +1911,26 @@ public struct OptionChain
         {
             chains[key] = value;
         }
+    }
+}
+
+
+public struct LongShortRatio
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public string? timeframe;
+    public double? longShortRatio;
+
+    public LongShortRatio(object lsRatio)
+    {
+        info = Helper.GetInfo(lsRatio);
+        symbol = Exchange.SafeString(lsRatio, "symbol");
+        timestamp = Exchange.SafeInteger(lsRatio, "timestamp");
+        datetime = Exchange.SafeString(lsRatio, "datetime");
+        timeframe = Exchange.SafeString(lsRatio, "timeframe");
+        longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
     }
 }

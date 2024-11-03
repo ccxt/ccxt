@@ -35,6 +35,8 @@ public partial class exmo : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -146,6 +148,7 @@ public partial class exmo : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "140333", typeof(InvalidOrder) },
                     { "140434", typeof(BadRequest) },
                     { "40005", typeof(AuthenticationError) },
                     { "40009", typeof(InvalidNonce) },
@@ -2167,11 +2170,11 @@ public partial class exmo : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

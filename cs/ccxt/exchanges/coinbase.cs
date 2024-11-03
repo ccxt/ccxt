@@ -3960,7 +3960,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "cursor", "cursor", null, 250);
         }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4366,9 +4366,9 @@ public partial class coinbase : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(marketId, currency) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "tag", this.safeString(addressInfo, "destination_tag") },
-            { "network", this.networkIdToCode(networkId, code) },
         };
     }
 

@@ -45,6 +45,8 @@ export default class exmo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -212,6 +214,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder,
                     '140434': BadRequest,
                     '40005': AuthenticationError,
                     '40009': InvalidNonce,
@@ -2132,11 +2135,11 @@ export default class exmo extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     getMarketFromTrades(trades) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -7,6 +7,8 @@ import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenI
 export default class gate extends Exchange {
     describe(): any;
     setSandboxMode(enable: boolean): void;
+    loadUnifiedStatus(params?: {}): Promise<void>;
+    upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -67,7 +69,7 @@ export default class gate extends Exchange {
     fetchOptionUnderlyings(): Promise<any[]>;
     prepareRequest(market?: any, type?: any, params?: {}): Dict[];
     spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
-    multiOrderSpotPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
+    multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
     getMarginMode(stop: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
@@ -76,14 +78,7 @@ export default class gate extends Exchange {
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
     fetchNetworkDepositAddress(code: string, params?: {}): Promise<Dict>;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        info: any;
-        code: string;
-        currency: string;
-        address: any;
-        tag: any;
-        network: any;
-    }>;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     parseTradingFees(response: any): Dict;
@@ -203,6 +198,8 @@ export default class gate extends Exchange {
         datetime: string;
         info: any;
     };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
         url: any;
         method: string;

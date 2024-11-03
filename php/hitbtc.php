@@ -48,6 +48,8 @@ class hitbtc extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -846,7 +848,8 @@ class hitbtc extends Exchange {
             for ($j = 0; $j < count($rawNetworks); $j++) {
                 $rawNetwork = $rawNetworks[$j];
                 $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-                $network = $this->safe_network($networkId);
+                $networkCode = $this->network_id_to_code($networkId);
+                $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
                 $fee = $this->safe_number($rawNetwork, 'payout_fee');
                 $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
                 $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
@@ -862,10 +865,10 @@ class hitbtc extends Exchange {
                 } elseif (!$payoutEnabledNetwork) {
                     $withdrawEnabled = false;
                 }
-                $networks[$network] = array(
+                $networks[$networkCode] = array(
                     'info' => $rawNetwork,
                     'id' => $networkId,
-                    'network' => $network,
+                    'network' => $networkCode,
                     'fee' => $fee,
                     'active' => $activeNetwork,
                     'deposit' => $payinEnabledNetwork,
@@ -901,14 +904,6 @@ class hitbtc extends Exchange {
             );
         }
         return $result;
-    }
-
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        } else {
-            return strtoupper($networkId);
-        }
     }
 
     public function create_deposit_address(string $code, $params = array ()) {
@@ -947,7 +942,7 @@ class hitbtc extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://api.hitbtc.com/#get-deposit-crypto-$address
@@ -980,11 +975,10 @@ class hitbtc extends Exchange {
         $parsedCode = $this->safe_currency_code($currencyId);
         return array(
             'info' => $response,
-            'address' => $address,
-            'tag' => $tag,
-            'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
             'currency' => $parsedCode,
             'network' => null,
+            'address' => $address,
+            'tag' => $tag,
         );
     }
 
@@ -3471,6 +3465,7 @@ class hitbtc extends Exchange {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_value($networkEntry, 'default');
             $withdrawResult = array(

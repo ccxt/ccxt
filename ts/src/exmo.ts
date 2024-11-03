@@ -6,7 +6,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, AuthenticationError, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int } from './base/types.js';
+import type { Dict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, Dictionary, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -44,6 +44,8 @@ export default class exmo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -211,6 +213,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder, // {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': BadRequest,
                     '40005': AuthenticationError, // Authorization error, incorrect signature
                     '40009': InvalidNonce, //
@@ -2105,7 +2108,7 @@ export default class exmo extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name exmo#fetchDepositAddress
@@ -2136,12 +2139,12 @@ export default class exmo extends Exchange {
         }
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     getMarketFromTrades (trades) {

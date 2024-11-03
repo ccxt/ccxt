@@ -6,7 +6,7 @@ import { ExchangeNotAvailable, ExchangeError, DDoSProtection, BadSymbol, Invalid
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, MarketType, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, TradingFees, Dict, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,6 +51,8 @@ export default class whitebit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -1889,7 +1891,7 @@ export default class whitebit extends Exchange {
         return this.parseTrades (data, market);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name whitebit#fetchDepositAddress
@@ -1957,12 +1959,12 @@ export default class whitebit extends Exchange {
         const tag = this.safeString (account, 'memo');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
@@ -2307,7 +2309,7 @@ export default class whitebit extends Exchange {
         return this.parseTransactions (records, currency, since, limit);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name whitebit#fetchBorrowInterest
@@ -2353,7 +2355,7 @@ export default class whitebit extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "positionId": 191823,
@@ -2377,16 +2379,16 @@ export default class whitebit extends Exchange {
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (info, 'modifyDate');
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': this.safeNumber (info, 'unrealizedFunding'),
             'interestRate': 0.00098, // https://whitebit.com/fees
             'amountBorrowed': this.safeNumber (info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {

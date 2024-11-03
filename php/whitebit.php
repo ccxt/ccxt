@@ -46,6 +46,8 @@ class whitebit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -1835,7 +1837,7 @@ class whitebit extends Exchange {
         return $this->parse_trades($data, $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this $account
          * @see https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-$address
@@ -1901,11 +1903,11 @@ class whitebit extends Exchange {
         $tag = $this->safe_string($account, 'memo');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 
@@ -2241,7 +2243,7 @@ class whitebit extends Exchange {
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing currency for margin trading
          * @see https://docs.whitebit.com/private/http-trade-v4/#open-positions
@@ -2285,7 +2287,7 @@ class whitebit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "positionId" => 191823,
@@ -2309,15 +2311,15 @@ class whitebit extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($info, 'modifyDate');
         return array(
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => 'cross',
             'currency' => 'USDT',
             'interest' => $this->safe_number($info, 'unrealizedFunding'),
             'interestRate' => 0.00098, // https://whitebit.com/fees
             'amountBorrowed' => $this->safe_number($info, 'amount'),
+            'marginMode' => 'cross',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

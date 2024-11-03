@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.whitebit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Bool, Currencies, Currency, DepositAddress, Int, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,8 @@ class whitebit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -1758,7 +1760,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'records', [])
         return self.parse_trades(data, market)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.whitebit.com/private/http-main-v4/#get-fiat-deposit-address
@@ -1820,11 +1822,11 @@ class whitebit(Exchange, ImplicitAPI):
         tag = self.safe_string(account, 'memo')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
@@ -2142,7 +2144,7 @@ class whitebit(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://docs.whitebit.com/private/http-trade-v4/#open-positions
@@ -2184,7 +2186,7 @@ class whitebit(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "positionId": 191823,
@@ -2208,15 +2210,15 @@ class whitebit(Exchange, ImplicitAPI):
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(info, 'modifyDate')
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': 'cross',
             'currency': 'USDT',
             'interest': self.safe_number(info, 'unrealizedFunding'),
             'interestRate': 0.00098,  # https://whitebit.com/fees
             'amountBorrowed': self.safe_number(info, 'amount'),
+            'marginMode': 'cross',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:

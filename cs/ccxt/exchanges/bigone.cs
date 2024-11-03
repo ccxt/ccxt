@@ -34,8 +34,13 @@ public partial class bigone : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
+                { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
@@ -647,6 +652,8 @@ public partial class bigone : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "volume", "volume24h") },
             { "quoteVolume", this.safeString(ticker, "volume24hInUsd") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "indexPrice") },
             { "info", ticker },
         }, market);
     }
@@ -1884,11 +1891,11 @@ public partial class bigone : Exchange
         object tag = this.safeString(addressObject, "memo");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", this.networkIdToCode(selectedNetworkId) },
             { "address", address },
             { "tag", tag },
-            { "network", this.networkIdToCode(selectedNetworkId) },
-            { "info", response },
         };
     }
 

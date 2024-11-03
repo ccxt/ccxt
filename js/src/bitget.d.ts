@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -20,23 +20,12 @@ export default class bitget extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): string;
-    fetchDepositAddress(code: string, params?: {}): Promise<{
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    }>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-        info: any;
-    };
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -165,18 +154,8 @@ export default class bitget extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        symbol: string;
-        marginMode: string;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: any;
-        timestamp: number;
-        datetime: string;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
     closeAllPositions(params?: {}): Promise<Position[]>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
@@ -187,6 +166,9 @@ export default class bitget extends Exchange {
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchLongShortRatioHistory(symbol?: Str, timeframe?: Str, since?: Int, limit?: Int, params?: {}): Promise<LongShortRatio[]>;
+    parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {

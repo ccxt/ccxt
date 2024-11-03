@@ -56,6 +56,8 @@ export default class poloniexfutures extends Exchange {
     fetchOrder(id?: Str, symbol?: Str, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(data: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;

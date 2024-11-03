@@ -79,6 +79,8 @@ class okx extends okx$1 {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -91,10 +93,14 @@ class okx extends okx$1 {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
+                'fetchMarkPrice': true,
+                'fetchMarkPrices': true,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -231,6 +237,7 @@ class okx extends okx$1 {
                         'rubik/stat/margin/loan-ratio': 4,
                         // long/short
                         'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
                         'rubik/stat/option/open-interest-volume': 4,
                         // put/call
@@ -349,6 +356,9 @@ class okx extends okx$1 {
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
+                        'account/spot-manual-borrow-repay': 10,
+                        'account/set-auto-repay': 4,
+                        'account/spot-borrow-repay-history': 4,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -385,6 +395,7 @@ class okx extends okx$1 {
                         // eth staking
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
+                        'finance/staking-defi/eth/product-info': 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -880,6 +891,11 @@ class okx extends okx$1 {
                     '59301': errors.ExchangeError,
                     '59313': errors.ExchangeError,
                     '59401': errors.ExchangeError,
+                    '59410': errors.OperationRejected,
+                    '59411': errors.InsufficientFunds,
+                    '59412': errors.OperationRejected,
+                    '59413': errors.OperationRejected,
+                    '59414': errors.BadRequest,
                     '59500': errors.ExchangeError,
                     '59501': errors.ExchangeError,
                     '59502': errors.ExchangeError,
@@ -1802,6 +1818,13 @@ class okx extends okx$1 {
     }
     parseTicker(ticker, market = undefined) {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType": "SPOT",
         //         "instId": "ETH-BTC",
@@ -1820,6 +1843,16 @@ class okx extends okx$1 {
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //     {
+        //          instId: 'LTC-USDT',
+        //          idxPx: '65.74',
+        //          open24h: '65.37',
+        //          high24h: '66.15',
+        //          low24h: '64.97',
+        //          sodUtc0: '65.68',
+        //          sodUtc8: '65.54',
+        //          ts: '1728467346900'
+        //     },
         //
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
@@ -1852,6 +1885,8 @@ class okx extends okx$1 {
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPx'),
+            'indexPrice': this.safeString(ticker, 'idxPx'),
             'info': ticker,
         }, market);
     }
@@ -1956,6 +1991,71 @@ class okx extends okx$1 {
         //         ]
         //     }
         //
+        const tickers = this.safeList(response, 'data', []);
+        return this.parseTickers(tickers, symbols);
+    }
+    async fetchMarkPrice(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarkPrice
+         * @description fetches mark price for the market
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicMarkPrice(this.extend(request, params));
+        //
+        // {
+        //     "code": "0",
+        //     "data": [
+        //         {
+        //             "instId": "ETH-USDT",
+        //             "instType": "MARGIN",
+        //             "markPx": "2403.98",
+        //             "ts": "1728578500703"
+        //         }
+        //     ],
+        //     "msg": ""
+        // }
+        //
+        const data = this.safeList(response, 'data');
+        return this.parseTicker(this.safeDict(data, 0), market);
+    }
+    async fetchMarkPrices(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchMarkPrices
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const market = this.getMarketFromSymbols(symbols);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        const request = {
+            'instType': this.convertToInstrumentType(marketType),
+        };
+        if (marketType === 'option') {
+            const defaultUnderlying = this.safeString(this.options, 'defaultUnderlying', 'BTC-USD');
+            const currencyId = this.safeString2(params, 'uly', 'marketId', defaultUnderlying);
+            if (currencyId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchMarkPrices() requires an underlying uly or marketId parameter for options markets');
+            }
+            else {
+                request['uly'] = currencyId;
+            }
+        }
+        const response = await this.publicGetPublicMarkPrice(this.extend(request, params));
         const tickers = this.safeList(response, 'data', []);
         return this.parseTickers(tickers, symbols);
     }
@@ -4768,11 +4868,11 @@ class okx extends okx$1 {
         const networkCode = this.networkIdToCode(network, code);
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': depositAddress,
         };
     }
     async fetchDepositAddressesByNetwork(code, params = {}) {
@@ -6078,6 +6178,18 @@ class okx extends okx$1 {
         };
         return this.safeString(intervals, interval, interval);
     }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
+    }
     async fetchFundingRate(symbol, params = {}) {
         /**
          * @method
@@ -6573,16 +6685,6 @@ class okx extends okx$1 {
         }
         return borrowRateHistories;
     }
-    parseBorrowRateHistory(response, code, since, limit) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const borrowRate = this.parseBorrowRate(item);
-            result.push(borrowRate);
-        }
-        const sorted = this.sortBy(result, 'timestamp');
-        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
-    }
     async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -6972,15 +7074,15 @@ class okx extends okx$1 {
         }
         const timestamp = this.safeInteger(info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': this.safeString(info, 'mgnMode'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'liab'),
+            'marginMode': this.safeString(info, 'mgnMode'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowCrossMargin(code, amount, params = {}) {
@@ -7218,6 +7320,7 @@ class okx extends okx$1 {
         //         "instType": "OPTION",
         //         "oi": "300",
         //         "oiCcy": "3",
+        //         "oiUsd": "3",
         //         "ts": "1684551166251"
         //     }
         //
@@ -7243,7 +7346,7 @@ class okx extends okx$1 {
         else {
             baseVolume = this.safeNumber(interest, 'oiCcy');
             openInterestAmount = this.safeNumber(interest, 'oi');
-            openInterestValue = this.safeNumber(interest, 'oiCcy');
+            openInterestValue = this.safeNumber(interest, 'oiUsd');
         }
         return this.safeOpenInterest({
             'symbol': this.safeSymbol(id),
@@ -8397,6 +8500,77 @@ class okx extends okx$1 {
         const data = this.safeList(response, 'data');
         const positions = this.parsePositions(data, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const until = this.safeString2(params, 'until', 'end');
+        params = this.omit(params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             ["1729323600000", "0.9398602814619824"],
+        //             ["1729323300000", "0.9398602814619824"],
+        //             ["1729323000000", "0.9398602814619824"],
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            result.push({
+                'timestamp': this.safeString(entry, 0),
+                'longShortRatio': this.safeString(entry, 1),
+            });
+        }
+        return this.parseLongShortRatioHistory(result, market);
+    }
+    parseLongShortRatio(info, market = undefined) {
+        const timestamp = this.safeInteger(info, 'timestamp');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': info,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.safeNumber(info, 'longShortRatio'),
+        };
     }
 }
 

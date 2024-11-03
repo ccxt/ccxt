@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.exmo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -54,6 +54,8 @@ class exmo(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -221,6 +223,7 @@ class exmo(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder,  # {"error":{"code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"}}
                     '140434': BadRequest,
                     '40005': AuthenticationError,  # Authorization error, incorrect signature
                     '40009': InvalidNonce,  #
@@ -1943,7 +1946,7 @@ class exmo(Exchange, ImplicitAPI):
         response = await self.privatePostMarginUserOrderUpdate(self.extend(request, params))
         return self.parse_order(response)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
@@ -1970,11 +1973,11 @@ class exmo(Exchange, ImplicitAPI):
                 tag = addressAndTag[1]
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def get_market_from_trades(self, trades):

@@ -77,6 +77,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -131,7 +133,7 @@ class woofipro(Exchange, ImplicitAPI):
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69',
+                'logo': 'https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -786,6 +788,16 @@ class woofipro(Exchange, ImplicitAPI):
             '86400000': '24h',
         }
         return self.safe_string(intervals, interval, interval)
+
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """

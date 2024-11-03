@@ -41,10 +41,14 @@ public partial class digifinex : Exchange
                 { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -1159,6 +1163,8 @@ public partial class digifinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "vol", "volume_24h") },
             { "quoteVolume", this.safeString(ticker, "base_vol") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", indexPrice },
             { "info", ticker },
         }, market);
     }
@@ -2870,9 +2876,9 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
         };
     }
 
@@ -3267,15 +3273,15 @@ public partial class digifinex : Exchange
         object currency = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "base");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
-            { "account", symbol },
+            { "info", info },
             { "symbol", symbol },
             { "currency", currency },
             { "interest", null },
             { "interestRate", 0.001 },
             { "amountBorrowed", this.parseNumber(amountBorrowed) },
+            { "marginMode", null },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 
@@ -3359,7 +3365,7 @@ public partial class digifinex : Exchange
         return this.parseBorrowRates(result, "currency");
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {
@@ -3437,8 +3443,23 @@ public partial class digifinex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ((object)this.parseFundingRate(data, market));
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name digifinex#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public override object parseFundingRate(object contract, object market = null)

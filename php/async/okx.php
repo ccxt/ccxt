@@ -86,6 +86,8 @@ class okx extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -98,10 +100,14 @@ class okx extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
                 'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
+                'fetchMarkPrice' => true,
+                'fetchMarkPrices' => true,
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -238,6 +244,7 @@ class okx extends Exchange {
                         'rubik/stat/margin/loan-ratio' => 4,
                         // long/short
                         'rubik/stat/contracts/long-short-account-ratio' => 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract' => 4,
                         'rubik/stat/contracts/open-interest-volume' => 4,
                         'rubik/stat/option/open-interest-volume' => 4,
                         // put/call
@@ -356,6 +363,9 @@ class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit' => 4,
                         'account/fixed-loan/borrowing-quote' => 5,
                         'account/fixed-loan/borrowing-orders-list' => 5,
+                        'account/spot-manual-borrow-repay' => 10,
+                        'account/set-auto-repay' => 4,
+                        'account/spot-borrow-repay-history' => 4,
                         // subaccount
                         'users/subaccount/list' => 10,
                         'account/subaccount/balances' => 10 / 3,
@@ -392,6 +402,7 @@ class okx extends Exchange {
                         // eth staking
                         'finance/staking-defi/eth/balance' => 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history' => 5 / 3,
+                        'finance/staking-defi/eth/product-info' => 3,
                         // copytrading
                         'copytrading/current-subpositions' => 1,
                         'copytrading/subpositions-history' => 1,
@@ -888,6 +899,11 @@ class okx extends Exchange {
                     '59301' => '\\ccxt\\ExchangeError', // Margin adjustment failed for exceeding the max limit
                     '59313' => '\\ccxt\\ExchangeError', // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401' => '\\ccxt\\ExchangeError', // Holdings already reached the limit
+                    '59410' => '\\ccxt\\OperationRejected', // You can only borrow this crypto if it supports borrowing and borrowing is enabled.
+                    '59411' => '\\ccxt\\InsufficientFunds', // Manual borrowing failed. Your account's free margin is insufficient
+                    '59412' => '\\ccxt\\OperationRejected', // Manual borrowing failed. The amount exceeds your borrowing limit.
+                    '59413' => '\\ccxt\\OperationRejected', // You didn't borrow this crypto. No repayment needed.
+                    '59414' => '\\ccxt\\BadRequest', // Manual borrowing failed. The minimum borrowing limit is {param0}.needed.
                     '59500' => '\\ccxt\\ExchangeError', // Only the APIKey of the main account has permission
                     '59501' => '\\ccxt\\ExchangeError', // Only 50 APIKeys can be created per account
                     '59502' => '\\ccxt\\ExchangeError', // Note name cannot be duplicate with the currently created APIKey note name
@@ -1818,6 +1834,13 @@ class okx extends Exchange {
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
+        //      {
+        //          "instType":"SWAP",
+        //          "instId":"BTC-USDT-SWAP",
+        //          "markPx":"200",
+        //          "ts":"1597026383085"
+        //      }
+        //
         //     {
         //         "instType" => "SPOT",
         //         "instId" => "ETH-BTC",
@@ -1836,6 +1859,16 @@ class okx extends Exchange {
         //         "sodUtc0" => "0.07872",
         //         "sodUtc8" => "0.07345"
         //     }
+        //     array(
+        //          instId => 'LTC-USDT',
+        //          idxPx => '65.74',
+        //          open24h => '65.37',
+        //          high24h => '66.15',
+        //          low24h => '64.97',
+        //          sodUtc0 => '65.68',
+        //          sodUtc8 => '65.54',
+        //          ts => '1728467346900'
+        //     ),
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
@@ -1868,6 +1901,8 @@ class okx extends Exchange {
             'average' => null,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPx'),
+            'indexPrice' => $this->safe_string($ticker, 'idxPx'),
             'info' => $ticker,
         ), $market);
     }
@@ -1972,6 +2007,72 @@ class okx extends Exchange {
             //         )
             //     }
             //
+            $tickers = $this->safe_list($response, 'data', array());
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches mark price for the $market
+             * @see https://www.okx.com/docs-v5/en/#public-$data-rest-api-get-mark-price
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $response = Async\await($this->publicGetPublicMarkPrice ($this->extend($request, $params)));
+            //
+            // {
+            //     "code" => "0",
+            //     "data" => array(
+            //         {
+            //             "instId" => "ETH-USDT",
+            //             "instType" => "MARGIN",
+            //             "markPx" => "2403.98",
+            //             "ts" => "1728578500703"
+            //         }
+            //     ),
+            //     "msg" => ""
+            // }
+            //
+            $data = $this->safe_list($response, 'data');
+            return $this->parse_ticker($this->safe_dict($data, 0), $market);
+        }) ();
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params, 'swap');
+            $request = array(
+                'instType' => $this->convert_to_instrument_type($marketType),
+            );
+            if ($marketType === 'option') {
+                $defaultUnderlying = $this->safe_string($this->options, 'defaultUnderlying', 'BTC-USD');
+                $currencyId = $this->safe_string_2($params, 'uly', 'marketId', $defaultUnderlying);
+                if ($currencyId === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchMarkPrices() requires an underlying uly or marketId parameter for options markets');
+                } else {
+                    $request['uly'] = $currencyId;
+                }
+            }
+            $response = Async\await($this->publicGetPublicMarkPrice ($this->extend($request, $params)));
             $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
         }) ();
@@ -4660,7 +4761,7 @@ class okx extends Exchange {
         ), $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -4750,15 +4851,15 @@ class okx extends Exchange {
         $networkCode = $this->network_id_to_code($network, $code);
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
@@ -4801,7 +4902,7 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
@@ -6072,6 +6173,19 @@ class okx extends Exchange {
         return $this->safe_string($intervals, $interval, $interval);
     }
 
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
+        }) ();
+    }
+
     public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
@@ -6573,17 +6687,6 @@ class okx extends Exchange {
         return $borrowRateHistories;
     }
 
-    public function parse_borrow_rate_history($response, $code, $since, $limit) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $borrowRate = $this->parse_borrow_rate($item);
-            $result[] = $borrowRate;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
-    }
-
     public function fetch_borrow_rate_histories($codes = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($codes, $since, $limit, $params) {
             /**
@@ -6911,7 +7014,7 @@ class okx extends Exchange {
         return $tiers;
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -6975,22 +7078,22 @@ class okx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
         }
         $timestamp = $this->safe_integer($info, 'ts');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'ccy')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
             'amountBorrowed' => $this->safe_number($info, 'liab'),
+            'marginMode' => $this->safe_string($info, 'mgnMode'),
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 
@@ -7232,6 +7335,7 @@ class okx extends Exchange {
         //         "instType" => "OPTION",
         //         "oi" => "300",
         //         "oiCcy" => "3",
+        //         "oiUsd" => "3",
         //         "ts" => "1684551166251"
         //     }
         //
@@ -7255,7 +7359,7 @@ class okx extends Exchange {
         } else {
             $baseVolume = $this->safe_number($interest, 'oiCcy');
             $openInterestAmount = $this->safe_number($interest, 'oi');
-            $openInterestValue = $this->safe_number($interest, 'oiCcy');
+            $openInterestValue = $this->safe_number($interest, 'oiUsd');
         }
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id),
@@ -8425,5 +8529,78 @@ class okx extends Exchange {
             $positions = $this->parse_positions($data, $symbols, $params);
             return $this->filter_by_since_limit($positions, $since, $limit);
         }) ();
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches the long short ratio history for a unified $market $symbol
+             * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+             * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+             * @param {string} [$timeframe] the period for the ratio
+             * @param {int} [$since] the earliest time in ms to fetch ratios for
+             * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instId' => $market['id'],
+            );
+            $until = $this->safe_string_2($params, 'until', 'end');
+            $params = $this->omit($params, 'until');
+            if ($until !== null) {
+                $request['end'] = $until;
+            }
+            if ($timeframe !== null) {
+                $request['period'] = $timeframe;
+            }
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetRubikStatContractsLongShortAccountRatioContract ($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => [
+            //             ["1729323600000", "0.9398602814619824"],
+            //             ["1729323300000", "0.9398602814619824"],
+            //             ["1729323000000", "0.9398602814619824"],
+            //         ],
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $result[] = array(
+                    'timestamp' => $this->safe_string($entry, 0),
+                    'longShortRatio' => $this->safe_string($entry, 1),
+                );
+            }
+            return $this->parse_long_short_ratio_history($result, $market);
+        }) ();
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        return array(
+            'info' => $info,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
+        );
     }
 }

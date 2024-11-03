@@ -60,7 +60,7 @@ class oxfun extends oxfun$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
@@ -859,6 +859,7 @@ class oxfun extends oxfun$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1800,11 +1801,11 @@ class oxfun extends oxfun$1 {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

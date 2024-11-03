@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Currencies, Currency, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1287,11 +1287,12 @@ class bitmart(Exchange, ImplicitAPI):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -1805,7 +1806,7 @@ class bitmart(Exchange, ImplicitAPI):
             if since is not None:
                 request['after'] = self.parse_to_int((since / 1000)) - 1
         else:
-            maxLimit = 1200
+            maxLimit = 500
             if limit is None:
                 limit = maxLimit
             limit = min(maxLimit, limit)
@@ -3206,7 +3207,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
@@ -3245,7 +3246,7 @@ class bitmart(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
         #
         #    {
         #        currency: 'ETH',
@@ -3271,9 +3272,9 @@ class bitmart(Exchange, ImplicitAPI):
         return {
             'info': depositAddress,
             'currency': self.safe_string(currency, 'code'),
+            'network': network,
             'address': address,
             'tag': self.safe_string(depositAddress, 'address_memo'),
-            'network': network,
         }
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
@@ -3982,7 +3983,7 @@ class bitmart(Exchange, ImplicitAPI):
         records = self.safe_list(data, 'records', [])
         return self.parse_transfers(records, currency, since, limit)
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
@@ -4031,7 +4032,7 @@ class bitmart(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
@@ -4048,15 +4049,15 @@ class bitmart(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(info, 'create_time')
         return {
+            'info': info,
             'symbol': self.safe_string(market, 'symbol'),
-            'marginMode': 'isolated',
             'currency': self.safe_currency_code(self.safe_string(info, 'currency')),
             'interest': self.safe_number(info, 'interest_amount'),
             'interestRate': self.safe_number(info, 'hourly_interest'),
             'amountBorrowed': self.safe_number(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,  # borrow creation time
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def fetch_open_interest(self, symbol: str, params={}):

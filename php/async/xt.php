@@ -65,11 +65,15 @@ class xt extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawals' => false,
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -1754,6 +1758,10 @@ class xt extends Exchange {
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
+        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1770,7 +1778,7 @@ class xt extends Exchange {
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'cv'),
-            'percentage' => $this->safe_number_2($ticker, 'cr', 'r'),
+            'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
@@ -1975,6 +1983,17 @@ class xt extends Exchange {
         //         "b" => true
         //     }
         //
+        // spot => watchTrades
+        //
+        //    {
+        //        s => 'btc_usdt',
+        //        i => '228825383103928709',
+        //        t => 1684258222702,
+        //        p => '27003.65',
+        //        q => '0.000796',
+        //        b => true
+        //    }
+        //
         // spot => watchMyTrades
         //
         //    {
@@ -1985,17 +2004,6 @@ class xt extends Exchange {
         //        "p" => "30000",                   // $trade price
         //        "q" => "3",                       // qty $quantity
         //        "v" => "90000"                    // volume $trade $amount
-        //    }
-        //
-        // spot => watchTrades
-        //
-        //    {
-        //        s => 'btc_usdt',
-        //        i => '228825383103928709',
-        //        t => 1684258222702,
-        //        p => '27003.65',
-        //        q => '0.000796',
-        //        b => true
         //    }
         //
         // swap and future => fetchTrades
@@ -2077,22 +2085,31 @@ class xt extends Exchange {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $market = $this->safe_market($marketId, $market, '_', $marketType);
-        $bidOrAsk = $this->safe_string($trade, 'm');
-        $side = $this->safe_string_lower($trade, 'orderSide');
-        if ($bidOrAsk !== null) {
-            $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
-        }
-        $buyerMaker = $this->safe_value($trade, 'b');
-        if ($buyerMaker !== null) {
-            $side = 'buy';
-        }
-        $takerOrMaker = $this->safe_string_lower($trade, 'takerMaker');
-        if ($buyerMaker !== null) {
-            $takerOrMaker = $buyerMaker ? 'maker' : 'taker';
-        }
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        if ($isMaker !== null) {
-            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $side = null;
+        $takerOrMaker = null;
+        $isBuyerMaker = $this->safe_bool($trade, 'b');
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // public trades always taker
+        } else {
+            $takerMaker = $this->safe_string_lower($trade, 'takerMaker');
+            if ($takerMaker !== null) {
+                $takerOrMaker = $takerMaker;
+            } else {
+                $isMaker = $this->safe_bool($trade, 'isMaker');
+                if ($isMaker !== null) {
+                    $takerOrMaker = $isMaker ? 'maker' : 'taker';
+                }
+            }
+            $orderSide = $this->safe_string_lower($trade, 'orderSide');
+            if ($orderSide !== null) {
+                $side = $orderSide;
+            } else {
+                $bidOrAsk = $this->safe_string($trade, 'm');
+                if ($bidOrAsk !== null) {
+                    $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         $timestamp = $this->safe_integer_n($trade, array( 't', 'time', 'timestamp' ));
         $quantity = $this->safe_string_2($trade, 'q', 'quantity');
@@ -3615,7 +3632,7 @@ class xt extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -3652,7 +3669,7 @@ class xt extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null): array {
         //
         //     {
         //         "address" => "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3662,11 +3679,11 @@ class xt extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -4284,6 +4301,19 @@ class xt extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate interval
+             * @see https://doc.xt.com/#futures_quotesgetFundingRate
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            return Async\await($this->fetch_funding_rate($symbol, $params));
         }) ();
     }
 

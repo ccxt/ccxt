@@ -44,6 +44,8 @@ export default class delta extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
@@ -966,6 +968,8 @@ export default class delta extends Exchange {
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
             'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'markPrice': this.safeNumber(ticker, 'mark_price'),
+            'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
         }, market);
     }
@@ -2373,11 +2377,11 @@ export default class delta extends Exchange {
         const networkId = this.safeString(depositAddress, 'network');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': this.safeCurrencyCode(marketId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
-            'info': depositAddress,
         };
     }
     async fetchFundingRate(symbol, params = {}) {

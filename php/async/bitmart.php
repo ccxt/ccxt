@@ -1312,11 +1312,12 @@ class bitmart extends Exchange {
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -1865,7 +1866,7 @@ class bitmart extends Exchange {
                     $request['after'] = $this->parse_to_int(($since / 1000)) - 1;
                 }
             } else {
-                $maxLimit = 1200;
+                $maxLimit = 500;
                 if ($limit === null) {
                     $limit = $maxLimit;
                 }
@@ -3421,7 +3422,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -3465,7 +3466,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, $currency = null) {
+    public function parse_deposit_address($depositAddress, $currency = null): array {
         //
         //    {
         //        $currency => 'ETH',
@@ -3493,9 +3494,9 @@ class bitmart extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => $network,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'address_memo'),
-            'network' => $network,
         );
     }
 
@@ -4267,7 +4268,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
@@ -4322,7 +4323,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
@@ -4339,15 +4340,15 @@ class bitmart extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($info, 'create_time');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => 'isolated',
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest_amount'),
             'interestRate' => $this->safe_number($info, 'hourly_interest'),
             'amountBorrowed' => $this->safe_number($info, 'borrow_amount'),
+            'marginMode' => 'isolated',
             'timestamp' => $timestamp,  // borrow creation time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

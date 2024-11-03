@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -67,9 +67,13 @@ export default class woo extends Exchange {
                 'fetchConvertTradeHistory': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -2052,7 +2056,7 @@ export default class woo extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name woo#fetchDepositAddress
@@ -2082,12 +2086,12 @@ export default class woo extends Exchange {
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
@@ -2522,7 +2526,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin
@@ -2813,6 +2817,19 @@ export default class woo extends Exchange {
             'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
             'interval': intervalString + 'h',
         } as FundingRate;
+    }
+
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name woo#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate (symbol, params);
     }
 
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {

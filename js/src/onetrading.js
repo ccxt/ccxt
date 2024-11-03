@@ -54,6 +54,7 @@ export default class onetrading extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -119,8 +120,8 @@ export default class onetrading extends Exchange {
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api': {
-                    'public': 'https://api.onetrading.com/public',
-                    'private': 'https://api.onetrading.com/public',
+                    'public': 'https://api.onetrading.com/fast',
+                    'private': 'https://api.onetrading.com/fast',
                 },
                 'www': 'https://onetrading.com/',
                 'doc': [
@@ -1036,11 +1037,11 @@ export default class onetrading extends Exchange {
         const tag = this.safeString(depositAddress, 'destination_tag');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async createDepositAddress(code, params = {}) {

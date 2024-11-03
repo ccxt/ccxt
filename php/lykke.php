@@ -41,6 +41,8 @@ class lykke extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -1102,7 +1104,7 @@ class lykke extends Exchange {
         return array( $this->parse_number($price), $this->parse_number($amount) );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://lykkecity.github.io/Trading-API/#get-deposit-$address-for-a-given-asset
@@ -1130,11 +1132,11 @@ class lykke extends Exchange {
         $tag = $this->safe_string($response, 'addressExtension');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 

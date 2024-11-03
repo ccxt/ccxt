@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1166,19 +1166,20 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        let fee = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
+            fee = {
+                'cost': this.parseNumber (feeCost),
+                'currency': code,
+            };
         }
-        const fee = {
-            'cost': this.parseToNumeric (feeCost),
-            'currency': code,
-        };
         let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
-        const before = this.parseToNumeric (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
+        const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
@@ -1198,9 +1199,9 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': this.parseToNumeric (amount),
+            'amount': this.parseNumber (amount),
             'before': before,
-            'after': this.parseToNumeric (after),
+            'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
         }, currency) as LedgerEntry;
@@ -1455,6 +1456,7 @@ export default class bitmex extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'homeNotional24h'),
             'quoteVolume': this.safeString (ticker, 'foreignNotional24h'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -2703,7 +2705,7 @@ export default class bitmex extends Exchange {
         return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitmex#fetchDepositAddress
@@ -2731,12 +2733,12 @@ export default class bitmex extends Exchange {
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': response.replace ('"', '').replace ('"', ''), // Done twice because some languages only replace the first instance
             'tag': undefined,
-            'network': networkCode,
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

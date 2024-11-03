@@ -42,6 +42,8 @@ public partial class deribit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingRate", true },
@@ -1103,11 +1105,11 @@ public partial class deribit : Exchange
         object address = this.safeString(result, "address");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", null },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1184,6 +1186,8 @@ public partial class deribit : Exchange
             { "average", null },
             { "baseVolume", null },
             { "quoteVolume", this.safeString(stats, "volume") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }

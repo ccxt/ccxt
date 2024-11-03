@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,6 +51,8 @@ class delta(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': None,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
@@ -946,6 +948,8 @@ class delta(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_number(ticker, 'volume'),
             'quoteVolume': self.safe_number(ticker, 'turnover'),
+            'markPrice': self.safe_number(ticker, 'mark_price'),
+            'indexPrice': self.safe_number(ticker, 'spot_price'),
             'info': ticker,
         }, market)
 
@@ -2223,7 +2227,7 @@ class delta(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
@@ -2261,7 +2265,7 @@ class delta(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        "id": 1915615,
@@ -2281,11 +2285,11 @@ class delta(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'network')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(marketId, currency),
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': self.network_id_to_code(networkId),
-            'info': depositAddress,
         }
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:

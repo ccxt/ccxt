@@ -68,6 +68,8 @@ export default class hashkey extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1818,11 +1820,11 @@ export default class hashkey extends Exchange {
             tag = undefined;
         }
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

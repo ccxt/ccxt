@@ -194,6 +194,7 @@ function testMarket(exchange, skippedProperties, method, market) {
             testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
         }
     }
+    const isInactiveMarket = market['active'] === false;
     // check limits
     if (!('limits' in skippedProperties)) {
         const limitsKeys = Object.keys(market['limits']);
@@ -202,6 +203,10 @@ function testMarket(exchange, skippedProperties, method, market) {
         for (let i = 0; i < limitsKeys.length; i++) {
             const key = limitsKeys[i];
             const limitEntry = market['limits'][key];
+            if (isInactiveMarket) {
+                // for inactive markets, there might be `0` for min & max values, so we skip
+                continue;
+            }
             // min >= 0
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, 'min', '0');
             // max >= 0

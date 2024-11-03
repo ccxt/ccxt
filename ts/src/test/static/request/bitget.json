@@ -1574,6 +1574,15 @@
                 "input": []
             }
         ],
+        "fetchMarkPrice": [
+            {
+                "method": "fetchMarkPrice",
+                "url": "https://api.bitget.com/api/v2/mix/market/symbol-price?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "Swap ticker",
@@ -1734,6 +1743,64 @@
                 "method": "fetchConvertTradeHistory",
                 "url": "https://api.bitget.com/api/v2/convert/convert-record?endTime=1713423544995&startTime=1713337144995",
                 "input": []
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "linear swap fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api.bitget.com/api/v2/mix/market/funding-time?symbol=BTCUSDT&productType=USDT-FUTURES",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "swap fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/mix/market/account-long-short?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "spot margin fetch the long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://api.bitget.com/api/v2/margin/market/long-short-ratio?symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/isolated/interest-history?coin=USDT&startTime=1722564280941&symbol=BTCUSDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
+            },
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.bitget.com/api/v2/margin/crossed/interest-history?coin=USDT&startTime=1722564342903",
+                "input": [
+                  "USDT",
+                  null,
+                  null,
+                  null,
+                  {
+                    "marginMode": "cross"
+                  }
+                ]
             }
         ]
     }

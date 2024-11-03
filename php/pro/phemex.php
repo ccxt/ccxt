@@ -141,6 +141,8 @@ class phemex extends \ccxt\async\phemex {
             'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'markPrice'), $market)),
+            'indexPrice' => $this->parse_number($this->from_ep($this->safe_string($ticker, 'indexPrice'), $market)),
             'info' => $ticker,
         );
         return $result;

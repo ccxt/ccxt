@@ -123,6 +123,8 @@ public partial class Exchange
                 { "fetchFundingHistory", null },
                 { "fetchFundingRate", null },
                 { "fetchFundingRateHistory", null },
+                { "fetchFundingInterval", null },
+                { "fetchFundingIntervals", null },
                 { "fetchFundingRates", null },
                 { "fetchGreeks", null },
                 { "fetchIndexOHLCV", null },
@@ -139,6 +141,8 @@ public partial class Exchange
                 { "fetchLeverages", null },
                 { "fetchLeverageTiers", null },
                 { "fetchLiquidations", null },
+                { "fetchLongShortRatio", null },
+                { "fetchLongShortRatioHistory", null },
                 { "fetchMarginMode", null },
                 { "fetchMarginModes", null },
                 { "fetchMarketLeverageTiers", null },
@@ -183,6 +187,7 @@ public partial class Exchange
                 { "fetchTicker", true },
                 { "fetchTickerWs", null },
                 { "fetchTickers", null },
+                { "fetchMarkPrices", null },
                 { "fetchTickersWs", null },
                 { "fetchTime", null },
                 { "fetchTrades", true },
@@ -818,6 +823,8 @@ public partial class Exchange
             {
                 throw new NotSupported ((string)add(this.id, " does not have a sandbox URL")) ;
             }
+            // set flag
+            this.isSandboxModeEnabled = true;
         } else if (isTrue(inOp(this.urls, "apiBackup")))
         {
             if (isTrue((getValue(this.urls, "api") is string)))
@@ -829,6 +836,8 @@ public partial class Exchange
             }
             object newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
+            // set flag
+            this.isSandboxModeEnabled = false;
         }
     }
 
@@ -996,6 +1005,24 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchTradingLimits() is not supported yet")) ;
     }
 
+    public virtual object parseCurrency(object rawCurrency)
+    {
+        throw new NotSupported ((string)add(this.id, " parseCurrency() is not supported yet")) ;
+    }
+
+    public virtual object parseCurrencies(object rawCurrencies)
+    {
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(rawCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseCurrency(getValue(arr, i));
+            object code = getValue(parsed, "code");
+            ((IDictionary<string,object>)result)[(string)code] = parsed;
+        }
+        return result;
+    }
+
     public virtual object parseMarket(object market)
     {
         throw new NotSupported ((string)add(this.id, " parseMarket() is not supported yet")) ;
@@ -1120,6 +1147,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchFundingRates() is not supported yet")) ;
     }
 
+    public async virtual Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchFundingIntervals() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1203,6 +1236,18 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchLongShortRatio(object symbol, object timeframe = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLongShortRatio() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchLongShortRatioHistory() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
@@ -1698,9 +1743,10 @@ public partial class Exchange
         if (isTrue(isTrue(isTrue(parseFilled) || isTrue(parseCost)) || isTrue(shouldParseFees)))
         {
             object rawTrades = this.safeValue(order, "trades", trades);
-            object oldNumber = this.number;
+            // const oldNumber = this.number;
             // we parse trades as strings here!
-            this.number = typeof(String);
+            // i don't think this is needed anymore
+            // (this as any).number = String;
             object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
             object tradesAreParsed = (isTrue(isTrue((!isEqual(firstTrade, null))) && isTrue((inOp(firstTrade, "info")))) && isTrue((inOp(firstTrade, "id"))));
@@ -1711,7 +1757,7 @@ public partial class Exchange
             {
                 trades = rawTrades;
             }
-            this.number = oldNumber;
+            // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             object tradesLength = 0;
             object isArray = ((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isTrue(isArray))
@@ -2422,6 +2468,8 @@ public partial class Exchange
             { "baseVolume", this.parseNumber(baseVolume) },
             { "quoteVolume", this.parseNumber(quoteVolume) },
             { "previousClose", this.safeNumber(ticker, "previousClose") },
+            { "indexPrice", this.safeNumber(ticker, "indexPrice") },
+            { "markPrice", this.safeNumber(ticker, "markPrice") },
         });
     }
 
@@ -4073,6 +4121,29 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchMarkPrices")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchMarkPrices(new List<object>() {symbol}, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
+        }
+    }
+
     public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4106,6 +4177,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
@@ -5173,7 +5250,8 @@ public partial class Exchange
             return this.forceString(fee);
         } else
         {
-            return this.decimalToPrecision(fee, ROUND, precision, this.precisionMode, this.paddingMode);
+            object roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
+            return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
 
@@ -5573,7 +5651,7 @@ public partial class Exchange
         }
         if (isTrue(indexed))
         {
-            return this.indexBy(result, "currency");
+            result = this.filterByArray(result, "currency", null, indexed);
         }
         return result;
     }
@@ -5587,6 +5665,24 @@ public partial class Exchange
             ((IList<object>)interests).Add(this.parseBorrowInterest(row, market));
         }
         return interests;
+    }
+
+    public virtual object parseBorrowRate(object info, object currency = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseBorrowRate() is not supported yet")) ;
+    }
+
+    public virtual object parseBorrowRateHistory(object response, object code, object since, object limit)
+    {
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object item = getValue(response, i);
+            object borrowRate = this.parseBorrowRate(item);
+            ((IList<object>)result).Add(borrowRate);
+        }
+        object sorted = this.sortBy(result, "timestamp");
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
     public virtual object parseIsolatedBorrowRates(object info)
@@ -5635,6 +5731,24 @@ public partial class Exchange
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "symbol")] = parsed;
         }
         return result;
+    }
+
+    public virtual object parseLongShortRatio(object info, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseLongShortRatio() is not supported yet")) ;
+    }
+
+    public virtual object parseLongShortRatioHistory(object response, object market = null, object since = null, object limit = null)
+    {
+        object rates = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            ((IList<object>)rates).Add(this.parseLongShortRatio(entry, market));
+        }
+        object sorted = this.sortBy(rates, "timestamp");
+        object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
     public virtual object handleTriggerAndParams(object parameters)
@@ -5805,6 +5919,33 @@ public partial class Exchange
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchFundingRate () is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchFundingIntervals")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            if (!isTrue(getValue(market, "contract")))
+            {
+                throw new BadSymbol ((string)add(this.id, " fetchFundingInterval() supports contract markets only")) ;
+            }
+            object rates = await this.fetchFundingIntervals(new List<object>() {symbol}, parameters);
+            object rate = this.safeValue(rates, symbol);
+            if (isTrue(isEqual(rate, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchFundingInterval() returned no data for "), symbol)) ;
+            } else
+            {
+                return rate;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchFundingInterval() is not supported yet")) ;
         }
     }
 
@@ -6399,6 +6540,8 @@ public partial class Exchange
         object i = 0;
         object errors = 0;
         object result = new List<object>() {};
+        object timeframe = this.safeString(parameters, "timeframe");
+        parameters = this.omit(parameters, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
         while (isLessThan(i, maxCalls))
         {
             try
@@ -6418,6 +6561,9 @@ public partial class Exchange
                 } else if (isTrue(isTrue(isEqual(method, "getLeverageTiersPaginated")) || isTrue(isEqual(method, "fetchPositions"))))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
+                } else if (isTrue(isEqual(method, "fetchOpenInterestHistory")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, maxEntriesPerRequest, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));

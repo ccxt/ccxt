@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -44,14 +44,8 @@ export default class digifinex extends Exchange {
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
-    parseDepositAddress(depositAddress: any, currency?: Currency): {
-        info: any;
-        currency: string;
-        address: string;
-        tag: string;
-        network: any;
-    };
-    fetchDepositAddress(code: string, params?: {}): Promise<any>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -61,18 +55,8 @@ export default class digifinex extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        account: string;
-        symbol: string;
-        currency: string;
-        interest: any;
-        interestRate: number;
-        amountBorrowed: number;
-        timestamp: any;
-        datetime: any;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
     parseBorrowRate(info: any, currency?: Currency): {
@@ -85,6 +69,7 @@ export default class digifinex extends Exchange {
     };
     parseBorrowRates(info: any, codeKey: any): any;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;

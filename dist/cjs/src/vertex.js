@@ -2948,6 +2948,17 @@ class vertex extends vertex$1 {
                 url += '?' + this.urlencode(params);
             }
         }
+        if (path !== 'execute') {
+            // required encoding for public methods
+            if (headers !== undefined) {
+                headers['Accept-Encoding'] = 'gzip';
+            }
+            else {
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                };
+            }
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }

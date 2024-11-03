@@ -45,6 +45,9 @@ public partial class vertex : ccxt.vertex
                     { "fetchPositionsSnapshot", true },
                     { "awaitPositionsSnapshot", true },
                 } },
+                { "ws", new Dictionary<string, object>() {
+                    { "inflate", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "keepAlive", 30000 },
@@ -76,6 +79,14 @@ public partial class vertex : ccxt.vertex
             { "id", requestId },
         };
         object request = this.extend(subscribe, message);
+        object wsOptions = new Dictionary<string, object>() {
+            { "headers", new Dictionary<string, object>() {
+                { "Sec-WebSocket-Extensions", "permessage-deflate" },
+            } },
+        };
+        ((IDictionary<string,object>)this.options)["ws"] = new Dictionary<string, object>() {
+            { "options", wsOptions },
+        };
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 

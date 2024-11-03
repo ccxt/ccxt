@@ -64,6 +64,8 @@ class woofipro extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => true,
+                'fetchFundingInterval' => true,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -118,7 +120,7 @@ class woofipro extends Exchange {
                 '1y' => '1y',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69',
+                'logo' => 'https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1',
                 'api' => array(
                     'public' => 'https://api-evm.orderly.org',
                     'private' => 'https://api-evm.orderly.org',
@@ -792,6 +794,17 @@ class woofipro extends Exchange {
             '86400000' => '24h',
         );
         return $this->safe_string($intervals, $interval, $interval);
+    }
+
+    public function fetch_funding_interval(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate interval
+         * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        return $this->fetch_funding_rate($symbol, $params);
     }
 
     public function fetch_funding_rate(string $symbol, $params = array ()): array {

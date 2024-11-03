@@ -55,6 +55,8 @@ export default class deribit extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingRate': true,
@@ -1081,11 +1083,11 @@ export default class deribit extends Exchange {
         const address = this.safeString(result, 'address');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': response,
         };
     }
     parseTicker(ticker, market = undefined) {
@@ -1160,6 +1162,8 @@ export default class deribit extends Exchange {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeString(stats, 'volume'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
         }, market);
     }

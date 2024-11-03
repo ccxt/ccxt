@@ -459,15 +459,45 @@ public partial class okcoin
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch a dictionary of addresses for a currency, indexed by network
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account

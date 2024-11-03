@@ -1,5 +1,5 @@
 import exmoRest from '../exmo.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Strings, Tickers } from '../base/types.js';
+import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class exmo extends exmoRest {
     describe(): any;
@@ -19,6 +19,10 @@ export default class exmo extends exmoRest {
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
     handleMessage(client: Client, message: any): void;
     handleSubscribed(client: Client, message: any): any;
     handleInfo(client: Client, message: any): any;

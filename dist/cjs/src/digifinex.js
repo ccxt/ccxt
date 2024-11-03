@@ -48,10 +48,14 @@ class digifinex extends digifinex$1 {
                 'fetchCrossBorrowRates': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
+                'fetchFundingInterval': true,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -1192,6 +1196,8 @@ class digifinex extends digifinex$1 {
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'vol', 'volume_24h'),
             'quoteVolume': this.safeString(ticker, 'base_vol'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'indexPrice': indexPrice,
             'info': ticker,
         }, market);
     }
@@ -2737,9 +2743,9 @@ class digifinex extends digifinex$1 {
         return {
             'info': depositAddress,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
         };
     }
     async fetchDepositAddress(code, params = {}) {
@@ -3094,15 +3100,15 @@ class digifinex extends digifinex$1 {
         const currency = (market === undefined) ? undefined : market['base'];
         const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': symbol,
+            'info': info,
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
             'amountBorrowed': this.parseNumber(amountBorrowed),
+            'marginMode': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
         };
     }
     async fetchCrossBorrowRate(code, params = {}) {
@@ -3247,8 +3253,20 @@ class digifinex extends digifinex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseFundingRate(data, market);
+    }
+    async fetchFundingInterval(symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchFundingInterval
+         * @description fetch the current funding rate interval
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        return await this.fetchFundingRate(symbol, params);
     }
     parseFundingRate(contract, market = undefined) {
         //

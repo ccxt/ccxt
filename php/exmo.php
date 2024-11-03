@@ -39,6 +39,8 @@ class exmo extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -206,6 +208,7 @@ class exmo extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '140333' => '\\ccxt\\InvalidOrder', // array("error":array("code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"))
                     '140434' => '\\ccxt\\BadRequest',
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                     '40009' => '\\ccxt\\InvalidNonce', //
@@ -2056,7 +2059,7 @@ class exmo extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
@@ -2085,11 +2088,11 @@ class exmo extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 

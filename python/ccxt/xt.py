@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Currencies, Currency, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -72,11 +72,15 @@ class xt(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawals': False,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
+                'fetchFundingInterval': True,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -1694,6 +1698,9 @@ class xt(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_', marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 't')
+        percentage = self.safe_string_2(ticker, 'cr', 'r')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1710,7 +1717,7 @@ class xt(Exchange, ImplicitAPI):
             'last': self.safe_string(ticker, 'c'),
             'previousClose': None,
             'change': self.safe_number(ticker, 'cv'),
-            'percentage': self.safe_number_2(ticker, 'cr', 'r'),
+            'percentage': self.parse_number(percentage),
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
@@ -1898,6 +1905,17 @@ class xt(Exchange, ImplicitAPI):
         #         "b": True
         #     }
         #
+        # spot: watchTrades
+        #
+        #    {
+        #        s: 'btc_usdt',
+        #        i: '228825383103928709',
+        #        t: 1684258222702,
+        #        p: '27003.65',
+        #        q: '0.000796',
+        #        b: True
+        #    }
+        #
         # spot: watchMyTrades
         #
         #    {
@@ -1908,17 +1926,6 @@ class xt(Exchange, ImplicitAPI):
         #        "p": "30000",                   # trade price
         #        "q": "3",                       # qty quantity
         #        "v": "90000"                    # volume trade amount
-        #    }
-        #
-        # spot: watchTrades
-        #
-        #    {
-        #        s: 'btc_usdt',
-        #        i: '228825383103928709',
-        #        t: 1684258222702,
-        #        p: '27003.65',
-        #        q: '0.000796',
-        #        b: True
         #    }
         #
         # swap and future: fetchTrades
@@ -1999,19 +2006,27 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
-        bidOrAsk = self.safe_string(trade, 'm')
-        side = self.safe_string_lower(trade, 'orderSide')
-        if bidOrAsk is not None:
-            side = 'buy' if (bidOrAsk == 'BID') else 'sell'
-        buyerMaker = self.safe_value(trade, 'b')
-        if buyerMaker is not None:
-            side = 'buy'
-        takerOrMaker = self.safe_string_lower(trade, 'takerMaker')
-        if buyerMaker is not None:
-            takerOrMaker = 'maker' if buyerMaker else 'taker'
-        isMaker = self.safe_bool(trade, 'isMaker')
-        if isMaker is not None:
-            takerOrMaker = 'maker' if isMaker else 'taker'
+        side = None
+        takerOrMaker = None
+        isBuyerMaker = self.safe_bool(trade, 'b')
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # public trades always taker
+        else:
+            takerMaker = self.safe_string_lower(trade, 'takerMaker')
+            if takerMaker is not None:
+                takerOrMaker = takerMaker
+            else:
+                isMaker = self.safe_bool(trade, 'isMaker')
+                if isMaker is not None:
+                    takerOrMaker = 'maker' if isMaker else 'taker'
+            orderSide = self.safe_string_lower(trade, 'orderSide')
+            if orderSide is not None:
+                side = orderSide
+            else:
+                bidOrAsk = self.safe_string(trade, 'm')
+                if bidOrAsk is not None:
+                    side = 'buy' if (bidOrAsk == 'BID') else 'sell'
         timestamp = self.safe_integer_n(trade, ['t', 'time', 'timestamp'])
         quantity = self.safe_string_2(trade, 'q', 'quantity')
         amount = None
@@ -3419,7 +3434,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://doc.xt.com/#deposit_withdrawaldepositAddressGet
@@ -3453,7 +3468,7 @@ class xt(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_deposit_address(result, currency)
 
-    def parse_deposit_address(self, depositAddress, currency=None):
+    def parse_deposit_address(self, depositAddress, currency=None) -> DepositAddress:
         #
         #     {
         #         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3463,11 +3478,11 @@ class xt(Exchange, ImplicitAPI):
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
+            'network': None,
             'address': address,
             'tag': self.safe_string(depositAddress, 'memo'),
-            'network': None,
-            'info': depositAddress,
         }
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4028,6 +4043,16 @@ class xt(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate interval
+        :see: https://doc.xt.com/#futures_quotesgetFundingRate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        return self.fetch_funding_rate(symbol, params)
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """

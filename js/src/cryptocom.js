@@ -54,6 +54,7 @@ export default class cryptocom extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
@@ -163,6 +164,7 @@ export default class cryptocom extends Exchange {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-risk-parameters': 1,
                         },
                         'post': {
                             'public/staking/get-conversion-rate': 2,
@@ -1616,7 +1618,7 @@ export default class cryptocom extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
+            return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
         }
         const request = {};
         let market = undefined;
@@ -1787,9 +1789,9 @@ export default class cryptocom extends Exchange {
             result[network] = {
                 'info': value,
                 'currency': responseCode,
+                'network': network,
                 'address': address,
                 'tag': tag,
-                'network': network,
             };
         }
         return result;

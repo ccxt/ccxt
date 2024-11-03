@@ -777,12 +777,14 @@ class Transpiler {
             'Any': /: (?:List\[)?Any/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
+            'BorrowInterest': /-> BorrowInterest:/,
             'Bool': /: (?:List\[)?Bool =/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
+            'DepositAddress': /-> (?:List\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
@@ -797,6 +799,7 @@ class Transpiler {
             'LeverageTier': /-> (?:List\[)?LeverageTier/,
             'LeverageTiers': /-> LeverageTiers:/,
             'Liquidation': /-> (?:List\[)?Liquidation/,
+            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
@@ -1478,7 +1481,7 @@ class Transpiler {
                 'Dictionary<any>': 'array',
                 'Dict': 'array',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarketMarginModes|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LedgerEntry|LeverageTier|LeverageTiers|Conversion|DepositAddress|LongShortRatio|BorrowInterest)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -2303,6 +2306,11 @@ class Transpiler {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
             }
+            // py: json
+            if (pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump')) {
+                pythonHeaderSync.push ('import json  # noqa E402')
+                pythonHeaderAsync.push ('import json  # noqa E402')
+            }
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
                 pythonHeaderSync.push ('from ccxt.base.precise import Precise  # noqa E402')
@@ -2333,6 +2341,7 @@ class Transpiler {
                 const isSameDirImport = tests.find(t => t.name === subTestName);
                 const phpPrefix = isSameDirImport ? '__DIR__ . \'/' : 'PATH_TO_CCXT . \'/test/exchange/base/';
                 let pySuffix = isSameDirImport ? '' : '.exchange.base';
+                const isLangSpec = subTestName === 'testLanguageSpecific';
 
                 if (isSharedMethodsImport) {
                     pythonHeaderAsync.push (`from ccxt.test.exchange.base import test_shared_methods  # noqa E402`)
@@ -2346,11 +2355,13 @@ class Transpiler {
                     }
                 } else {
                     if (test.base) {
-                        phpHeaderSync.push (`include_once __DIR__ . '/${snake_case}.php';`)
+                        const phpLangSpec =  isLangSpec ? 'language_specific/' : '';
+                        phpHeaderSync.push (`include_once __DIR__ . '/${phpLangSpec}${snake_case}.php';`)
                         if (test.tsFile.includes('Exchange/base')) {
                             pythonHeaderSync.push (`from ccxt.test.exchange.base.${snake_case} import ${snake_case}  # noqa E402`)
                         } else {
-                            pythonHeaderSync.push (`from ccxt.test.base.${snake_case} import ${snake_case}  # noqa E402`)
+                            const pyLangSpec =  isLangSpec ? 'language_specific.' : '';
+                            pythonHeaderSync.push (`from ccxt.test.base.${pyLangSpec}${snake_case} import ${snake_case}  # noqa E402`)
                         }
                     } else {
                         phpHeaderSync.push (`include_once ${phpPrefix}${snake_case}.php';`)

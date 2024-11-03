@@ -53,6 +53,8 @@ export default class oceanex extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,
@@ -988,9 +990,9 @@ export default class oceanex extends Exchange {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': this.networkIdToCode(networkId),
             'address': address,
             'tag': this.safeString(depositAddress, 'memo'),
-            'network': this.networkIdToCode(networkId),
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -638,17 +638,17 @@ class hyperliquid(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(self.safe_string(balance, 'coin'))
                 account = self.account()
                 total = self.safe_string(balance, 'total')
-                free = self.safe_string(balance, 'hold')
+                used = self.safe_string(balance, 'hold')
                 account['total'] = total
-                account['used'] = free
+                account['used'] = used
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
         result: dict = {
             'info': response,
             'USDC': {
-                'total': self.safe_float(data, 'accountValue'),
-                'used': self.safe_float(data, 'totalMarginUsed'),
+                'total': self.safe_number(data, 'accountValue'),
+                'free': self.safe_number(response, 'withdrawable'),
             },
         }
         timestamp = self.safe_integer(response, 'time')
@@ -769,9 +769,16 @@ class hyperliquid(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until', self.milliseconds())
-        useTail = (since is None)
+        useTail = since is None
+        originalSince = since
         if since is None:
-            since = 0
+            if limit is not None:
+                # optimization if limit is provided
+                timeframeInMilliseconds = self.parse_timeframe(timeframe) * 1000
+                since = self.sum(until, timeframeInMilliseconds * limit * -1)
+                useTail = False
+            else:
+                since = 0
         params = self.omit(params, ['until'])
         request: dict = {
             'type': 'candleSnapshot',
@@ -799,7 +806,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit, useTail)
+        return self.parse_ohlcvs(response, market, timeframe, originalSince, limit, useTail)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1533,7 +1540,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         else:
-            request['startTime'] = self.milliseconds() - 100 * 60 * 60 * 1000
+            maxLimit = 500 if (limit is None) else limit
+            request['startTime'] = self.milliseconds() - maxLimit * 60 * 60 * 1000
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is not None:
@@ -1879,6 +1887,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         statuses: dict = {
             'triggered': 'open',
             'filled': 'closed',
+            'open': 'open',
+            'canceled': 'canceled',
+            'rejected': 'rejected',
+            'marginCanceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -2106,14 +2118,18 @@ class hyperliquid(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
         leverage = self.safe_dict(entry, 'leverage', {})
-        isIsolated = (self.safe_string(leverage, 'type') == 'isolated')
-        quantity = self.safe_number(leverage, 'rawUsd')
+        marginMode = self.safe_string(leverage, 'type')
+        isIsolated = (marginMode == 'isolated')
+        rawSize = self.safe_string(entry, 'szi')
+        size = rawSize
         side = None
-        if quantity is not None:
-            side = 'short' if (quantity > 0) else 'long'
-        unrealizedPnl = self.safe_number(entry, 'unrealizedPnl')
-        initialMargin = self.safe_number(entry, 'marginUsed')
-        percentage = unrealizedPnl / initialMargin * 100
+        if size is not None:
+            side = 'long' if Precise.string_gt(rawSize, '0') else 'short'
+            size = Precise.string_abs(size)
+        rawUnrealizedPnl = self.safe_string(entry, 'unrealizedPnl')
+        absRawUnrealizedPnl = Precise.string_abs(rawUnrealizedPnl)
+        initialMargin = self.safe_string(entry, 'marginUsed')
+        percentage = Precise.string_mul(Precise.string_div(absRawUnrealizedPnl, initialMargin), '100')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -2123,21 +2139,21 @@ class hyperliquid(Exchange, ImplicitAPI):
             'isolated': isIsolated,
             'hedged': None,
             'side': side,
-            'contracts': self.safe_number(entry, 'szi'),
+            'contracts': self.parse_number(size),
             'contractSize': None,
             'entryPrice': self.safe_number(entry, 'entryPx'),
             'markPrice': None,
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
-            'collateral': None,
-            'initialMargin': initialMargin,
+            'collateral': self.safe_number(entry, 'marginUsed'),
+            'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': self.parse_number(rawUnrealizedPnl),
             'liquidationPrice': self.safe_number(entry, 'liquidationPx'),
-            'marginMode': None,
-            'percentage': percentage,
+            'marginMode': marginMode,
+            'percentage': self.parse_number(percentage),
         })
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
