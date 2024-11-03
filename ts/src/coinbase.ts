@@ -786,12 +786,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.method] v2PrivateGetAccountsAccountIdWithdrawals or v2PrivateGetAccountsAccountIdTransactions
+         * @param {string} [params.currencyType] "fiat" or "crypto"
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'method', 'v2PrivateGetAccountsAccountIdWithdrawals'); // v2PrivateGetAccountsAccountIdWithdrawals  v2PrivateGetAccountsAccountIdTransactions
-        return await this.fetchTransactionsWithMethod (method, code, since, limit, params);
+        let currencyType = undefined;
+        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        if (currencyType === 'crypto') {
+            const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+            return this.filterByArray (results, 'type', 'withdrawal', false);
+        }
+        return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -804,12 +808,16 @@ export default class coinbase extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.method] v2PrivateGetAccountsAccountIdDeposits or v2PrivateGetAccountsAccountIdTransactions
+         * @param {string} [params.currencyType] "fiat" or "crypto"
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        let method = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'method', 'v2PrivateGetAccountsAccountIdDeposits'); // v2PrivateGetAccountsAccountIdDeposits  v2PrivateGetAccountsAccountIdTransactions
-        return await this.fetchTransactionsWithMethod (method, code, since, limit, params);
+        let currencyType = undefined;
+        [ currencyType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'currencyType');
+        if (currencyType === 'crypto') {
+            const results = await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
+            return this.filterByArray (results, 'type', 'deposit', false);
+        }
+        return await this.fetchTransactionsWithMethod ('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
