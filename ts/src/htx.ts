@@ -5049,8 +5049,6 @@ export default class htx extends Exchange {
             const feeCurrencyId = this.safeString (order, 'fee_asset');
             if (feeCurrencyId !== undefined) {
                 feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-            } else {
-                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
                 'cost': feeCost,
