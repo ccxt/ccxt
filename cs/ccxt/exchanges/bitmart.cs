@@ -1711,7 +1711,7 @@ public partial class bitmart : Exchange
             }
         } else
         {
-            object maxLimit = 1200;
+            object maxLimit = 500;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = maxLimit;

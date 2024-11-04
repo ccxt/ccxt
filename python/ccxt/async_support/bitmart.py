@@ -1806,7 +1806,7 @@ class bitmart(Exchange, ImplicitAPI):
             if since is not None:
                 request['after'] = self.parse_to_int((since / 1000)) - 1
         else:
-            maxLimit = 1200
+            maxLimit = 500
             if limit is None:
                 limit = maxLimit
             limit = min(maxLimit, limit)

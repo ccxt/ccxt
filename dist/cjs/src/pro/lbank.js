@@ -808,10 +808,15 @@ class lbank extends lbank$1 {
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         const pingId = this.safeString(message, 'ping');
-        await client.send({
-            'action': 'pong',
-            'pong': pingId,
-        });
+        try {
+            await client.send({
+                'action': 'pong',
+                'pong': pingId,
+            });
+        }
+        catch (e) {
+            this.onError(client, e);
+        }
     }
     handleMessage(client, message) {
         const status = this.safeString(message, 'status');

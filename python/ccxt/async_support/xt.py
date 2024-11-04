@@ -1906,6 +1906,17 @@ class xt(Exchange, ImplicitAPI):
         #         "b": True
         #     }
         #
+        # spot: watchTrades
+        #
+        #    {
+        #        s: 'btc_usdt',
+        #        i: '228825383103928709',
+        #        t: 1684258222702,
+        #        p: '27003.65',
+        #        q: '0.000796',
+        #        b: True
+        #    }
+        #
         # spot: watchMyTrades
         #
         #    {
@@ -1916,17 +1927,6 @@ class xt(Exchange, ImplicitAPI):
         #        "p": "30000",                   # trade price
         #        "q": "3",                       # qty quantity
         #        "v": "90000"                    # volume trade amount
-        #    }
-        #
-        # spot: watchTrades
-        #
-        #    {
-        #        s: 'btc_usdt',
-        #        i: '228825383103928709',
-        #        t: 1684258222702,
-        #        p: '27003.65',
-        #        q: '0.000796',
-        #        b: True
         #    }
         #
         # swap and future: fetchTrades
@@ -2007,19 +2007,27 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
-        bidOrAsk = self.safe_string(trade, 'm')
-        side = self.safe_string_lower(trade, 'orderSide')
-        if bidOrAsk is not None:
-            side = 'buy' if (bidOrAsk == 'BID') else 'sell'
-        buyerMaker = self.safe_value(trade, 'b')
-        if buyerMaker is not None:
-            side = 'buy'
-        takerOrMaker = self.safe_string_lower(trade, 'takerMaker')
-        if buyerMaker is not None:
-            takerOrMaker = 'maker' if buyerMaker else 'taker'
-        isMaker = self.safe_bool(trade, 'isMaker')
-        if isMaker is not None:
-            takerOrMaker = 'maker' if isMaker else 'taker'
+        side = None
+        takerOrMaker = None
+        isBuyerMaker = self.safe_bool(trade, 'b')
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # public trades always taker
+        else:
+            takerMaker = self.safe_string_lower(trade, 'takerMaker')
+            if takerMaker is not None:
+                takerOrMaker = takerMaker
+            else:
+                isMaker = self.safe_bool(trade, 'isMaker')
+                if isMaker is not None:
+                    takerOrMaker = 'maker' if isMaker else 'taker'
+            orderSide = self.safe_string_lower(trade, 'orderSide')
+            if orderSide is not None:
+                side = orderSide
+            else:
+                bidOrAsk = self.safe_string(trade, 'm')
+                if bidOrAsk is not None:
+                    side = 'buy' if (bidOrAsk == 'BID') else 'sell'
         timestamp = self.safe_integer_n(trade, ['t', 'time', 'timestamp'])
         quantity = self.safe_string_2(trade, 'q', 'quantity')
         amount = None

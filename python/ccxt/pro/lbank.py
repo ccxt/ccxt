@@ -780,10 +780,13 @@ class lbank(ccxt.async_support.lbank):
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
         pingId = self.safe_string(message, 'ping')
-        await client.send({
-            'action': 'pong',
-            'pong': pingId,
-        })
+        try:
+            await client.send({
+                'action': 'pong',
+                'pong': pingId,
+            })
+        except Exception as e:
+            self.on_error(client, e)
 
     def handle_message(self, client, message):
         status = self.safe_string(message, 'status')
