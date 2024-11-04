@@ -6,7 +6,6 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
-import add_static_result from '../../utils/update-static-request-response.js'
 const fsPromises = fs.promises;
 ansi.nice
 const log = ololog.configure ({ locate: false }).unlimited
@@ -44,13 +43,6 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , raw = process.argv.includes ('--raw')
     , noKeys = process.argv.includes ('--no-keys')
 
-let foundDescription = undefined;
-for (let i = 0; i < process.argv.length; i++) {
-    if (process.argv[i] === '--name') {
-        foundDescription = process.argv[i + 1]; 
-        break;
-    }
-}
 //-----------------------------------------------------------------------------
 if (!raw) {
     log ((new Date ()).toISOString())
@@ -161,12 +153,6 @@ function createRequestTemplate(exchange, methodName, args, result) {
     log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
     log.green('-------------------------------------------')
-
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
-        log.green('auto-saving static result');
-        add_static_result('response', exchange.id, methodName, final);
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -183,12 +169,6 @@ function createResponseTemplate(exchange, methodName, args, result) {
     log.green('-------------------------------------------')
     log (jsonStringify (final, 2))
     log.green('-------------------------------------------')
-
-    if (foundDescription !== undefined) {
-        final.description = foundDescription;
-        log.green('auto-saving static result');
-        add_static_result('response', exchange.id, methodName, final);
-    }
 }
 
 //-----------------------------------------------------------------------------
