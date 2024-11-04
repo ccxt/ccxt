@@ -264,11 +264,17 @@ export default class ellipx extends Exchange {
             const sortedParams = this.keysort (params);
             const query = this.urlencode (sortedParams);
             // Create elements for signing
+            if (body === undefined) {
+                body = '';
+            } else {
+                body = this.json (body);
+            }
+            const bodyHash = this.hash (this.encode (body), sha256);
             const elements = [
                 method,
                 path,
                 query,
-                this.hash (this.encode (body ? this.json (body) : ''), sha256),
+                bodyHash,
             ];
             // Join elements with null character
             const signString = elements.join ('\x00');
