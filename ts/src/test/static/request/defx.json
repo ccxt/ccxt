@@ -73,6 +73,16 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://api.defx.com/v1/auth/api/trades?symbols=SOL_USDC",
+                "input": [
+                    "SOL/USDC:USDC"
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

@@ -574,6 +574,68 @@
                 ]
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "SOL/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "id": "0192f665-c05b-7ba0-a080-8b6c99083489",
+                            "orderId": "757730811259651728",
+                            "time": "2024-11-04T08:58:36.474Z",
+                            "symbol": "SOL_USDC",
+                            "side": "SELL",
+                            "price": "160.43600000",
+                            "qty": "1.00",
+                            "fee": "0.08823980",
+                            "role": "TAKER",
+                            "pnl": "0.00000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0192f665-c05b-7ba0-a080-8b6c99083489",
+                        "timestamp": 1730710716474,
+                        "datetime": "2024-11-04T08:58:36.474Z",
+                        "symbol": "SOL/USDC:USDC",
+                        "side": "sell",
+                        "price": 160.436,
+                        "amount": 1,
+                        "cost": 160.436,
+                        "order": "757730811259651728",
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.0882398
+                        },
+                        "info": {
+                            "id": "0192f665-c05b-7ba0-a080-8b6c99083489",
+                            "orderId": "757730811259651728",
+                            "time": "2024-11-04T08:58:36.474Z",
+                            "symbol": "SOL_USDC",
+                            "side": "SELL",
+                            "price": "160.43600000",
+                            "qty": "1.00",
+                            "fee": "0.08823980",
+                            "role": "TAKER",
+                            "pnl": "0.00000000"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.0882398
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",

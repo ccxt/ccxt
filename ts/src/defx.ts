@@ -872,8 +872,53 @@ export default class defx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name defx#fetchTrades
+         * @description fetch all trades made by the user
+         * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbols'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.v1PrivateGetApiTrades (this.extend (request, params));
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "id": "0192f665-c05b-7ba0-a080-8b6c99083489",
+        //             "orderId": "757730811259651728",
+        //             "time": "2024-11-04T08:58:36.474Z",
+        //             "symbol": "SOL_USDC",
+        //             "side": "SELL",
+        //             "price": "160.43600000",
+        //             "qty": "1.00",
+        //             "fee": "0.08823980",
+        //             "role": "TAKER",
+        //             "pnl": "0.00000000"
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, undefined, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
+        // fetchTrades
         //     {
         //       "buyerMaker": "false",
         //       "price": "2.0000",
@@ -882,15 +927,32 @@ export default class defx extends Exchange {
         //       "timestamp": "1702453663894"
         //     }
         //
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        // fetchMyTrades
+        //     {
+        //         "id": "0192f665-c05b-7ba0-a080-8b6c99083489",
+        //         "orderId": "757730811259651728",
+        //         "time": "2024-11-04T08:58:36.474Z",
+        //         "symbol": "SOL_USDC",
+        //         "side": "SELL",
+        //         "price": "160.43600000",
+        //         "qty": "1.00",
+        //         "fee": "0.08823980",
+        //         "role": "TAKER",
+        //         "pnl": "0.00000000"
+        //     }
+        //
+        const time = this.safeString (trade, 'time');
+        const timestamp = this.safeInteger (trade, 'timestamp', this.parse8601 (time));
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'qty');
         const id = this.safeString (trade, 'id');
+        const oid = this.safeString (trade, 'orderId');
+        const takerOrMaker = this.safeStringLower (trade, 'role');
         const buyerMaker = this.safeString (trade, 'buyerMaker');
-        let side = undefined;
+        let side = this.safeStringLower (trade, 'side');
         if (buyerMaker !== undefined) {
             if (buyerMaker === 'true') {
                 side = 'sell';
@@ -907,10 +969,13 @@ export default class defx extends Exchange {
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'order': undefined,
-            'takerOrMaker': undefined,
+            'order': oid,
+            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': this.safeString (trade, 'fee'),
+                'currency': 'USDC',
+            },
             'info': trade,
         }, market);
     }
