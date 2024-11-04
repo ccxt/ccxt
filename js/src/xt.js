@@ -1973,6 +1973,17 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // spot: watchMyTrades
         //
         //    {
@@ -1983,17 +1994,6 @@ export default class xt extends Exchange {
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
-        //    }
-        //
-        // spot: watchTrades
-        //
-        //    {
-        //        s: 'btc_usdt',
-        //        i: '228825383103928709',
-        //        t: 1684258222702,
-        //        p: '27003.65',
-        //        q: '0.000796',
-        //        b: true
         //    }
         //
         // swap and future: fetchTrades
@@ -2075,22 +2075,34 @@ export default class xt extends Exchange {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket(marketId, market, '_', marketType);
-        const bidOrAsk = this.safeString(trade, 'm');
-        let side = this.safeStringLower(trade, 'orderSide');
-        if (bidOrAsk !== undefined) {
-            side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+        let side = undefined;
+        let takerOrMaker = undefined;
+        const isBuyerMaker = this.safeBool(trade, 'b');
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // public trades always taker
         }
-        const buyerMaker = this.safeValue(trade, 'b');
-        if (buyerMaker !== undefined) {
-            side = 'buy';
-        }
-        let takerOrMaker = this.safeStringLower(trade, 'takerMaker');
-        if (buyerMaker !== undefined) {
-            takerOrMaker = buyerMaker ? 'maker' : 'taker';
-        }
-        const isMaker = this.safeBool(trade, 'isMaker');
-        if (isMaker !== undefined) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+        else {
+            const takerMaker = this.safeStringLower(trade, 'takerMaker');
+            if (takerMaker !== undefined) {
+                takerOrMaker = takerMaker;
+            }
+            else {
+                const isMaker = this.safeBool(trade, 'isMaker');
+                if (isMaker !== undefined) {
+                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                }
+            }
+            const orderSide = this.safeStringLower(trade, 'orderSide');
+            if (orderSide !== undefined) {
+                side = orderSide;
+            }
+            else {
+                const bidOrAsk = this.safeString(trade, 'm');
+                if (bidOrAsk !== undefined) {
+                    side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         const timestamp = this.safeIntegerN(trade, ['t', 'time', 'timestamp']);
         const quantity = this.safeString2(trade, 'q', 'quantity');

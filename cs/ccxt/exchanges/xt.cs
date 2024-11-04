@@ -2000,6 +2000,17 @@ public partial class xt : Exchange
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // spot: watchMyTrades
         //
         //    {
@@ -2010,17 +2021,6 @@ public partial class xt : Exchange
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
-        //    }
-        //
-        // spot: watchTrades
-        //
-        //    {
-        //        s: 'btc_usdt',
-        //        i: '228825383103928709',
-        //        t: 1684258222702,
-        //        p: '27003.65',
-        //        q: '0.000796',
-        //        b: true
         //    }
         //
         // swap and future: fetchTrades
@@ -2103,26 +2103,39 @@ public partial class xt : Exchange
             marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
-        object bidOrAsk = this.safeString(trade, "m");
-        object side = this.safeStringLower(trade, "orderSide");
-        if (isTrue(!isEqual(bidOrAsk, null)))
+        object side = null;
+        object takerOrMaker = null;
+        object isBuyerMaker = this.safeBool(trade, "b");
+        if (isTrue(!isEqual(isBuyerMaker, null)))
         {
-            side = ((bool) isTrue((isEqual(bidOrAsk, "BID")))) ? "buy" : "sell";
-        }
-        object buyerMaker = this.safeValue(trade, "b");
-        if (isTrue(!isEqual(buyerMaker, null)))
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+            takerOrMaker = "taker"; // public trades always taker
+        } else
         {
-            side = "buy";
-        }
-        object takerOrMaker = this.safeStringLower(trade, "takerMaker");
-        if (isTrue(!isEqual(buyerMaker, null)))
-        {
-            takerOrMaker = ((bool) isTrue(buyerMaker)) ? "maker" : "taker";
-        }
-        object isMaker = this.safeBool(trade, "isMaker");
-        if (isTrue(!isEqual(isMaker, null)))
-        {
-            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+            object takerMaker = this.safeStringLower(trade, "takerMaker");
+            if (isTrue(!isEqual(takerMaker, null)))
+            {
+                takerOrMaker = takerMaker;
+            } else
+            {
+                object isMaker = this.safeBool(trade, "isMaker");
+                if (isTrue(!isEqual(isMaker, null)))
+                {
+                    takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+                }
+            }
+            object orderSide = this.safeStringLower(trade, "orderSide");
+            if (isTrue(!isEqual(orderSide, null)))
+            {
+                side = orderSide;
+            } else
+            {
+                object bidOrAsk = this.safeString(trade, "m");
+                if (isTrue(!isEqual(bidOrAsk, null)))
+                {
+                    side = ((bool) isTrue((isEqual(bidOrAsk, "BID")))) ? "buy" : "sell";
+                }
+            }
         }
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "time", "timestamp"});
         object quantity = this.safeString2(trade, "q", "quantity");

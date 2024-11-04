@@ -1832,7 +1832,7 @@ class bitmart extends Exchange {
                 $request['after'] = $this->parse_to_int(($since / 1000)) - 1;
             }
         } else {
-            $maxLimit = 1200;
+            $maxLimit = 500;
             if ($limit === null) {
                 $limit = $maxLimit;
             }

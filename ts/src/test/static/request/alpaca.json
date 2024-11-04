@@ -87,6 +87,29 @@
                 ]
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD",
+                "input": [
+                  "BTC/USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot fetch multiple tickers at once",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CLTC%2FUSD",
+                "input": [
+                  [
+                    "BTC/USD",
+                    "LTC/USD"
+                  ]
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -184,6 +207,28 @@
                 "url": "https://api.alpaca.markets/v2/orders?status=closed&symbols=LTC%2FUSDT",
                 "input": [
                     "LTC/USDT"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot fetch my trades with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api.alpaca.markets/v2/account/activities/FILL?page_size=3",
+                "input": [
+                  "LTC/USD",
+                  null,
+                  3
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch the BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.alpaca.markets/v2/wallets?asset=BTC",
+                "input": [
+                  "BTC"
                 ]
             }
         ]

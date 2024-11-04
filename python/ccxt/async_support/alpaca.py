@@ -5,10 +5,11 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Trade
+from ccxt.base.types import Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -63,7 +64,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': False,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
@@ -74,7 +75,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchL1OrderBook': True,
                 'fetchL2OrderBook': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
@@ -89,8 +90,8 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchStatus': False,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -129,6 +130,7 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/assets/{symbol_or_asset_id}',
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
+                            'v2/wallets',
                         ],
                         'post': [
                             'v2/orders',
@@ -671,6 +673,130 @@ class alpaca(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'v'),  # volume
         ]
 
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.loc]: crypto location, default: us
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        tickers = await self.fetch_tickers([symbol], params)
+        return self.safe_dict(tickers, symbol)
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+        :param str[] symbols: unified symbols of the markets to fetch tickers for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.loc]: crypto location, default: us
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        loc = self.safe_string(params, 'loc', 'us')
+        ids = self.market_ids(symbols)
+        request = {
+            'symbols': ','.join(ids),
+            'loc': loc,
+        }
+        params = self.omit(params, 'loc')
+        response = await self.marketPublicGetV1beta3CryptoLocSnapshots(self.extend(request, params))
+        #
+        #     {
+        #         "snapshots": {
+        #             "BTC/USD": {
+        #                 "dailyBar": {
+        #                     "c": 69403.554,
+        #                     "h": 69609.6515,
+        #                     "l": 69013.26,
+        #                     "n": 9,
+        #                     "o": 69536.7,
+        #                     "t": "2024-11-01T05:00:00Z",
+        #                     "v": 0.210809181,
+        #                     "vw": 69327.655393908
+        #                 },
+        #                 "latestQuote": {
+        #                     "ap": 69424.19,
+        #                     "as": 0.68149,
+        #                     "bp": 69366.086,
+        #                     "bs": 0.68312,
+        #                     "t": "2024-11-01T08:31:41.880246926Z"
+        #                 },
+        #                 "latestTrade": {
+        #                     "i": 5272941104897543146,
+        #                     "p": 69416.9,
+        #                     "s": 0.014017324,
+        #                     "t": "2024-11-01T08:14:28.245088803Z",
+        #                     "tks": "B"
+        #                 },
+        #                 "minuteBar": {
+        #                     "c": 69403.554,
+        #                     "h": 69403.554,
+        #                     "l": 69399.125,
+        #                     "n": 0,
+        #                     "o": 69399.125,
+        #                     "t": "2024-11-01T08:30:00Z",
+        #                     "v": 0,
+        #                     "vw": 0
+        #                 },
+        #                 "prevDailyBar": {
+        #                     "c": 69515.1415,
+        #                     "h": 72668.837,
+        #                     "l": 68796.85,
+        #                     "n": 129,
+        #                     "o": 72258.9,
+        #                     "t": "2024-10-31T05:00:00Z",
+        #                     "v": 2.217683307,
+        #                     "vw": 70782.6811608144
+        #                 }
+        #             },
+        #         }
+        #     }
+        #
+        results = []
+        snapshots = self.safe_dict(response, 'snapshots', {})
+        marketIds = list(snapshots.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            entry = self.safe_dict(snapshots, marketId)
+            dailyBar = self.safe_dict(entry, 'dailyBar', {})
+            prevDailyBar = self.safe_dict(entry, 'prevDailyBar', {})
+            latestQuote = self.safe_dict(entry, 'latestQuote', {})
+            latestTrade = self.safe_dict(entry, 'latestTrade', {})
+            datetime = self.safe_string(latestQuote, 't')
+            ticker = self.safe_ticker({
+                'info': entry,
+                'symbol': market['symbol'],
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'high': self.safe_string(dailyBar, 'h'),
+                'low': self.safe_string(dailyBar, 'l'),
+                'bid': self.safe_string(latestQuote, 'bp'),
+                'bidVolume': self.safe_string(latestQuote, 'bs'),
+                'ask': self.safe_string(latestQuote, 'ap'),
+                'askVolume': self.safe_string(latestQuote, 'as'),
+                'vwap': self.safe_string(dailyBar, 'vw'),
+                'open': self.safe_string(dailyBar, 'o'),
+                'close': self.safe_string(dailyBar, 'c'),
+                'last': self.safe_string(latestTrade, 'p'),
+                'previousClose': self.safe_string(prevDailyBar, 'c'),
+                'change': None,
+                'percentage': None,
+                'average': None,
+                'baseVolume': self.safe_string(dailyBar, 'v'),
+                'quoteVolume': self.safe_string(dailyBar, 'n'),
+            }, market)
+            results.append(ticker)
+        return self.filter_by_array(results, 'symbol', symbols)
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -1014,7 +1140,54 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all trades made by the user
+        :see: https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trade structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch trades for
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        await self.load_markets()
+        market = None
+        request: dict = {
+            'activity_type': 'FILL',
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+        if since is not None:
+            request['after'] = since
+        if limit is not None:
+            request['page_size'] = limit
+        request, params = self.handle_until_option('until', request, params)
+        response = await self.traderPrivateGetV2AccountActivitiesActivityType(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        #             "activity_type": "FILL",
+        #             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        #             "type": "fill",
+        #             "price": "67.31",
+        #             "qty": "0.07",
+        #             "side": "sell",
+        #             "symbol": "LTC/USD",
+        #             "leaves_qty": "0",
+        #             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        #             "cum_qty": "0.07",
+        #             "order_status": "filled",
+        #             "swap_rate": "1"
+        #         },
+        #     ]
+        #
+        return self.parse_trades(response, market, since, limit)
+
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # fetchTrades
         #
         #   {
         #       "t":"2022-06-14T05:00:00.027869Z",
@@ -1025,25 +1198,43 @@ class alpaca(Exchange, ImplicitAPI):
         #       "i":"355681339"
         #   }
         #
-        marketId = self.safe_string(trade, 'S')
+        # fetchMyTrades
+        #
+        #     {
+        #         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        #         "activity_type": "FILL",
+        #         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        #         "type": "fill",
+        #         "price": "67.31",
+        #         "qty": "0.07",
+        #         "side": "sell",
+        #         "symbol": "LTC/USD",
+        #         "leaves_qty": "0",
+        #         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        #         "cum_qty": "0.07",
+        #         "order_status": "filled",
+        #         "swap_rate": "1"
+        #     },
+        #
+        marketId = self.safe_string_2(trade, 'S', 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        datetime = self.safe_string(trade, 't')
+        datetime = self.safe_string_2(trade, 't', 'transaction_time')
         timestamp = self.parse8601(datetime)
         alpacaSide = self.safe_string(trade, 'tks')
-        side: str
+        side = self.safe_string(trade, 'side')
         if alpacaSide == 'B':
             side = 'buy'
         elif alpacaSide == 'S':
             side = 'sell'
-        priceString = self.safe_string(trade, 'p')
-        amountString = self.safe_string(trade, 's')
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 's', 'qty')
         return self.safe_trade({
             'info': trade,
-            'id': self.safe_string(trade, 'i'),
+            'id': self.safe_string_2(trade, 'i', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'order': self.safe_string(trade, 'order_id'),
             'type': None,
             'side': side,
             'takerOrMaker': 'taker',
@@ -1052,6 +1243,48 @@ class alpaca(Exchange, ImplicitAPI):
             'cost': None,
             'fee': None,
         }, market)
+
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
+        """
+        fetch the deposit address for a currency associated with self account
+        :see: https://docs.alpaca.markets/reference/listcryptofundingwallets
+        :param str code: unified currency code
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request: dict = {
+            'asset': currency['id'],
+        }
+        response = await self.traderPrivateGetV2Wallets(self.extend(request, params))
+        #
+        #     {
+        #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        #         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        #         "created_at": "2024-11-03T07:30:05.609976344Z"
+        #     }
+        #
+        return self.parse_deposit_address(response, currency)
+
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+        #
+        #     {
+        #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        #         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        #         "created_at": "2024-11-03T07:30:05.609976344Z"
+        #     }
+        #
+        parsedCurrency = None
+        if currency is not None:
+            parsedCurrency = currency['id']
+        return {
+            'info': depositAddress,
+            'currency': parsedCurrency,
+            'network': None,
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)
