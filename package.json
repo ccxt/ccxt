@@ -39,7 +39,7 @@
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
     "go": "npm run transpileGO && npm run buildGO",
-    "force-build": "npm run pre-transpile && npm run go",
+    "force-build": "npm run pre-transpile && npm run go && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
     "//TMPCommentforce-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run go && npm run post-transpile && npm run update-badges",
     "build-docs": "node jsdoc2md.js && node examples2md.js",
     "serve-docs": "docsify serve ./wiki",
