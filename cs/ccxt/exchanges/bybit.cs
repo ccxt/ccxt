@@ -149,7 +149,7 @@ public partial class bybit : Exchange
                     { "public", "https://api-testnet.{hostname}" },
                     { "private", "https://api-testnet.{hostname}" },
                 } },
-                { "logo", "https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api.{hostname}" },
                     { "futures", "https://api.{hostname}" },
@@ -2656,6 +2656,11 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object tickerList = this.safeList(data, "list", new List<object>() {});
+        object timestamp = this.safeInteger(response, "time");
+        for (object i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(tickerList, i))["timestamp"] = timestamp; // will be removed inside the parser
+        }
         object result = this.parseFundingRates(tickerList);
         return this.filterByArray(result, "symbol", symbols);
     }

@@ -15,7 +15,7 @@ public partial class alpaca : Exchange
             { "hostname", "alpaca.markets" },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b" },
                 { "www", "https://alpaca.markets" },
                 { "api", new Dictionary<string, object>() {
                     { "broker", "https://broker-api.{hostname}" },

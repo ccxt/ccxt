@@ -916,22 +916,27 @@ class gate extends Exchange {
              */
             $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
             if ($unifiedAccount === null) {
-                $response = Async\await($this->privateAccountGetDetail ($params));
-                //
-                //     {
-                //         "user_id" => 10406147,
-                //         "ip_whitelist" => array(),
-                //         "currency_pairs" => array(),
-                //         "key" => array(
-                //             "mode" => 1
-                //         ),
-                //         "tier" => 0,
-                //         "tier_expire_time" => "0001-01-01T00:00:00Z",
-                //         "copy_trading_role" => 0
-                //     }
-                //
-                $result = $this->safe_dict($response, 'key', array());
-                $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                try {
+                    //
+                    //     {
+                    //         "user_id" => 10406147,
+                    //         "ip_whitelist" => array(),
+                    //         "currency_pairs" => array(),
+                    //         "key" => array(
+                    //             "mode" => 1
+                    //         ),
+                    //         "tier" => 0,
+                    //         "tier_expire_time" => "0001-01-01T00:00:00Z",
+                    //         "copy_trading_role" => 0
+                    //     }
+                    //
+                    $response = Async\await($this->privateAccountGetDetail ($params));
+                    $result = $this->safe_dict($response, 'key', array());
+                    $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                } catch (Exception $e) {
+                    // if the request fails, the $unifiedAccount is disabled
+                    $this->options['unifiedAccount'] = false;
+                }
             }
         }) ();
     }

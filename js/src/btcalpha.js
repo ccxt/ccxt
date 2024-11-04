@@ -102,7 +102,7 @@ export default class btcalpha extends Exchange {
                 '1d': 'D',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
+                'logo': 'https://github.com/user-attachments/assets/dce49f3a-61e5-4ba0-a2fe-41d192fd0e5d',
                 'api': {
                     'rest': 'https://btc-alpha.com/api',
                 },

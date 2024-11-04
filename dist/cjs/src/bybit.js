@@ -157,7 +157,7 @@ class bybit extends bybit$1 {
                     'public': 'https://api-testnet.{hostname}',
                     'private': 'https://api-testnet.{hostname}',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
@@ -2583,6 +2583,10 @@ class bybit extends bybit$1 {
         //
         const data = this.safeDict(response, 'result', {});
         const tickerList = this.safeList(data, 'list', []);
+        const timestamp = this.safeInteger(response, 'time');
+        for (let i = 0; i < tickerList.length; i++) {
+            tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
+        }
         const result = this.parseFundingRates(tickerList);
         return this.filterByArray(result, 'symbol', symbols);
     }

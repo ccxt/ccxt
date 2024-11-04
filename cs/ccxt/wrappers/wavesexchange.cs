@@ -55,6 +55,7 @@ public partial class wavesexchange
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -93,6 +94,7 @@ public partial class wavesexchange
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/candles/getCandles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

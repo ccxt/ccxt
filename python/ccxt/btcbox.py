@@ -88,7 +88,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'ws': False,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/87327317-98c55400-c53c-11ea-9a11-81f7d951cc74.jpg',
+                'logo': 'https://github.com/user-attachments/assets/1e2cb499-8d0f-4f8f-9464-3c015cfbc76b',
                 'api': {
                     'rest': 'https://www.btcbox.co.jp/api',
                 },

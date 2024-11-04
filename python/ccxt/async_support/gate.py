@@ -923,22 +923,26 @@ class gate(Exchange, ImplicitAPI):
         """
         unifiedAccount = self.safe_bool(self.options, 'unifiedAccount')
         if unifiedAccount is None:
-            response = await self.privateAccountGetDetail(params)
-            #
-            #     {
-            #         "user_id": 10406147,
-            #         "ip_whitelist": [],
-            #         "currency_pairs": [],
-            #         "key": {
-            #             "mode": 1
-            #         },
-            #         "tier": 0,
-            #         "tier_expire_time": "0001-01-01T00:00:00Z",
-            #         "copy_trading_role": 0
-            #     }
-            #
-            result = self.safe_dict(response, 'key', {})
-            self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+            try:
+                #
+                #     {
+                #         "user_id": 10406147,
+                #         "ip_whitelist": [],
+                #         "currency_pairs": [],
+                #         "key": {
+                #             "mode": 1
+                #         },
+                #         "tier": 0,
+                #         "tier_expire_time": "0001-01-01T00:00:00Z",
+                #         "copy_trading_role": 0
+                #     }
+                #
+                response = await self.privateAccountGetDetail(params)
+                result = self.safe_dict(response, 'key', {})
+                self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+            except Exception as e:
+                # if the request fails, the unifiedAccount is disabled
+                self.options['unifiedAccount'] = False
 
     async def upgrade_unified_trade_account(self, params={}):
         return await self.privateUnifiedPutUnifiedMode(params)
