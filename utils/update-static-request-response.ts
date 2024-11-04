@@ -106,7 +106,7 @@ function prependWhitespace(content: string, spacesAmountPerIndent: number, inden
     const indentedLines = lines.map((line) => spaces + line);
     const indentedScript = indentedLines.join("\n");
     return indentedScript;
-  }
+}
   
 
 export default add_static_result;
