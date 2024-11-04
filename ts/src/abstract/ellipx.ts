@@ -9,22 +9,25 @@ import { implicitReturnType } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicMarketGetCurrencyPairGetDepth (params?: {}): Promise<implicitReturnType>;
-    publicMarketGetCurrencyPairTicker (params?: {}): Promise<implicitReturnType>;
-    publicMarketGetCurrencyPairGetTrades (params?: {}): Promise<implicitReturnType>;
-    publicMarketGetCurrencyPairGetGraph (params?: {}): Promise<implicitReturnType>;
-    publicMarketGetCMCSummary (params?: {}): Promise<implicitReturnType>;
-    publicUnitGetUnitCurrency (params?: {}): Promise<implicitReturnType>;
-    publicCryptoGetTokenCurrency (params?: {}): Promise<implicitReturnType>;
-    publicCryptoGetTokenCurrencyChains (params?: {}): Promise<implicitReturnType>;
-    privateUserGetUserWallet (params?: {}): Promise<implicitReturnType>;
-    privateUserGetMarket (params?: {}): Promise<implicitReturnType>;
-    privateUserGetMarketCurrencyPair (params?: {}): Promise<implicitReturnType>;
-    privateUserGetMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
-    privateUserPostMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
-    privateUserDeleteMarketOrderOrderUuid (params?: {}): Promise<implicitReturnType>;
-    privateCryptoPostDisbursementWithdraw (params?: {}): Promise<implicitReturnType>;
-    privateCryptoPostAddressFetch (params?: {}): Promise<implicitReturnType>;
+    _restGetMarket (params?: {}): Promise<implicitReturnType>;
+    _restGetMarketCurrencyPair (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketCurrencyPairGetDepth (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketCurrencyPairTicker (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketCurrencyPairGetTrades (params?: {}): Promise<implicitReturnType>;
+    publicGetMarketCurrencyPairGetGraph (params?: {}): Promise<implicitReturnType>;
+    publicGetCMCSummary (params?: {}): Promise<implicitReturnType>;
+    publicGetCMCCurrencyPairTicker (params?: {}): Promise<implicitReturnType>;
+    privateGetUserWallet (params?: {}): Promise<implicitReturnType>;
+    privateGetMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
+    privateGetMarketTradeFeeQuery (params?: {}): Promise<implicitReturnType>;
+    privateGetUnitCurrency (params?: {}): Promise<implicitReturnType>;
+    privateGetCryptoTokenCurrency (params?: {}): Promise<implicitReturnType>;
+    privateGetCryptoTokenCurrencyChains (params?: {}): Promise<implicitReturnType>;
+    privateGetCryptoTokenInfo (params?: {}): Promise<implicitReturnType>;
+    privatePostMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostCryptoAddressFetch (params?: {}): Promise<implicitReturnType>;
+    privatePostCryptoDisbursementWithdraw (params?: {}): Promise<implicitReturnType>;
+    privateDeleteMarketOrderOrderUuid (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

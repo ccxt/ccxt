@@ -7,7 +7,9 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { eddsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -19,7 +21,7 @@ export default class ellipx extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'ellipx',
             'name': 'Ellipx',
-            'countries': [ 'PL' ], // todo
+            'countries': [ 'PL' ],
             'rateLimit': 200, // todo check
             'version': 'v1',
             'certified': false,
@@ -116,6 +118,7 @@ export default class ellipx extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
+                '1m': '1m',
                 '5m': '5m',
                 '10m': '10m',
                 '1h': '1h',
@@ -126,61 +129,49 @@ export default class ellipx extends Exchange {
             'urls': {
                 'logo': '', // todo
                 'api': {
-                    'public': 'https://data.ellipx.com/_rest',
-                    'market': 'https://data.ellipx.com/Market',
-                    'user': 'https://app.ellipx.com/_rest',
-                    'crypto': 'https://app.ellipx.com/_rest',
-                    'unit': 'https://app.ellipx.com/_rest',
+                    'public': 'https://data.ellipx.com',
+                    'private': 'https://app.ellipx.com/_rest',
+                    '_rest': 'https://app.ellipx.com',
                 },
                 'www': 'https://www.ellipx.com',
                 'doc': 'https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM',
-                'fees': 'https://www.ellipx.com/pages/pricing', // todo check
+                'fees': 'https://www.ellipx.com/pages/pricing',
                 'referral': '', // todo
             },
             'api': {
+                '_rest': {
+                    'get': {
+                        'Market': 1,
+                        'Market/{currencyPair}': 1,
+                    },
+                },
                 'public': {
-                    'market': {
-                        'get': {
-                            '{currencyPair}:getDepth': 1,
-                            '{currencyPair}:ticker': 1,
-                            '{currencyPair}:getTrades': 1,
-                            '{currencyPair}:getGraph': 1,
-                            'CMC:summary': 1,
-                            // 'CMC/{currencyPair}:ticker': 1,
-                        },
-                    },
-                    'unit': {
-                        'get': {
-                            'unit/{currency}': 1,
-                        },
-                    },
-                    'crypto': {
-                        'get': {
-                            'token/{currency}': 1,
-                            'token/{currency}:chains': 1,
-                        },
+                    'get': {
+                        'Market/{currencyPair}:getDepth': 1,
+                        'Market/{currencyPair}:ticker': 1,
+                        'Market/{currencyPair}:getTrades': 1,
+                        'Market/{currencyPair}:getGraph': 1,
+                        'CMC:summary': 1,
+                        'CMC/{currencyPair}:ticker': 1,
                     },
                 },
                 'private': {
-                    'user': {
-                        'get': {
-                            'user/wallet': 1,
-                            'market': 1,
-                            'market/{currencyPair}': 1,
-                            'market/{currencyPair}/order': 1,
-                        },
-                        'post': {
-                            'market/{currencyPair}/order': 1,
-                        },
-                        'delete': {
-                            'market/order/{orderUuid}': 1,
-                        },
+                    'get': {
+                        'User/Wallet': 1,
+                        'Market/{currencyPair}/Order': 1,
+                        'Market/TradeFee:query': 1,
+                        'Unit/{currency}': 1,
+                        'Crypto/Token/{currency}': 1,
+                        'Crypto/Token/{currency}:chains': 1,
+                        'Crypto/Token/Info': 1,
                     },
-                    'crypto': {
-                        'post': {
-                            'disbursement:withdraw': 1,
-                            'address:fetch': 1,
-                        },
+                    'post': {
+                        'Market/{currencyPair}/Order': 1,
+                        'Crypto/Address:fetch': 1,
+                        'Crypto/Disbursement:withdraw': 1,
+                    },
+                    'delete': {
+                        'Market/Order/{orderUuid}': 1,
                     },
                 },
             },
@@ -227,6 +218,7 @@ export default class ellipx extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 5 * 1000,
+                'broker': 'CCXT',
                 'networks': {
                     // todo
                 },
@@ -255,10 +247,56 @@ export default class ellipx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        const query = this.urlencode (params);
-        if (query.length !== 0) {
-            url += '?' + query;
+        const authentication = this.safeString (api, 0);
+        const type = this.safeString (api, 1);
+        let url = undefined;
+        if (authentication === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.uuid ();
+            const timestamp = this.seconds ().toString ();
+            // Add required parameters
+            params = this.extend ({
+                '_key': this.apiKey,
+                '_nonce': nonce,
+                '_time': timestamp,
+            }, params);
+            // Sort parameters alphabetically
+            const sortedParams = this.keysort (params);
+            const query = this.urlencode (sortedParams);
+            // Create elements for signing
+            const elements = [
+                method,
+                path,
+                query,
+                this.hash (this.encode (body ? this.json (body) : ''), sha256),
+            ];
+            // Join elements with null character
+            const signString = elements.join ('\x00');
+            // Sign using Ed25519
+            const signature = this.encodeURIComponent (eddsa (this.encode (signString), this.secret, ed25519));
+            // Append signature to params
+            params['_sign'] = signature;
+            url = this.urls['api'][api] + '/' + type + '/' + path;
+            if (method === 'GET' && Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            } else {
+                body = this.json (params);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            }
+        } else {
+            url = this.urls['api'][api] + '/' + type + '/' + path;
+            if (method === 'GET') {
+                if (Object.keys (params).length) {
+                    url += '?' + this.urlencode (params);
+                }
+            } else {
+                body = this.json (params);
+                headers = {
+                    'Content-Type': 'application/json',
+                };
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
