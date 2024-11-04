@@ -834,7 +834,7 @@ export default class lbank extends lbankRest {
             await client.send ({
                 'action': 'pong',
                 'pong': pingId,
-            })
+            });
         } catch (e) {
             this.onError (client, e);
         }
