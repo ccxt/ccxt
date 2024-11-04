@@ -83,7 +83,7 @@ export default class bl3p extends Exchange {
                 'ws': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28501752-60c21b82-6feb-11e7-818b-055ee6d0e754.jpg',
+                'logo': 'https://github.com/user-attachments/assets/75aeb14e-cd48-43c8-8492-dff002dea0be',
                 'api': {
                     'rest': 'https://api.bl3p.eu',
                 },

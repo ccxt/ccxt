@@ -104,5 +104,6 @@ export default class hyperliquid extends Exchange {
         body: any;
         headers: any;
     };
+    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
     parseCreateOrderArgs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
 }

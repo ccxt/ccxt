@@ -153,7 +153,7 @@ class bybit extends Exchange {
                     'public' => 'https://api-testnet.{hostname}',
                     'private' => 'https://api-testnet.{hostname}',
                 ),
-                'logo' => 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'futures' => 'https://api.{hostname}',
@@ -2554,6 +2554,10 @@ class bybit extends Exchange {
         //
         $data = $this->safe_dict($response, 'result', array());
         $tickerList = $this->safe_list($data, 'list', array());
+        $timestamp = $this->safe_integer($response, 'time');
+        for ($i = 0; $i < count($tickerList); $i++) {
+            $tickerList[$i]['timestamp'] = $timestamp; // will be removed inside the parser
+        }
         $result = $this->parse_funding_rates($tickerList);
         return $this->filter_by_array($result, 'symbol', $symbols);
     }

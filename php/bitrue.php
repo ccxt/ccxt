@@ -92,7 +92,7 @@ class bitrue extends Exchange {
                 '1w' => '1W',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api' => array(
                     'spot' => 'https://www.bitrue.com/api',
                     'fapi' => 'https://fapi.bitrue.com/fapi',

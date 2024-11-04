@@ -174,7 +174,7 @@ class bybit(Exchange, ImplicitAPI):
                     'public': 'https://api-testnet.{hostname}',
                     'private': 'https://api-testnet.{hostname}',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
@@ -2488,6 +2488,9 @@ class bybit(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(data, 'list', [])
+        timestamp = self.safe_integer(response, 'time')
+        for i in range(0, len(tickerList)):
+            tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
         result = self.parse_funding_rates(tickerList)
         return self.filter_by_array(result, 'symbol', symbols)
 
