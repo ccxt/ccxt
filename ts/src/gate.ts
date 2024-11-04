@@ -908,22 +908,27 @@ export default class gate extends Exchange {
          */
         const unifiedAccount = this.safeBool (this.options, 'unifiedAccount');
         if (unifiedAccount === undefined) {
-            const response = await this.privateAccountGetDetail (params);
-            //
-            //     {
-            //         "user_id": 10406147,
-            //         "ip_whitelist": [],
-            //         "currency_pairs": [],
-            //         "key": {
-            //             "mode": 1
-            //         },
-            //         "tier": 0,
-            //         "tier_expire_time": "0001-01-01T00:00:00Z",
-            //         "copy_trading_role": 0
-            //     }
-            //
-            const result = this.safeDict (response, 'key', {});
-            this.options['unifiedAccount'] = this.safeInteger (result, 'mode') === 2;
+            try {
+                //
+                //     {
+                //         "user_id": 10406147,
+                //         "ip_whitelist": [],
+                //         "currency_pairs": [],
+                //         "key": {
+                //             "mode": 1
+                //         },
+                //         "tier": 0,
+                //         "tier_expire_time": "0001-01-01T00:00:00Z",
+                //         "copy_trading_role": 0
+                //     }
+                //
+                const response = await this.privateAccountGetDetail (params);
+                const result = this.safeDict (response, 'key', {});
+                this.options['unifiedAccount'] = this.safeInteger (result, 'mode') === 2;
+            } catch (e) {
+                // if the request fails, the unifiedAccount is disabled
+                this.options['unifiedAccount'] = false;
+            }
         }
     }
 
