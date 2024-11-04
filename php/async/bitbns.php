@@ -70,7 +70,7 @@ class bitbns extends Exchange {
             ),
             'hostname' => 'bitbns.com',
             'urls' => array(
-                'logo' => 'ttps://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
+                'logo' => 'https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
                 'api' => array(
                     'www' => 'https://{hostname}',
                     'v1' => 'https://api.{hostname}/api/trade/v1',
