@@ -4961,7 +4961,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
-        const accountsByType = this.safeDict(this.options, 'accountsById', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {

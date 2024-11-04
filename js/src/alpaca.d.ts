@@ -1,5 +1,5 @@
 import Exchange from './abstract/alpaca.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress } from './base/types.js';
 /**
  * @class alpaca
  * @augments Exchange
@@ -27,6 +27,8 @@ export default class alpaca extends Exchange {
     parseTimeInForce(timeInForce: Str): string;
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
+    fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
     sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
         url: string;
         method: string;

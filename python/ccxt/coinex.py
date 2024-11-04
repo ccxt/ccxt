@@ -4672,7 +4672,7 @@ class coinex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        accountsByType = self.safe_dict(self.options, 'accountsById', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         request: dict = {

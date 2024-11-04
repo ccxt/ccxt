@@ -15,7 +15,7 @@ public partial class alpaca : Exchange
             { "hostname", "alpaca.markets" },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b" },
                 { "www", "https://alpaca.markets" },
                 { "api", new Dictionary<string, object>() {
                     { "broker", "https://broker-api.{hostname}" },
@@ -46,7 +46,7 @@ public partial class alpaca : Exchange
                 { "fetchBidsAsks", false },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
-                { "fetchDepositAddress", false },
+                { "fetchDepositAddress", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
@@ -92,7 +92,7 @@ public partial class alpaca : Exchange
                 { "broker", new Dictionary<string, object>() {} },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements"} },
+                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets"} },
                         { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
                         { "put", new List<object>() {"v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
                         { "patch", new List<object>() {"v2/orders/{order_id}", "v2/account/configurations"} },
@@ -1265,6 +1265,57 @@ public partial class alpaca : Exchange
             { "cost", null },
             { "fee", null },
         }, market);
+    }
+
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+        };
+        object response = await this.traderPrivateGetV2Wallets(this.extend(request, parameters));
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        object parsedCurrency = null;
+        if (isTrue(!isEqual(currency, null)))
+        {
+            parsedCurrency = getValue(currency, "id");
+        }
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", parsedCurrency },
+            { "network", null },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

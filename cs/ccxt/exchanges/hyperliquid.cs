@@ -141,7 +141,17 @@ public partial class hyperliquid : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "info", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                            { "byType", new Dictionary<string, object>() {
+                                { "l2Book", 2 },
+                                { "allMids", 2 },
+                                { "clearinghouseState", 2 },
+                                { "orderStatus", 2 },
+                                { "spotClearinghouseState", 2 },
+                                { "exchangeStatus", 2 },
+                            } },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -3337,6 +3347,21 @@ public partial class hyperliquid : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    {
+        config ??= new Dictionary<string, object>();
+        if (isTrue(isTrue((inOp(config, "byType"))) && isTrue((inOp(parameters, "type")))))
+        {
+            object type = getValue(parameters, "type");
+            object byType = getValue(config, "byType");
+            if (isTrue(inOp(byType, type)))
+            {
+                return getValue(byType, type);
+            }
+        }
+        return this.safeValue(config, "cost", 1);
     }
 
     public virtual object parseCreateOrderArgs(object symbol, object type, object side, object amount, object price = null, object parameters = null)

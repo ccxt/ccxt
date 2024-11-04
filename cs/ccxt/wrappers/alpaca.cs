@@ -483,4 +483,24 @@ public partial class alpaca
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    /// <summary>
+    /// fetch the deposit address for a currency associated with this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.alpaca.markets/reference/listcryptofundingwallets"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
 }

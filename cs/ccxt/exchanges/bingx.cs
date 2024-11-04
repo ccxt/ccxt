@@ -90,7 +90,7 @@ public partial class bingx : Exchange
             } },
             { "hostname", "bingx.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://open-api.{hostname}/openApi" },
                     { "swap", "https://open-api.{hostname}/openApi" },
