@@ -90,6 +90,7 @@ class coinbase(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -758,8 +759,14 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        currencyType = None
+        currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
+        if currencyType == 'crypto':
+            results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+            return self.filter_by_array(results, 'type', 'withdrawal', False)
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', code, since, limit, params)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -770,9 +777,29 @@ class coinbase(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.currencyType]: "fiat" or "crypto"
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        currencyType = None
+        currencyType, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'currencyType')
+        if currencyType == 'crypto':
+            results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+            return self.filter_by_array(results, 'type', 'deposit', False)
         return await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', code, since, limit, params)
+
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+        :see: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        await self.load_markets()
+        results = await self.fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params)
+        return self.filter_by_array(results, 'type', ['deposit', 'withdrawal'], False)
 
     def parse_transaction_status(self, status: Str):
         statuses: dict = {
@@ -897,16 +924,59 @@ class coinbase(Exchange, ImplicitAPI):
         #         "hide_native_amount": False
         #     }
         #
+        #
+        # crypto deposit & withdrawal(using `/transactions` endpoint)
+        #    {
+        #        "amount": {
+        #            "amount": "0.00014200",(negative for withdrawal)
+        #            "currency": "BTC"
+        #        },
+        #        "created_at": "2024-03-29T15:48:30Z",
+        #        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        #        "idem": "092a979b-017e-4403-940a-2ca57811f442",  # field present only in case of withdrawal
+        #        "native_amount": {
+        #            "amount": "9.85",(negative for withdrawal)
+        #            "currency": "USD"
+        #        },
+        #        "network": {
+        #            "status": "pending",  # if status is `off_blockchain` then no more other fields are hasattr(self, present) object
+        #            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        #            "network_name": "solana",
+        #            "transaction_fee": {
+        #                "amount": "0.000100000",
+        #                "currency": "SOL"
+        #            }
+        #        },
+        #        "resource": "transaction",
+        #        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        #        "status": "completed",
+        #        "type": "send",
+        #        "from": { # in some cases, field might be present for deposit
+        #            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        #            "name": "Coinbase",
+        #            "resource": "user"
+        #        },
+        #        "to": { # field only present for withdrawal
+        #            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        #            "resource": "address"
+        #        },
+        #        "description": "C3 - One Time BTC Credit . Reference Case  # 123.",  #  in some cases, field might be present for deposit
+        #    }
+        #
         transactionType = self.safe_string(transaction, 'type')
         amountAndCurrencyObject = None
         feeObject = None
+        network = self.safe_dict(transaction, 'network', {})
         if transactionType == 'send':
-            network = self.safe_dict(transaction, 'network', {})
-            amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount', {})
+            amountAndCurrencyObject = self.safe_dict(network, 'transaction_amount')
             feeObject = self.safe_dict(network, 'transaction_fee', {})
         else:
-            amountAndCurrencyObject = self.safe_dict(transaction, 'subtotal', {})
+            amountAndCurrencyObject = self.safe_dict(transaction, 'subtotal')
             feeObject = self.safe_dict(transaction, 'fee', {})
+        if amountAndCurrencyObject is None:
+            amountAndCurrencyObject = self.safe_dict(transaction, 'amount')
+        amountString = self.safe_string(amountAndCurrencyObject, 'amount')
+        amountStringAbs = Precise.string_abs(amountString)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         if status is None:
             committed = self.safe_bool(transaction, 'committed')
@@ -915,23 +985,31 @@ class coinbase(Exchange, ImplicitAPI):
         currencyId = self.safe_string(amountAndCurrencyObject, 'currency')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
         datetime = self.safe_string(transaction, 'created_at')
-        toObject = self.safe_dict(transaction, 'to', {})
-        toAddress = self.safe_string(toObject, 'address')
+        resource = self.safe_string(transaction, 'resource')
+        type = resource
+        if not self.in_array(type, ['deposit', 'withdrawal']):
+            if Precise.string_gt(amountString, '0'):
+                type = 'deposit'
+            elif Precise.string_lt(amountString, '0'):
+                type = 'withdrawal'
+        toObject = self.safe_dict(transaction, 'to')
+        addressTo = self.safe_string(toObject, 'address')
+        networkId = self.safe_string(network, 'network_name')
         return {
             'info': transaction,
             'id': id,
-            'txid': id,
+            'txid': self.safe_string(network, 'hash', id),
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
-            'network': None,
-            'address': toAddress,
-            'addressTo': toAddress,
+            'network': self.network_id_to_code(networkId),
+            'address': addressTo,
+            'addressTo': addressTo,
             'addressFrom': None,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
-            'type': self.safe_string(transaction, 'resource'),
-            'amount': self.safe_number(amountAndCurrencyObject, 'amount'),
+            'type': type,
+            'amount': self.parse_number(amountStringAbs),
             'currency': self.safe_currency_code(currencyId, currency),
             'status': status,
             'updated': self.parse8601(self.safe_string(transaction, 'updated_at')),

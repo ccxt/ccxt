@@ -153,7 +153,17 @@ export default class hyperliquid extends Exchange {
             'api': {
                 'public': {
                     'post': {
-                        'info': 1,
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'clearinghouseState': 2,
+                                'orderStatus': 2,
+                                'spotClearinghouseState': 2,
+                                'exchangeStatus': 2,
+                            },
+                        },
                     },
                 },
                 'private': {
@@ -3030,6 +3040,16 @@ export default class hyperliquid extends Exchange {
             body = this.json(params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
+        if (('byType' in config) && ('type' in params)) {
+            const type = params['type'];
+            const byType = config['byType'];
+            if (type in byType) {
+                return byType[type];
+            }
+        }
+        return this.safeValue(config, 'cost', 1);
     }
     parseCreateOrderArgs(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
