@@ -1654,7 +1654,7 @@ export default class defx extends Exchange {
             const nonce = this.milliseconds ().toString ();
             let payload = nonce;
             if (method === 'GET' || path === 'api/order/{orderId}') {
-                payload += this.urlencode (params);
+                payload += this.rawencode (params);
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }

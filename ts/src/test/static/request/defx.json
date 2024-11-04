@@ -188,9 +188,14 @@
             {
                 "description": "fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api.defx.com/v1/auth/api/orders?symbols=SOL_USDC",
+                "url": "https://api.defx.com/v1/auth/api/orders?end=2024-11-04T06%3A59%3A50.000Z&pageSize=3&start=2024-10-23T17%3A13%3A10.000Z&symbols=SOL_USDC",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    3,
+                    {
+                        "until": 1730703590000
+                    }
                 ]
             }
         ],
@@ -198,9 +203,14 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.defx.com/v1/auth/api/orders?statuses=OPEN&symbols=SOL_USDC",
+                "url": "https://api.defx.com/v1/auth/api/orders?end=2024-11-04T06%3A59%3A50.000Z&pageSize=1&start=2024-10-23T17%3A13%3A10.000Z&statuses=OPEN&symbols=SOL_USDC",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ]
             }
         ],
@@ -208,9 +218,14 @@
             {
                 "description": "fetchClosedOrders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.defx.com/v1/auth/api/orders?statuses=FILLED&symbols=SOL_USDC",
+                "url": "https://api.defx.com/v1/auth/api/orders?end=2024-11-04T06%3A59%3A50.000Z&pageSize=1&start=2024-10-23T17%3A13%3A10.000Z&statuses=FILLED&symbols=SOL_USDC",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ]
             }
         ],
@@ -218,9 +233,14 @@
             {
                 "description": "fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
-                "url": "https://api.defx.com/v1/auth/api/orders?statuses=CANCELED&symbols=SOL_USDC",
+                "url": "https://api.defx.com/v1/auth/api/orders?end=2024-11-04T06%3A59%3A50.000Z&pageSize=1&start=2024-10-23T17%3A13%3A10.000Z&statuses=CANCELED&symbols=SOL_USDC",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ]
             }
         ]

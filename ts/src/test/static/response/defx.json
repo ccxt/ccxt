@@ -1064,7 +1064,12 @@
                 "description": "fetchOrders",
                 "method": "fetchOrders",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ],
                 "httpResponse": {
                     "data": [
@@ -1161,7 +1166,12 @@
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ],
                 "httpResponse": {
                     "data": [
@@ -1258,7 +1268,12 @@
                 "description": "fetchClosedOrders",
                 "method": "fetchClosedOrders",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ],
                 "httpResponse": {
                     "data": [
@@ -1355,7 +1370,12 @@
                 "description": "fetchCanceledOrders",
                 "method": "fetchCanceledOrders",
                 "input": [
-                    "SOL/USDC:USDC"
+                    "SOL/USDC:USDC",
+                    1729703590000,
+                    1,
+                    {
+                        "until": 1730703590000
+                    }
                 ],
                 "httpResponse": {
                     "data": [
