@@ -4111,7 +4111,7 @@ public partial class coinex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
-        object accountsByType = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {

@@ -4867,7 +4867,7 @@ class coinex extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
-        $accountsByType = $this->safe_dict($this->options, 'accountsById', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
