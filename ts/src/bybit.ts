@@ -159,7 +159,7 @@ export default class bybit extends Exchange {
                     'public': 'https://api-testnet.{hostname}',
                     'private': 'https://api-testnet.{hostname}',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',

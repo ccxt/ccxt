@@ -156,7 +156,17 @@ class hyperliquid(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'post': {
-                        'info': 1,
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'clearinghouseState': 2,
+                                'orderStatus': 2,
+                                'spotClearinghouseState': 2,
+                                'exchangeStatus': 2,
+                            },
+                        },
                     },
                 },
                 'private': {
@@ -2850,6 +2860,14 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+        if ('byType' in config) and ('type' in params):
+            type = params['type']
+            byType = config['byType']
+            if type in byType:
+                return byType[type]
+        return self.safe_value(config, 'cost', 1)
 
     def parse_create_order_args(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
