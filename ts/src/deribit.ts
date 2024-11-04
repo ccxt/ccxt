@@ -120,7 +120,7 @@ export default class deribit extends Exchange {
                 'test': {
                     'rest': 'https://test.deribit.com',
                 },
-                'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a1bd56be-fc22-4998-98ca-0a813c2187eb',
                 'api': {
                     'rest': 'https://www.deribit.com',
                 },

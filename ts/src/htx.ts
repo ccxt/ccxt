@@ -156,7 +156,7 @@ export default class htx extends Exchange {
                 //     'public': 'https://api.testnet.huobi.pro',
                 //     'private': 'https://api.testnet.huobi.pro',
                 // },
-                'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/9a134155-2a64-4b3b-a36b-6913c1ecbe2f',
                 'hostnames': {
                     'contract': 'api.hbdm.com',
                     'spot': 'api.huobi.pro',

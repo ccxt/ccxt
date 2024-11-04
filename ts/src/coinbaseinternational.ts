@@ -115,7 +115,7 @@ export default class coinbaseinternational extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625',
+                'logo': 'https://github.com/user-attachments/assets/f9415722-9e72-4eba-9e9c-8059b9d083cb',
                 'api': {
                     'rest': 'https://api.international.coinbase.com/api',
                 },

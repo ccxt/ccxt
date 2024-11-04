@@ -108,7 +108,7 @@ export default class kucoinfutures extends kucoin {
                 'withdraw': undefined,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a6dc04ba-46fd-48f5-afc1-3d8c31b24d48',
                 'doc': [
                     'https://docs.kucoin.com/futures',
                     'https://docs.kucoin.com',

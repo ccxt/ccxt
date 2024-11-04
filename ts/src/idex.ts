@@ -118,7 +118,7 @@ export default class idex extends Exchange {
                 'test': {
                     'MATIC': 'https://api-sandbox-matic.idex.io',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg',
+                'logo': 'https://github.com/user-attachments/assets/965e1116-11d9-4db6-8303-e50f63188ed2',
                 'api': {
                     'MATIC': 'https://api-matic.idex.io',
                 },

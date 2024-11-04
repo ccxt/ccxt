@@ -102,7 +102,7 @@ export default class hitbtc extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
+                'logo': 'https://github.com/user-attachments/assets/1d1d70ec-6e50-4ca5-abb8-ba7662ecea28',
                 'test': {
                     'public': 'https://api.demo.hitbtc.com/api/3',
                     'private': 'https://api.demo.hitbtc.com/api/3',

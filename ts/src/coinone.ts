@@ -85,7 +85,7 @@ export default class coinone extends Exchange {
                 'ws': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4286fb8c-9828-45fe-88af-9e77cb00157e',
                 'api': {
                     'rest': 'https://api.coinone.co.kr',
                     'v2Public': 'https://api.coinone.co.kr/public/v2',

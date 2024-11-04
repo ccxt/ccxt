@@ -78,7 +78,7 @@ export default class coinspot extends Exchange {
                 'ws': false,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/8025f4db-50e6-487b-a7ec-6b3bcbd471c9',
                 'api': {
                     'public': 'https://www.coinspot.com.au/pubapi',
                     'private': 'https://www.coinspot.com.au/api',

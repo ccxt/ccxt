@@ -109,7 +109,7 @@ export default class delta extends Exchange {
                 '1M': '30d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/99450025-3be60a00-2931-11eb-9302-f4fd8d8589aa.jpg',
+                'logo': 'https://github.com/user-attachments/assets/eafa520c-d900-42ec-9a9b-f7515f89b4b8',
                 'test': {
                     'public': 'https://testnet-api.delta.exchange',
                     'private': 'https://testnet-api.delta.exchange',

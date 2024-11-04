@@ -123,7 +123,7 @@ export default class coinbase extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
+                'logo': 'https://github.com/user-attachments/assets/289397b0-7843-4859-b2f0-8377214ac2f9',
                 'api': {
                     'rest': 'https://api.coinbase.com',
                 },

@@ -108,7 +108,7 @@ export default class hollaex extends Exchange {
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
+                'logo': 'https://github.com/user-attachments/assets/2ba98264-c83b-4568-a403-a1f5ea622aa5',
                 'test': {
                     'rest': 'https://api.sandbox.hollaex.com',
                 },
