@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.24';
+$version = '4.4.26';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.24';
+    const VERSION = '4.4.26';
 
     public $browser;
     public $marketsLoading = null;
@@ -1070,6 +1070,8 @@ class Exchange extends \ccxt\Exchange {
             } else {
                 throw new NotSupported($this->id . ' does not have a sandbox URL');
             }
+            // set flag
+            $this->isSandboxModeEnabled = true;
         } elseif (is_array($this->urls) && array_key_exists('apiBackup', $this->urls)) {
             if (gettype($this->urls['api']) === 'string') {
                 $this->urls['api'] = $this->urls['apiBackup'];
@@ -1078,6 +1080,8 @@ class Exchange extends \ccxt\Exchange {
             }
             $newUrls = $this->omit($this->urls, 'apiBackup');
             $this->urls = $newUrls;
+            // set flag
+            $this->isSandboxModeEnabled = false;
         }
     }
 
@@ -2414,15 +2418,15 @@ class Exchange extends \ccxt\Exchange {
         ));
     }
 
-    public function fetch_borrow_rate(string $code, $amount, $params = array ()) {
+    public function fetch_borrow_rate(string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead');
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array ()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' repayCrossMargin is not support yet');
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         throw new NotSupported($this->id . ' repayIsolatedMargin is not support yet');
     }
 
@@ -2434,11 +2438,11 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' borrowIsolatedMargin is not support yet');
     }
 
-    public function borrow_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function borrow_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead');
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead');
     }
 

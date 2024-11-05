@@ -52,7 +52,7 @@ class lbank extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -1157,6 +1157,104 @@ class lbank extends Exchange {
             return $this->safe_balance($result);
         }
         return null;
+    }
+
+    public function parse_funding_rate($ticker, ?array $market = null): array {
+        // {
+        //     "symbol" => "BTCUSDT",
+        //     "highestPrice" => "69495.5",
+        //     "underlyingPrice" => "68455.904",
+        //     "lowestPrice" => "68182.1",
+        //     "openPrice" => "68762.4",
+        //     "positionFeeRate" => "0.0001",
+        //     "volume" => "33534.2858",
+        //     "markedPrice" => "68434.1",
+        //     "turnover" => "1200636218.210558",
+        //     "positionFeeTime" => "28800",
+        //     "lastPrice" => "68427.3",
+        //     "nextFeeTime" => "1730736000000",
+        //     "fundingRate" => "0.0001",
+        // }
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($ticker, 'markedPrice');
+        $indexPrice = $this->safe_number($ticker, 'underlyingPrice');
+        $fundingRate = $this->safe_number($ticker, 'fundingRate');
+        $fundingTime = $this->safe_integer($ticker, 'nextFeeTime');
+        return array(
+            'info' => $ticker,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
+            'timestamp' => null,
+            'datetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => null,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-$market-list
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $responseForSwap = $this->fetch_funding_rates([ $market['symbol'] ], $params);
+        return $this->safe_value($responseForSwap, $market['symbol']);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the funding rate for multiple markets
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array(
+            'productGroup' => 'SwapU',
+        );
+        $response = $this->contractPublicGetCfdOpenApiV1PubMarketData ($this->extend($request, $params));
+        // {
+        //     "data" => array(
+        //         {
+        //             "symbol" => "BTCUSDT",
+        //             "highestPrice" => "69495.5",
+        //             "underlyingPrice" => "68455.904",
+        //             "lowestPrice" => "68182.1",
+        //             "openPrice" => "68762.4",
+        //             "positionFeeRate" => "0.0001",
+        //             "volume" => "33534.2858",
+        //             "markedPrice" => "68434.1",
+        //             "turnover" => "1200636218.210558",
+        //             "positionFeeTime" => "28800",
+        //             "lastPrice" => "68427.3",
+        //             "nextFeeTime" => "1730736000000",
+        //             "fundingRate" => "0.0001",
+        //         }
+        //     ),
+        //     "error_code" => "0",
+        //     "msg" => "Success",
+        //     "result" => "true",
+        //     "success" => True,
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_balance($params = array ()): array {

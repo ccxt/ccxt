@@ -149,7 +149,7 @@ public partial class bybit : Exchange
                     { "public", "https://api-testnet.{hostname}" },
                     { "private", "https://api-testnet.{hostname}" },
                 } },
-                { "logo", "https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api.{hostname}" },
                     { "futures", "https://api.{hostname}" },
@@ -941,7 +941,6 @@ public partial class bybit : Exchange
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
                 { "usePrivateInstrumentsInfo", false },
-                { "sandboxMode", false },
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
                 { "createOrder", new Dictionary<string, object>() {
@@ -1028,18 +1027,6 @@ public partial class bybit : Exchange
         });
     }
 
-    public override void setSandboxMode(object enable)
-    {
-        /**
-         * @method
-         * @name bybit#setSandboxMode
-         * @description enables or disables sandbox mode
-         * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
-         */
-        base.setSandboxMode(enable);
-        ((IDictionary<string,object>)this.options)["sandboxMode"] = enable;
-    }
-
     public virtual void enableDemoTrading(object enable)
     {
         /**
@@ -1049,7 +1036,7 @@ public partial class bybit : Exchange
          * @see https://bybit-exchange.github.io/docs/v5/demo
          * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
          */
-        if (isTrue(getValue(this.options, "sandboxMode")))
+        if (isTrue(this.isSandboxModeEnabled))
         {
             throw new NotSupported ((string)add(this.id, " demo trading does not support in sandbox environment")) ;
         }
@@ -2669,6 +2656,11 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object tickerList = this.safeList(data, "list", new List<object>() {});
+        object timestamp = this.safeInteger(response, "time");
+        for (object i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(tickerList, i))["timestamp"] = timestamp; // will be removed inside the parser
+        }
         object result = this.parseFundingRates(tickerList);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -8052,15 +8044,15 @@ public partial class bybit : Exchange
         //     },
         //
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", null },
-            { "marginMode", "cross" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "tokenId")) },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", null },
             { "amountBorrowed", this.safeNumber(info, "loan") },
+            { "marginMode", "cross" },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 

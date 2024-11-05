@@ -1758,6 +1758,10 @@ class xt extends Exchange {
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
+        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1774,7 +1778,7 @@ class xt extends Exchange {
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'cv'),
-            'percentage' => $this->safe_number_2($ticker, 'cr', 'r'),
+            'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
@@ -1979,6 +1983,17 @@ class xt extends Exchange {
         //         "b" => true
         //     }
         //
+        // spot => watchTrades
+        //
+        //    {
+        //        s => 'btc_usdt',
+        //        i => '228825383103928709',
+        //        t => 1684258222702,
+        //        p => '27003.65',
+        //        q => '0.000796',
+        //        b => true
+        //    }
+        //
         // spot => watchMyTrades
         //
         //    {
@@ -1989,17 +2004,6 @@ class xt extends Exchange {
         //        "p" => "30000",                   // $trade price
         //        "q" => "3",                       // qty $quantity
         //        "v" => "90000"                    // volume $trade $amount
-        //    }
-        //
-        // spot => watchTrades
-        //
-        //    {
-        //        s => 'btc_usdt',
-        //        i => '228825383103928709',
-        //        t => 1684258222702,
-        //        p => '27003.65',
-        //        q => '0.000796',
-        //        b => true
         //    }
         //
         // swap and future => fetchTrades
@@ -2081,22 +2085,31 @@ class xt extends Exchange {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $market = $this->safe_market($marketId, $market, '_', $marketType);
-        $bidOrAsk = $this->safe_string($trade, 'm');
-        $side = $this->safe_string_lower($trade, 'orderSide');
-        if ($bidOrAsk !== null) {
-            $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
-        }
-        $buyerMaker = $this->safe_value($trade, 'b');
-        if ($buyerMaker !== null) {
-            $side = 'buy';
-        }
-        $takerOrMaker = $this->safe_string_lower($trade, 'takerMaker');
-        if ($buyerMaker !== null) {
-            $takerOrMaker = $buyerMaker ? 'maker' : 'taker';
-        }
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        if ($isMaker !== null) {
-            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $side = null;
+        $takerOrMaker = null;
+        $isBuyerMaker = $this->safe_bool($trade, 'b');
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // public trades always taker
+        } else {
+            $takerMaker = $this->safe_string_lower($trade, 'takerMaker');
+            if ($takerMaker !== null) {
+                $takerOrMaker = $takerMaker;
+            } else {
+                $isMaker = $this->safe_bool($trade, 'isMaker');
+                if ($isMaker !== null) {
+                    $takerOrMaker = $isMaker ? 'maker' : 'taker';
+                }
+            }
+            $orderSide = $this->safe_string_lower($trade, 'orderSide');
+            if ($orderSide !== null) {
+                $side = $orderSide;
+            } else {
+                $bidOrAsk = $this->safe_string($trade, 'm');
+                if ($bidOrAsk !== null) {
+                    $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         $timestamp = $this->safe_integer_n($trade, array( 't', 'time', 'timestamp' ));
         $quantity = $this->safe_string_2($trade, 'q', 'quantity');

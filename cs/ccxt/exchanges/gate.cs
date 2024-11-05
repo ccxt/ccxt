@@ -828,22 +828,29 @@ public partial class gate : Exchange
         object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
         if (isTrue(isEqual(unifiedAccount, null)))
         {
-            object response = await this.privateAccountGetDetail(parameters);
-            //
-            //     {
-            //         "user_id": 10406147,
-            //         "ip_whitelist": [],
-            //         "currency_pairs": [],
-            //         "key": {
-            //             "mode": 1
-            //         },
-            //         "tier": 0,
-            //         "tier_expire_time": "0001-01-01T00:00:00Z",
-            //         "copy_trading_role": 0
-            //     }
-            //
-            object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+            try
+            {
+                //
+                //     {
+                //         "user_id": 10406147,
+                //         "ip_whitelist": [],
+                //         "currency_pairs": [],
+                //         "key": {
+                //             "mode": 1
+                //         },
+                //         "tier": 0,
+                //         "tier_expire_time": "0001-01-01T00:00:00Z",
+                //         "copy_trading_role": 0
+                //     }
+                //
+                object response = await this.privateAccountGetDetail(parameters);
+                object result = this.safeDict(response, "key", new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)this.options)["unifiedAccount"] = isEqual(this.safeInteger(result, "mode"), 2);
+            } catch(Exception e)
+            {
+                // if the request fails, the unifiedAccount is disabled
+                ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
+            }
         }
     }
 
@@ -6981,14 +6988,14 @@ public partial class gate : Exchange
         object timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
             { "info", info },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
             { "symbol", this.safeString(market, "symbol") },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
-            { "marginMode", marginMode },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", this.safeNumber(info, "actual_rate") },
             { "amountBorrowed", null },
+            { "marginMode", marginMode },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 

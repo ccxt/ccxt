@@ -4590,15 +4590,15 @@ class kucoin extends kucoin$1 {
             currencyId = this.safeString(info, 'currency');
         }
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(currencyId),
             'interest': interest,
             'interestRate': this.safeNumber(info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {

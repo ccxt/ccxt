@@ -946,6 +946,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetFinanceStakingDefiEthPurchaseRedeemHistory",parameters);
     }
 
+    public async Task<object> privateGetFinanceStakingDefiEthProductInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetFinanceStakingDefiEthProductInfo",parameters);
+    }
+
     public async Task<object> privateGetCopytradingCurrentSubpositions (object parameters = null)
     {
         return await this.callAsync ("privateGetCopytradingCurrentSubpositions",parameters);

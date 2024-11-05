@@ -395,6 +395,7 @@ class okx extends okx$1 {
                         // eth staking
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
+                        'finance/staking-defi/eth/product-info': 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -7073,15 +7074,15 @@ class okx extends okx$1 {
         }
         const timestamp = this.safeInteger(info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': this.safeString(info, 'mgnMode'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'liab'),
+            'marginMode': this.safeString(info, 'mgnMode'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowCrossMargin(code, amount, params = {}) {

@@ -906,22 +906,28 @@ class gate extends gate$1 {
          */
         const unifiedAccount = this.safeBool(this.options, 'unifiedAccount');
         if (unifiedAccount === undefined) {
-            const response = await this.privateAccountGetDetail(params);
-            //
-            //     {
-            //         "user_id": 10406147,
-            //         "ip_whitelist": [],
-            //         "currency_pairs": [],
-            //         "key": {
-            //             "mode": 1
-            //         },
-            //         "tier": 0,
-            //         "tier_expire_time": "0001-01-01T00:00:00Z",
-            //         "copy_trading_role": 0
-            //     }
-            //
-            const result = this.safeDict(response, 'key', {});
-            this.options['unifiedAccount'] = this.safeInteger(result, 'mode') === 2;
+            try {
+                //
+                //     {
+                //         "user_id": 10406147,
+                //         "ip_whitelist": [],
+                //         "currency_pairs": [],
+                //         "key": {
+                //             "mode": 1
+                //         },
+                //         "tier": 0,
+                //         "tier_expire_time": "0001-01-01T00:00:00Z",
+                //         "copy_trading_role": 0
+                //     }
+                //
+                const response = await this.privateAccountGetDetail(params);
+                const result = this.safeDict(response, 'key', {});
+                this.options['unifiedAccount'] = this.safeInteger(result, 'mode') === 2;
+            }
+            catch (e) {
+                // if the request fails, the unifiedAccount is disabled
+                this.options['unifiedAccount'] = false;
+            }
         }
     }
     async upgradeUnifiedTradeAccount(params = {}) {
@@ -6488,14 +6494,14 @@ class gate extends gate$1 {
         const timestamp = this.safeInteger(info, 'create_time');
         return {
             'info': info,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
             'symbol': this.safeString(market, 'symbol'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
-            'marginMode': marginMode,
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'actual_rate'),
             'amountBorrowed': undefined,
+            'marginMode': marginMode,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

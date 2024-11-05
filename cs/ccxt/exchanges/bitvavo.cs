@@ -102,7 +102,7 @@ public partial class bitvavo : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bitvavo.com" },
                     { "private", "https://api.bitvavo.com" },

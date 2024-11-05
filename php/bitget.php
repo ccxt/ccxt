@@ -157,7 +157,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
@@ -8017,7 +8017,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the $interest owed by the user for borrowing $currency for margin trading
          * @see https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
@@ -8122,7 +8122,7 @@ class bitget extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         // isolated
         //
@@ -8156,15 +8156,15 @@ class bitget extends Exchange {
         $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
         $timestamp = $this->safe_integer($info, 'cTime');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'interestCoin')),
             'interest' => $this->safe_number($info, 'interestAmount'),
             'interestRate' => $this->safe_number($info, 'dailyInterestRate'),
             'amountBorrowed' => null,
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

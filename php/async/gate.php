@@ -916,22 +916,27 @@ class gate extends Exchange {
              */
             $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
             if ($unifiedAccount === null) {
-                $response = Async\await($this->privateAccountGetDetail ($params));
-                //
-                //     {
-                //         "user_id" => 10406147,
-                //         "ip_whitelist" => array(),
-                //         "currency_pairs" => array(),
-                //         "key" => array(
-                //             "mode" => 1
-                //         ),
-                //         "tier" => 0,
-                //         "tier_expire_time" => "0001-01-01T00:00:00Z",
-                //         "copy_trading_role" => 0
-                //     }
-                //
-                $result = $this->safe_dict($response, 'key', array());
-                $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                try {
+                    //
+                    //     {
+                    //         "user_id" => 10406147,
+                    //         "ip_whitelist" => array(),
+                    //         "currency_pairs" => array(),
+                    //         "key" => array(
+                    //             "mode" => 1
+                    //         ),
+                    //         "tier" => 0,
+                    //         "tier_expire_time" => "0001-01-01T00:00:00Z",
+                    //         "copy_trading_role" => 0
+                    //     }
+                    //
+                    $response = Async\await($this->privateAccountGetDetail ($params));
+                    $result = $this->safe_dict($response, 'key', array());
+                    $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                } catch (Exception $e) {
+                    // if the request fails, the $unifiedAccount is disabled
+                    $this->options['unifiedAccount'] = false;
+                }
             }
         }) ();
     }
@@ -6413,7 +6418,7 @@ class gate extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -6467,21 +6472,21 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $marketId = $this->safe_string($info, 'currency_pair');
         $market = $this->safe_market($marketId, $market);
         $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
         $timestamp = $this->safe_integer($info, 'create_time');
         return array(
             'info' => $info,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'symbol' => $this->safe_string($market, 'symbol'),
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
-            'marginMode' => $marginMode,
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'actual_rate'),
             'amountBorrowed' => null,
+            'marginMode' => $marginMode,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

@@ -99,7 +99,7 @@ public partial class bitmart : Exchange
             } },
             { "hostname", "bitmart.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api-cloud.{hostname}" },
                     { "swap", "https://api-cloud-v2.{hostname}" },
@@ -1711,7 +1711,7 @@ public partial class bitmart : Exchange
             }
         } else
         {
-            object maxLimit = 1200;
+            object maxLimit = 500;
             if (isTrue(isEqual(limit, null)))
             {
                 limit = maxLimit;
@@ -4487,15 +4487,15 @@ public partial class bitmart : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(info, "create_time");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", this.safeString(market, "symbol") },
-            { "marginMode", "isolated" },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
             { "interest", this.safeNumber(info, "interest_amount") },
             { "interestRate", this.safeNumber(info, "hourly_interest") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

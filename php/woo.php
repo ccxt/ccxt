@@ -2454,7 +2454,7 @@ class woo extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function repay_margin(string $code, $amount, ?string $symbol = null, $params = array ()) {
+    public function repay_margin(string $code, float $amount, ?string $symbol = null, $params = array ()) {
         /**
          * repay borrowed margin and interest
          * @see https://docs.woo.org/#repay-interest

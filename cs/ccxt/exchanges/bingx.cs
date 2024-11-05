@@ -197,6 +197,7 @@ public partial class bingx : Exchange
                                 { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "positionMargin/history", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
@@ -2841,27 +2842,19 @@ public partial class bingx : Exchange
         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
-        object symbol = null;
+        object marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            if (isTrue(isEqual(symbol, null)))
-            {
-                symbol = marketId;
-            } else
-            {
-                if (isTrue(!isEqual(symbol, marketId)))
-                {
-                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
-                }
-            }
             object type = this.safeString(rawOrder, "type");
+            ((IList<object>)marketIds).Add(marketId);
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
@@ -2869,15 +2862,26 @@ public partial class bingx : Exchange
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object market = this.market(symbol);
+        object symbols = this.marketSymbols(marketIds, null, false, true, true);
+        object symbolsLength = getArrayLength(symbols);
+        object market = this.market(getValue(symbols, 0));
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
+            if (isTrue(isGreaterThan(symbolsLength, 5)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
+            }
             ((IDictionary<string,object>)request)["batchOrders"] = this.json(ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
+            object sync = this.safeBool(parameters, "sync", false);
+            if (isTrue(sync))
+            {
+                ((IDictionary<string,object>)request)["sync"] = true;
+            }
             ((IDictionary<string,object>)request)["data"] = this.json(ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders(request);
         }
@@ -2926,6 +2930,14 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
+        if (isTrue((response is string)))
+        {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(result, market);
@@ -3351,7 +3363,7 @@ public partial class bingx : Exchange
                 { "cost", Precise.stringAbs(feeCost) },
             } },
             { "trades", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "ro") },
         }, market);
     }
 

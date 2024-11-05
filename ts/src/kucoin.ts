@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4425,7 +4425,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name kucoin#fetchBorrowInterest
@@ -4526,7 +4526,7 @@ export default class kucoin extends Exchange {
         return this.parseBorrowInterests (assets, undefined);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         // Cross
         //
@@ -4590,16 +4590,16 @@ export default class kucoin extends Exchange {
             currencyId = this.safeString (info, 'currency');
         }
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (currencyId),
             'interest': interest,
             'interestRate': this.safeNumber (info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
+            'marginMode': marginMode,
             'timestamp': timestamp,  // create time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async fetchBorrowRateHistories (codes = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

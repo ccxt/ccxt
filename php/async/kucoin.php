@@ -4429,7 +4429,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the interest owed by the user for borrowing $currency for margin trading
@@ -4530,7 +4530,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         // Cross
         //
@@ -4594,15 +4594,15 @@ class kucoin extends Exchange {
             $currencyId = $this->safe_string($info, 'currency');
         }
         return array(
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($currencyId),
             'interest' => $interest,
             'interestRate' => $this->safe_number($info, 'dailyIntRate'),
             'amountBorrowed' => $amountBorrowed,
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,  // create time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

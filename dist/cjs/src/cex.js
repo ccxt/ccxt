@@ -32,6 +32,7 @@ class cex extends cex$1 {
                 'createOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -43,6 +44,7 @@ class cex extends cex$1 {
                 'fetchLedger': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
@@ -940,6 +942,7 @@ class cex extends cex$1 {
         /**
          * @method
          * @name cex#fetchClosedOrders
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          * @description fetches information on multiple canceled orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -953,6 +956,7 @@ class cex extends cex$1 {
         /**
          * @method
          * @name cex#fetchOpenOrders
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          * @description fetches information on multiple canceled orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
@@ -961,6 +965,42 @@ class cex extends cex$1 {
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
+    }
+    async fetchOpenOrder(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchOpenOrder
+         * @description fetches information on an open order made by the user
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'orderId': parseInt(id),
+        };
+        const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
+        return result[0];
+    }
+    async fetchClosedOrder(id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cex#fetchClosedOrder
+         * @description fetches information on an closed order made by the user
+         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'orderId': parseInt(id),
+        };
+        const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
+        return result[0];
     }
     parseOrderStatus(status) {
         const statuses = {

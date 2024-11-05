@@ -1447,12 +1447,12 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
-    public async Task<List<Dictionary<string, object>>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
     /// <summary>
     /// retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined

@@ -214,6 +214,7 @@ class exmo extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '140333' => '\\ccxt\\InvalidOrder', // array("error":array("code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"))
                     '140434' => '\\ccxt\\BadRequest',
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                     '40009' => '\\ccxt\\InvalidNonce', //

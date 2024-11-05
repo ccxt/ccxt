@@ -206,6 +206,7 @@ export default class bingx extends Exchange {
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -2844,22 +2845,17 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const ordersRequests = [];
-        let symbol = undefined;
+        const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            if (symbol === undefined) {
-                symbol = marketId;
-            } else {
-                if (symbol !== marketId) {
-                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
-                }
-            }
             const type = this.safeString (rawOrder, 'type');
+            marketIds.push (marketId);
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -2867,13 +2863,22 @@ export default class bingx extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market (symbol);
+        const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
+        const symbolsLength = symbols.length;
+        const market = this.market (symbols[0]);
         const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
+            if (symbolsLength > 5) {
+                throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
+            }
             request['batchOrders'] = this.json (ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders (request);
         } else {
+            const sync = this.safeBool (params, 'sync', false);
+            if (sync) {
+                request['sync'] = true;
+            }
             request['data'] = this.json (ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders (request);
         }
@@ -2922,6 +2927,13 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers (response);
+            response = this.parseJson (response);
+        }
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'orders', []);
         return this.parseOrders (result, market);
@@ -3328,7 +3340,7 @@ export default class bingx extends Exchange {
                 'cost': Precise.stringAbs (feeCost),
             },
             'trades': undefined,
-            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'reduceOnly': this.safeBool2 (order, 'reduceOnly', 'ro'),
         }, market);
     }
 

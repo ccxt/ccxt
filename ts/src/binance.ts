@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -190,7 +190,7 @@ export default class binance extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
@@ -12104,7 +12104,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name binance#fetchBorrowInterest
@@ -12186,22 +12186,21 @@ export default class binance extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         const symbol = this.safeString (info, 'isolatedSymbol');
         const timestamp = this.safeInteger (info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
-            'account': (symbol === undefined) ? 'cross' : symbol,
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
             'amountBorrowed': this.safeNumber (info, 'principal'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async repayCrossMargin (code: string, amount, params = {}) {

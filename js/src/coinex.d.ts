@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -74,20 +74,8 @@ export default class coinex extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
     fetchIsolatedBorrowRate(symbol: string, params?: {}): Promise<IsolatedBorrowRate>;
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        account: any;
-        symbol: string;
-        marginMode: string;
-        marginType: any;
-        currency: string;
-        interest: number;
-        interestRate: number;
-        amountBorrowed: number;
-        timestamp: number;
-        datetime: string;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<any>;
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {

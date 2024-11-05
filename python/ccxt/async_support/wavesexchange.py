@@ -138,7 +138,13 @@ class wavesexchange(Exchange, ImplicitAPI):
                     'forward': 'https://wx.network/api/v1/forward/matcher',
                     'market': 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 },
-                'doc': 'https://docs.wx.network',
+                'doc': [
+                    'https://docs.wx.network',
+                    'https://docs.waves.tech',
+                    'https://api.wavesplatform.com/v0/docs/',
+                    'https://nodes.wavesnodes.com/api-docs/index.html',
+                    'https://matcher.waves.exchange/api-docs/index.html',
+                ],
                 'www': 'https://wx.network',
             },
             'api': {
@@ -722,6 +728,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def sign_in(self, params={}):
         """
         sign in, must be called prior to using other authenticated methods
+        :see: https://docs.wx.network/en/api/auth/oauth2-token
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
@@ -832,6 +839,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -873,7 +881,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -912,6 +920,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://api.wavesplatform.com/v0/docs/#/candles/getCandles
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch

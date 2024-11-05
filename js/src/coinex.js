@@ -4961,7 +4961,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
-        const accountsByType = this.safeDict(this.options, 'accountsById', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {
@@ -5342,17 +5342,15 @@ export default class coinex extends Exchange {
         market = this.safeMarket(marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger(info, 'expired_at');
         return {
-            'account': undefined,
+            'info': info,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'marginType': undefined,
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'to_repaied_amount'),
             'interestRate': this.safeNumber(info, 'daily_interest_rate'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {

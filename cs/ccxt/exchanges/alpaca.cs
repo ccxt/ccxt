@@ -15,7 +15,7 @@ public partial class alpaca : Exchange
             { "hostname", "alpaca.markets" },
             { "pro", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b" },
                 { "www", "https://alpaca.markets" },
                 { "api", new Dictionary<string, object>() {
                     { "broker", "https://broker-api.{hostname}" },
@@ -46,10 +46,10 @@ public partial class alpaca : Exchange
                 { "fetchBidsAsks", false },
                 { "fetchClosedOrders", true },
                 { "fetchCurrencies", false },
-                { "fetchDepositAddress", false },
+                { "fetchDepositAddress", true },
                 { "fetchDepositAddressesByNetwork", false },
-                { "fetchDeposits", false },
-                { "fetchDepositsWithdrawals", false },
+                { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -57,7 +57,7 @@ public partial class alpaca : Exchange
                 { "fetchL1OrderBook", true },
                 { "fetchL2OrderBook", false },
                 { "fetchMarkets", true },
-                { "fetchMyTrades", false },
+                { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
                 { "fetchOpenOrder", false },
                 { "fetchOpenOrders", true },
@@ -72,8 +72,8 @@ public partial class alpaca : Exchange
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchStatus", false },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", true },
+                { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", false },
@@ -81,19 +81,19 @@ public partial class alpaca : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
-                { "fetchWithdrawals", false },
+                { "fetchWithdrawals", true },
                 { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },
-                { "withdraw", false },
+                { "withdraw", true },
             } },
             { "api", new Dictionary<string, object>() {
                 { "broker", new Dictionary<string, object>() {} },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements"} },
-                        { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
+                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"} },
+                        { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"} },
                         { "put", new List<object>() {"v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
                         { "patch", new List<object>() {"v2/orders/{order_id}", "v2/account/configurations"} },
                         { "delete", new List<object>() {"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"} },
@@ -599,6 +599,144 @@ public partial class alpaca : Exchange
         return new List<object>() {timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchTicker
+        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.loc] crypto location, default: us
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
+        return this.safeDict(tickers, symbol);
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+        * @param {string[]} symbols unified symbols of the markets to fetch tickers for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.loc] crypto location, default: us
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires a symbols argument")) ;
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object loc = this.safeString(parameters, "loc", "us");
+        object ids = this.marketIds(symbols);
+        object request = new Dictionary<string, object>() {
+            { "symbols", String.Join(",", ((IList<object>)ids).ToArray()) },
+            { "loc", loc },
+        };
+        parameters = this.omit(parameters, "loc");
+        object response = await this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters));
+        //
+        //     {
+        //         "snapshots": {
+        //             "BTC/USD": {
+        //                 "dailyBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69609.6515,
+        //                     "l": 69013.26,
+        //                     "n": 9,
+        //                     "o": 69536.7,
+        //                     "t": "2024-11-01T05:00:00Z",
+        //                     "v": 0.210809181,
+        //                     "vw": 69327.655393908
+        //                 },
+        //                 "latestQuote": {
+        //                     "ap": 69424.19,
+        //                     "as": 0.68149,
+        //                     "bp": 69366.086,
+        //                     "bs": 0.68312,
+        //                     "t": "2024-11-01T08:31:41.880246926Z"
+        //                 },
+        //                 "latestTrade": {
+        //                     "i": 5272941104897543146,
+        //                     "p": 69416.9,
+        //                     "s": 0.014017324,
+        //                     "t": "2024-11-01T08:14:28.245088803Z",
+        //                     "tks": "B"
+        //                 },
+        //                 "minuteBar": {
+        //                     "c": 69403.554,
+        //                     "h": 69403.554,
+        //                     "l": 69399.125,
+        //                     "n": 0,
+        //                     "o": 69399.125,
+        //                     "t": "2024-11-01T08:30:00Z",
+        //                     "v": 0,
+        //                     "vw": 0
+        //                 },
+        //                 "prevDailyBar": {
+        //                     "c": 69515.1415,
+        //                     "h": 72668.837,
+        //                     "l": 68796.85,
+        //                     "n": 129,
+        //                     "o": 72258.9,
+        //                     "t": "2024-10-31T05:00:00Z",
+        //                     "v": 2.217683307,
+        //                     "vw": 70782.6811608144
+        //                 }
+        //             },
+        //         }
+        //     }
+        //
+        object results = new List<object>() {};
+        object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
+        object marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = this.safeMarket(marketId);
+            object entry = this.safeDict(snapshots, marketId);
+            object dailyBar = this.safeDict(entry, "dailyBar", new Dictionary<string, object>() {});
+            object prevDailyBar = this.safeDict(entry, "prevDailyBar", new Dictionary<string, object>() {});
+            object latestQuote = this.safeDict(entry, "latestQuote", new Dictionary<string, object>() {});
+            object latestTrade = this.safeDict(entry, "latestTrade", new Dictionary<string, object>() {});
+            object datetime = this.safeString(latestQuote, "t");
+            object ticker = this.safeTicker(new Dictionary<string, object>() {
+                { "info", entry },
+                { "symbol", getValue(market, "symbol") },
+                { "timestamp", this.parse8601(datetime) },
+                { "datetime", datetime },
+                { "high", this.safeString(dailyBar, "h") },
+                { "low", this.safeString(dailyBar, "l") },
+                { "bid", this.safeString(latestQuote, "bp") },
+                { "bidVolume", this.safeString(latestQuote, "bs") },
+                { "ask", this.safeString(latestQuote, "ap") },
+                { "askVolume", this.safeString(latestQuote, "as") },
+                { "vwap", this.safeString(dailyBar, "vw") },
+                { "open", this.safeString(dailyBar, "o") },
+                { "close", this.safeString(dailyBar, "c") },
+                { "last", this.safeString(latestTrade, "p") },
+                { "previousClose", this.safeString(prevDailyBar, "c") },
+                { "change", null },
+                { "percentage", null },
+                { "average", null },
+                { "baseVolume", this.safeString(dailyBar, "v") },
+                { "quoteVolume", this.safeString(dailyBar, "n") },
+            }, market);
+            ((IList<object>)results).Add(ticker);
+        }
+        return this.filterByArray(results, "symbol", symbols);
+    }
+
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -1007,8 +1145,68 @@ public partial class alpaca : Exchange
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchMyTrades
+        * @description fetch all trades made by the user
+        * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch trades for
+        * @param {int} [limit] the maximum number of trade structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch trades for
+        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        object request = new Dictionary<string, object>() {
+            { "activity_type", "FILL" },
+        };
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["after"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["page_size"] = limit;
+        }
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //             "activity_type": "FILL",
+        //             "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //             "type": "fill",
+        //             "price": "67.31",
+        //             "qty": "0.07",
+        //             "side": "sell",
+        //             "symbol": "LTC/USD",
+        //             "leaves_qty": "0",
+        //             "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //             "cum_qty": "0.07",
+        //             "order_status": "filled",
+        //             "swap_rate": "1"
+        //         },
+        //     ]
+        //
+        return this.parseTrades(response, market, since, limit);
+    }
+
     public override object parseTrade(object trade, object market = null)
     {
+        //
+        // fetchTrades
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1019,12 +1217,30 @@ public partial class alpaca : Exchange
         //       "i":"355681339"
         //   }
         //
-        object marketId = this.safeString(trade, "S");
+        // fetchMyTrades
+        //
+        //     {
+        //         "id": "20221228071929579::ca2aafd0-1270-4b56-b0a9-85423b4a07c8",
+        //         "activity_type": "FILL",
+        //         "transaction_time": "2022-12-28T12:19:29.579352Z",
+        //         "type": "fill",
+        //         "price": "67.31",
+        //         "qty": "0.07",
+        //         "side": "sell",
+        //         "symbol": "LTC/USD",
+        //         "leaves_qty": "0",
+        //         "order_id": "82eebcf7-6e66-4b7e-93f8-be0df0e4f12e",
+        //         "cum_qty": "0.07",
+        //         "order_status": "filled",
+        //         "swap_rate": "1"
+        //     },
+        //
+        object marketId = this.safeString2(trade, "S", "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object datetime = this.safeString(trade, "t");
+        object datetime = this.safeString2(trade, "t", "transaction_time");
         object timestamp = this.parse8601(datetime);
         object alpacaSide = this.safeString(trade, "tks");
-        object side = null;
+        object side = this.safeString(trade, "side");
         if (isTrue(isEqual(alpacaSide, "B")))
         {
             side = "buy";
@@ -1032,15 +1248,15 @@ public partial class alpaca : Exchange
         {
             side = "sell";
         }
-        object priceString = this.safeString(trade, "p");
-        object amountString = this.safeString(trade, "s");
+        object priceString = this.safeString2(trade, "p", "price");
+        object amountString = this.safeString2(trade, "s", "qty");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
-            { "id", this.safeString(trade, "i") },
+            { "id", this.safeString2(trade, "i", "id") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", symbol },
-            { "order", null },
+            { "order", this.safeString(trade, "order_id") },
             { "type", null },
             { "side", side },
             { "takerOrMaker", "taker" },
@@ -1049,6 +1265,268 @@ public partial class alpaca : Exchange
             { "cost", null },
             { "fee", null },
         }, market);
+    }
+
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDepositAddress
+        * @description fetch the deposit address for a currency associated with this account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+        };
+        object response = await this.traderPrivateGetV2Wallets(this.extend(request, parameters));
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        object parsedCurrency = null;
+        if (isTrue(!isEqual(currency, null)))
+        {
+            parsedCurrency = getValue(currency, "id");
+        }
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", parsedCurrency },
+            { "network", null },
+            { "address", this.safeString(depositAddress, "address") },
+            { "tag", null },
+        };
+    }
+
+    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#withdraw
+        * @description make a withdrawal
+        * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+        * @param {string} code unified currency code
+        * @param {float} amount the amount to withdraw
+        * @param {string} address the address to withdraw to
+        * @param {string} tag a memo for the transaction
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        if (isTrue(tag))
+        {
+            address = add(add(address, ":"), tag);
+        }
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+            { "address", address },
+            { "amount", this.numberToString(amount) },
+        };
+        object response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters));
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
+    public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    {
+        await this.loadMarkets();
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            object direction = this.safeString(entry, "direction");
+            if (isTrue(isEqual(direction, type)))
+            {
+                ((IList<object>)results).Add(entry);
+            } else if (isTrue(isEqual(direction, "BOTH")))
+            {
+                ((IList<object>)results).Add(entry);
+            }
+        }
+        return this.parseTransactions(results, currency, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDepositsWithdrawals
+        * @description fetch history of deposits and withdrawals
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("BOTH", code, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDeposits
+        * @description fetch all deposits made to an account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code
+        * @param {int} [since] the earliest time in ms to fetch deposits for
+        * @param {int} [limit] the maximum number of deposit structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchWithdrawals
+        * @description fetch all withdrawals made from an account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code
+        * @param {int} [since] the earliest time in ms to fetch withdrawals for
+        * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        object datetime = this.safeString(transaction, "created_at");
+        object currencyId = this.safeString(transaction, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object fee = new Dictionary<string, object>() {
+            { "cost", this.safeNumber(transaction, "fees") },
+            { "currency", code },
+        };
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", this.safeString(transaction, "id") },
+            { "txid", this.safeString(transaction, "tx_hash") },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
+            { "network", this.safeString(transaction, "chain") },
+            { "address", this.safeString(transaction, "to_address") },
+            { "addressTo", this.safeString(transaction, "to_address") },
+            { "addressFrom", this.safeString(transaction, "from_address") },
+            { "tag", null },
+            { "tagTo", null },
+            { "tagFrom", null },
+            { "type", this.parseTransactionType(this.safeString(transaction, "direction")) },
+            { "amount", this.safeNumber(transaction, "amount") },
+            { "currency", code },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "updated", null },
+            { "fee", fee },
+            { "comment", null },
+            { "internal", null },
+        };
+    }
+
+    public virtual object parseTransactionStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "PROCESSING", "pending" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTransactionType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "INCOMING", "deposit" },
+            { "OUTGOING", "withdrawal" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

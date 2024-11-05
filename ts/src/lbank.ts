@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -59,7 +59,7 @@ export default class lbank extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -1178,6 +1178,108 @@ export default class lbank extends Exchange {
             return this.safeBalance (result);
         }
         return undefined;
+    }
+
+    parseFundingRate (ticker, market: Market = undefined): FundingRate {
+        // {
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
+        // }
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const markPrice = this.safeNumber (ticker, 'markedPrice');
+        const indexPrice = this.safeNumber (ticker, 'underlyingPrice');
+        const fundingRate = this.safeNumber (ticker, 'fundingRate');
+        const fundingTime = this.safeInteger (ticker, 'nextFeeTime');
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
+    }
+
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name lbank#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const responseForSwap = await this.fetchFundingRates ([ market['symbol'] ], params);
+        return this.safeValue (responseForSwap, market['symbol']) as FundingRate;
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        /**
+         * @method
+         * @name lbank#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {
+            'productGroup': 'SwapU',
+        };
+        const response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
+        // {
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
+        //         }
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
+        // }
+        const data = this.safeList (response, 'data', []);
+        const result = this.parseFundingRates (data);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchBalance (params = {}): Promise<Balances> {

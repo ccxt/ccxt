@@ -1,5 +1,5 @@
 import Exchange from './abstract/digifinex.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class digifinex
  * @augments Exchange
@@ -55,18 +55,8 @@ export default class digifinex extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        account: string;
-        symbol: string;
-        currency: string;
-        interest: any;
-        interestRate: number;
-        amountBorrowed: number;
-        timestamp: any;
-        datetime: any;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
     parseBorrowRate(info: any, currency?: Currency): {

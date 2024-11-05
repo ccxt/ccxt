@@ -3103,15 +3103,15 @@ export default class digifinex extends Exchange {
         const currency = (market === undefined) ? undefined : market['base'];
         const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': symbol,
+            'info': info,
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
             'amountBorrowed': this.parseNumber(amountBorrowed),
+            'marginMode': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
         };
     }
     async fetchCrossBorrowRate(code, params = {}) {

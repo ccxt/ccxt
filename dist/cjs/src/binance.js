@@ -188,7 +188,7 @@ class binance extends binance$1 {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
@@ -12375,16 +12375,15 @@ class binance extends binance$1 {
         const timestamp = this.safeInteger(info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
-            'account': (symbol === undefined) ? 'cross' : symbol,
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(this.safeString(info, 'asset')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'principal'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async repayCrossMargin(code, amount, params = {}) {

@@ -181,6 +181,11 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV1PrivateGetTradeFullOrder",parameters);
     }
 
+    public async Task<object> swapV1PrivateGetPositionMarginHistory (object parameters = null)
+    {
+        return await this.callAsync ("swapV1PrivateGetPositionMarginHistory",parameters);
+    }
+
     public async Task<object> swapV1PrivatePostTradeCancelReplace (object parameters = null)
     {
         return await this.callAsync ("swapV1PrivatePostTradeCancelReplace",parameters);

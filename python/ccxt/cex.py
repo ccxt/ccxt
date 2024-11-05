@@ -39,6 +39,7 @@ class cex(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
+                'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -50,6 +51,7 @@ class cex(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchMarkets': True,
                 'fetchOHLCV': True,
+                'fetchOpenOrder': True,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchTicker': True,
@@ -898,6 +900,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -909,6 +912,7 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
+        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -917,6 +921,38 @@ class cex(Exchange, ImplicitAPI):
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         return self.fetch_orders_by_status('open', symbol, since, limit, params)
+
+    def fetch_open_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an open order made by the user
+        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+        :param str id: order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'orderId': int(id),
+        }
+        result = self.fetch_open_orders(symbol, None, None, self.extend(request, params))
+        return result[0]
+
+    def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
+        """
+        fetches information on an closed order made by the user
+        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+        :param str id: order id
+        :param str [symbol]: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'orderId': int(id),
+        }
+        result = self.fetch_closed_orders(symbol, None, None, self.extend(request, params))
+        return result[0]
 
     def parse_order_status(self, status: Str):
         statuses: dict = {

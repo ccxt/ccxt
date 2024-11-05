@@ -195,7 +195,7 @@ class binance extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
@@ -12110,7 +12110,7 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -12192,21 +12192,20 @@ class binance extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         $symbol = $this->safe_string($info, 'isolatedSymbol');
         $timestamp = $this->safe_integer($info, 'interestAccuredTime');
         $marginMode = ($symbol === null) ? 'cross' : 'isolated';
         return array(
-            'account' => ($symbol === null) ? 'cross' : $symbol,
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'asset')),
             'interest' => $this->safe_number($info, 'interest'),
             'interestRate' => $this->safe_number($info, 'interestRate'),
             'amountBorrowed' => $this->safe_number($info, 'principal'),
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

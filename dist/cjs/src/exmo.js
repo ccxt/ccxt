@@ -211,6 +211,7 @@ class exmo extends exmo$1 {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': errors.InvalidOrder,
                     '140434': errors.BadRequest,
                     '40005': errors.AuthenticationError,
                     '40009': errors.InvalidNonce,
