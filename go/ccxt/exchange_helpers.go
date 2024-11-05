@@ -534,9 +534,25 @@ func PlusEqual(a, value interface{}) interface{} {
 	}
 }
 
+// func AppendToArray(slicePtr *interface{}, element interface{}) {
+// 	array := (*slicePtr).([]interface{})
+// 	*slicePtr = append(array, element)
+// }
+
 func AppendToArray(slicePtr *interface{}, element interface{}) {
-	array := (*slicePtr).([]interface{})
-	*slicePtr = append(array, element)
+	switch array := (*slicePtr).(type) {
+	case []interface{}:
+		*slicePtr = append(array, element)
+	case []string:
+		if strElement, ok := element.(string); ok {
+			*slicePtr = append(array, strElement)
+		} else {
+			// Handle the case where the element is not a string if needed
+			// fmt.Println("Error: element is not a string")
+		}
+	default:
+		// fmt.Println("Error: Unsupported slice type")
+	}
 }
 
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
