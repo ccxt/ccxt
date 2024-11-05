@@ -11,6 +11,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
+use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -103,7 +104,7 @@ class bingx extends Exchange {
             ),
             'hostname' => 'bingx.com',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be',
+                'logo' => 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api' => array(
                     'spot' => 'https://open-api.{hostname}/openApi',
                     'swap' => 'https://open-api.{hostname}/openApi',
@@ -2850,25 +2851,19 @@ class bingx extends Exchange {
              * create a list of trade $orders
              * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
-             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $ordersRequests = array();
-            $symbol = null;
+            $marketIds = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
                 $marketId = $this->safe_string($rawOrder, 'symbol');
-                if ($symbol === null) {
-                    $symbol = $marketId;
-                } else {
-                    if ($symbol !== $marketId) {
-                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
-                    }
-                }
                 $type = $this->safe_string($rawOrder, 'type');
+                $marketIds[] = $marketId;
                 $side = $this->safe_string($rawOrder, 'side');
                 $amount = $this->safe_number($rawOrder, 'amount');
                 $price = $this->safe_number($rawOrder, 'price');
@@ -2876,10 +2871,15 @@ class bingx extends Exchange {
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
                 $ordersRequests[] = $orderRequest;
             }
-            $market = $this->market($symbol);
+            $symbols = $this->market_symbols($marketIds, null, false, true, true);
+            $symbolsLength = count($symbols);
+            $market = $this->market($symbols[0]);
             $request = array();
             $response = null;
             if ($market['swap']) {
+                if ($symbolsLength > 5) {
+                    throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
+                }
                 $request['batchOrders'] = $this->json($ordersRequests);
                 $response = Async\await($this->swapV2PrivatePostTradeBatchOrders ($request));
             } else {
@@ -2935,6 +2935,13 @@ class bingx extends Exchange {
             //         }
             //     }
             //
+            if (gettype($response) === 'string') {
+                // broken api engine : order-ids are too long numbers ($i->e. 1742930526912864656)
+                // and JSON.parse can not handle them in JS, so we have to use .parseJson
+                // however, when order has an attached SL/TP, their value types need extra parsing
+                $response = $this->fix_stringified_json_members($response);
+                $response = $this->parse_json($response);
+            }
             $data = $this->safe_dict($response, 'data', array());
             $result = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($result, $market);

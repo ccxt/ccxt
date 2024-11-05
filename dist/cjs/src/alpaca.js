@@ -56,8 +56,8 @@ class alpaca extends alpaca$1 {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
-                'fetchDepositsWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -89,12 +89,12 @@ class alpaca extends alpaca$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'api': {
                 'broker': {},
@@ -120,12 +120,14 @@ class alpaca extends alpaca$1 {
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
                             'v2/wallets',
+                            'v2/wallets/transfers',
                         ],
                         'post': [
                             'v2/orders',
                             'v2/watchlists',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
+                            'v2/wallets/transfers',
                         ],
                         'put': [
                             'v2/watchlists/{watchlist_id}',
@@ -1338,6 +1340,193 @@ class alpaca extends alpaca$1 {
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
         };
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#withdraw
+         * @description make a withdrawal
+         * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag a memo for the transaction
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        this.checkAddress(address);
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        if (tag) {
+            address = address + ':' + tag;
+        }
+        const request = {
+            'asset': currency['id'],
+            'address': address,
+            'amount': this.numberToString(amount),
+        };
+        const response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, params));
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+    async fetchTransactionsHelper(type, code, since, limit, params) {
+        await this.loadMarkets();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
+        const response = await this.traderPrivateGetV2WalletsTransfers(params);
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const direction = this.safeString(entry, 'direction');
+            if (direction === type) {
+                results.push(entry);
+            }
+            else if (direction === 'BOTH') {
+                results.push(entry);
+            }
+        }
+        return this.parseTransactions(results, currency, since, limit, params);
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+    }
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposit structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+    }
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        const datetime = this.safeString(transaction, 'created_at');
+        const currencyId = this.safeString(transaction, 'asset');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        const fee = {
+            'cost': this.safeNumber(transaction, 'fees'),
+            'currency': code,
+        };
+        return {
+            'info': transaction,
+            'id': this.safeString(transaction, 'id'),
+            'txid': this.safeString(transaction, 'tx_hash'),
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+            'network': this.safeString(transaction, 'chain'),
+            'address': this.safeString(transaction, 'to_address'),
+            'addressTo': this.safeString(transaction, 'to_address'),
+            'addressFrom': this.safeString(transaction, 'from_address'),
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.parseTransactionType(this.safeString(transaction, 'direction')),
+            'amount': this.safeNumber(transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'updated': undefined,
+            'fee': fee,
+            'comment': undefined,
+            'internal': undefined,
+        };
+    }
+    parseTransactionStatus(status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+            // 'FAILED': 'failed',
+            // 'SUCCESS': 'ok',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    parseTransactionType(type) {
+        const types = {
+            'INCOMING': 'deposit',
+            'OUTGOING': 'withdrawal',
+        };
+        return this.safeString(types, type, type);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams(path, params);

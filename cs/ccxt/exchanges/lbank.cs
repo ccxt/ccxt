@@ -46,7 +46,7 @@ public partial class lbank : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -1196,6 +1196,113 @@ public partial class lbank : Exchange
             return this.safeBalance(result);
         }
         return null;
+    }
+
+    public override object parseFundingRate(object ticker, object market = null)
+    {
+        // {
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
+        // }
+        object marketId = this.safeString(ticker, "symbol");
+        object symbol = this.safeSymbol(marketId, market);
+        object markPrice = this.safeNumber(ticker, "markedPrice");
+        object indexPrice = this.safeNumber(ticker, "underlyingPrice");
+        object fundingRate = this.safeNumber(ticker, "fundingRate");
+        object fundingTime = this.safeInteger(ticker, "nextFeeTime");
+        return new Dictionary<string, object>() {
+            { "info", ticker },
+            { "symbol", symbol },
+            { "markPrice", markPrice },
+            { "indexPrice", indexPrice },
+            { "fundingRate", fundingRate },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
+            { "timestamp", null },
+            { "datetime", null },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", null },
+        };
+    }
+
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name lbank#fetchFundingRate
+        * @description fetch the current funding rate
+        * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object responseForSwap = await this.fetchFundingRates(new List<object>() {getValue(market, "symbol")}, parameters);
+        return this.safeValue(responseForSwap, getValue(market, "symbol"));
+    }
+
+    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name lbank#fetchFundingRates
+        * @description fetch the funding rate for multiple markets
+        * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        * @param {string[]|undefined} symbols list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object request = new Dictionary<string, object>() {
+            { "productGroup", "SwapU" },
+        };
+        object response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, parameters));
+        // {
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
+        //         }
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
+        // }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object result = this.parseFundingRates(data);
+        return this.filterByArray(result, "symbol", symbols);
     }
 
     public async override Task<object> fetchBalance(object parameters = null)

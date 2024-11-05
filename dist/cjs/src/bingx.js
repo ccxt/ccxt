@@ -2860,15 +2860,12 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const ordersRequests = [];
-        let orderSymbols = [];
-        if (orders.length > 5) {
-            throw new errors.BadRequest(this.id + ' createOrders() limits max 5 orders in one request');
-        }
+        const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
+            marketIds.push(marketId);
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
@@ -2876,11 +2873,15 @@ class bingx extends bingx$1 {
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
-        const market = this.market(orderSymbols[0]);
+        const symbols = this.marketSymbols(marketIds, undefined, false, true, true);
+        const symbolsLength = symbols.length;
+        const market = this.market(symbols[0]);
         const request = {};
         let response = undefined;
         if (market['swap']) {
+            if (symbolsLength > 5) {
+                throw new errors.InvalidOrder(this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
+            }
             request['batchOrders'] = this.json(ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         }

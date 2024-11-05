@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.alpaca import ImplicitAPI
-from ccxt.base.types import Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -66,8 +66,8 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': False,
-                'fetchDeposits': False,
-                'fetchDepositsWithdrawals': False,
+                'fetchDeposits': True,
+                'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -99,12 +99,12 @@ class alpaca(Exchange, ImplicitAPI):
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'sandbox': True,
                 'setLeverage': False,
                 'setMarginMode': False,
                 'transfer': False,
-                'withdraw': False,
+                'withdraw': True,
             },
             'api': {
                 'broker': {
@@ -131,12 +131,14 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
                             'v2/wallets',
+                            'v2/wallets/transfers',
                         ],
                         'post': [
                             'v2/orders',
                             'v2/watchlists',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
+                            'v2/wallets/transfers',
                         ],
                         'put': [
                             'v2/watchlists/{watchlist_id}',
@@ -1285,6 +1287,180 @@ class alpaca(Exchange, ImplicitAPI):
             'address': self.safe_string(depositAddress, 'address'),
             'tag': None,
         }
+
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+        """
+        make a withdrawal
+        :see: https://docs.alpaca.markets/reference/createcryptotransferforaccount
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str tag: a memo for the transaction
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        if tag:
+            address = address + ':' + tag
+        request: dict = {
+            'asset': currency['id'],
+            'address': address,
+            'amount': self.number_to_string(amount),
+        }
+        response = await self.traderPrivatePostV2WalletsTransfers(self.extend(request, params))
+        #
+        #     {
+        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        #         "tx_hash": "string",
+        #         "direction": "INCOMING",
+        #         "status": "PROCESSING",
+        #         "amount": "string",
+        #         "usd_value": "string",
+        #         "network_fee": "string",
+        #         "fees": "string",
+        #         "chain": "string",
+        #         "asset": "string",
+        #         "from_address": "string",
+        #         "to_address": "string",
+        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
+    async def fetch_transactions_helper(self, type, code, since, limit, params):
+        await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = await self.traderPrivateGetV2WalletsTransfers(params)
+        #
+        #     {
+        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        #         "tx_hash": "string",
+        #         "direction": "INCOMING",
+        #         "status": "PROCESSING",
+        #         "amount": "string",
+        #         "usd_value": "string",
+        #         "network_fee": "string",
+        #         "fees": "string",
+        #         "chain": "string",
+        #         "asset": "string",
+        #         "from_address": "string",
+        #         "to_address": "string",
+        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #     }
+        #
+        results = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            direction = self.safe_string(entry, 'direction')
+            if direction == type:
+                results.append(entry)
+            elif direction == 'BOTH':
+                results.append(entry)
+        return self.parse_transactions(results, currency, since, limit, params)
+
+    async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch history of deposits and withdrawals
+        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
+        :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
+        :param int [limit]: max number of deposit/withdrawals to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        return await self.fetch_transactions_helper('BOTH', code, since, limit, params)
+
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all deposits made to an account
+        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposit structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        return await self.fetch_transactions_helper('INCOMING', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all withdrawals made from an account
+        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        :param str [code]: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawal structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        return await self.fetch_transactions_helper('OUTGOING', code, since, limit, params)
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        #         "tx_hash": "string",
+        #         "direction": "INCOMING",
+        #         "status": "PROCESSING",
+        #         "amount": "string",
+        #         "usd_value": "string",
+        #         "network_fee": "string",
+        #         "fees": "string",
+        #         "chain": "string",
+        #         "asset": "string",
+        #         "from_address": "string",
+        #         "to_address": "string",
+        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #     }
+        #
+        datetime = self.safe_string(transaction, 'created_at')
+        currencyId = self.safe_string(transaction, 'asset')
+        code = self.safe_currency_code(currencyId, currency)
+        fee = {
+            'cost': self.safe_number(transaction, 'fees'),
+            'currency': code,
+        }
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'tx_hash'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+            'network': self.safe_string(transaction, 'chain'),
+            'address': self.safe_string(transaction, 'to_address'),
+            'addressTo': self.safe_string(transaction, 'to_address'),
+            'addressFrom': self.safe_string(transaction, 'from_address'),
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'direction')),
+            'amount': self.safe_number(transaction, 'amount'),
+            'currency': code,
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'updated': None,
+            'fee': fee,
+            'comment': None,
+            'internal': None,
+        }
+
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
+            'PROCESSING': 'pending',
+            # 'FAILED': 'failed',
+            # 'SUCCESS': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types: dict = {
+            'INCOMING': 'deposit',
+            'OUTGOING': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         endpoint = '/' + self.implode_params(path, params)

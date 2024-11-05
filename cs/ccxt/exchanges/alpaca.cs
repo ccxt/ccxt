@@ -48,8 +48,8 @@ public partial class alpaca : Exchange
                 { "fetchCurrencies", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddressesByNetwork", false },
-                { "fetchDeposits", false },
-                { "fetchDepositsWithdrawals", false },
+                { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -81,19 +81,19 @@ public partial class alpaca : Exchange
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
-                { "fetchWithdrawals", false },
+                { "fetchWithdrawals", true },
                 { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "transfer", false },
-                { "withdraw", false },
+                { "withdraw", true },
             } },
             { "api", new Dictionary<string, object>() {
                 { "broker", new Dictionary<string, object>() {} },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets"} },
-                        { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
+                        { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"} },
+                        { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"} },
                         { "put", new List<object>() {"v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
                         { "patch", new List<object>() {"v2/orders/{order_id}", "v2/account/configurations"} },
                         { "delete", new List<object>() {"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"} },
@@ -1316,6 +1316,217 @@ public partial class alpaca : Exchange
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
         };
+    }
+
+    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#withdraw
+        * @description make a withdrawal
+        * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+        * @param {string} code unified currency code
+        * @param {float} amount the amount to withdraw
+        * @param {string} address the address to withdraw to
+        * @param {string} tag a memo for the transaction
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        if (isTrue(tag))
+        {
+            address = add(add(address, ":"), tag);
+        }
+        object request = new Dictionary<string, object>() {
+            { "asset", getValue(currency, "id") },
+            { "address", address },
+            { "amount", this.numberToString(amount) },
+        };
+        object response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters));
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+
+    public async virtual Task<object> fetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
+    {
+        await this.loadMarkets();
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+        }
+        object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        object results = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object entry = getValue(response, i);
+            object direction = this.safeString(entry, "direction");
+            if (isTrue(isEqual(direction, type)))
+            {
+                ((IList<object>)results).Add(entry);
+            } else if (isTrue(isEqual(direction, "BOTH")))
+            {
+                ((IList<object>)results).Add(entry);
+            }
+        }
+        return this.parseTransactions(results, currency, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDepositsWithdrawals
+        * @description fetch history of deposits and withdrawals
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("BOTH", code, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchDeposits
+        * @description fetch all deposits made to an account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code
+        * @param {int} [since] the earliest time in ms to fetch deposits for
+        * @param {int} [limit] the maximum number of deposit structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("INCOMING", code, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#fetchWithdrawals
+        * @description fetch all withdrawals made from an account
+        * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+        * @param {string} [code] unified currency code
+        * @param {int} [since] the earliest time in ms to fetch withdrawals for
+        * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchTransactionsHelper("OUTGOING", code, since, limit, parameters);
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //     {
+        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash": "string",
+        //         "direction": "INCOMING",
+        //         "status": "PROCESSING",
+        //         "amount": "string",
+        //         "usd_value": "string",
+        //         "network_fee": "string",
+        //         "fees": "string",
+        //         "chain": "string",
+        //         "asset": "string",
+        //         "from_address": "string",
+        //         "to_address": "string",
+        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        object datetime = this.safeString(transaction, "created_at");
+        object currencyId = this.safeString(transaction, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        object fee = new Dictionary<string, object>() {
+            { "cost", this.safeNumber(transaction, "fees") },
+            { "currency", code },
+        };
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", this.safeString(transaction, "id") },
+            { "txid", this.safeString(transaction, "tx_hash") },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
+            { "network", this.safeString(transaction, "chain") },
+            { "address", this.safeString(transaction, "to_address") },
+            { "addressTo", this.safeString(transaction, "to_address") },
+            { "addressFrom", this.safeString(transaction, "from_address") },
+            { "tag", null },
+            { "tagTo", null },
+            { "tagFrom", null },
+            { "type", this.parseTransactionType(this.safeString(transaction, "direction")) },
+            { "amount", this.safeNumber(transaction, "amount") },
+            { "currency", code },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "updated", null },
+            { "fee", fee },
+            { "comment", null },
+            { "internal", null },
+        };
+    }
+
+    public virtual object parseTransactionStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "PROCESSING", "pending" },
+        };
+        return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTransactionType(object type)
+    {
+        object types = new Dictionary<string, object>() {
+            { "INCOMING", "deposit" },
+            { "OUTGOING", "withdrawal" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

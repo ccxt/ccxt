@@ -113,7 +113,7 @@ class bingx(Exchange, ImplicitAPI):
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -2683,26 +2683,26 @@ class bingx(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         ordersRequests = []
-        symbol = None
+        marketIds = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
-            if symbol is None:
-                symbol = marketId
-            else:
-                if symbol != marketId:
-                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
             type = self.safe_string(rawOrder, 'type')
+            marketIds.append(marketId)
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_number(rawOrder, 'amount')
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
-        market = self.market(symbol)
+        symbols = self.market_symbols(marketIds, None, False, True, True)
+        symbolsLength = len(symbols)
+        market = self.market(symbols[0])
         request: dict = {}
         response = None
         if market['swap']:
+            if symbolsLength > 5:
+                raise InvalidOrder(self.id + ' createOrders() can not create more than 5 orders at once for swap markets')
             request['batchOrders'] = self.json(ordersRequests)
             response = await self.swapV2PrivatePostTradeBatchOrders(request)
         else:
@@ -2756,6 +2756,12 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        if isinstance(response, str):
+            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
+            response = self.fix_stringified_json_members(response)
+            response = self.parse_json(response)
         data = self.safe_dict(response, 'data', {})
         result = self.safe_list(data, 'orders', [])
         return self.parse_orders(result, market)

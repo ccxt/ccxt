@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -69,7 +69,7 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -1131,6 +1131,101 @@ class lbank(Exchange, ImplicitAPI):
                 result[codeInner] = account
             return self.safe_balance(result)
         return None
+
+    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
+        # {
+        #     "symbol": "BTCUSDT",
+        #     "highestPrice": "69495.5",
+        #     "underlyingPrice": "68455.904",
+        #     "lowestPrice": "68182.1",
+        #     "openPrice": "68762.4",
+        #     "positionFeeRate": "0.0001",
+        #     "volume": "33534.2858",
+        #     "markedPrice": "68434.1",
+        #     "turnover": "1200636218.210558",
+        #     "positionFeeTime": "28800",
+        #     "lastPrice": "68427.3",
+        #     "nextFeeTime": "1730736000000",
+        #     "fundingRate": "0.0001",
+        # }
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market)
+        markPrice = self.safe_number(ticker, 'markedPrice')
+        indexPrice = self.safe_number(ticker, 'underlyingPrice')
+        fundingRate = self.safe_number(ticker, 'fundingRate')
+        fundingTime = self.safe_integer(ticker, 'nextFeeTime')
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': self.iso8601(fundingTime),
+            'timestamp': None,
+            'datetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': None,
+        }
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+        :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        responseForSwap = self.fetch_funding_rates([market['symbol']], params)
+        return self.safe_value(responseForSwap, market['symbol'])
+
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the funding rate for multiple markets
+        :see: https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+        :param str[]|None symbols: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request: dict = {
+            'productGroup': 'SwapU',
+        }
+        response = self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
+        # {
+        #     "data": [
+        #         {
+        #             "symbol": "BTCUSDT",
+        #             "highestPrice": "69495.5",
+        #             "underlyingPrice": "68455.904",
+        #             "lowestPrice": "68182.1",
+        #             "openPrice": "68762.4",
+        #             "positionFeeRate": "0.0001",
+        #             "volume": "33534.2858",
+        #             "markedPrice": "68434.1",
+        #             "turnover": "1200636218.210558",
+        #             "positionFeeTime": "28800",
+        #             "lastPrice": "68427.3",
+        #             "nextFeeTime": "1730736000000",
+        #             "fundingRate": "0.0001",
+        #         }
+        #     ],
+        #     "error_code": "0",
+        #     "msg": "Success",
+        #     "result": "true",
+        #     "success": True,
+        # }
+        data = self.safe_list(response, 'data', [])
+        result = self.parse_funding_rates(data)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_balance(self, params={}) -> Balances:
         """

@@ -60,8 +60,8 @@ class alpaca extends Exchange {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => false,
-                'fetchDeposits' => false,
-                'fetchDepositsWithdrawals' => false,
+                'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -93,12 +93,12 @@ class alpaca extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'transfer' => false,
-                'withdraw' => false,
+                'withdraw' => true,
             ),
             'api' => array(
                 'broker' => array(
@@ -125,12 +125,14 @@ class alpaca extends Exchange {
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
                             'v2/wallets',
+                            'v2/wallets/transfers',
                         ),
                         'post' => array(
                             'v2/orders',
                             'v2/watchlists',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
+                            'v2/wallets/transfers',
                         ),
                         'put' => array(
                             'v2/watchlists/{watchlist_id}',
@@ -1359,6 +1361,202 @@ class alpaca extends Exchange {
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
         );
+    }
+
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string} $tag a memo for the transaction
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            if ($tag) {
+                $address = $address . ':' . $tag;
+            }
+            $request = array(
+                'asset' => $currency['id'],
+                'address' => $address,
+                'amount' => $this->number_to_string($amount),
+            );
+            $response = Async\await($this->traderPrivatePostV2WalletsTransfers ($this->extend($request, $params)));
+            //
+            //     {
+            //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "tx_hash" => "string",
+            //         "direction" => "INCOMING",
+            //         "status" => "PROCESSING",
+            //         "amount" => "string",
+            //         "usd_value" => "string",
+            //         "network_fee" => "string",
+            //         "fees" => "string",
+            //         "chain" => "string",
+            //         "asset" => "string",
+            //         "from_address" => "string",
+            //         "to_address" => "string",
+            //         "created_at" => "2024-11-02T07:42:48.402Z"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
+    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+        return Async\async(function () use ($type, $code, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $response = Async\await($this->traderPrivateGetV2WalletsTransfers ($params));
+            //
+            //     {
+            //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            //         "tx_hash" => "string",
+            //         "direction" => "INCOMING",
+            //         "status" => "PROCESSING",
+            //         "amount" => "string",
+            //         "usd_value" => "string",
+            //         "network_fee" => "string",
+            //         "fees" => "string",
+            //         "chain" => "string",
+            //         "asset" => "string",
+            //         "from_address" => "string",
+            //         "to_address" => "string",
+            //         "created_at" => "2024-11-02T07:42:48.402Z"
+            //     }
+            //
+            $results = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $entry = $response[$i];
+                $direction = $this->safe_string($entry, 'direction');
+                if ($direction === $type) {
+                    $results[] = $entry;
+                } elseif ($direction === 'BOTH') {
+                    $results[] = $entry;
+                }
+            }
+            return $this->parse_transactions($results, $currency, $since, $limit, $params);
+        }) ();
+    }
+
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
+             * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
+             * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             */
+            return Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             * @param {string} [$code] unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch deposits for
+             * @param {int} [$limit] the maximum number of deposit structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            return Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             * @param {string} [$code] unified currency $code
+             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+             * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             */
+            return Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
+        }) ();
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        //         "tx_hash" => "string",
+        //         "direction" => "INCOMING",
+        //         "status" => "PROCESSING",
+        //         "amount" => "string",
+        //         "usd_value" => "string",
+        //         "network_fee" => "string",
+        //         "fees" => "string",
+        //         "chain" => "string",
+        //         "asset" => "string",
+        //         "from_address" => "string",
+        //         "to_address" => "string",
+        //         "created_at" => "2024-11-02T07:42:48.402Z"
+        //     }
+        //
+        $datetime = $this->safe_string($transaction, 'created_at');
+        $currencyId = $this->safe_string($transaction, 'asset');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $fee = array(
+            'cost' => $this->safe_number($transaction, 'fees'),
+            'currency' => $code,
+        );
+        return array(
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'tx_hash'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
+            'network' => $this->safe_string($transaction, 'chain'),
+            'address' => $this->safe_string($transaction, 'to_address'),
+            'addressTo' => $this->safe_string($transaction, 'to_address'),
+            'addressFrom' => $this->safe_string($transaction, 'from_address'),
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'direction')),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'currency' => $code,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'updated' => null,
+            'fee' => $fee,
+            'comment' => null,
+            'internal' => null,
+        );
+    }
+
+    public function parse_transaction_status(?string $status) {
+        $statuses = array(
+            'PROCESSING' => 'pending',
+            // 'FAILED' => 'failed',
+            // 'SUCCESS' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type($type) {
+        $types = array(
+            'INCOMING' => 'deposit',
+            'OUTGOING' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
