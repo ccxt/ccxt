@@ -2986,7 +2986,7 @@ export default class bitget extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger2 (trade, 'cTime', 'ts');
         let fee = undefined;
-        const feeDetail = this.safeDict (trade, 'feeDetail', {});
+        const feeDetail = this.safeList (trade, 'feeDetail', []);
         const posMode = this.safeString (trade, 'posMode');
         const feeStructure = (posMode !== undefined) ? feeDetail[0] : feeDetail;
         if (feeStructure !== undefined) {
