@@ -99,7 +99,7 @@ export default class bingx extends Exchange {
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -2850,18 +2850,12 @@ export default class bingx extends Exchange {
          */
         await this.loadMarkets ();
         const ordersRequests = [];
-        let symbol = undefined;
+        const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
-            if (symbol === undefined) {
-                symbol = marketId;
-            } else {
-                if (symbol !== marketId) {
-                    throw new BadRequest (this.id + ' createOrders() requires all orders to have the same symbol');
-                }
-            }
             const type = this.safeString (rawOrder, 'type');
+            marketIds.push (marketId);
             const side = this.safeString (rawOrder, 'side');
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -2869,10 +2863,15 @@ export default class bingx extends Exchange {
             const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             ordersRequests.push (orderRequest);
         }
-        const market = this.market (symbol);
+        const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
+        const symbolsLength = symbols.length;
+        const market = this.market (symbols[0]);
         const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
+            if (symbolsLength > 5) {
+                throw new InvalidOrder (this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
+            }
             request['batchOrders'] = this.json (ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders (request);
         } else {
@@ -2928,6 +2927,13 @@ export default class bingx extends Exchange {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers (response);
+            response = this.parseJson (response);
+        }
         const data = this.safeDict (response, 'data', {});
         const result = this.safeList (data, 'orders', []);
         return this.parseOrders (result, market);
