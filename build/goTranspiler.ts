@@ -41,7 +41,7 @@ if (platform === 'win32') {
     }
 }
 
-// const GLOBAL_WRAPPER_FILE = './go/ccxt/base/Exchange.Wrappers.go';
+const GLOBAL_WRAPPER_FILE = './go/ccxt/base/exchange_wrappers.go';
 const EXCHANGE_WRAPPER_FOLDER = './go/ccxt/'
 const DYNAMIC_INSTANCE_FILE = './go/ccxt/exchange_dynamic.go';
 // const EXCHANGE_WS_WRAPPER_FOLDER = './go/ccxt/exchanges/pro/wrappers/'
@@ -416,9 +416,9 @@ class NewTranspiler {
             if (type == 'void') {
                 return isPromise ? `<- chan` : '<- chan';
             } else if (isList) {
-                return isPromise ? `Task<List<${type}>>` : `List<${type}>`;
+                return isPromise ? `<- chan []${type}` : `[]${type}`;
             }
-            return isPromise ? `Task<${type}>` : type;
+            return isPromise ? `<- chan ${type}` : type;
         }
 
         const csharpReplacements = {
@@ -489,14 +489,31 @@ class NewTranspiler {
         // return csharpReservedWordsReplacement[name] || name;
     }
 
-    convertJavascriptParamToCsharpParam(param): string | undefined {
+    convertParamsToGo(methodName: string, params: any[]): string {
+        const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
+        if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
+            // handle params = {}
+            return 'params ...interface{}';
+        }
+        const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param)).join(', ');
+        if (!needsVariadicOptions) {
+            return paramsParsed;
+        }
+        const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
+        const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
+        // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
+        const allParams =  regularParamsParsed.concat(['options ...' + this.capitalize(methodName) + 'Options']);
+        return allParams.join(', ');
+    }
+
+    convertJavascriptParamToGoParam(param): string | undefined {
         const name = param.name;
         const safeName = this.safeGoName(name);
         const isOptional =  param.optional || param.initializer !== undefined;
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         if (param.type == undefined) {
-            paramType = 'object';
+            paramType = 'interface{}';
         } else {
             paramType = this.convertJavascriptTypeToGoType(name, param.type);
         }
@@ -515,7 +532,7 @@ class NewTranspiler {
                     if (paramType  === 'Int64') {
                         return `${paramType}? ${safeName}2 = 0`
                     }
-                    return `${paramType}? ${safeName}`
+                    return `${safeName} ${paramType}`
                 }
             }
         } else {
@@ -659,8 +676,8 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToGoType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        const args = methodWrapper.parameters.map(param => this.convertJavascriptParamToCsharpParam(param));
-        const stringArgs = args.filter(arg => arg !== undefined).join(', ');
+        const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
+        // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map(param => this.safeGoName(param.name)).join(', ');
 
         const one = this.inden(0);
@@ -696,7 +713,7 @@ class NewTranspiler {
         const shouldCreateClassWrappers = exchange === 'Exchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = ws ? 'package ccxt.pro;' : 'package ccxt;';
+        const namespace = 'package ccxt';
         const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
         // const capitalizeStatement = ws ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
         const exchangeStruct = `type ${capitizedName} struct { ${exchange} }`;
@@ -1046,7 +1063,7 @@ ${caseStatements.join('\n')}
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
-                // this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
+                this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
