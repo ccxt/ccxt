@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported, ArgumentsRequired } from './base/errors.js';
-import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances } from './base/types.js';
+import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position } from './base/types.js';
 import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
@@ -1693,6 +1693,79 @@ export default class defx extends Exchange {
          */
         params['statuses'] = 'CANCELED';
         return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name defx#closePosition
+         * @description closes an open position for a market
+         * @see https://api-docs.defx.com/#b2c08074-c4d9-4e50-b637-0d6c498fa29e
+         * @param {string} symbol unified CCXT market symbol
+         * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.positionId] the position id you want to close
+         * @param {string} [params.type] 'MARKET' or 'LIMIT'
+         * @param {string} [params.quantity] how much of currency you want to trade in units of base currency
+         * @param {string} [params.price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const positionId = this.safeString (params, 'positionId');
+        if (positionId === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a positionId');
+        }
+        const type = this.safeStringUpper (params, 'type');
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a type');
+        }
+        const quantity = this.safeString (params, 'quantity');
+        if (quantity === undefined) {
+            throw new ArgumentsRequired (this.id + ' closePosition() requires a quantity');
+        }
+        const request: Dict = {
+            'positionId': positionId,
+            'type': type,
+            'quantity': quantity,
+        };
+        if (type !== 'MARKET') {
+            const price = this.safeString (params, 'price');
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' closePosition() requires a price');
+            }
+            request['price'] = price;
+        }
+        params = this.omit (params, [ 'positionId', 'type', 'quantity', 'price' ]);
+        const response = await this.v1PrivateDeleteApiPositionPositionId (this.extend (request, params));
+        //
+        //     {}
+        //
+        return response;
+    }
+
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name defx#closeAllPositions
+         * @description closes all open positions for a market type
+         * @see https://api-docs.defx.com/#d6f63b43-100e-47a9-998c-8b6c0c72d204
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateDeleteApiPositionAll (params);
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "positionId": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
+        //             "success": true
+        //         }
+        //     ]
+        // }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parsePositions (data, undefined, params);
     }
 
     nonce () {

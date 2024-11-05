@@ -253,6 +253,48 @@
                     }
                 ]
             }
+        ],
+        "closePosition": [
+            {
+                "description": "closePosition",
+                "method": "closePosition",
+                "url": "https://api.defx.com/v1/auth/api/position/0192fa60-9728-7849-987e-b1c8e0bfa0f3",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "positionId": "0192fa60-9728-7849-987e-b1c8e0bfa0f3",
+                        "type": "MARKET",
+                        "quantity": "0.5"
+                    }
+                ],
+                "output": "{\"quantity\":\"0.5\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "closePosition",
+                "method": "closePosition",
+                "url": "https://api.defx.com/v1/auth/api/position/0192fa60-9728-7849-987e-b1c8e0bfa0f3",
+                "input": [
+                    null,
+                    null,
+                    {
+                        "positionId": "0192fa60-9728-7849-987e-b1c8e0bfa0f3",
+                        "type": "LIMIT",
+                        "quantity": "0.5",
+                        "price": "200"
+                    }
+                ],
+                "output": "{\"quantity\":\"0.5\",\"type\":\"LIMIT\",\"price\":\"200\"}"
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "closeAllPositions",
+                "method": "closeAllPositions",
+                "url": "https://api.defx.com/v1/auth/api/position/all",
+                "input": [],
+                "output": "{}"
+            }
         ]
     }
 }
