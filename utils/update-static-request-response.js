@@ -9,7 +9,7 @@
 import fs from 'fs';
 import path from 'path'
 import { platform } from 'process'
-import ccxt from '../ts/ccxt.js';
+import ccxt from '../js/ccxt.js';
 
 const [,, ...args] = process.argv;
 
@@ -44,7 +44,7 @@ function die (errorMessage = undefined, code = 1) {
 }
 
 
-function add_static_result (requestOrResponse: string, exchangeId: string, method: string, entry: any, spacesIndent = undefined) {
+function add_static_result (requestOrResponse, exchangeId, method, entry, spacesIndent = undefined) {
         
     if (!exchangeId) {
         die ();
@@ -100,7 +100,7 @@ function add_static_result (requestOrResponse: string, exchangeId: string, metho
     }
 }
 
-function prependWhitespace(content: string, spacesAmountPerIndent: number, indentAmount: number) {
+function prependWhitespace(content, spacesAmountPerIndent, indentAmount) {
     const spaces = " ".repeat(spacesAmountPerIndent).repeat(indentAmount);
     const lines = content.split("\n");
     const indentedLines = lines.map((line) => spaces + line);
