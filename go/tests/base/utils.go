@@ -17,7 +17,7 @@ const (
 	NEW_LINE             = "\n"
 	PROXY_TEST_FILE_NAME = ""
 	IS_SYNCHRONOUS       = false
-	ROOD_DIR             = "/../../"
+	ROOT_DIR             = "/../../"
 )
 
 func AuthenticationError(v ...interface{}) interface{} {
@@ -325,10 +325,32 @@ func GetTestFilesSync(properties interface{}, ws interface{}) interface{} {
 	return nil
 }
 
-// getTestFiles function to dynamically retrieve test files (stub)
-func GetTestFiles(properties interface{}, ws interface{}) <-chan interface{} {
-	// Dynamically get test files logic (stub)
-	return nil
+// // getTestFiles function to dynamically retrieve test files (stub)
+// func GetTestFiles(properties interface{}, ws interface{}) <-chan interface{} {
+// 	// Dynamically get test files logic (stub)
+// 	return nil
+// }
+
+func GetTestFiles(properties []string, ws bool) map[string]interface{} {
+	testFiles := make(map[string]interface{})
+
+	// for _, key := range properties {
+	// 	var testFilePath string
+	// 	if !ws {
+	// 		testFilePath = filepath.Join(ROOT_DIR, "cs/tests/Generated/Exchange/test."+key+".cs")
+	// 	} else {
+	// 		// testFilePath = filepath.Join(ROOT_DIR, "cs/tests/Generated/Exchange/Ws/test."+key+".cs")
+	// 	}
+
+	// 	if IoFileExists(testFilePath) {
+	// 		methodName := "Test" + strings.Title(key) // Go equivalent to key.Substring(0, 1).ToUpper() + key.Substring(1)
+	// 		method := reflect.ValueOf(&TestMethods{}).MethodByName(methodName)
+	// 		if method.IsValid() {
+	// 			testFiles[key] = method.Interface()
+	// 		}
+	// 	}
+	// }
+	return testFiles
 }
 
 func IsNullValue(value interface{}) bool {
@@ -358,7 +380,7 @@ func GetRootDir() string {
 	if err != nil {
 		return ""
 	}
-	res := dir + ROOD_DIR
+	res := dir + ROOT_DIR
 	return res
 }
 
