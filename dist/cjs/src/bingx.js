@@ -97,7 +97,7 @@ class bingx extends bingx$1 {
             },
             'hostname': 'bingx.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be',
+                'logo': 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api': {
                     'spot': 'https://open-api.{hostname}/openApi',
                     'swap': 'https://open-api.{hostname}/openApi',
@@ -2860,18 +2860,14 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const ordersRequests = [];
-        let symbol = undefined;
+        let orderSymbols = [];
+        if (orders.length > 5) {
+            throw new errors.BadRequest(this.id + ' createOrders() limits max 5 orders in one request');
+        }
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            if (symbol === undefined) {
-                symbol = marketId;
-            }
-            else {
-                if (symbol !== marketId) {
-                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
-                }
-            }
+            orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeNumber(rawOrder, 'amount');
@@ -2880,7 +2876,8 @@ class bingx extends bingx$1 {
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        const market = this.market(symbol);
+        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(orderSymbols[0]);
         const request = {};
         let response = undefined;
         if (market['swap']) {
@@ -2940,6 +2937,13 @@ class bingx extends bingx$1 {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         const data = this.safeDict(response, 'data', {});
         const result = this.safeList(data, 'orders', []);
         return this.parseOrders(result, market);
