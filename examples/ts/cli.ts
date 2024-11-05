@@ -165,7 +165,7 @@ function createRequestTemplate(exchange, methodName, args, result) {
     if (foundDescription !== undefined) {
         final.description = foundDescription;
         log.green('auto-saving static result');
-        add_static_result('response', exchange.id, methodName, final);
+        add_static_result('request', exchange.id, methodName, final);
     }
 }
 
