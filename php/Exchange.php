@@ -1701,7 +1701,7 @@ class Exchange {
     }
 
     public function __destruct() {
-        $this->clean();
+        $this->close();
     }
 
     public function has($feature = null) {
