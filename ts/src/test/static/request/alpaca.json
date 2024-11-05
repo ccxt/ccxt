@@ -231,6 +231,36 @@
                   "BTC"
                 ]
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDT deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch USDT deposits and withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
         ]
     }
 }
