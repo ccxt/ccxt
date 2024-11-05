@@ -338,7 +338,7 @@ export default class bitmex extends Exchange {
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
             const name = this.safeString (currency, 'name');
-            const chains = this.safeValue (currency, 'networks', []);
+            const chains = this.safeList (currency, 'networks', []);
             let depositEnabled = false;
             let withdrawEnabled = false;
             const networks: Dict = {};
@@ -381,7 +381,7 @@ export default class bitmex extends Exchange {
                     },
                 };
             }
-            const currencyEnabled = this.safeValue (currency, 'enabled');
+            const currencyEnabled = this.safeBool (currency, 'enabled');
             const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
             const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
             const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
@@ -625,8 +625,8 @@ export default class bitmex extends Exchange {
         const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
         let contractSize = undefined;
-        const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        const isInverse = this.safeBool (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        const isQuanto = this.safeBool (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         const linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString (market, 'state');
         const active = status !== 'Unlisted';
@@ -2046,7 +2046,7 @@ export default class bitmex extends Exchange {
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
         const response = await this.privateDeleteOrder (this.extend (request, params));
-        const order = this.safeValue (response, 0, {});
+        const order = this.safeDict (response, 0, {});
         const error = this.safeString (order, 'error');
         if (error !== undefined) {
             if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
@@ -2768,7 +2768,7 @@ export default class bitmex extends Exchange {
         //        ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const networksLength = networks.length;
         const result: Dict = {
             'info': fee,
@@ -2940,7 +2940,7 @@ export default class bitmex extends Exchange {
             throw new DDoSProtection (this.id + ' ' + body);
         }
         if (code >= 400) {
-            const error = this.safeValue (response, 'error', {});
+            const error = this.safeDict (response, 'error', {});
             const message = this.safeString (error, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
