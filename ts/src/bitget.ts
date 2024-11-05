@@ -5459,7 +5459,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data');
         if (type === 'spot') {
             if ((marginMode !== undefined) || stop) {
                 const resultList = this.safeList (data, 'orderList', []);
@@ -6231,7 +6231,7 @@ export default class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeValue (response, 'data');
         if ((market['swap']) || (market['future'])) {
             const fillList = this.safeList (data, 'fillList', []);
             return this.parseTrades (fillList, market, since, limit);
