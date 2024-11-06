@@ -2408,7 +2408,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
 
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}) {
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchOHLCVForSymbols() is not supported yet');
     }
 
