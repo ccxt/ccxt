@@ -7,6 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import { Dict, Market } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -131,7 +132,7 @@ export default class ellipx extends Exchange {
                 'api': {
                     'public': 'https://data.ellipx.com',
                     'private': 'https://app.ellipx.com/_rest',
-                    '_rest': 'https://app.ellipx.com',
+                    '_rest': 'https://app.ellipx.com/_rest',
                 },
                 'www': 'https://www.ellipx.com',
                 'doc': 'https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM',
@@ -247,23 +248,18 @@ export default class ellipx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const authentication = this.safeString (api, 0);
-        const type = this.safeString (api, 1);
+        const authentication = api;
         let url = undefined;
         if (authentication === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.uuid ();
             const timestamp = this.seconds ().toString ();
-            // Add required parameters
             params = this.extend ({
                 '_key': this.apiKey,
-                '_nonce': nonce,
                 '_time': timestamp,
+                '_nonce': nonce,
             }, params);
-            // Sort parameters alphabetically
-            const sortedParams = this.keysort (params);
-            const query = this.urlencode (sortedParams);
-            // Create elements for signing
+            const query = this.urlencode (params);
             if (body === undefined) {
                 body = '';
             } else {
@@ -276,13 +272,10 @@ export default class ellipx extends Exchange {
                 query,
                 bodyHash,
             ];
-            // Join elements with null character
             const signString = elements.join ('\x00');
-            // Sign using Ed25519
-            const signature = this.encodeURIComponent (eddsa (this.encode (signString), this.secret, ed25519));
-            // Append signature to params
+            const signature = this.urlencodeBase64 (eddsa (this.encode (signString), this.encode (this.secret).slice (-32), ed25519));
             params['_sign'] = signature;
-            url = this.urls['api'][api] + '/' + type + '/' + path;
+            url = this.urls['api'][api] + '/' + path;
             if (method === 'GET' && Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             } else {
@@ -292,7 +285,7 @@ export default class ellipx extends Exchange {
                 };
             }
         } else {
-            url = this.urls['api'][api] + '/' + type + '/' + path;
+            url = this.urls['api'][api] + '/' + path;
             if (method === 'GET') {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
@@ -305,5 +298,79 @@ export default class ellipx extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this._restGetMarket (params);
+        const request_id = this.safeString (response, 'request_id');
+        if (response.result !== 'success') {
+            throw new ExchangeError ('Failed to fetch markets: ' + request_id);
+        }
+        return this.parseMarkets (response.data);
+    }
+
+    parseMarkets (markets): Market[] {
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
+        }
+        return result;
+    }
+
+    parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'Market__');
+        const baseId = this.safeString (market, 'Primary_Unit__');
+        const quoteId = this.safeString (market, 'Secondary_Unit__');
+        const base = this.safeString (market['Primary'], 'Key');
+        const quote = this.safeString (market['Secondary'], 'Key');
+        const status = this.safeString (market, 'Status') === 'active';
+        const created = this.safeInteger (market['Created'], 'unix');
+        const amountPrecision = this.safeInteger (market['Primary'], 'Decimals');
+        const pricePrecision = this.safeInteger (market['Secondary'], 'Decimals');
+        return {
+            'id': id,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': status,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+            'created': created,
+        };
     }
 }
