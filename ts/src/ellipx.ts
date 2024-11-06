@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Dict, Market } from '../ccxt.js';
+import { Dict, Market, Ticker } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -287,6 +287,10 @@ export default class ellipx extends Exchange {
         } else {
             url = this.urls['api'][api] + '/' + path;
             if (method === 'GET') {
+                if (path.includes ('{currencyPair}') && params['currencyPair']) {
+                    url = url.replace ('{currencyPair}', params['currencyPair']);
+                    delete params['currencyPair'];
+                }
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }
@@ -301,6 +305,20 @@ export default class ellipx extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * Fetches market information from the exchange.
+         * @see https://docs.ccxt.com/en/latest/manual.html#markets
+         * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
+         * @returns {Promise<object[]>} An array of market structures, each containing:
+         *    - {string} id - The market ID in the exchange-specific format
+         *    - {string} symbol - The unified market symbol (e.g., 'BTC/USD')
+         *    - {string} base - The base currency
+         *    - {string} quote - The quote currency
+         *    - {object} limits - The trading limits { amount, price, cost }
+         *    - {object} precision - The price precision by market { amount, price }
+         *    - {boolean} active - True if the market is active, false otherwise
+         * @throws {ExchangeError} If the exchange API request fails or returns error response
+         */
         const response = await this._restGetMarket (params);
         const request_id = this.safeString (response, 'request_id');
         if (response.result !== 'success') {
@@ -372,5 +390,117 @@ export default class ellipx extends Exchange {
             'info': market,
             'created': created,
         };
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name ellipx#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const request = {
+            'currencyPair': marketSymbol,
+        };
+        const response = await this.publicGetMarketCurrencyPairTicker (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "market": "BTC_USDC",
+        //             "ticker": {
+        //                 "time": 1730814600,
+        //                 "count": 2135,
+        //                 "high": {
+        //                     "v": "74766990000",
+        //                     "e": 6,
+        //                     "f": 74766.99
+        //                 },
+        //                 "low": {
+        //                     "v": "68734020000",
+        //                     "e": 6,
+        //                     "f": 68734.02
+        //                 },
+        //                 "avg": {
+        //                     "v": "72347941430",
+        //                     "e": 6,
+        //                     "f": 72347.94143
+        //                 },
+        //                 "vwap": {
+        //                     "v": "73050064447",
+        //                     "e": 6,
+        //                     "f": 73050.064447
+        //                 },
+        //                 "vol": {
+        //                     "v": "4885361",
+        //                     "e": 8,
+        //                     "f": 0.04885361
+        //                 },
+        //                 "secvol": {
+        //                     "v": "3568759346",
+        //                     "e": 6,
+        //                     "f": 3568.759346
+        //                 },
+        //                 "open": {
+        //                     "v": "68784020000",
+        //                     "e": 6,
+        //                     "f": 68784.02
+        //                 },
+        //                 "close": {
+        //                     "v": "73955570000",
+        //                     "e": 6,
+        //                     "f": 73955.57
+        //                 }
+        //             }
+        //         },
+        //         "request_id": "cbf183e0-7a62-4674-838c-6693031fa240",
+        //         "result": "success",
+        //         "time": 0.015463566
+        //     }
+        //
+        if (response['result'] !== 'success') {
+            throw new ExchangeError (this.id + ' fetchTicker() failed: ' + this.json (response));
+        }
+        const ticker = this.safeValue (response['data'], 'ticker', {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const timestamp = this.safeInteger (ticker, 'time') * 1000;
+        const high = this.safeValue (ticker['high'], 'f');
+        const low = this.safeValue (ticker['low'], 'f');
+        const avg = this.safeValue (ticker['avg'], 'f');
+        const vwap = this.safeValue (ticker['vwap'], 'f');
+        const baseVolume = this.safeValue (ticker['vol'], 'f');
+        const quoteVolume = this.safeValue (ticker['secvol'], 'f');
+        const open = this.safeValue (ticker['open'], 'f');
+        const close = this.safeValue (ticker['close'], 'f');
+        // const count = this.safeInteger (ticker, 'count'); not used
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (undefined, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': avg,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
     }
 }
