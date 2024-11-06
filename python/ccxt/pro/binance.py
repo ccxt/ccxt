@@ -1819,7 +1819,7 @@ class binance(ccxt.async_support.binance):
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             firstMarket = self.market(symbols[0])
-        defaultMarket = 'swap' if (isMarkPrice) else None
+        defaultMarket = 'swap' if (isMarkPrice) else 'spot'
         marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
