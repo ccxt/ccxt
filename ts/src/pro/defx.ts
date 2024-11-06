@@ -209,27 +209,15 @@ export default class defx extends defxRest {
             const errorMsg = this.safeString (message, 'msg');
             throw new ExchangeError (this.id + ' ' + errorMsg);
         }
-        const topic = this.safeString (message, 'topic');
-        if (topic !== undefined) {
-            const parts = topic.split (':');
-            const topicId = this.safeString (parts, 2);
+        const event = this.safeString (message, 'event');
+        if (event !== undefined) {
             const methods: Dict = {
                 'ohlc': this.handleOHLCV,
                 '24hrTicker': this.handleTicker,
             };
-            const exacMethod = this.safeValue (methods, topicId);
+            const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
                 exacMethod.call (this, client, message);
-                return;
-            }
-            const keys = Object.keys (methods);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                if (topic.indexOf (keys[i]) >= 0) {
-                    const method = methods[key];
-                    method.call (this, client, message);
-                    return;
-                }
             }
         }
     }
