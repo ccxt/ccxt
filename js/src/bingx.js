@@ -4588,37 +4588,21 @@ export default class bingx extends Exchange {
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
-        //     {
-        //         "coinId": "799",
-        //         "coin": "USDT",
-        //         "network": "BEP20",
-        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag": ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        let address = this.safeString(depositAddress, 'address');
         const tag = this.safeString(depositAddress, 'tag');
         const currencyId = this.safeString(depositAddress, 'coin');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the address to the user
-        // that is only if the underlying contract address has the 0x prefix as well
-        const networkCode = this.safeString(depositAddress, 'network');
-        if (networkCode !== undefined) {
-            if (networkCode in currency['networks']) {
-                const network = currency['networks'][networkCode];
-                const contractAddress = this.safeString(network['info'], 'contractAddress');
-                if (contractAddress !== undefined) {
-                    if (contractAddress[0] === '0' && contractAddress[1] === 'x') {
-                        if (address[0] !== '0' || address[1] !== 'x') {
-                            address = '0x' + address;
-                        }
-                    }
-                }
-            }
-        }
+        const address = this.safeString(depositAddress, 'addressWithPrefix');
+        const networkdId = this.safeString(depositAddress, 'network');
+        const networkCode = this.networkIdToCode(networkdId, code);
         this.checkAddress(address);
         return {
             'info': depositAddress,

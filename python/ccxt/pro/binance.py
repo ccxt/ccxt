@@ -1359,7 +1359,7 @@ class binance(ccxt.async_support.binance):
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -1819,7 +1819,7 @@ class binance(ccxt.async_support.binance):
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             firstMarket = self.market(symbols[0])
-        defaultMarket = 'swap' if (isMarkPrice) else 'spot'
+        defaultMarket = 'swap' if (isMarkPrice) else None
         marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)

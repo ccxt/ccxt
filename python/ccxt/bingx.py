@@ -4305,32 +4305,21 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
-        #     {
-        #         "coinId": "799",
-        #         "coin": "USDT",
-        #         "network": "BEP20",
-        #         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        #         "tag": ''
-        #     }
+        # {
+        #     "coinId":"4",
+        #     "coin":"USDT",
+        #     "network":"OMNI",
+        #     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        #     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        # }
         #
-        address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'tag')
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        # the exchange API returns deposit addresses without the leading '0x' prefix
-        # however, the exchange API does require the 0x prefix to withdraw
-        # so we append the prefix before returning the address to the user
-        # that is only if the underlying contract address has the 0x prefix
-        networkCode = self.safe_string(depositAddress, 'network')
-        if networkCode is not None:
-            if networkCode in currency['networks']:
-                network = currency['networks'][networkCode]
-                contractAddress = self.safe_string(network['info'], 'contractAddress')
-                if contractAddress is not None:
-                    if contractAddress[0] == '0' and contractAddress[1] == 'x':
-                        if address[0] != '0' or address[1] != 'x':
-                            address = '0x' + address
+        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        networkdId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkdId, code)
         self.check_address(address)
         return {
             'info': depositAddress,

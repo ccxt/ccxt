@@ -4494,37 +4494,21 @@ class bingx extends Exchange {
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
-        //     {
-        //         "coinId" => "799",
-        //         "coin" => "USDT",
-        //         "network" => "BEP20",
-        //         "address" => "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag" => ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the $address to the user
-        // that is only if the underlying contract $address has the 0x prefix
-        $networkCode = $this->safe_string($depositAddress, 'network');
-        if ($networkCode !== null) {
-            if (is_array($currency['networks']) && array_key_exists($networkCode, $currency['networks'])) {
-                $network = $currency['networks'][$networkCode];
-                $contractAddress = $this->safe_string($network['info'], 'contractAddress');
-                if ($contractAddress !== null) {
-                    if ($contractAddress[0] === '0' && $contractAddress[1] === 'x') {
-                        if ($address[0] !== '0' || $address[1] !== 'x') {
-                            $address = '0x' . $address;
-                        }
-                    }
-                }
-            }
-        }
+        $address = $this->safe_string($depositAddress, 'addressWithPrefix');
+        $networkdId = $this->safe_string($depositAddress, 'network');
+        $networkCode = $this->network_id_to_code($networkdId, $code);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,

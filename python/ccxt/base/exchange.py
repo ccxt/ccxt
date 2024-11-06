@@ -2447,8 +2447,14 @@ class Exchange(object):
     def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
+    def un_watch_trades(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
+
     def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    def un_watch_trades_for_symbols(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' unWatchTradesForSymbols() is not supported yet')
 
     def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
@@ -2459,8 +2465,14 @@ class Exchange(object):
     def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
+    def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+        raise NotSupported(self.id + ' unWatchOHLCVForSymbols() is not supported yet')
+
     def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
+
+    def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
+        raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
 
     def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -2491,6 +2503,9 @@ class Exchange(object):
 
     def watch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
+
+    def un_watch_order_book(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchOrderBook() is not supported yet')
 
     def fetch_time(self, params={}):
         raise NotSupported(self.id + ' fetchTime() is not supported yet')
@@ -4570,6 +4585,9 @@ class Exchange(object):
 
     def watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchTickers() is not supported yet')
+
+    def un_watch_tickers(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchTickers() is not supported yet')
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')

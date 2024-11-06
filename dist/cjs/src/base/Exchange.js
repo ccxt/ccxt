@@ -2036,8 +2036,14 @@ class Exchange {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTrades() is not supported yet');
     }
+    async unWatchTrades(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTrades() is not supported yet');
+    }
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTradesForSymbols() is not supported yet');
     }
     async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchMyTradesForSymbols() is not supported yet');
@@ -2048,8 +2054,14 @@ class Exchange {
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOHLCVForSymbols() is not supported yet');
+    }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOrderBookForSymbols() is not supported yet');
     }
     async fetchDepositAddresses(codes = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchDepositAddresses() is not supported yet');
@@ -2086,6 +2098,9 @@ class Exchange {
     }
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchOrderBook() is not supported yet');
+    }
+    async unWatchOrderBook(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchOrderBook() is not supported yet');
     }
     async fetchTime(params = {}) {
         throw new errors.NotSupported(this.id + ' fetchTime() is not supported yet');
@@ -4514,6 +4529,9 @@ class Exchange {
     }
     async watchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchTickers() is not supported yet');
+    }
+    async unWatchTickers(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');

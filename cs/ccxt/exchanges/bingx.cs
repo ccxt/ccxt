@@ -4336,42 +4336,21 @@ public partial class bingx : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
-        //     {
-        //         "coinId": "799",
-        //         "coin": "USDT",
-        //         "network": "BEP20",
-        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag": ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        object address = this.safeString(depositAddress, "address");
         object tag = this.safeString(depositAddress, "tag");
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the address to the user
-        // that is only if the underlying contract address has the 0x prefix as well
-        object networkCode = this.safeString(depositAddress, "network");
-        if (isTrue(!isEqual(networkCode, null)))
-        {
-            if (isTrue(inOp(getValue(currency, "networks"), networkCode)))
-            {
-                object network = getValue(getValue(currency, "networks"), networkCode);
-                object contractAddress = this.safeString(getValue(network, "info"), "contractAddress");
-                if (isTrue(!isEqual(contractAddress, null)))
-                {
-                    if (isTrue(isTrue(isEqual(getValue(contractAddress, 0), "0")) && isTrue(isEqual(getValue(contractAddress, 1), "x"))))
-                    {
-                        if (isTrue(isTrue(!isEqual(getValue(address, 0), "0")) || isTrue(!isEqual(getValue(address, 1), "x"))))
-                        {
-                            address = add("0x", address);
-                        }
-                    }
-                }
-            }
-        }
+        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object networkdId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkdId, code);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },

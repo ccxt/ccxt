@@ -1972,7 +1972,7 @@ class binance extends binance$1 {
         if (symbolsDefined) {
             firstMarket = this.market(symbols[0]);
         }
-        const defaultMarket = (isMarkPrice) ? 'swap' : 'spot';
+        const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
         [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);

@@ -214,7 +214,7 @@ public partial class okx : ccxt.okx
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -249,7 +249,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -512,7 +512,7 @@ public partial class okx : ccxt.okx
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
-    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -1098,7 +1098,7 @@ public partial class okx : ccxt.okx
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         /**
         * @method
@@ -1297,7 +1297,7 @@ public partial class okx : ccxt.okx
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -1357,7 +1357,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method

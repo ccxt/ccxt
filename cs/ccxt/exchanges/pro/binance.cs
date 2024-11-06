@@ -708,7 +708,7 @@ public partial class binance : ccxt.binance
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -772,7 +772,7 @@ public partial class binance : ccxt.binance
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -1220,7 +1220,7 @@ public partial class binance : ccxt.binance
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -1291,7 +1291,7 @@ public partial class binance : ccxt.binance
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -1633,7 +1633,7 @@ public partial class binance : ccxt.binance
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         /**
         * @method
@@ -2056,7 +2056,7 @@ public partial class binance : ccxt.binance
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
-    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -2224,7 +2224,7 @@ public partial class binance : ccxt.binance
         {
             firstMarket = this.market(getValue(symbols, 0));
         }
-        object defaultMarket = ((bool) isTrue((isMarkPrice))) ? "swap" : "spot";
+        object defaultMarket = ((bool) isTrue((isMarkPrice))) ? "swap" : null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
