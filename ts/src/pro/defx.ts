@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -14,7 +14,7 @@ export default class defx extends defxRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTickers': false,
                 'watchBidsAsks': false,
                 'watchTrades': false,
@@ -23,7 +23,7 @@ export default class defx extends defxRest {
                 'watchOrders': false,
                 'watchOrderBook': false,
                 'watchOrderBookForSymbols': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
             },
             'urls': {
@@ -145,6 +145,64 @@ export default class defx extends defxRest {
         client.resolve (ohlcv, messageHash);
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name defx#watchTicker
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'symbol:' + market['id'] + ':24hrTicker';
+        const messageHash = 'ticker:' + symbol;
+        return await this.watchPublic ([ topic ], [ messageHash ], params);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        // {
+        //     "topic": "symbol:BTC_USDC:24hrTicker",
+        //     "event": "24hrTicker",
+        //     "timestamp": 1730862543095,
+        //     "data": {
+        //         "symbol": "BTC_USDC",
+        //         "priceChange": "17114.70000000",
+        //         "priceChangePercent": "29.77",
+        //         "weightedAvgPrice": "6853147668",
+        //         "lastPrice": "74378.90000000",
+        //         "lastQty": "0.107",
+        //         "bestBidPrice": "61987.60000000",
+        //         "bestBidQty": "0.005",
+        //         "bestAskPrice": "84221.60000000",
+        //         "bestAskQty": "0.015",
+        //         "openPrice": "57486.90000000",
+        //         "highPrice": "88942.60000000",
+        //         "lowPrice": "47364.20000000",
+        //         "volume": "28.980",
+        //         "quoteVolume": "1986042.19424035",
+        //         "openTime": 1730776080000,
+        //         "closeTime": 1730862540000,
+        //         "openInterestBase": "67.130",
+        //         "openInterestQuote": "5008005.40800000"
+        //     }
+        // }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const parsedTicker = this.parseTicker (data);
+        const symbol = parsedTicker['symbol'];
+        const timestamp = this.safeInteger (message, 'timestamp');
+        parsedTicker['timestamp'] = timestamp;
+        parsedTicker['datetime'] = this.iso8601 (timestamp);
+        this.tickers[symbol] = parsedTicker;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeString (message, 'code');
         if (error !== undefined) {
@@ -157,6 +215,7 @@ export default class defx extends defxRest {
             const topicId = this.safeString (parts, 2);
             const methods: Dict = {
                 'ohlc': this.handleOHLCV,
+                '24hrTicker': this.handleTicker,
             };
             const exacMethod = this.safeValue (methods, topicId);
             if (exacMethod !== undefined) {
