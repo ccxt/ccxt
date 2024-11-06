@@ -2860,10 +2860,14 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const ordersRequests = [];
-        const marketIds = [];
+        let orderSymbols = [];
+        if (orders.length > 5) {
+            throw new errors.BadRequest(this.id + ' createOrders() limits max 5 orders in one request');
+        }
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
+            orderSymbols.push(marketId);
             const type = this.safeString(rawOrder, 'type');
             marketIds.push(marketId);
             const side = this.safeString(rawOrder, 'side');
@@ -2873,9 +2877,8 @@ class bingx extends bingx$1 {
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        const symbols = this.marketSymbols(marketIds, undefined, false, true, true);
-        const symbolsLength = symbols.length;
-        const market = this.market(symbols[0]);
+        orderSymbols = this.marketSymbols(orderSymbols, undefined, false, true, true);
+        const market = this.market(orderSymbols[0]);
         const request = {};
         let response = undefined;
         if (market['swap']) {
