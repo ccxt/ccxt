@@ -978,7 +978,7 @@ export default class okx extends okxRest {
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
         /**
          * @method
          * @name okx#watchOHLCVForSymbols

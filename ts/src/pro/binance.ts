@@ -1490,7 +1490,7 @@ export default class binance extends binanceRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}) {
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         /**
          * @method
          * @name binance#unWatchOHLCVForSymbols
