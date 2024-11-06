@@ -29,6 +29,7 @@ public partial class wavesexchange
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -147,6 +148,7 @@ public partial class wavesexchange
     /// create a trade order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

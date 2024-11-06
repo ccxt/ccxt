@@ -604,6 +604,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1285,6 +1286,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#createOrder
          * @description create a trade order
+         * @see https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
