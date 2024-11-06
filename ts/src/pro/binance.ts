@@ -2008,7 +2008,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
-        const defaultMarket = (isMarkPrice) ? 'swap' : 'spot';
+        const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
