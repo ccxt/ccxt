@@ -72,4 +72,33 @@ type IExchange interface {
 	FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{}
 	SetFetchResponse(fetchResponse interface{})
 	Init(params map[string]interface{})
+	FetchDeposits(optionalArgs ...interface{}) <-chan interface{}
+	Milliseconds() int64
+	ParseNumber(v interface{}, a ...interface{}) interface{}
+	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	ParseTimeframe(timeframe interface{}) interface{}
+	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
+	FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrders(optionalArgs ...interface{}) <-chan interface{}
+	SafeCurrency(currencyId interface{}, optionalArgs ...interface{}) interface{}
+	Parse8601(datetime2 interface{}) interface{}
+	Iso8601(ts2 interface{}) interface{}
+	FetchPositions(optionalArgs ...interface{}) <-chan interface{}
+	FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{}
+	FetchTransactions(optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{}
+	FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchTradingFees(optionalArgs ...interface{}) <-chan interface{}
+	FetchLedger(optionalArgs ...interface{}) <-chan interface{}
+	ArrayConcat(aa, bb interface{}) interface{}
+	FetchAccounts(optionalArgs ...interface{}) <-chan interface{}
+	FetchBorrowInterest(optionalArgs ...interface{}) <-chan interface{}
+	FetchL2OrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
+	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
 }
