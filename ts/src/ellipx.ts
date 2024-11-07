@@ -469,17 +469,24 @@ export default class ellipx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    parseAmount (amount: Dict): number {
+        const v = this.safeString (amount, 'v');
+        const e = this.safeInteger (amount, 'e');
+        const v_int = parseInt (v);
+        return v_int * Math.pow (10, -e);
+    }
+
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'time') * 1000;
-        const high = this.safeValue (ticker['high'], 'f');
-        const low = this.safeValue (ticker['low'], 'f');
-        const avg = this.safeValue (ticker['avg'], 'f');
-        const vwap = this.safeValue (ticker['vwap'], 'f');
-        const baseVolume = this.safeValue (ticker['vol'], 'f');
-        const quoteVolume = this.safeValue (ticker['secvol'], 'f');
-        const open = this.safeValue (ticker['open'], 'f');
-        const close = this.safeValue (ticker['close'], 'f');
-        // const count = this.safeInteger (ticker, 'count'); not used
+        const high = this.parseAmount (this.safeValue (ticker, 'high', {}));
+        const low = this.parseAmount (this.safeValue (ticker, 'low', {}));
+        const avg = this.parseAmount (this.safeValue (ticker, 'avg', {}));
+        const vwap = this.parseAmount (this.safeValue (ticker, 'vwap', {}));
+        const baseVolume = this.parseAmount (this.safeValue (ticker, 'vol', {}));
+        const quoteVolume = this.parseAmount (this.safeValue (ticker, 'secvol', {}));
+        const open = this.parseAmount (this.safeValue (ticker, 'open', {}));
+        const close = this.parseAmount (this.safeValue (ticker, 'close', {}));
+        // const count = this.safeInteger(ticker, 'count'); not used
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
             'timestamp': timestamp,
