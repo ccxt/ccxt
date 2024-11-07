@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, IndexType, Market, Ticker, OrderBook } from '../ccxt.js';
+import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -85,7 +85,7 @@ export default class ellipx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
@@ -612,6 +612,80 @@ export default class ellipx extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         } as any;
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name ellipx#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market, default will return the last 24h period.
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the API endpoint
+         * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const methodName = 'fetchOHLCV';
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const time_frame = this.safeString (this.timeframes, timeframe, undefined);
+        if (time_frame === undefined) {
+            throw new ExchangeError (this.id + ' fetchOHLCV() does not support timeframe ' + timeframe);
+        }
+        const request: Dict = {
+            'currencyPair': marketSymbol,
+            'interval': time_frame,
+        };
+        if (since !== undefined) {
+            request['start'] = Math.floor (since / 1000);
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        // {
+        //     "data": {
+        //         "market": "BTC_USDC",
+        //         "real_end": 1730970780,
+        //         "requested_end": 1730970784,
+        //         "start": 1730884200,
+        //         "stats": [
+        //             {
+        //                 "time": 1730884200,
+        //                 "count": 48,
+        //                 "high": {"v": "73898950000", "e": 6, "f": 73898.95},
+        //                 "low": {"v": "73642930000", "e": 6, "f": 73642.93},
+        //                 "open": {"v": "73830990000", "e": 6, "f": 73830.99},
+        //                 "close": {"v": "73682510000", "e": 6, "f": 73682.51},
+        //                 "vol": {"v": "88159", "e": 8, "f": 0.00088159}
+        //             }
+        //         ]
+        //     }
+        // }
+        // No limit parameter supported by the API
+        const response = await this.publicGetMarketCurrencyPairGetGraph (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const ohlcv = this.safeValue (data, 'stats', []);
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'time') * 1000,  // timestamp
+            this.parseAmount (ohlcv['open']),      // open
+            this.parseAmount (ohlcv['high']),      // high
+            this.parseAmount (ohlcv['low']),       // low
+            this.parseAmount (ohlcv['close']),     // close
+            this.parseAmount (ohlcv['vol']),       // volume
+        ];
     }
 
     parseAmount (amount: Dict): number {
