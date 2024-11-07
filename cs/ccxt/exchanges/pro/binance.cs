@@ -4197,13 +4197,6 @@ public partial class binance : ccxt.binance
             market = this.getMarketFromSymbols(symbols);
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object marketTypeObject = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(market, null)))
-        {
-            ((IDictionary<string,object>)marketTypeObject)["type"] = getValue(market, "type");
-            ((IDictionary<string,object>)marketTypeObject)["subType"] = getValue(market, "subType");
-        }
-        await this.authenticate(this.extend(marketTypeObject, parameters));
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -4223,6 +4216,10 @@ public partial class binance : ccxt.binance
         {
             type = "delivery";
         }
+        object marketTypeObject = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)marketTypeObject)["type"] = type;
+        ((IDictionary<string,object>)marketTypeObject)["subType"] = subType;
+        await this.authenticate(this.extend(marketTypeObject, parameters));
         messageHash = add(add(type, ":positions"), messageHash);
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
