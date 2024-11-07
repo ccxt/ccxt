@@ -2,8 +2,8 @@
 
 import defxRest from '../defx.js';
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, OHLCV, Dict, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -17,7 +17,7 @@ export default class defx extends defxRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchBidsAsks': false,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
@@ -35,8 +35,8 @@ export default class defx extends defxRest {
                 },
                 'api': {
                     'ws': {
-                        'public': 'wss://stream.testnet.defx.com/pricefeed', // ??
-                        'private': 'wss://ws.testnet.defx.com/user', // ??
+                        'public': 'wss://marketfeed.api.defx.com/pricefeed',
+                        'private': 'wss://userfeed.api.defx.com/user', // 404
                     },
                 },
             },
@@ -203,6 +203,57 @@ export default class defx extends defxRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name defx#watchTrades
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'symbol:' + market['id'] + ':trades';
+        const messageHash = 'trade:' + symbol;
+        const trades = await this.watchPublic ([ topic ], [ messageHash ], params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        // {
+        //     "topic": "symbol:SOL_USDC:trades",
+        //     "event": "trades",
+        //     "timestamp": 1730967426331,
+        //     "data": {
+        //         "buyerMaker": true,
+        //         "price": "188.38700000",
+        //         "qty": "1.00",
+        //         "symbol": "SOL_USDC",
+        //         "timestamp": 1730967426328
+        //     }
+        // }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const parsedTrade = this.parseTrade (data);
+        const symbol = parsedTrade['symbol'];
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            const stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
+        }
+        const trades = this.trades[symbol];
+        trades.append (parsedTrade);
+        const messageHash = 'trade:' + symbol;
+        client.resolve (trades, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeString (message, 'code');
         if (error !== undefined) {
@@ -214,6 +265,7 @@ export default class defx extends defxRest {
             const methods: Dict = {
                 'ohlc': this.handleOHLCV,
                 '24hrTicker': this.handleTicker,
+                'trades': this.handleTrades,
             };
             const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
