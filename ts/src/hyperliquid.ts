@@ -877,7 +877,7 @@ export default class hyperliquid extends Exchange {
         ];
     }
 
-    async fetchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hyperliquid#fetchTrades
