@@ -11,6 +11,7 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     _restGetMarket (params?: {}): Promise<implicitReturnType>;
     _restGetMarketCurrencyPair (params?: {}): Promise<implicitReturnType>;
+    _restGetCryptoTokenInfo (params?: {}): Promise<implicitReturnType>;
     publicGetMarketCurrencyPairGetDepth (params?: {}): Promise<implicitReturnType>;
     publicGetMarketCurrencyPairTicker (params?: {}): Promise<implicitReturnType>;
     publicGetMarketCurrencyPairGetTrades (params?: {}): Promise<implicitReturnType>;
@@ -23,7 +24,6 @@ interface Exchange {
     privateGetUnitCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetCryptoTokenCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetCryptoTokenCurrencyChains (params?: {}): Promise<implicitReturnType>;
-    privateGetCryptoTokenInfo (params?: {}): Promise<implicitReturnType>;
     privatePostMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
     privatePostCryptoAddressFetch (params?: {}): Promise<implicitReturnType>;
     privatePostCryptoDisbursementWithdraw (params?: {}): Promise<implicitReturnType>;

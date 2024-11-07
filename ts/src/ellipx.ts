@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Dict, Market, Ticker } from '../ccxt.js';
+import { Int, Dict, IndexType, Market, Ticker, OrderBook } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -144,6 +144,7 @@ export default class ellipx extends Exchange {
                     'get': {
                         'Market': 1,
                         'Market/{currencyPair}': 1,
+                        'Crypto/Token/Info': 1,
                     },
                 },
                 'public': {
@@ -164,7 +165,6 @@ export default class ellipx extends Exchange {
                         'Unit/{currency}': 1,
                         'Crypto/Token/{currency}': 1,
                         'Crypto/Token/{currency}:chains': 1,
-                        'Crypto/Token/Info': 1,
                     },
                     'post': {
                         'Market/{currencyPair}/Order': 1,
@@ -469,23 +469,16 @@ export default class ellipx extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseAmount (amount: Dict): number {
-        const v = this.safeString (amount, 'v');
-        const e = this.safeInteger (amount, 'e');
-        const v_int = parseInt (v);
-        return v_int * Math.pow (10, -e);
-    }
-
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'time') * 1000;
-        const high = this.parseAmount (this.safeValue (ticker, 'high', {}));
-        const low = this.parseAmount (this.safeValue (ticker, 'low', {}));
-        const avg = this.parseAmount (this.safeValue (ticker, 'avg', {}));
-        const vwap = this.parseAmount (this.safeValue (ticker, 'vwap', {}));
-        const baseVolume = this.parseAmount (this.safeValue (ticker, 'vol', {}));
-        const quoteVolume = this.parseAmount (this.safeValue (ticker, 'secvol', {}));
-        const open = this.parseAmount (this.safeValue (ticker, 'open', {}));
-        const close = this.parseAmount (this.safeValue (ticker, 'close', {}));
+        const open = this.parseAmount (this.safeValue (ticker, 'open', undefined));
+        const high = this.parseAmount (this.safeValue (ticker, 'high', undefined));
+        const low = this.parseAmount (this.safeValue (ticker, 'low', undefined));
+        const close = this.parseAmount (this.safeValue (ticker, 'close', undefined));
+        const avg = this.parseAmount (this.safeValue (ticker, 'avg', undefined));
+        const vwap = this.parseAmount (this.safeValue (ticker, 'vwap', undefined));
+        const baseVolume = this.parseAmount (this.safeValue (ticker, 'vol', undefined));
+        const quoteVolume = this.parseAmount (this.safeValue (ticker, 'secvol', undefined));
         // const count = this.safeInteger(ticker, 'count'); not used
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
@@ -509,5 +502,122 @@ export default class ellipx extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name ellipx#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return the exchange not supported yet.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const request = {
+            'currencyPair': marketSymbol,
+        };
+        const response = await this.publicGetMarketCurrencyPairGetDepth (this.extend (request, params));
+        // {
+        //     "data": {
+        //         "asks": [
+        //             {
+        //                 "price": {
+        //                     "v": "74941875231",
+        //                     "e": 6,
+        //                     "f": 74941.875231
+        //                 },
+        //                 "amount": {
+        //                     "v": "149",
+        //                     "e": 8,
+        //                     "f": 0.00000149
+        //                 }
+        //             },
+        //             {
+        //                 "price": {
+        //                     "v": "75063426037",
+        //                     "e": 6,
+        //                     "f": 75063.426037
+        //                 },
+        //                 "amount": {
+        //                     "v": "335",
+        //                     "e": 8,
+        //                     "f": 0.00000335
+        //                 }
+        //             }
+        //         ],
+        //         "bids": [
+        //             {
+        //                 "price": {
+        //                     "v": "64518711040",
+        //                     "e": 6,
+        //                     "f": 64518.71104
+        //                 },
+        //                 "amount": {
+        //                     "v": "132",
+        //                     "e": 8,
+        //                     "f": 0.00000132
+        //                 }
+        //             },
+        //             {
+        //                 "price": {
+        //                     "v": "64263569273",
+        //                     "e": 6,
+        //                     "f": 64263.569273
+        //                 },
+        //                 "amount": {
+        //                     "v": "210",
+        //                     "e": 8,
+        //                     "f": 0.0000021
+        //                 }
+        //             }
+        //         ],
+        //         "market": "BTC_USDC"
+        //     },
+        //     "request_id": "71b7dffc-3120-4e46-a0bb-49ece5aea7e1",
+        //     "result": "success",
+        //     "time": 0.000074661
+        // }
+        if (response['result'] !== 'success') {
+            throw new ExchangeError (this.id + ' fetchOrderBook() failed: ' + this.json (response));
+        }
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = undefined;
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+    }
+
+    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        bidasks = this.toArray (bidasks);
+        const result = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            const price = this.parseAmount (this.safeValue (bidasks[i], priceKey, undefined));
+            const amount = this.parseAmount (this.safeValue (bidasks[i], amountKey, undefined));
+            const bidAsk = [ price, amount ];
+            result.push (bidAsk);
+        }
+        return result;
+    }
+
+    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'amount', countOrIdKey: IndexType = 2): OrderBook {
+        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
+        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
+        return {
+            'symbol': symbol,
+            'bids': this.sortBy (bids, 0, true),
+            'asks': this.sortBy (asks, 0),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as any;
+    }
+
+    parseAmount (amount: Dict): number {
+        const v = this.safeString (amount, 'v');
+        const e = this.safeInteger (amount, 'e');
+        const v_int = parseInt (v);
+        return v_int * Math.pow (10, -e);
     }
 }
