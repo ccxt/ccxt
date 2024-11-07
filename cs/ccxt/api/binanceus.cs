@@ -3196,6 +3196,21 @@ public partial class binanceus : binance
         return await this.callAsync ("eapiPrivateGetOrder",parameters);
     }
 
+    public async Task<object> eapiPrivateGetBlockOrderOrders (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockOrderOrders",parameters);
+    }
+
+    public async Task<object> eapiPrivateGetBlockOrderExecute (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockOrderExecute",parameters);
+    }
+
+    public async Task<object> eapiPrivateGetBlockUserTrades (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetBlockUserTrades",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -3231,9 +3246,24 @@ public partial class binanceus : binance
         return await this.callAsync ("eapiPrivatePostCountdownCancelAllHeartBeat",parameters);
     }
 
+    public async Task<object> eapiPrivatePostBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePostBlockOrderCreate",parameters);
+    }
+
+    public async Task<object> eapiPrivatePostBlockOrderExecute (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePostBlockOrderExecute",parameters);
+    }
+
     public async Task<object> eapiPrivatePutListenKey (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePutListenKey",parameters);
+    }
+
+    public async Task<object> eapiPrivatePutBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivatePutBlockOrderCreate",parameters);
     }
 
     public async Task<object> eapiPrivateDeleteOrder (object parameters = null)
@@ -3259,6 +3289,11 @@ public partial class binanceus : binance
     public async Task<object> eapiPrivateDeleteListenKey (object parameters = null)
     {
         return await this.callAsync ("eapiPrivateDeleteListenKey",parameters);
+    }
+
+    public async Task<object> eapiPrivateDeleteBlockOrderCreate (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateDeleteBlockOrderCreate",parameters);
     }
 
     public async Task<object> publicGetPing (object parameters = null)

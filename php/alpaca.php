@@ -1352,19 +1352,19 @@ class alpaca extends Exchange {
         $response = $this->traderPrivatePostV2WalletsTransfers ($this->extend($request, $params));
         //
         //     {
-        //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash" => "string",
-        //         "direction" => "INCOMING",
+        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash" => null,
+        //         "direction" => "OUTGOING",
+        //         "amount" => "20",
+        //         "usd_value" => "19.99856",
+        //         "chain" => "ETH",
+        //         "asset" => "USDT",
+        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status" => "PROCESSING",
-        //         "amount" => "string",
-        //         "usd_value" => "string",
-        //         "network_fee" => "string",
-        //         "fees" => "string",
-        //         "chain" => "string",
-        //         "asset" => "string",
-        //         "from_address" => "string",
-        //         "to_address" => "string",
-        //         "created_at" => "2024-11-02T07:42:48.402Z"
+        //         "created_at" => "2024-11-07T02:39:01.775495Z",
+        //         "network_fee" => "4",
+        //         "fees" => "0.1"
         //     }
         //
         return $this->parse_transaction($response, $currency);
@@ -1379,19 +1379,19 @@ class alpaca extends Exchange {
         $response = $this->traderPrivateGetV2WalletsTransfers ($params);
         //
         //     {
-        //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash" => "string",
-        //         "direction" => "INCOMING",
+        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash" => null,
+        //         "direction" => "OUTGOING",
+        //         "amount" => "20",
+        //         "usd_value" => "19.99856",
+        //         "chain" => "ETH",
+        //         "asset" => "USDT",
+        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status" => "PROCESSING",
-        //         "amount" => "string",
-        //         "usd_value" => "string",
-        //         "network_fee" => "string",
-        //         "fees" => "string",
-        //         "chain" => "string",
-        //         "asset" => "string",
-        //         "from_address" => "string",
-        //         "to_address" => "string",
-        //         "created_at" => "2024-11-02T07:42:48.402Z"
+        //         "created_at" => "2024-11-07T02:39:01.775495Z",
+        //         "network_fee" => "4",
+        //         "fees" => "0.1"
         //     }
         //
         $results = array();
@@ -1400,7 +1400,7 @@ class alpaca extends Exchange {
             $direction = $this->safe_string($entry, 'direction');
             if ($direction === $type) {
                 $results[] = $entry;
-            } elseif ($direction === 'BOTH') {
+            } elseif ($type === 'BOTH') {
                 $results[] = $entry;
             }
         }
@@ -1449,26 +1449,29 @@ class alpaca extends Exchange {
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
-        //         "id" => "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash" => "string",
-        //         "direction" => "INCOMING",
+        //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash" => null,
+        //         "direction" => "OUTGOING",
+        //         "amount" => "20",
+        //         "usd_value" => "19.99856",
+        //         "chain" => "ETH",
+        //         "asset" => "USDT",
+        //         "from_address" => "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address" => "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status" => "PROCESSING",
-        //         "amount" => "string",
-        //         "usd_value" => "string",
-        //         "network_fee" => "string",
-        //         "fees" => "string",
-        //         "chain" => "string",
-        //         "asset" => "string",
-        //         "from_address" => "string",
-        //         "to_address" => "string",
-        //         "created_at" => "2024-11-02T07:42:48.402Z"
+        //         "created_at" => "2024-11-07T02:39:01.775495Z",
+        //         "network_fee" => "4",
+        //         "fees" => "0.1"
         //     }
         //
         $datetime = $this->safe_string($transaction, 'created_at');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $fees = $this->safe_string($transaction, 'fees');
+        $networkFee = $this->safe_string($transaction, 'network_fee');
+        $totalFee = Precise::string_add($fees, $networkFee);
         $fee = array(
-            'cost' => $this->safe_number($transaction, 'fees'),
+            'cost' => $this->parse_number($totalFee),
             'currency' => $code,
         );
         return array(
@@ -1498,8 +1501,8 @@ class alpaca extends Exchange {
     public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PROCESSING' => 'pending',
-            // 'FAILED' => 'failed',
-            // 'SUCCESS' => 'ok',
+            'FAILED' => 'failed',
+            'COMPLETE' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }

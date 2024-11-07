@@ -1,6 +1,7 @@
 'use strict';
 
 var alpaca$1 = require('./abstract/alpaca.js');
+var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
@@ -1369,19 +1370,19 @@ class alpaca extends alpaca$1 {
         const response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, params));
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1395,19 +1396,19 @@ class alpaca extends alpaca$1 {
         const response = await this.traderPrivateGetV2WalletsTransfers(params);
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         const results = [];
@@ -1417,7 +1418,7 @@ class alpaca extends alpaca$1 {
             if (direction === type) {
                 results.push(entry);
             }
-            else if (direction === 'BOTH') {
+            else if (type === 'BOTH') {
                 results.push(entry);
             }
         }
@@ -1468,26 +1469,29 @@ class alpaca extends alpaca$1 {
     parseTransaction(transaction, currency = undefined) {
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         const datetime = this.safeString(transaction, 'created_at');
         const currencyId = this.safeString(transaction, 'asset');
         const code = this.safeCurrencyCode(currencyId, currency);
+        const fees = this.safeString(transaction, 'fees');
+        const networkFee = this.safeString(transaction, 'network_fee');
+        const totalFee = Precise["default"].stringAdd(fees, networkFee);
         const fee = {
-            'cost': this.safeNumber(transaction, 'fees'),
+            'cost': this.parseNumber(totalFee),
             'currency': code,
         };
         return {
@@ -1516,8 +1520,8 @@ class alpaca extends alpaca$1 {
     parseTransactionStatus(status) {
         const statuses = {
             'PROCESSING': 'pending',
-            // 'FAILED': 'failed',
-            // 'SUCCESS': 'ok',
+            'FAILED': 'failed',
+            'COMPLETE': 'ok',
         };
         return this.safeString(statuses, status, status);
     }

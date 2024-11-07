@@ -594,6 +594,9 @@ interface Exchange {
     eapiPrivateGetMmp (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetOrder (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockOrderOrders (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockOrderExecute (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockUserTrades (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey (params?: {}): Promise<implicitReturnType>;
@@ -601,12 +604,16 @@ interface Exchange {
     eapiPrivatePostMmpReset (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostCountdownCancelAll (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostCountdownCancelAllHeartBeat (params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePostBlockOrderCreate (params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePostBlockOrderExecute (params?: {}): Promise<implicitReturnType>;
     eapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePutBlockOrderCreate (params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteBatchOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteAllOpenOrdersByUnderlying (params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteListenKey (params?: {}): Promise<implicitReturnType>;
+    eapiPrivateDeleteBlockOrderCreate (params?: {}): Promise<implicitReturnType>;
     publicGetPing (params?: {}): Promise<implicitReturnType>;
     publicGetTime (params?: {}): Promise<implicitReturnType>;
     publicGetDepth (params?: {}): Promise<implicitReturnType>;

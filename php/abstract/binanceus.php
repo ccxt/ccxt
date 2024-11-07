@@ -1918,6 +1918,15 @@ abstract class binanceus extends \ccxt\binance {
     public function eapiprivate_get_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function eapiprivate_get_block_order_orders($params = array()) {
+        return $this->request('block/order/orders', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_block_order_execute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_block_user_trades($params = array()) {
+        return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1939,8 +1948,17 @@ abstract class binanceus extends \ccxt\binance {
     public function eapiprivate_post_countdowncancelallheartbeat($params = array()) {
         return $this->request('countdownCancelAllHeartBeat', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function eapiprivate_post_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_post_block_order_execute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function eapiprivate_put_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function eapiprivate_delete_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -1956,6 +1974,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function eapiprivate_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function eapiprivate_delete_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function public_get_ping($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -4297,6 +4318,15 @@ abstract class binanceus extends \ccxt\binance {
     public function eapiPrivateGetOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function eapiPrivateGetBlockOrderOrders($params = array()) {
+        return $this->request('block/order/orders', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetBlockOrderExecute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetBlockUserTrades($params = array()) {
+        return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4318,8 +4348,17 @@ abstract class binanceus extends \ccxt\binance {
     public function eapiPrivatePostCountdownCancelAllHeartBeat($params = array()) {
         return $this->request('countdownCancelAllHeartBeat', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function eapiPrivatePostBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivatePostBlockOrderExecute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function eapiPrivatePutBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function eapiPrivateDeleteOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -4335,6 +4374,9 @@ abstract class binanceus extends \ccxt\binance {
     }
     public function eapiPrivateDeleteListenKey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function eapiPrivateDeleteBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));

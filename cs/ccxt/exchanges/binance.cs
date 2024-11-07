@@ -987,6 +987,9 @@ public partial class binance : Exchange
                         { "mmp", 1 },
                         { "countdownCancelAll", 1 },
                         { "order", 1 },
+                        { "block/order/orders", 5 },
+                        { "block/order/execute", 5 },
+                        { "block/user-trades", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -996,9 +999,12 @@ public partial class binance : Exchange
                         { "mmpReset", 1 },
                         { "countdownCancelAll", 1 },
                         { "countdownCancelAllHeartBeat", 10 },
+                        { "block/order/create", 5 },
+                        { "block/order/execute", 5 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
+                        { "block/order/create", 5 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -1006,6 +1012,7 @@ public partial class binance : Exchange
                         { "allOpenOrders", 1 },
                         { "allOpenOrdersByUnderlying", 1 },
                         { "listenKey", 1 },
+                        { "block/order/create", 5 },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {

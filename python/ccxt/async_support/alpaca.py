@@ -17,6 +17,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class alpaca(Exchange, ImplicitAPI):
@@ -1313,19 +1314,19 @@ class alpaca(Exchange, ImplicitAPI):
         response = await self.traderPrivatePostV2WalletsTransfers(self.extend(request, params))
         #
         #     {
-        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        #         "tx_hash": "string",
-        #         "direction": "INCOMING",
+        #         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        #         "tx_hash": null,
+        #         "direction": "OUTGOING",
+        #         "amount": "20",
+        #         "usd_value": "19.99856",
+        #         "chain": "ETH",
+        #         "asset": "USDT",
+        #         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        #         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         #         "status": "PROCESSING",
-        #         "amount": "string",
-        #         "usd_value": "string",
-        #         "network_fee": "string",
-        #         "fees": "string",
-        #         "chain": "string",
-        #         "asset": "string",
-        #         "from_address": "string",
-        #         "to_address": "string",
-        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #         "created_at": "2024-11-07T02:39:01.775495Z",
+        #         "network_fee": "4",
+        #         "fees": "0.1"
         #     }
         #
         return self.parse_transaction(response, currency)
@@ -1338,19 +1339,19 @@ class alpaca(Exchange, ImplicitAPI):
         response = await self.traderPrivateGetV2WalletsTransfers(params)
         #
         #     {
-        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        #         "tx_hash": "string",
-        #         "direction": "INCOMING",
+        #         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        #         "tx_hash": null,
+        #         "direction": "OUTGOING",
+        #         "amount": "20",
+        #         "usd_value": "19.99856",
+        #         "chain": "ETH",
+        #         "asset": "USDT",
+        #         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        #         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         #         "status": "PROCESSING",
-        #         "amount": "string",
-        #         "usd_value": "string",
-        #         "network_fee": "string",
-        #         "fees": "string",
-        #         "chain": "string",
-        #         "asset": "string",
-        #         "from_address": "string",
-        #         "to_address": "string",
-        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #         "created_at": "2024-11-07T02:39:01.775495Z",
+        #         "network_fee": "4",
+        #         "fees": "0.1"
         #     }
         #
         results = []
@@ -1359,7 +1360,7 @@ class alpaca(Exchange, ImplicitAPI):
             direction = self.safe_string(entry, 'direction')
             if direction == type:
                 results.append(entry)
-            elif direction == 'BOTH':
+            elif type == 'BOTH':
                 results.append(entry)
         return self.parse_transactions(results, currency, since, limit, params)
 
@@ -1402,26 +1403,29 @@ class alpaca(Exchange, ImplicitAPI):
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #     {
-        #         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        #         "tx_hash": "string",
-        #         "direction": "INCOMING",
+        #         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        #         "tx_hash": null,
+        #         "direction": "OUTGOING",
+        #         "amount": "20",
+        #         "usd_value": "19.99856",
+        #         "chain": "ETH",
+        #         "asset": "USDT",
+        #         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        #         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         #         "status": "PROCESSING",
-        #         "amount": "string",
-        #         "usd_value": "string",
-        #         "network_fee": "string",
-        #         "fees": "string",
-        #         "chain": "string",
-        #         "asset": "string",
-        #         "from_address": "string",
-        #         "to_address": "string",
-        #         "created_at": "2024-11-02T07:42:48.402Z"
+        #         "created_at": "2024-11-07T02:39:01.775495Z",
+        #         "network_fee": "4",
+        #         "fees": "0.1"
         #     }
         #
         datetime = self.safe_string(transaction, 'created_at')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
+        fees = self.safe_string(transaction, 'fees')
+        networkFee = self.safe_string(transaction, 'network_fee')
+        totalFee = Precise.string_add(fees, networkFee)
         fee = {
-            'cost': self.safe_number(transaction, 'fees'),
+            'cost': self.parse_number(totalFee),
             'currency': code,
         }
         return {
@@ -1450,8 +1454,8 @@ class alpaca(Exchange, ImplicitAPI):
     def parse_transaction_status(self, status: Str):
         statuses: dict = {
             'PROCESSING': 'pending',
-            # 'FAILED': 'failed',
-            # 'SUCCESS': 'ok',
+            'FAILED': 'failed',
+            'COMPLETE': 'ok',
         }
         return self.safe_string(statuses, status, status)
 

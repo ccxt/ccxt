@@ -1351,19 +1351,19 @@ public partial class alpaca : Exchange
         object response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters));
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         return this.parseTransaction(response, currency);
@@ -1380,19 +1380,19 @@ public partial class alpaca : Exchange
         object response = await this.traderPrivateGetV2WalletsTransfers(parameters);
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         object results = new List<object>() {};
@@ -1403,7 +1403,7 @@ public partial class alpaca : Exchange
             if (isTrue(isEqual(direction, type)))
             {
                 ((IList<object>)results).Add(entry);
-            } else if (isTrue(isEqual(direction, "BOTH")))
+            } else if (isTrue(isEqual(type, "BOTH")))
             {
                 ((IList<object>)results).Add(entry);
             }
@@ -1466,26 +1466,29 @@ public partial class alpaca : Exchange
     {
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         object datetime = this.safeString(transaction, "created_at");
         object currencyId = this.safeString(transaction, "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
+        object fees = this.safeString(transaction, "fees");
+        object networkFee = this.safeString(transaction, "network_fee");
+        object totalFee = Precise.stringAdd(fees, networkFee);
         object fee = new Dictionary<string, object>() {
-            { "cost", this.safeNumber(transaction, "fees") },
+            { "cost", this.parseNumber(totalFee) },
             { "currency", code },
         };
         return new Dictionary<string, object>() {
@@ -1516,6 +1519,8 @@ public partial class alpaca : Exchange
     {
         object statuses = new Dictionary<string, object>() {
             { "PROCESSING", "pending" },
+            { "FAILED", "failed" },
+            { "COMPLETE", "ok" },
         };
         return this.safeString(statuses, status, status);
     }

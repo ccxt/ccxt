@@ -957,6 +957,9 @@ class binance extends Exchange {
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
                         'order' => 1,
+                        'block/order/orders' => 5,
+                        'block/order/execute' => 5,
+                        'block/user-trades' => 5,
                     ),
                     'post' => array(
                         'order' => 1,
@@ -966,9 +969,12 @@ class binance extends Exchange {
                         'mmpReset' => 1,
                         'countdownCancelAll' => 1,
                         'countdownCancelAllHeartBeat' => 10,
+                        'block/order/create' => 5,
+                        'block/order/execute' => 5,
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                     'delete' => array(
                         'order' => 1,
@@ -976,6 +982,7 @@ class binance extends Exchange {
                         'allOpenOrders' => 1,
                         'allOpenOrdersByUnderlying' => 1,
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                 ),
                 'public' => array(
