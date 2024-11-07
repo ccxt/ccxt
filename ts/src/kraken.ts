@@ -1513,7 +1513,7 @@ export default class kraken extends Exchange {
         //     {
         //         "error": [],
         //         "result": {
-        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' }, // see more examples in "parseOrder"
         //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
@@ -1582,39 +1582,27 @@ export default class kraken extends Exchange {
     parseOrderType (status) {
         const statuses: Dict = {
             'take-profit': 'market',
-            'stop-loss-limit': 'limit',
             'stop-loss': 'market',
+            'stop-loss-limit': 'limit',
             'take-profit-limit': 'limit',
-            'trailing-stop-limit': 'limit',
+            'trailing-stop-limit': 'limit'
         };
         return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
-        // createOrder for regular orders
+        // createOrder
         //
         //     {
-        //         "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         "descr": {
+        //            "order": "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
+        //                     "buy 0.12345678 ETHUSDT @ market" // market order
+        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
+        //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
+        //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
+        //         },
         //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
-        //     }
-        //     {
-        //         "txid": [ "TX_ID_HERE" ],
-        //         "descr": { "order":"buy 0.12345678 ETHEUR @ market" },
-        //     }
-        //
-        //
-        // createOrder for stop orders
-        //
-        //     {
-        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
-        //         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
-        //     }
-        //
-        //
-        //     {
-        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
-        //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         //     }
         //
         // editOrder
@@ -1694,26 +1682,32 @@ export default class kraken extends Exchange {
             orderDescription = this.safeString (order, 'descr');
         }
         let side = undefined;
-        let type = undefined;
+        let rawType = undefined;
         let marketId = undefined;
         let price = undefined;
         let amount = undefined;
-        let stopPrice = undefined;
+        let triggerPrice = undefined;
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
             amount = this.safeString (parts, 1);
             marketId = this.safeString (parts, 2);
-            type = this.safeString (parts, 4);
-            if (type === 'stop') {
-                stopPrice = this.safeString (parts, 6);
+            const part4 = this.safeString (parts, 4);
+            const part5 = this.safeString (parts, 5);
+            if (part4 === 'limit' || part4 === 'market') {
+                rawType = part4; // eg, limit, market
+            } else {
+                rawType = part4 + ' ' + part5; //eg. stop loss, take profit, trailing stop
+            }
+            if (rawType === 'stop loss') {
+                triggerPrice = this.safeString (parts, 6);
                 price = this.safeString (parts, 9);
-            } else if (type === 'limit') {
+            } else if (rawType === 'limit') {
                 price = this.safeString (parts, 5);
             }
         }
         side = this.safeString (description, 'type', side);
-        type = this.safeString (description, 'ordertype', type);
+        rawType = this.safeString (description, 'ordertype', rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString (description, 'pair', marketId);
         const foundMarket = this.findMarketByAltnameOrId (marketId);
         let symbol = undefined;
@@ -1775,15 +1769,22 @@ export default class kraken extends Exchange {
                 trades.push (rawTrade);
             }
         }
-        stopPrice = this.omitZero (this.safeString (order, 'stopprice', stopPrice));
+        triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
-        if (type.startsWith ('take-profit')) {
+        if (rawType.startsWith ('take-profit')) {
             takeProfitPrice = this.safeString (description, 'price');
             price = this.omitZero (this.safeString (description, 'price2'));
-        } else if (type.startsWith ('stop-loss')) {
+        } else if (rawType.startsWith ('stop-loss')) {
             stopLossPrice = this.safeString (description, 'price');
             price = this.omitZero (this.safeString (description, 'price2'));
+        }
+        let finalType = this.parseOrderType (rawType);
+        // unlike from endpoints which provide eg: "take-profit-limit"
+        // for "space-delimited" orders we dont have market/limit suffixes, their format is
+        // eg: `stop loss > limit 123`, so we need to parse them manually
+        if (this.inArray (finalType, [ 'stop loss', 'take profit' ])) {
+            finalType = (price === undefined) ? 'market' : 'limit';
         }
         return this.safeOrder ({
             'id': id,
@@ -1794,13 +1795,13 @@ export default class kraken extends Exchange {
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': this.parseOrderType (type),
+            'type': finalType,
             'timeInForce': undefined,
             'postOnly': isPostOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': takeProfitPrice,
             'stopLossPrice': stopLossPrice,
             'cost': undefined,
