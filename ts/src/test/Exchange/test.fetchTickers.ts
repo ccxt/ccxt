@@ -7,6 +7,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
     // const withoutSymbol = testFetchTickersHelper (exchange, skippedProperties, undefined);
     // const withSymbol = testFetchTickersHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ testFetchTickersHelper (exchange, skippedProperties, undefined), testFetchTickersHelper (exchange, skippedProperties, [ symbol ]) ]);
+    return true;
 }
 
 async function testFetchTickersHelper (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
