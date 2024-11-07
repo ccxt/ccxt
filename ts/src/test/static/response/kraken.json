@@ -60,6 +60,68 @@
                   "lastUpdateTimestamp": null,
                   "reduceOnly": null
                 }
+            },
+            
+            {
+                "description": "spot buy limit stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  30,
+                  {
+                    "stopLossPrice": 29
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "txid": [
+                      "OUIQHF-XPTAD-REOASH"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ stop loss 29.00000 -> limit 30.00000"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "id": "OUIQHF-XPTAD-REOASH",
+                  "clientOrderId": null,
+                  "info": {
+                    "txid": [
+                      "OUIQHF-XPTAD-REOASH"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ stop loss 29.00000 -> limit 30.00000"
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "LTC/USDT",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": 30,
+                  "stopPrice": 29,
+                  "triggerPrice": 29,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null,
+                  "cost": null,
+                  "amount": 0.1,
+                  "filled": null,
+                  "average": null,
+                  "remaining": null,
+                  "reduceOnly": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null
+                }
             }
         ],
         "fetchOrder": [
