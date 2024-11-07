@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/alpaca.js';
+import { Precise } from './base/Precise.js';
 import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, InsufficientFunds, InvalidOrder, RateLimitExceeded, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction } from './base/types.js';
@@ -1387,19 +1388,19 @@ export default class alpaca extends Exchange {
         const response = await this.traderPrivatePostV2WalletsTransfers (this.extend (request, params));
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         return this.parseTransaction (response, currency);
@@ -1414,19 +1415,19 @@ export default class alpaca extends Exchange {
         const response = await this.traderPrivateGetV2WalletsTransfers (params);
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         const results = [];
@@ -1435,7 +1436,7 @@ export default class alpaca extends Exchange {
             const direction = this.safeString (entry, 'direction');
             if (direction === type) {
                 results.push (entry);
-            } else if (direction === 'BOTH') {
+            } else if (type === 'BOTH') {
                 results.push (entry);
             }
         }
@@ -1490,26 +1491,29 @@ export default class alpaca extends Exchange {
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
-        //         "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-        //         "tx_hash": "string",
-        //         "direction": "INCOMING",
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
         //         "status": "PROCESSING",
-        //         "amount": "string",
-        //         "usd_value": "string",
-        //         "network_fee": "string",
-        //         "fees": "string",
-        //         "chain": "string",
-        //         "asset": "string",
-        //         "from_address": "string",
-        //         "to_address": "string",
-        //         "created_at": "2024-11-02T07:42:48.402Z"
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
         //     }
         //
         const datetime = this.safeString (transaction, 'created_at');
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
+        const fees = this.safeString (transaction, 'fees');
+        const networkFee = this.safeString (transaction, 'network_fee');
+        const totalFee = Precise.stringAdd (fees, networkFee);
         const fee = {
-            'cost': this.safeNumber (transaction, 'fees'),
+            'cost': this.parseNumber (totalFee),
             'currency': code,
         };
         return {
@@ -1539,8 +1543,8 @@ export default class alpaca extends Exchange {
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PROCESSING': 'pending',
-            // 'FAILED': 'failed',
-            // 'SUCCESS': 'ok',
+            'FAILED': 'failed',
+            'COMPLETE': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
