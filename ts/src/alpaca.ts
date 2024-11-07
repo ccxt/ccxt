@@ -1436,7 +1436,7 @@ export default class alpaca extends Exchange {
             const direction = this.safeString (entry, 'direction');
             if (direction === type) {
                 results.push (entry);
-            } else if (direction === 'BOTH') {
+            } else if (type === 'BOTH') {
                 results.push (entry);
             }
         }
@@ -1543,8 +1543,8 @@ export default class alpaca extends Exchange {
     parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'PROCESSING': 'pending',
-            // 'FAILED': 'failed',
-            // 'SUCCESS': 'ok',
+            'FAILED': 'failed',
+            'COMPLETE': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
