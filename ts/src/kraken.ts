@@ -1771,16 +1771,22 @@ export default class kraken extends Exchange {
                 trades.push (rawTrade);
             }
         }
-        triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
+        // as mentioned in #24192 PR, this field is not something consistent/actual
+        // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
-        // the below strings are not provided from createOrder, but from fetch methods
+        // the dashed strings are not provided from fields (eg. fetch order)
+        // while spaced strings from "order" sentence (when other fields not available)
         if (rawType.startsWith ('take-profit')) {
             takeProfitPrice = this.safeString (description, 'price');
             price = this.omitZero (this.safeString (description, 'price2'));
         } else if (rawType.startsWith ('stop-loss')) {
             stopLossPrice = this.safeString (description, 'price');
             price = this.omitZero (this.safeString (description, 'price2'));
+        } else if (rawType === 'take profit') {
+            takeProfitPrice = triggerPrice;
+        } else if (rawType === 'stop loss') {
+            stopLossPrice = triggerPrice;
         }
         let finalType = this.parseOrderType (rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
