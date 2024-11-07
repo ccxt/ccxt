@@ -97,6 +97,7 @@ import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
 import cryptocom from  './src/cryptocom.js'
+import cube from  './src/cube.js'
 import currencycom from  './src/currencycom.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
@@ -191,6 +192,7 @@ import coincheckPro from  './src/pro/coincheck.js'
 import coinexPro from  './src/pro/coinex.js'
 import coinonePro from  './src/pro/coinone.js'
 import cryptocomPro from  './src/pro/cryptocom.js'
+import cubePro from  './src/pro/cube.js'
 import currencycomPro from  './src/pro/currencycom.js'
 import deribitPro from  './src/pro/deribit.js'
 import exmoPro from  './src/pro/exmo.js'
@@ -284,6 +286,7 @@ const exchanges = {
     'coinsph':                coinsph,
     'coinspot':               coinspot,
     'cryptocom':              cryptocom,
+    'cube':                   cube,
     'currencycom':            currencycom,
     'delta':                  delta,
     'deribit':                deribit,
@@ -378,6 +381,7 @@ const pro = {
     'coinex':                 coinexPro,
     'coinone':                coinonePro,
     'cryptocom':              cryptocomPro,
+    'cube':                   cubePro,
     'currencycom':            currencycomPro,
     'deribit':                deribitPro,
     'exmo':                   exmoPro,
@@ -610,6 +614,7 @@ export {
     coinsph,
     coinspot,
     cryptocom,
+    cube,
     currencycom,
     delta,
     deribit,

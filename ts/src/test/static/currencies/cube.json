@@ -1,0 +1,4719 @@
+{
+  "TBTC": {
+    "info": {
+      "assetId": "80001",
+      "symbol": "tBTC",
+      "decimals": "8",
+      "displayDecimals": "5",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "101",
+      "metadata": {
+        "currencyName": "Bitcoin",
+        "dustAmount": "3000",
+        "marketCapRank": "1",
+        "snapshotPrice": "65814",
+        "supply": "19672262.0",
+        "totalSupply": "21000000.0"
+      },
+      "status": "1"
+    },
+    "id": "tbtc",
+    "numericId": 80001,
+    "code": "TBTC",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Bitcoin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "101": {
+        "id": "101"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "GDAI": {
+    "info": {
+      "assetId": "80004",
+      "symbol": "gDAI",
+      "decimals": "18",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "102",
+      "metadata": {
+        "contract": "0x11fE4B6AE13d2a6055C8D9cF65c55bac32B5d844",
+        "dustAmount": "0",
+        "erc2612": true
+      },
+      "status": "1"
+    },
+    "id": "gdai",
+    "numericId": 80004,
+    "code": "GDAI",
+    "precision": 18,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "102": {
+        "id": "102"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TSOL": {
+    "info": {
+      "assetId": "80005",
+      "symbol": "tSOL",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Solana",
+        "dustAmount": "0",
+        "marketCapRank": "5",
+        "snapshotPrice": "188.25",
+        "supply": "444818407.824076",
+        "totalSupply": "573200373.590041"
+      },
+      "status": "1"
+    },
+    "id": "tsol",
+    "numericId": 80005,
+    "code": "TSOL",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Solana",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TUSDT": {
+    "info": {
+      "assetId": "80006",
+      "symbol": "tUSDT",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Tether",
+        "dustAmount": "0",
+        "marketCapRank": "3",
+        "mint": "4fbqNVEtzs23rdNQy13JPo35sfBtahWbN3RXYUGhPG43",
+        "snapshotPrice": "0.999415",
+        "supply": "105280728305.684",
+        "totalSupply": "105280728305.684"
+      },
+      "status": "1"
+    },
+    "id": "tusdt",
+    "numericId": 80006,
+    "code": "TUSDT",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Tether",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TUSDC": {
+    "info": {
+      "assetId": "80007",
+      "symbol": "tUSDC",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet USD Coin",
+        "marketCapRank": "6",
+        "mint": "BD3N3usiKUecAMRcnQJMaoZXG7RzaxeN58Qqkd3oNKrb",
+        "snapshotPrice": "0.999092",
+        "supply": "32916477604.7047",
+        "totalSupply": "32954990224.5619"
+      },
+      "status": "1"
+    },
+    "id": "tusdc",
+    "numericId": 80007,
+    "code": "TUSDC",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Testnet USD Coin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TBONK": {
+    "info": {
+      "assetId": "80008",
+      "symbol": "tBONK",
+      "decimals": "5",
+      "displayDecimals": "0",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Bonk",
+        "marketCapRank": "77",
+        "mint": "tbnk8damomMMHndrR86ArqsrS6tZSXCZjgY9cUQHhCa",
+        "snapshotPrice": "0.00002313",
+        "supply": "66005979466532.67",
+        "totalSupply": "93412427212981.39"
+      },
+      "status": "1"
+    },
+    "id": "tbonk",
+    "numericId": 80008,
+    "code": "TBONK",
+    "precision": 5,
+    "type": "crypto",
+    "name": "Bonk",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TRNDR": {
+    "info": {
+      "assetId": "80009",
+      "symbol": "tRNDR",
+      "decimals": "8",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Render Token",
+        "marketCapRank": "38",
+        "mint": "t9WnW8nnXVKFrU3gDQoE76RWQd7cfQSJxsJ1TTXQeWJ",
+        "snapshotPrice": "9.5",
+        "supply": "381860659.292815",
+        "totalSupply": "39121399.00891889"
+      },
+      "status": "1"
+    },
+    "id": "trndr",
+    "numericId": 80009,
+    "code": "TRNDR",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Render Token",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "THNT": {
+    "info": {
+      "assetId": "80010",
+      "symbol": "tHNT",
+      "decimals": "8",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Helium",
+        "marketCapRank": "118",
+        "mint": "taERUjVzEp25c91FE7qSEtjTBau9CwtGbCYF5h2fGig",
+        "snapshotPrice": "5.56",
+        "supply": "163223905.052253",
+        "totalSupply": "163223903.25812936"
+      },
+      "status": "1"
+    },
+    "id": "thnt",
+    "numericId": 80010,
+    "code": "THNT",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Helium",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TPYTH": {
+    "info": {
+      "assetId": "80011",
+      "symbol": "tPYTH",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Pyth Network",
+        "marketCapRank": "89",
+        "mint": "t11D4tSLiMXcQ84h5tvxpeGQjUJCQQvGjTo494uThyA",
+        "snapshotPrice": "0.880606",
+        "supply": "1500000000.0",
+        "totalSupply": "9999989197.869976"
+      },
+      "status": "1"
+    },
+    "id": "tpyth",
+    "numericId": 80011,
+    "code": "TPYTH",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Pyth Network",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TGMT": {
+    "info": {
+      "assetId": "80012",
+      "symbol": "tGMT",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "GMT",
+        "marketCapRank": "167",
+        "mint": "t12DyHWoAgFoYhhFssakx2s3n4GhmCQeNmruH7NLCpx",
+        "snapshotPrice": "0.304553",
+        "supply": "1854226838.01081",
+        "totalSupply": "2104509126.2157993"
+      },
+      "status": "1"
+    },
+    "id": "tgmt",
+    "numericId": 80012,
+    "code": "TGMT",
+    "precision": 9,
+    "type": "crypto",
+    "name": "GMT",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TEURC": {
+    "info": {
+      "assetId": "80013",
+      "symbol": "tEURC",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Euro Coin",
+        "marketCapRank": "711",
+        "mint": "t13EJVvnHMZwaas3oirLFbU1iURngvZL6hcnhrtEEhR",
+        "snapshotPrice": "1.072",
+        "supply": "51262697.5174238",
+        "totalSupply": "40020368.483721"
+      },
+      "status": "1"
+    },
+    "id": "teurc",
+    "numericId": 80013,
+    "code": "TEURC",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Euro Coin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "THONEY": {
+    "info": {
+      "assetId": "80014",
+      "symbol": "tHONEY",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Hivemapper",
+        "marketCapRank": "402",
+        "mint": "t14rNcAipQqvNYyneAaEHfeWCJF8gy29MJQFsnGnhNv",
+        "snapshotPrice": "0.136049",
+        "supply": "1072505407.20436",
+        "totalSupply": "6269607350.283389"
+      },
+      "status": "1"
+    },
+    "id": "thoney",
+    "numericId": 80014,
+    "code": "THONEY",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Hivemapper",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TMOBILE": {
+    "info": {
+      "assetId": "80015",
+      "symbol": "tMOBILE",
+      "decimals": "6",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Helium Mobile",
+        "marketCapRank": "272",
+        "mint": "t15SQ3RGnj5QTzFjetdwtoTR6W5bnBUWY1jH4AB7R71",
+        "snapshotPrice": "0.00313964",
+        "supply": "86365472507.209",
+        "totalSupply": "86365472507.20895"
+      },
+      "status": "1"
+    },
+    "id": "tmobile",
+    "numericId": 80015,
+    "code": "TMOBILE",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Helium Mobile",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TJTO": {
+    "info": {
+      "assetId": "80016",
+      "symbol": "tJTO",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Jito",
+        "marketCapRank": "162",
+        "mint": "t16HmxFaMYw5v6bQM4oNgLuCTUFnUKFCoM2PzSWXMZk",
+        "snapshotPrice": "5.1",
+        "supply": "117197247.0",
+        "totalSupply": "999999970.3067443"
+      },
+      "status": "1"
+    },
+    "id": "tjto",
+    "numericId": 80016,
+    "code": "TJTO",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Jito",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TMNDE": {
+    "info": {
+      "assetId": "80017",
+      "symbol": "tMNDE",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Marinade",
+        "marketCapRank": "564",
+        "mint": "t17K6vBgguHjRtKvsXkFPwxmx5zj2zVuXByhPP3S9Ej",
+        "snapshotPrice": "0.323455",
+        "supply": "262470133.0",
+        "totalSupply": "999999431.9673775"
+      },
+      "status": "1"
+    },
+    "id": "tmnde",
+    "numericId": 80017,
+    "code": "TMNDE",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Marinade",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TMSOL": {
+    "info": {
+      "assetId": "80018",
+      "symbol": "tmSOL",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Marinade Staked SOL",
+        "marketCapRank": "95",
+        "mint": "t18SzDeVMg7DgEzsughNkXfQXMz8ZxHZjWBVeK3dLSA",
+        "snapshotPrice": "223.66",
+        "supply": "5345027.0",
+        "totalSupply": "5345026.633682444"
+      },
+      "status": "1"
+    },
+    "id": "tmsol",
+    "numericId": 80018,
+    "code": "TMSOL",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Marinade Staked SOL",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TJITOSOL": {
+    "info": {
+      "assetId": "80019",
+      "symbol": "tJitoSOL",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Jito Staked SOL",
+        "marketCapRank": null,
+        "mint": "t19ZFdJSXQYmFRCsytQ6sjTJWaTPrGkZBLm1TjgrjiZ",
+        "snapshotPrice": "207.83",
+        "supply": "0.0",
+        "totalSupply": "8553039.924928833"
+      },
+      "status": "1"
+    },
+    "id": "tjitosol",
+    "numericId": 80019,
+    "code": "TJITOSOL",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Jito Staked SOL",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TNEON": {
+    "info": {
+      "assetId": "80020",
+      "symbol": "tNEON",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Neon Labs",
+        "marketCapRank": "549",
+        "mint": "t2abt9ivSRgx1LyDicRHzUDsmQpqFj2chePtFgbivr6",
+        "snapshotPrice": "1.53",
+        "supply": "57698000.0",
+        "totalSupply": "999999976.1962007"
+      },
+      "status": "1"
+    },
+    "id": "tneon",
+    "numericId": 80020,
+    "code": "TNEON",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Neon Labs",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TDOGE": {
+    "info": {
+      "assetId": "80021",
+      "symbol": "tDOGE",
+      "decimals": "8",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "105",
+      "metadata": {
+        "currencyName": "Dogecoin",
+        "marketCapRank": "9",
+        "snapshotPrice": "0.179566",
+        "supply": "143735166383.705",
+        "totalSupply": "143735166383.705"
+      },
+      "status": "1"
+    },
+    "id": "tdoge",
+    "numericId": 80021,
+    "code": "TDOGE",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Dogecoin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "105": {
+        "id": "105"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TIOT": {
+    "info": {
+      "assetId": "80022",
+      "symbol": "tIOT",
+      "decimals": "6",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Helium IOT",
+        "marketCapRank": "946",
+        "mint": "t22Q1YRYJGUDRJPFWRAgBgS24XCBTtYiJhzdL25K3nx",
+        "snapshotPrice": "0.00129301",
+        "supply": "24945703574.9584",
+        "totalSupply": "24945368140.84048"
+      },
+      "status": "1"
+    },
+    "id": "tiot",
+    "numericId": 80022,
+    "code": "TIOT",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Helium IOT",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TORCA": {
+    "info": {
+      "assetId": "80023",
+      "symbol": "tORCA",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Orca",
+        "marketCapRank": "349",
+        "mint": "t23YW1AqgJUVoPMmeFnP6y6pFXiTWWTLiukhNKnbZ8y",
+        "snapshotPrice": "3.79",
+        "supply": "48755979.083503",
+        "totalSupply": "99999784.016828"
+      },
+      "status": "1"
+    },
+    "id": "torca",
+    "numericId": 80023,
+    "code": "TORCA",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Orca",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TRAY": {
+    "info": {
+      "assetId": "80024",
+      "symbol": "tRAY",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Raydium",
+        "marketCapRank": "157",
+        "mint": "t241X2T3dLovgjcyG7qiQC68B9hhKAzdQgk9d9rT5tU",
+        "snapshotPrice": "2.33",
+        "supply": "259770893.843899",
+        "totalSupply": "554999312.453301"
+      },
+      "status": "1"
+    },
+    "id": "tray",
+    "numericId": 80024,
+    "code": "TRAY",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Raydium",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TZBC": {
+    "info": {
+      "assetId": "80025",
+      "symbol": "tZBC",
+      "decimals": "9",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Zebec Protocol",
+        "marketCapRank": "357",
+        "mint": "t25VNQU3bCBiYQum8wNyMZBhmLyzN9U1LQKjpQGhf4p",
+        "snapshotPrice": "0.03420645",
+        "supply": "5088364936.69978",
+        "totalSupply": "9999993078.170395"
+      },
+      "status": "1"
+    },
+    "id": "tzbc",
+    "numericId": 80025,
+    "code": "TZBC",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Zebec Protocol",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TWIF": {
+    "info": {
+      "assetId": "80026",
+      "symbol": "tWIF",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "dogwifhat",
+        "marketCapRank": "33",
+        "mint": "t262vrbqvTVn2RfkRgLxGZsECxdVB1cv79XGyE5KL7C",
+        "snapshotPrice": "3.94",
+        "supply": "998926392.0",
+        "totalSupply": "998906272.82629"
+      },
+      "status": "1"
+    },
+    "id": "twif",
+    "numericId": 80026,
+    "code": "TWIF",
+    "precision": 6,
+    "type": "crypto",
+    "name": "dogwifhat",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TMOUTAI": {
+    "info": {
+      "assetId": "80028",
+      "symbol": "tMOUTAI",
+      "decimals": "6",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Moutai",
+        "marketCapRank": null,
+        "mint": "t28KdxjhSA6FocUPrcn9cdd8zyTT2bUA5XMFz9kSumV",
+        "snapshotPrice": "0.06872",
+        "supply": "0.0",
+        "totalSupply": "696800845.769779"
+      },
+      "status": "1"
+    },
+    "id": "tmoutai",
+    "numericId": 80028,
+    "code": "TMOUTAI",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Moutai",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TGECKO": {
+    "info": {
+      "assetId": "80029",
+      "symbol": "tGECKO",
+      "decimals": "6",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Gecko",
+        "marketCapRank": "1783",
+        "mint": "t299XAtCjXWeWNNhdZb2Yuyq1qMzHirgZsYm12z9Mq8",
+        "snapshotPrice": "0.00008544",
+        "supply": "64367111136.127075",
+        "totalSupply": "98488624930.96466"
+      },
+      "status": "1"
+    },
+    "id": "tgecko",
+    "numericId": 80029,
+    "code": "TGECKO",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Gecko",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TBLZE": {
+    "info": {
+      "assetId": "80030",
+      "symbol": "tBLZE",
+      "decimals": "9",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Blaze",
+        "marketCapRank": null,
+        "mint": "t3aUGmyovVA4fQQZzCibGVRkz9NSKinTSUr4Ub9KcR2",
+        "snapshotPrice": "0.002327",
+        "supply": "0.0",
+        "totalSupply": "9999476484.505516"
+      },
+      "status": "1"
+    },
+    "id": "tblze",
+    "numericId": 80030,
+    "code": "TBLZE",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Blaze",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TBSOL": {
+    "info": {
+      "assetId": "80031",
+      "symbol": "tbSOL",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Blaze Staked SOL",
+        "marketCapRank": null,
+        "mint": "t3196vjXkFxn6XPrHkmVhEd8C2f7zw4H7FuLimDcYdA",
+        "snapshotPrice": "212.17",
+        "supply": "0.0",
+        "totalSupply": "2467140.87470551"
+      },
+      "status": "1"
+    },
+    "id": "tbsol",
+    "numericId": 80031,
+    "code": "TBSOL",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Blaze Staked SOL",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TWEN": {
+    "info": {
+      "assetId": "80032",
+      "symbol": "tWEN",
+      "decimals": "5",
+      "displayDecimals": "0",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Wen",
+        "marketCapRank": "291",
+        "mint": "t3aL1GrtR2cbhhsQnjSbbgWvEduHeciTVdT9CNdZUXL",
+        "snapshotPrice": "0.00034322",
+        "supply": "727715722703.898",
+        "totalSupply": "727715694174.3217"
+      },
+      "status": "1"
+    },
+    "id": "twen",
+    "numericId": 80032,
+    "code": "TWEN",
+    "precision": 5,
+    "type": "crypto",
+    "name": "Wen",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TTAKI": {
+    "info": {
+      "assetId": "80035",
+      "symbol": "tTAKI",
+      "decimals": "9",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Taki Games",
+        "marketCapRank": "916",
+        "mint": "t3acWudhwRXUt7zu4pa4YoRmQqfXwEphB1aQbKsu5Ui",
+        "snapshotPrice": "0.02941108",
+        "supply": "1170868697.16643",
+        "totalSupply": "2699989382.722087"
+      },
+      "status": "1"
+    },
+    "id": "ttaki",
+    "numericId": 80035,
+    "code": "TTAKI",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Taki Games",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TSAMO": {
+    "info": {
+      "assetId": "80036",
+      "symbol": "tSAMO",
+      "decimals": "9",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Samoyedcoin",
+        "marketCapRank": "746",
+        "mint": "t3ag3vvrJ9tGKCJLPbNd7UWcxstjXa2LFjd6nSGpJns",
+        "snapshotPrice": "0.01176718",
+        "supply": "4179998213.0",
+        "totalSupply": "5736524072.680833"
+      },
+      "status": "1"
+    },
+    "id": "tsamo",
+    "numericId": 80036,
+    "code": "TSAMO",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Samoyedcoin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TCROWN": {
+    "info": {
+      "assetId": "80038",
+      "symbol": "tCROWN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Crown by Third Time Games",
+        "marketCapRank": "304",
+        "mint": "t3aooeKSfWWGrHyEtJBn3Us7gty2ni3vjQTx8H9GCDq",
+        "snapshotPrice": "1.56",
+        "supply": "148076923.21",
+        "totalSupply": "249999962.39683574"
+      },
+      "status": "1"
+    },
+    "id": "tcrown",
+    "numericId": 80038,
+    "code": "TCROWN",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Crown by Third Time Games",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TMXM": {
+    "info": {
+      "assetId": "80039",
+      "symbol": "tMXM",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "MixMob",
+        "marketCapRank": "1537",
+        "mint": "t3a2zW51Sj38ScUGyYDj1Nr6txFRnSujscURv8urNud",
+        "snapshotPrice": "0.065242",
+        "supply": "135313035.299995",
+        "totalSupply": "999999828.786918"
+      },
+      "status": "1"
+    },
+    "id": "tmxm",
+    "numericId": 80039,
+    "code": "TMXM",
+    "precision": 6,
+    "type": "crypto",
+    "name": "MixMob",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TLTC": {
+    "info": {
+      "assetId": "80040",
+      "symbol": "tLTC",
+      "decimals": "8",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "107",
+      "metadata": {
+        "currencyName": "Litecoin",
+        "marketCapRank": "22",
+        "snapshotPrice": "98.92",
+        "supply": "74381983.2334713",
+        "totalSupply": "84000000.0"
+      },
+      "status": "1"
+    },
+    "id": "tltc",
+    "numericId": 80040,
+    "code": "TLTC",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Litecoin",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "107": {
+        "id": "107"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TTAO": {
+    "info": {
+      "assetId": "80042",
+      "symbol": "tTAO",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "106",
+      "metadata": {
+        "currencyName": "Bittensor",
+        "marketCapRank": "36",
+        "snapshotPrice": "580.1",
+        "supply": "6531222.0",
+        "totalSupply": "21000000.0"
+      },
+      "status": "1"
+    },
+    "id": "ttao",
+    "numericId": 80042,
+    "code": "TTAO",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Bittensor",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "106": {
+        "id": "106"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TGENE": {
+    "info": {
+      "assetId": "80043",
+      "symbol": "tGENE",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Genopets",
+        "marketCapRank": "1337",
+        "mint": "t3a7328Kmm4wgS1D8TUHmLWJBkBynjZ1xgDuVMusPqu",
+        "snapshotPrice": "0.310977",
+        "supply": "43237068.0",
+        "totalSupply": "99999936.06343803"
+      },
+      "status": "2"
+    },
+    "id": "tgene",
+    "numericId": 80043,
+    "code": "TGENE",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Genopets",
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TPENG": {
+    "info": {
+      "assetId": "80044",
+      "symbol": "tPENG",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Peng",
+        "marketCapRank": "1047",
+        "mint": "t3aHHwLCdCgSeTrMUGNsgBbv1jV8ZAvSKtXi6st2iYv",
+        "snapshotPrice": "0.260684",
+        "supply": "99999960.5",
+        "totalSupply": "99999952.742821"
+      },
+      "status": "2"
+    },
+    "id": "tpeng",
+    "numericId": 80044,
+    "code": "TPENG",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Peng",
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TPONKE": {
+    "info": {
+      "assetId": "80045",
+      "symbol": "tPONKE",
+      "decimals": "9",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "PONKE",
+        "marketCapRank": "983",
+        "mint": "t3anAkpvfMmPBwW69NAGq1wBV37busbXzViuWVvMcA1",
+        "snapshotPrice": "0.06",
+        "supply": "499992603.0",
+        "totalSupply": "555546983.3952658"
+      },
+      "status": "2"
+    },
+    "id": "tponke",
+    "numericId": 80045,
+    "code": "TPONKE",
+    "precision": 9,
+    "type": "crypto",
+    "name": "PONKE",
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "THXD": {
+    "info": {
+      "assetId": "80046",
+      "symbol": "tHXD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "mint": "t3ah1JxAKV1sHHRdriaN93Yk41R7mq8gQECStz3SUtS"
+      },
+      "status": "2"
+    },
+    "id": "thxd",
+    "numericId": 80046,
+    "code": "THXD",
+    "precision": 9,
+    "type": "crypto",
+    "name": null,
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TATOM": {
+    "info": {
+      "assetId": "80047",
+      "symbol": "tATOM",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "108",
+      "metadata": {},
+      "status": "2"
+    },
+    "id": "tatom",
+    "numericId": 80047,
+    "code": "TATOM",
+    "precision": 6,
+    "type": "crypto",
+    "name": null,
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "108": {
+        "id": "108"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TBLOCK": {
+    "info": {
+      "assetId": "80049",
+      "symbol": "tBLOCK",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet Blockasset",
+        "marketCapRank": "965",
+        "mint": "t3aewtBqGe7JLRm6DnZADCmp7yvZo1Pjvhja4gRXskj",
+        "snapshotPrice": "0.118025",
+        "supply": "242692031.0",
+        "totalSupply": "320000000.0"
+      },
+      "status": "1"
+    },
+    "id": "tblock",
+    "numericId": 80049,
+    "code": "TBLOCK",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Testnet Blockasset",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TRUNES": {
+    "info": {
+      "assetId": "80050",
+      "symbol": "tRUNES",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "101",
+      "metadata": {
+        "isRunes": true,
+        "runeId": "2587225:369"
+      },
+      "status": "2"
+    },
+    "id": "trunes",
+    "numericId": 80050,
+    "code": "TRUNES",
+    "precision": 6,
+    "type": "crypto",
+    "name": null,
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "101": {
+        "id": "101"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TPOLIS": {
+    "info": {
+      "assetId": "80051",
+      "symbol": "tPOLIS",
+      "decimals": "8",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet Star Atlas DAO",
+        "marketCapRank": "643",
+        "mint": "t3PesgiwaxHwQjyj6F8c3S2CvAi6BXXPgjhC5PJNiD2",
+        "snapshotPrice": "0.21249",
+        "supply": "248789492.1389",
+        "totalSupply": "360000000.0"
+      },
+      "status": "1"
+    },
+    "id": "tpolis",
+    "numericId": 80051,
+    "code": "TPOLIS",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Testnet Star Atlas DAO",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TSHDW": {
+    "info": {
+      "assetId": "80052",
+      "symbol": "tSHDW",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet Shadow Token",
+        "marketCapRank": "318",
+        "mint": "t3a9PG4pUVjabVKRYMZQr5dwF1zABcMHu725kxi39v5",
+        "snapshotPrice": "1.029",
+        "supply": "160707704.218312",
+        "totalSupply": "169058239.634539"
+      },
+      "status": "2"
+    },
+    "id": "tshdw",
+    "numericId": 80052,
+    "code": "TSHDW",
+    "precision": 9,
+    "type": "crypto",
+    "name": "Testnet Shadow Token",
+    "active": false,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TATLAS": {
+    "info": {
+      "assetId": "80062",
+      "symbol": "tATLAS",
+      "decimals": "8",
+      "displayDecimals": "1",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet Star Atlas",
+        "marketCapRank": "593",
+        "mint": "t3AkQKAtr2KgqWDErmVMRuU1FRtxfFuSHt1ZryroYXE",
+        "snapshotPrice": "0.00386306",
+        "supply": "15787243246.7046",
+        "totalSupply": "36000000000.0"
+      },
+      "status": "1"
+    },
+    "id": "tatlas",
+    "numericId": 80062,
+    "code": "TATLAS",
+    "precision": 8,
+    "type": "crypto",
+    "name": "Testnet Star Atlas",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TAABL": {
+    "info": {
+      "assetId": "80063",
+      "symbol": "tAABL",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "103",
+      "metadata": {
+        "currencyName": "Testnet Abble",
+        "marketCapRank": "0",
+        "mint": "t3a76wSUgKwPZcXaV1URvH1Bc3wpHSvdheRcowckbDn",
+        "snapshotPrice": "0.00508282",
+        "supply": "0.0",
+        "totalSupply": "999924463.96"
+      },
+      "status": "1"
+    },
+    "id": "taabl",
+    "numericId": 80063,
+    "code": "TAABL",
+    "precision": 6,
+    "type": "crypto",
+    "name": "Testnet Abble",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "103": {
+        "id": "103"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TSUI": {
+    "info": {
+      "assetId": "80066",
+      "symbol": "tSUI",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "109",
+      "metadata": {},
+      "status": "1"
+    },
+    "id": "tsui",
+    "numericId": 80066,
+    "code": "TSUI",
+    "precision": 9,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "109": {
+        "id": "109"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TTRX": {
+    "info": {
+      "assetId": "80067",
+      "symbol": "tTRX",
+      "decimals": "6",
+      "displayDecimals": "2",
+      "settles": true,
+      "assetType": "Crypto",
+      "sourceId": "104",
+      "metadata": {},
+      "status": "1"
+    },
+    "id": "ttrx",
+    "numericId": 80067,
+    "code": "TTRX",
+    "precision": 6,
+    "type": "crypto",
+    "name": null,
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "104": {
+        "id": "104"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "USD": {
+    "info": {
+      "assetId": "90000",
+      "symbol": "USD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "US",
+        "countryCodeNumeric": "840",
+        "countryName": "United States",
+        "currencyName": "United States Dollar",
+        "rank": "1"
+      },
+      "status": "1"
+    },
+    "id": "usd",
+    "numericId": 90000,
+    "code": "USD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "United States Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "EUR": {
+    "info": {
+      "assetId": "90001",
+      "symbol": "EUR",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "EU",
+        "countryCodeNumeric": null,
+        "countryName": "European Union",
+        "currencyName": "Euro",
+        "rank": "2"
+      },
+      "status": "1"
+    },
+    "id": "eur",
+    "numericId": 90001,
+    "code": "EUR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Euro",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "JPY": {
+    "info": {
+      "assetId": "90002",
+      "symbol": "JPY",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "JP",
+        "countryCodeNumeric": "392",
+        "countryName": "Japan",
+        "currencyName": "Japanese Yen",
+        "rank": "3"
+      },
+      "status": "1"
+    },
+    "id": "jpy",
+    "numericId": 90002,
+    "code": "JPY",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Japanese Yen",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "GBP": {
+    "info": {
+      "assetId": "90003",
+      "symbol": "GBP",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "GB",
+        "countryCodeNumeric": "826",
+        "countryName": "United Kingdom",
+        "currencyName": "British Pound Sterling",
+        "rank": "4"
+      },
+      "status": "1"
+    },
+    "id": "gbp",
+    "numericId": 90003,
+    "code": "GBP",
+    "precision": 9,
+    "type": "fiat",
+    "name": "British Pound Sterling",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CAD": {
+    "info": {
+      "assetId": "90004",
+      "symbol": "CAD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CA",
+        "countryCodeNumeric": "124",
+        "countryName": "Canada",
+        "currencyName": "Canadian Dollar",
+        "rank": "5"
+      },
+      "status": "1"
+    },
+    "id": "cad",
+    "numericId": 90004,
+    "code": "CAD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Canadian Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "AUD": {
+    "info": {
+      "assetId": "90005",
+      "symbol": "AUD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "AU",
+        "countryCodeNumeric": "036",
+        "countryName": "Australia",
+        "currencyName": "Australian Dollar",
+        "rank": "6"
+      },
+      "status": "1"
+    },
+    "id": "aud",
+    "numericId": 90005,
+    "code": "AUD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Australian Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "NZD": {
+    "info": {
+      "assetId": "90006",
+      "symbol": "NZD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "NZ",
+        "countryCodeNumeric": "554",
+        "countryName": "New Zealand",
+        "currencyName": "New Zealand Dollar",
+        "rank": "16"
+      },
+      "status": "1"
+    },
+    "id": "nzd",
+    "numericId": 90006,
+    "code": "NZD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "New Zealand Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "IDR": {
+    "info": {
+      "assetId": "90007",
+      "symbol": "IDR",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "ID",
+        "countryCodeNumeric": "360",
+        "countryName": "Indonesia",
+        "currencyName": "Indonesian Rupiah",
+        "rank": "26"
+      },
+      "status": "1"
+    },
+    "id": "idr",
+    "numericId": 90007,
+    "code": "IDR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Indonesian Rupiah",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CHF": {
+    "info": {
+      "assetId": "90008",
+      "symbol": "CHF",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CH",
+        "countryCodeNumeric": "756",
+        "countryName": "Switzerland",
+        "currencyName": "Swiss Franc",
+        "rank": "8"
+      },
+      "status": "1"
+    },
+    "id": "chf",
+    "numericId": 90008,
+    "code": "CHF",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Swiss Franc",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "PLN": {
+    "info": {
+      "assetId": "90009",
+      "symbol": "PLN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "PL",
+        "countryCodeNumeric": "608",
+        "countryName": "Poland",
+        "currencyName": "Polish Zloty",
+        "rank": "31"
+      },
+      "status": "1"
+    },
+    "id": "pln",
+    "numericId": 90009,
+    "code": "PLN",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Polish Zloty",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CNY": {
+    "info": {
+      "assetId": "90010",
+      "symbol": "CNY",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CN",
+        "countryCodeNumeric": "156",
+        "countryName": "China",
+        "currencyName": "Chinese Yuan",
+        "rank": "7"
+      },
+      "status": "1"
+    },
+    "id": "cny",
+    "numericId": 90010,
+    "code": "CNY",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Chinese Yuan",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "KRW": {
+    "info": {
+      "assetId": "90011",
+      "symbol": "KRW",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "KR",
+        "countryCodeNumeric": "410",
+        "countryName": "South Korea",
+        "currencyName": "South Korean Won",
+        "rank": "9"
+      },
+      "status": "1"
+    },
+    "id": "krw",
+    "numericId": 90011,
+    "code": "KRW",
+    "precision": 9,
+    "type": "fiat",
+    "name": "South Korean Won",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "MXN": {
+    "info": {
+      "assetId": "90012",
+      "symbol": "MXN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "MX",
+        "countryCodeNumeric": "484",
+        "countryName": "Mexico",
+        "currencyName": "Mexican Peso",
+        "rank": "11"
+      },
+      "status": "1"
+    },
+    "id": "mxn",
+    "numericId": 90012,
+    "code": "MXN",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Mexican Peso",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "VND": {
+    "info": {
+      "assetId": "90013",
+      "symbol": "VND",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "VN",
+        "countryCodeNumeric": "704",
+        "countryName": "Vietnam",
+        "currencyName": "Vietnamese Dong",
+        "rank": "27"
+      },
+      "status": "1"
+    },
+    "id": "vnd",
+    "numericId": 90013,
+    "code": "VND",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Vietnamese Dong",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "AED": {
+    "info": {
+      "assetId": "90014",
+      "symbol": "AED",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "AE",
+        "countryCodeNumeric": "784",
+        "countryName": "United Arab Emirates",
+        "currencyName": "United Arab Emirates Dirham",
+        "rank": "15"
+      },
+      "status": "1"
+    },
+    "id": "aed",
+    "numericId": 90014,
+    "code": "AED",
+    "precision": 9,
+    "type": "fiat",
+    "name": "United Arab Emirates Dirham",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "INR": {
+    "info": {
+      "assetId": "90015",
+      "symbol": "INR",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "IN",
+        "countryCodeNumeric": "356",
+        "countryName": "India",
+        "currencyName": "Indian Rupee",
+        "rank": "10"
+      },
+      "status": "1"
+    },
+    "id": "inr",
+    "numericId": 90015,
+    "code": "INR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Indian Rupee",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "BRL": {
+    "info": {
+      "assetId": "90016",
+      "symbol": "BRL",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "BR",
+        "countryCodeNumeric": "076",
+        "countryName": "Brazil",
+        "currencyName": "Brazilian Real",
+        "rank": "17"
+      },
+      "status": "1"
+    },
+    "id": "brl",
+    "numericId": 90016,
+    "code": "BRL",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Brazilian Real",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "ARS": {
+    "info": {
+      "assetId": "90017",
+      "symbol": "ARS",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "AR",
+        "countryCodeNumeric": "032",
+        "countryName": "Argentina",
+        "currencyName": "Argentine Peso",
+        "rank": "32"
+      },
+      "status": "1"
+    },
+    "id": "ars",
+    "numericId": 90017,
+    "code": "ARS",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Argentine Peso",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "EGP": {
+    "info": {
+      "assetId": "90018",
+      "symbol": "EGP",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "EG",
+        "countryCodeNumeric": "818",
+        "countryName": "Egypt",
+        "currencyName": "Egyptian Pound",
+        "rank": "33"
+      },
+      "status": "1"
+    },
+    "id": "egp",
+    "numericId": 90018,
+    "code": "EGP",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Egyptian Pound",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "ZAR": {
+    "info": {
+      "assetId": "90019",
+      "symbol": "ZAR",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "ZA",
+        "countryCodeNumeric": "710",
+        "countryName": "South Africa",
+        "currencyName": "South African Rand",
+        "rank": "18"
+      },
+      "status": "1"
+    },
+    "id": "zar",
+    "numericId": 90019,
+    "code": "ZAR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "South African Rand",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "NGN": {
+    "info": {
+      "assetId": "90020",
+      "symbol": "NGN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "NG",
+        "countryCodeNumeric": "566",
+        "countryName": "Nigeria",
+        "currencyName": "Nigerian Naira",
+        "rank": "34"
+      },
+      "status": "1"
+    },
+    "id": "ngn",
+    "numericId": 90020,
+    "code": "NGN",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Nigerian Naira",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "HKD": {
+    "info": {
+      "assetId": "90021",
+      "symbol": "HKD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "HK",
+        "countryCodeNumeric": "344",
+        "countryName": "Hong Kong",
+        "currencyName": "Hong Kong Dollar",
+        "rank": "12"
+      },
+      "status": "1"
+    },
+    "id": "hkd",
+    "numericId": 90021,
+    "code": "HKD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Hong Kong Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "AOA": {
+    "info": {
+      "assetId": "90022",
+      "symbol": "AOA",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "AO",
+        "countryCodeNumeric": "024",
+        "countryName": "Angola",
+        "currencyName": "Angolan Kwanza",
+        "rank": "48"
+      },
+      "status": "1"
+    },
+    "id": "aoa",
+    "numericId": 90022,
+    "code": "AOA",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Angolan Kwanza",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "BGN": {
+    "info": {
+      "assetId": "90023",
+      "symbol": "BGN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "BG",
+        "countryCodeNumeric": "100",
+        "countryName": "Bulgaria",
+        "currencyName": "Bulgaria Lev",
+        "rank": "35"
+      },
+      "status": "1"
+    },
+    "id": "bgn",
+    "numericId": 90023,
+    "code": "BGN",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Bulgaria Lev",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CLP": {
+    "info": {
+      "assetId": "90024",
+      "symbol": "CLP",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CL",
+        "countryCodeNumeric": "152",
+        "countryName": "Chile",
+        "currencyName": "Chilean Peso",
+        "rank": "36"
+      },
+      "status": "1"
+    },
+    "id": "clp",
+    "numericId": 90024,
+    "code": "CLP",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Chilean Peso",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CNH": {
+    "info": {
+      "assetId": "90025",
+      "symbol": "CNH",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": null,
+        "countryCodeNumeric": null,
+        "countryName": "China (offshore)",
+        "currencyName": "Chinese Yuan offshore",
+        "rank": "37"
+      },
+      "status": "1"
+    },
+    "id": "cnh",
+    "numericId": 90025,
+    "code": "CNH",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Chinese Yuan offshore",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "COP": {
+    "info": {
+      "assetId": "90026",
+      "symbol": "COP",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CO",
+        "countryCodeNumeric": "170",
+        "countryName": "Columbia",
+        "currencyName": "Colombian Peso",
+        "rank": "38"
+      },
+      "status": "1"
+    },
+    "id": "cop",
+    "numericId": 90026,
+    "code": "COP",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Colombian Peso",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "CZK": {
+    "info": {
+      "assetId": "90027",
+      "symbol": "CZK",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "CZ",
+        "countryCodeNumeric": "203",
+        "countryName": "Czech Republic",
+        "currencyName": "Czech Koruna",
+        "rank": "39"
+      },
+      "status": "1"
+    },
+    "id": "czk",
+    "numericId": 90027,
+    "code": "CZK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Czech Koruna",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "DKK": {
+    "info": {
+      "assetId": "90028",
+      "symbol": "DKK",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "DK",
+        "countryCodeNumeric": "308",
+        "countryName": "Denmark",
+        "currencyName": "Danish Krone",
+        "rank": "24"
+      },
+      "status": "1"
+    },
+    "id": "dkk",
+    "numericId": 90028,
+    "code": "DKK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Danish Krone",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "HRK": {
+    "info": {
+      "assetId": "90029",
+      "symbol": "HRK",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "HR",
+        "countryCodeNumeric": "191",
+        "countryName": "Croatia",
+        "currencyName": "Croatian Kuna",
+        "rank": "40"
+      },
+      "status": "1"
+    },
+    "id": "hrk",
+    "numericId": 90029,
+    "code": "HRK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Croatian Kuna",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "HUF": {
+    "info": {
+      "assetId": "90030",
+      "symbol": "HUF",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "HU",
+        "countryCodeNumeric": "348",
+        "countryName": "Hungaria",
+        "currencyName": "Hungarian Forint",
+        "rank": "41"
+      },
+      "status": "1"
+    },
+    "id": "huf",
+    "numericId": 90030,
+    "code": "HUF",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Hungarian Forint",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "ILS": {
+    "info": {
+      "assetId": "90031",
+      "symbol": "ILS",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "IL",
+        "countryCodeNumeric": "376",
+        "countryName": "Israel",
+        "currencyName": "Israeli New Sheqel",
+        "rank": "25"
+      },
+      "status": "1"
+    },
+    "id": "ils",
+    "numericId": 90031,
+    "code": "ILS",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Israeli New Sheqel",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "ISK": {
+    "info": {
+      "assetId": "90032",
+      "symbol": "ISK",
+      "decimals": "9",
+      "displayDecimals": "0",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "IS",
+        "countryCodeNumeric": "352",
+        "countryName": "Iceland",
+        "currencyName": "Icelandic Krona",
+        "rank": "42"
+      },
+      "status": "1"
+    },
+    "id": "isk",
+    "numericId": 90032,
+    "code": "ISK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Icelandic Krona",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "KWD": {
+    "info": {
+      "assetId": "90033",
+      "symbol": "KWD",
+      "decimals": "9",
+      "displayDecimals": "3",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "KW",
+        "countryCodeNumeric": "414",
+        "countryName": "Kuwait",
+        "currencyName": "Kuwaiti Dinar",
+        "rank": "43"
+      },
+      "status": "1"
+    },
+    "id": "kwd",
+    "numericId": 90033,
+    "code": "KWD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Kuwaiti Dinar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "MAD": {
+    "info": {
+      "assetId": "90034",
+      "symbol": "MAD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "MA",
+        "countryCodeNumeric": "504",
+        "countryName": "Morocco",
+        "currencyName": "Moroccan Dirham",
+        "rank": "44"
+      },
+      "status": "1"
+    },
+    "id": "mad",
+    "numericId": 90034,
+    "code": "MAD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Moroccan Dirham",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "MYR": {
+    "info": {
+      "assetId": "90035",
+      "symbol": "MYR",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "MY",
+        "countryCodeNumeric": "458",
+        "countryName": "Malaysia",
+        "currencyName": "Malaysian Ringgit",
+        "rank": "14"
+      },
+      "status": "1"
+    },
+    "id": "myr",
+    "numericId": 90035,
+    "code": "MYR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Malaysian Ringgit",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "NOK": {
+    "info": {
+      "assetId": "90036",
+      "symbol": "NOK",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "NO",
+        "countryCodeNumeric": "578",
+        "countryName": "Norway",
+        "currencyName": "Norwegian Krone",
+        "rank": "22"
+      },
+      "status": "1"
+    },
+    "id": "nok",
+    "numericId": 90036,
+    "code": "NOK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Norwegian Krone",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "OMR": {
+    "info": {
+      "assetId": "90037",
+      "symbol": "OMR",
+      "decimals": "9",
+      "displayDecimals": "3",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "OM",
+        "countryCodeNumeric": "512",
+        "countryName": "Oman",
+        "currencyName": "Omani Rial",
+        "rank": "45"
+      },
+      "status": "1"
+    },
+    "id": "omr",
+    "numericId": 90037,
+    "code": "OMR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Omani Rial",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "PEN": {
+    "info": {
+      "assetId": "90038",
+      "symbol": "PEN",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "PE",
+        "countryCodeNumeric": "604",
+        "countryName": "Peru",
+        "currencyName": "Peruvian Nuevo Sol",
+        "rank": "46"
+      },
+      "status": "1"
+    },
+    "id": "pen",
+    "numericId": 90038,
+    "code": "PEN",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Peruvian Nuevo Sol",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "PHP": {
+    "info": {
+      "assetId": "90039",
+      "symbol": "PHP",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "PH",
+        "countryCodeNumeric": "608",
+        "countryName": "Phillipines",
+        "currencyName": "Philippine Peso",
+        "rank": "29"
+      },
+      "status": "1"
+    },
+    "id": "php",
+    "numericId": 90039,
+    "code": "PHP",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Philippine Peso",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "RON": {
+    "info": {
+      "assetId": "90040",
+      "symbol": "RON",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "RO",
+        "countryCodeNumeric": "642",
+        "countryName": "Romania",
+        "currencyName": "Romanian Leu",
+        "rank": "47"
+      },
+      "status": "1"
+    },
+    "id": "ron",
+    "numericId": 90040,
+    "code": "RON",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Romanian Leu",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "RUB": {
+    "info": {
+      "assetId": "90041",
+      "symbol": "RUB",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "RU",
+        "countryCodeNumeric": "643",
+        "countryName": "Russia",
+        "currencyName": "Russian Ruble",
+        "rank": "20"
+      },
+      "status": "1"
+    },
+    "id": "rub",
+    "numericId": 90041,
+    "code": "RUB",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Russian Ruble",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "SAR": {
+    "info": {
+      "assetId": "90042",
+      "symbol": "SAR",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "SA",
+        "countryCodeNumeric": "682",
+        "countryName": "Saudi Arabia",
+        "currencyName": "Saudi Arabian Riyal",
+        "rank": "23"
+      },
+      "status": "1"
+    },
+    "id": "sar",
+    "numericId": 90042,
+    "code": "SAR",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Saudi Arabian Riyal",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "SEK": {
+    "info": {
+      "assetId": "90043",
+      "symbol": "SEK",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "SE",
+        "countryCodeNumeric": "752",
+        "countryName": "Sweden",
+        "currencyName": "Swedish Krona",
+        "rank": "21"
+      },
+      "status": "1"
+    },
+    "id": "sek",
+    "numericId": 90043,
+    "code": "SEK",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Swedish Krona",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "SGD": {
+    "info": {
+      "assetId": "90044",
+      "symbol": "SGD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "SG",
+        "countryCodeNumeric": "702",
+        "countryName": "Singapore",
+        "currencyName": "Singapore Dollar",
+        "rank": "13"
+      },
+      "status": "1"
+    },
+    "id": "sgd",
+    "numericId": 90044,
+    "code": "SGD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Singapore Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "THB": {
+    "info": {
+      "assetId": "90045",
+      "symbol": "THB",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "TH",
+        "countryCodeNumeric": "764",
+        "countryName": "Thailand",
+        "currencyName": "Thai Baht",
+        "rank": "19"
+      },
+      "status": "1"
+    },
+    "id": "thb",
+    "numericId": 90045,
+    "code": "THB",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Thai Baht",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TRY": {
+    "info": {
+      "assetId": "90046",
+      "symbol": "TRY",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "TR",
+        "countryCodeNumeric": "792",
+        "countryName": "Turkey",
+        "currencyName": "Turkish Lira",
+        "rank": "28"
+      },
+      "status": "1"
+    },
+    "id": "try",
+    "numericId": 90046,
+    "code": "TRY",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Turkish Lira",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  },
+  "TWD": {
+    "info": {
+      "assetId": "90047",
+      "symbol": "TWD",
+      "decimals": "9",
+      "displayDecimals": "2",
+      "settles": false,
+      "assetType": "Fiat",
+      "sourceId": "0",
+      "metadata": {
+        "countryCode": "TW",
+        "countryCodeNumeric": "158",
+        "countryName": "Taiwan",
+        "currencyName": "Taiwanese Dollar",
+        "rank": "30"
+      },
+      "status": "1"
+    },
+    "id": "twd",
+    "numericId": 90047,
+    "code": "TWD",
+    "precision": 9,
+    "type": "fiat",
+    "name": "Taiwanese Dollar",
+    "active": true,
+    "deposit": true,
+    "withdraw": true,
+    "fee": null,
+    "fees": {},
+    "networks": {
+      "0": {
+        "id": "0"
+      }
+    },
+    "limits": {
+      "amount": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      },
+      "deposit": {
+        "min": null,
+        "max": null
+      }
+    }
+  }
+}
