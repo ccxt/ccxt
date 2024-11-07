@@ -990,7 +990,7 @@
                   "status": "pending",
                   "updated": null,
                   "fee": {
-                    "cost": 0.1,
+                    "cost": 4.1,
                     "currency": "USDT"
                   },
                   "comment": null,
