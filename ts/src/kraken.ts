@@ -1601,6 +1601,7 @@ export default class kraken extends Exchange {
         //                     "buy 0.12345678 ETHUSDT @ market" // market order
         //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
         //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
+        //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
         //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
         //         },
         //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
@@ -1700,7 +1701,7 @@ export default class kraken extends Exchange {
             } else {
                 rawType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
-            if (rawType === 'stop loss') {
+            if (rawType === 'stop loss' || rawType === 'take profit') {
                 triggerPrice = this.safeString (parts, 6);
                 price = this.safeString (parts, 9);
             } else if (rawType === 'limit') {
@@ -1773,6 +1774,7 @@ export default class kraken extends Exchange {
         triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         let stopLossPrice = undefined;
         let takeProfitPrice = undefined;
+        // the below strings are not provided from createOrder, but from fetch methods
         if (rawType.startsWith ('take-profit')) {
             takeProfitPrice = this.safeString (description, 'price');
             price = this.omitZero (this.safeString (description, 'price2'));
