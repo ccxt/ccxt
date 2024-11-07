@@ -932,6 +932,71 @@
                   "tag": null
                 }
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT to a whitelisted address",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  20,
+                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                ],
+                "httpResponse": {
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "tx_hash": null,
+                  "direction": "OUTGOING",
+                  "amount": "20",
+                  "usd_value": "19.99856",
+                  "chain": "ETH",
+                  "asset": "USDT",
+                  "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "status": "PROCESSING",
+                  "created_at": "2024-11-07T02:39:01.775495Z",
+                  "network_fee": "4",
+                  "fees": "0.1"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "PROCESSING",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "4",
+                    "fees": "0.1"
+                  },
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "txid": null,
+                  "timestamp": 1730947141775,
+                  "datetime": "2024-11-07T02:39:01.775495Z",
+                  "network": "ETH",
+                  "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": "withdrawal",
+                  "amount": 20,
+                  "currency": "USDT",
+                  "status": "pending",
+                  "updated": null,
+                  "fee": {
+                    "cost": 0.1,
+                    "currency": "USDT"
+                  },
+                  "comment": null,
+                  "internal": null
+                }
+            }
         ]
     }
 }
