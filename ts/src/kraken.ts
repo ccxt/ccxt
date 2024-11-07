@@ -1581,11 +1581,12 @@ export default class kraken extends Exchange {
 
     parseOrderType (status) {
         const statuses: Dict = {
+            // we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit': 'market',
             'stop-loss': 'market',
             'stop-loss-limit': 'limit',
             'take-profit-limit': 'limit',
-            'trailing-stop-limit': 'limit'
+            'trailing-stop-limit': 'limit',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1697,7 +1698,7 @@ export default class kraken extends Exchange {
             if (part4 === 'limit' || part4 === 'market') {
                 rawType = part4; // eg, limit, market
             } else {
-                rawType = part4 + ' ' + part5; //eg. stop loss, take profit, trailing stop
+                rawType = part4 + ' ' + part5; // eg. stop loss, take profit, trailing stop
             }
             if (rawType === 'stop loss') {
                 triggerPrice = this.safeString (parts, 6);
