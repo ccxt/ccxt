@@ -3210,7 +3210,7 @@ export default class woo extends Exchange {
         return await this.v1PrivatePostClientIsolatedMargin (this.extend (request, params)) as MarginModification;
     }
 
-    async fetchPosition (symbol: Str = undefined, params = {}) {
+    async fetchPosition (symbol: Str, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {

@@ -10,6 +10,7 @@ async function testFetchAccounts (exchange: Exchange, skippedProperties: object)
     for (let i = 0; i < accounts.length; i++) {
         testAccount (exchange, skippedProperties, method, accounts[i]);
     }
+    return true;
 }
 
 export default testFetchAccounts;

@@ -15,6 +15,7 @@ async function testFetchLiquidations (exchange: Exchange, skippedProperties: obj
         testLiquidation (exchange, skippedProperties, method, items[i], code);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, code, items);
+    return true;
 }
 
 export default testFetchLiquidations;

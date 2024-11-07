@@ -12,6 +12,7 @@ async function testFetchDeposits (exchange: Exchange, skippedProperties: object,
         testDepositWithdrawal (exchange, skippedProperties, method, transactions[i], code, now);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, code, transactions);
+    return true;
 }
 
 export default testFetchDeposits;

@@ -24,6 +24,7 @@ async function testFetchTickersHelper (exchange: Exchange, skippedProperties: ob
         const ticker = values[i];
         testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
     }
+    return true;
 }
 
 export default testFetchTickers;

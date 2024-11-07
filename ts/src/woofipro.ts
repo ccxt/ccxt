@@ -2593,7 +2593,7 @@ export default class woofipro extends Exchange {
         });
     }
 
-    async fetchPosition (symbol: Str = undefined, params = {}) {
+    async fetchPosition (symbol: Str, params = {}) {
         /**
          * @method
          * @name woofipro#fetchPosition

@@ -12,6 +12,7 @@ async function testFetchLedger (exchange: Exchange, skippedProperties: object, c
         testLedgerEntry (exchange, skippedProperties, method, items[i], code, now);
     }
     testSharedMethods.assertTimestampOrder (exchange, method, code, items);
+    return true;
 }
 
 export default testFetchLedger;
