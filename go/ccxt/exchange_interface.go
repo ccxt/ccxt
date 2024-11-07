@@ -7,6 +7,7 @@ type IExchange interface {
 	SetWssProxy(wssProxy interface{})
 	SetWsProxy(wsProxy interface{})
 	GetAlias() interface{}
+	GetTimeframes() map[string]interface{}
 	SetTimeout(timeout interface{})
 	SetHttpsProxy(httpsProxy interface{})
 	SetHttpProxy(httpProxy interface{})
@@ -41,7 +42,7 @@ type IExchange interface {
 	ParseToInt(value interface{}) interface{}
 	SafeValue(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	SafeBool(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
-	SafeString(value interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeString(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	Describe() interface{}
 	SetSandboxMode(enable interface{})
 	Market(symbol interface{}) interface{}
@@ -101,4 +102,12 @@ type IExchange interface {
 	FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{}
 	FetchMyTrades(optionalArgs ...interface{}) <-chan interface{}
+	FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchOrderBooks(optionalArgs ...interface{}) <-chan interface{}
+	FetchTickers(optionalArgs ...interface{}) <-chan interface{}
+	FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
+	FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{}
+	Currency(code interface{}) interface{}
+	ParseDate(datetime2 interface{}) interface{}
+	RoundTimeframe(timeframe interface{}, timestamp interface{}, direction ...interface{}) interface{}
 }
