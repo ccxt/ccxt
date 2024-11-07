@@ -110,4 +110,47 @@ type IExchange interface {
 	Currency(code interface{}) interface{}
 	ParseDate(datetime2 interface{}) interface{}
 	RoundTimeframe(timeframe interface{}, timestamp interface{}, direction ...interface{}) interface{}
+	Extend(aa interface{}, bb ...interface{}) map[string]interface{}
+	SafeValue2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	GroupBy(trades interface{}, key2 interface{}) map[string]interface{}
+	DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) interface{}
+	SafeValueN(obj interface{}, keys interface{}, defaultValue ...interface{}) interface{}
+	SafeDict2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
+	SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeStringUpper2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeInteger2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeIntegerN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{}
+	SafeIntegerProductN(obj interface{}, keys []interface{}, multiplier interface{}, defaultValue ...interface{}) interface{}
+	SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeFloat(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeStringLowerN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{}
+	SafeStringUpperN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{}
+	SafeInteger(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeStringUpper(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeStringLower2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeFloatN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{}
+	SafeStringN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{}
+	SafeIntegerOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
+	SafeIntegerProduct(obj interface{}, key interface{}, multiplier interface{}, defaultValue ...interface{}) interface{}
+	SafeIntegerProduct2(obj interface{}, key1, key2 interface{}, multiplier interface{}, defaultValue ...interface{}) interface{}
+	SafeBoolN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
+	SafeBool2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
+	SafeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}
+	SafeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
+	SafeDictN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
+	SafeListN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{}
+	SafeList(dictionaryOrList interface{}, key interface{}, optionalArgs ...interface{}) interface{}
+	SafeTimestamp(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
+	SafeNumberN(obj interface{}, arr interface{}, optionalArgs ...interface{}) interface{}
+	SafeTimestamp2(obj interface{}, key1, key2 interface{}, defaultValue ...interface{}) interface{}
+	SafeTimestampN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{}
+	SafeList2(dictionaryOrList interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}
+	Omit(a interface{}, parameters ...interface{}) interface{}
+	CheckProxyUrlSettings(optionalArgs ...interface{}) interface{}
+	CheckProxySettings(optionalArgs ...interface{}) interface{}
+	IsTickPrecision() interface{}
+	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
+	SetProxyUrl(proxyUrl interface{})
+	SetSocksProxy(proxyUrl interface{})
 }

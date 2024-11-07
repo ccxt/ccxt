@@ -8,12 +8,24 @@ func (this *Exchange) GetAlias() interface{} {
 	return this.Alias
 }
 
+func (this *Exchange) GetTimeframes() map[string]interface{} {
+	return this.Timeframes
+}
+
 func (this *Exchange) GetLast_request_url() interface{} {
 	return this.Last_request_url
 }
 
 func (this *Exchange) GetLast_request_body() interface{} {
 	return this.Last_request_body
+}
+
+func (this *Exchange) SetProxyUrl(proxyUrl interface{}) {
+	this.ProxyUrl = proxyUrl.(string)
+}
+
+func (this *Exchange) SetSocksProxy(proxyUrl interface{}) {
+	this.SocksProxy = proxyUrl.(string)
 }
 
 func (this *Exchange) GetLast_request_headers() map[string]interface{} {
