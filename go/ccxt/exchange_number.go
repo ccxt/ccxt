@@ -217,7 +217,7 @@ func roundToDecimalPlaces(num float64, decimalPlaces int) float64 {
 	return math.Round(num*shift) / shift
 }
 
-func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
+func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) interface{} {
 	countingMode := GetArg(args, 0, nil)
 	paddingMode := GetArg(args, 1, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
