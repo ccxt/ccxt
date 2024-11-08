@@ -2489,6 +2489,13 @@ export default class bybit extends Exchange {
         const fundingTimestamp = this.safeInteger (ticker, 'nextFundingTime');
         const markPrice = this.safeNumber (ticker, 'markPrice');
         const indexPrice = this.safeNumber (ticker, 'indexPrice');
+        const info = this.safeDict (this.market (symbol), 'info');
+        const fundingInterval = this.safeInteger (info, 'fundingInterval');
+        let intervalString = undefined;
+        if (fundingInterval !== undefined) {
+            const interval = this.parseToInt (fundingInterval / 60);
+            intervalString = interval + 'h';
+        }
         return {
             'info': ticker,
             'symbol': symbol,
@@ -2507,7 +2514,7 @@ export default class bybit extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         } as FundingRate;
     }
 
