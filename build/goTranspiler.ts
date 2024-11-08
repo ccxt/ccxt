@@ -56,7 +56,8 @@ const BASE_TESTS_FILE =  './go/tests/base/tests.go';
 // const EXCHANGE_GENERATED_FOLDER = './go/tests/Generated/Exchange/';
 // const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
-const csharpComments ={};
+const goComments ={};
+let goTests: string[] = [];
 
 const VIRTUAL_BASE_METHODS = [
     "parseTrade",
@@ -222,13 +223,13 @@ class NewTranspiler {
     getTranspilerConfig() {
         return {
             "verbose": false,
-            "csharp": {
-                "parser": {
-                    "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
-                    "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    // "VAR_TOKEN": "var",
-                }
-            },
+            // "go": {
+            //     "parser": {
+            //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
+            //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
+            //         // "VAR_TOKEN": "var",
+            //     }
+            // },
         }
     }
 
@@ -320,17 +321,17 @@ class NewTranspiler {
         const returnMatch = comment.match(returnRegex);
         const returnType = returnMatch ? returnMatch[1] : undefined;
         const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
-        let exchangeData = csharpComments[exchangeName];
+        let exchangeData = goComments[exchangeName];
         if (!exchangeData) {
-            exchangeData = csharpComments[exchangeName] = {}
+            exchangeData = goComments[exchangeName] = {}
         }
-        let exchangeMethods = csharpComments[exchangeName];
+        let exchangeMethods = goComments[exchangeName];
         if (!exchangeMethods) {
             exchangeMethods = {}
         }
         const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = transformedComment;
-        csharpComments[exchangeName] = exchangeMethods
+        goComments[exchangeName] = exchangeMethods
         return comment;
     }
 
@@ -683,8 +684,8 @@ class NewTranspiler {
         const one = this.inden(0);
         const two = this.inden(1);
         const methodDoc = [] as any[];
-        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
-            methodDoc.push(csharpComments[exchangeName][methodName]);
+        if (goComments[exchangeName] && goComments[exchangeName][methodName]) {
+            methodDoc.push(goComments[exchangeName][methodName]);
         }
         const method = [
             `${one}func (this *${this.capitalize(exchangeName)}) ${methodNameCapitalized}(${stringArgs}) ${returnType} {`,
@@ -824,8 +825,6 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
         baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
         baseClass = baseClass.replaceAll(/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'); // tmp fix for c#
-        
-
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
@@ -1014,7 +1013,7 @@ ${caseStatements.join('\n')}
 
         // create worker
         const piscina = new Piscina({
-            filename: resolve(__dirname, 'csharp-worker.js')
+            filename: resolve(__dirname, 'go-worker.js')
         });
 
         const chunkSize = 20;
@@ -1063,7 +1062,7 @@ ${caseStatements.join('\n')}
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '_wrapper.go';
-                this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
+                // this.createGoWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
@@ -1273,7 +1272,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         let content = csharp.content;
         content = this.regexAll (content, [
             [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
-            [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
+            [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
             // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim ()
 
@@ -1361,7 +1360,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 continue;
             }
 
-            if (tsFile.indexOf('json') > -1) {
+            if (tsFile.indexOf('json') > -1 || tsFile.indexOf('filterBy') > -1 || tsFile.indexOf('sortBy') > -1) {
                 continue; // skip json tests for now, exception handling outside classes is not supported
             }
 
@@ -1373,9 +1372,12 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
+                [/new ccxt.Exchange.+\n.+\n.+/gm, 'ccxt.NewExchange()' ],
                 [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
-                [/Precise\.String/gm, 'ccxt.Precise.String']
+                [/Precise\.String/gm, 'ccxt.Precise.String'],
+                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
+                [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
+
             ]).trim ()
 
             const file = [
@@ -1388,6 +1390,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             log.magenta ('→', (goFile as any).yellow)
 
+            goTests.push(this.capitalize(testName));
             overwriteFileAndFolder (goFile, file);
         }
     }
@@ -1420,7 +1423,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.IExchange {'],
             [/assert\(/g, 'Assert('],
             [/GetRootException\(ex\)/g, 'GetRootException(e)'],
-            [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} ']
+            [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
+            [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ])
 
         const file = [
@@ -1435,23 +1439,25 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     }
 
     transpileExchangeTests(){
+        
+        // remove above later debug only
         this.transpileMainTest({
             'tsFile': './ts/src/test/tests.ts',
             'goFile': BASE_TESTS_FILE,
         });
-        return
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
-            csharpBase: EXCHANGE_BASE_FOLDER,
-            csharp: EXCHANGE_GENERATED_FOLDER,
+            goBase: './go/tests/base/',
+            go: './go/tests/base/',
         };
 
         let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        let exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
         // ignore throttle test for now
-        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
+        baseTests = baseTests.filter (filename => filename !== 'test.throttle' && filename !== 'test.filterBy');
+        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.filterBy');
 
         const tests = [] as any;
         baseTests.forEach (baseTest => {
@@ -1459,7 +1465,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 base: true,
                 name:baseTest,
                 tsFile: baseFolders.tsBase + baseTest + '.ts',
-                csharpFile: baseFolders.goharpBase + baseTest + '.go',
+                goFile: baseFolders.goBase + baseTest + '.go',
             });
         });
         exchangeTests.forEach (test => {
@@ -1467,99 +1473,140 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 base: false,
                 name: test,
                 tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.goharp + test + '.go',
+                goFile: baseFolders.go + test + '.go',
             });
         });
 
-        this.transpileAndSaveCsharpExchangeTests (tests);
+        const testNames = tests.map (test => test.name);
+        testNames.forEach (test => goTests.push(test));
+        this.transpileAndSaveGoExchangeTests (tests);
     }
 
     transpileWsExchangeTests(){
 
-        const baseFolders = {
-            ts: './ts/src/pro/test/Exchange/',
-            csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
-        };
+        // const baseFolders = {
+        //     ts: './ts/src/pro/test/Exchange/',
+        //     csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
+        // };
 
-        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        // const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        const tests = [] as any;
+        // const tests = [] as any;
 
-        wsTests.forEach (test => {
-            tests.push({
-                name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.goharp + test + '.go',
-            });
-        });
+        // wsTests.forEach (test => {
+        //     tests.push({
+        //         name: test,
+        //         tsFile: baseFolders.ts + test + '.ts',
+        //         csharpFile: baseFolders.goharp + test + '.go',
+        //     });
+        // });
 
-        this.transpileAndSaveCsharpExchangeTests (tests, true);
+        // this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
-    async transpileAndSaveCsharpExchangeTests(tests, isWs = false) {
-        const paths = tests.map(test => test.tsFile);
-        const flatResult = await this.webworkerTranspile (paths, this.getTranspilerConfig());
+    async transpileAndSaveGoExchangeTests(tests, isWs = false) {
+        let paths = tests.map(test => test.tsFile);
+        // paths = [paths[30]];
+        const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
             let contentIndentend = file.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
 
             let regexes = [
-                [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-                [ /throw new Error/g, 'throw new Exception' ],
-                [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
-                [ /void function/g, 'void']
+                [/exchange \:\= &ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange := ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange interface\{\},/g, 'exchange ccxt.IExchange,'],
+                [/exchange interface\{\}\)/g, 'exchange ccxt.IExchange)'],
+                [/testSharedMethods\./g, ''],
+                [/assert/gm, 'Assert'],
+                [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
+                [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
+                [/Precise\./gm, 'ccxt.Precise.'],
+                [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
+                [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
+
+
+                // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
+                // [ /throw new Error/g, 'throw new Exception' ],
+                // [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
+                // [ /void function/g, 'void']
             ];
 
-            if (isWs) {
-                // add ws-tests specific regeces
-                regexes = regexes.concat([
-                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
-                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
-                ]);
-            }
+            // if (isWs) {
+            //     // add ws-tests specific regeces
+            //     regexes = regexes.concat([
+            //         [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+            //         [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
+            //     ]);
+            // }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
-            const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
+            const namespace = 'package base';
             const fileHeaders = [
                 namespace,
-                'namespace Tests;',
+                'import "ccxt"',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
-                'public partial class testMainClass : BaseTest',
-                '{',
             ]
-            let csharp: string;
+            let go: string;
             const filename = tests[idx].name;
             if (filename === 'test.sharedMethods') {
-                const doubleIndented = contentIndentend.split('\n').map(line => line ? '    ' + line : line).join('\n');
-                csharp = [
+                // const doubleIndented = contentIndentend.split('\n').map(line => line ? '    ' + line : line).join('\n');
+                go = [
                     ...fileHeaders,
-                    `${this.iden(1)}public partial class SharedMethods`,
-                    `${this.iden(1)}{`,
-                    doubleIndented,
-                    `${this.iden(1)}}`,
-                    '}',
+                    contentIndentend,
                 ].join('\n');
             } else {
                 contentIndentend = this.regexAll (contentIndentend, [
-                    [ /public void/g, 'public static void' ], // make tests static
-                    [ /async public Task/g, 'async static public Task' ], // make tests static
+                    // [ /public void/g, 'public static void' ], // make tests static
+                    // [ /async public Task/g, 'async static public Task' ], // make tests static
                 ])
-                csharp = [
+                go = [
                     ...fileHeaders,
                     contentIndentend,
-                    '}',
                 ].join('\n');
             }
-            overwriteFileAndFolder (tests[idx].goharpFile, csharp);
+            overwriteFileAndFolder (tests[idx].goFile, go);
         });
     }
 
     transpileTests(){
-        // this.transpileBaseTestsToGo();
+        this.transpileBaseTestsToGo();
         this.transpileExchangeTests();
+        this.createFunctionsMapFile();
         // this.transpileWsExchangeTests();
     }
+
+    createFunctionsMapFile() {
+        // const normalizedTestNames = goTests.map(test => 'Test' + this.capitalize(test.replace('Test.', '').replace('test.', '')) );
+        const normalizedTestNames: string[] = [];
+        for (let test of goTests) {
+            const skipTests = [
+                "test.sharedMethods",
+                "Tests.init",
+            ];
+            if (skipTests.includes(test)) {
+                continue;
+            }
+            if (test === 'test.ohlcv') {
+                test = 'test.OHLCV';
+            }
+            test = 'Test' + this.capitalize(test.replace('Test.', '').replace('test.', ''))
+            normalizedTestNames.push(test);
+        }
+        const file = [
+            'package base',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            'var functionsMap = map[string]interface{}{',
+            ...normalizedTestNames.map(test => `    "${test}": ${test},`),
+            '}',
+        ].join('\n');
+        overwriteFileAndFolder (BASE_TESTS_FOLDER + '/test.functions.go', file);
+}
+
+
 }
 
 if (isMainEntry(import.meta.url)) {
