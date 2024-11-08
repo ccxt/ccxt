@@ -35,6 +35,10 @@ public partial class bitfinex : Exchange
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
+                { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchLeverageTiers", false },
                 { "fetchMarginMode", false },
@@ -75,7 +79,7 @@ public partial class bitfinex : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9" },
                 { "api", new Dictionary<string, object>() {
                     { "v2", "https://api-pub.bitfinex.com" },
                     { "public", "https://api.bitfinex.com" },

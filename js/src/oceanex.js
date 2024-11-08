@@ -53,6 +53,8 @@ export default class oceanex extends Exchange {
                 'fetchDepositAddress': 'emulated',
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarkets': true,

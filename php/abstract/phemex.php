@@ -73,6 +73,9 @@ abstract class phemex extends \ccxt\Exchange {
     public function v2_get_public_products($params = array()) {
         return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function v2_get_public_products_plus($params = array()) {
+        return $this->request('public/products-plus', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function v2_get_md_v2_orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -405,6 +408,9 @@ abstract class phemex extends \ccxt\Exchange {
     }
     public function v2GetPublicProducts($params = array()) {
         return $this->request('public/products', 'v2', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function v2GetPublicProductsPlus($params = array()) {
+        return $this->request('public/products-plus', 'v2', 'GET', $params, null, null, array("cost" => 5));
     }
     public function v2GetMdV2Orderbook($params = array()) {
         return $this->request('md/v2/orderbook', 'v2', 'GET', $params, null, null, array("cost" => 5));

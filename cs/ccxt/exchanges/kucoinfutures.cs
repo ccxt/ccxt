@@ -2328,8 +2328,8 @@ public partial class kucoinfutures : kucoin
         object amount = this.safeString(order, "size");
         object filled = this.safeString(order, "filledSize");
         object cost = this.safeString(order, "filledValue");
-        object average = null;
-        if (isTrue(Precise.stringGt(filled, "0")))
+        object average = this.safeString(order, "avgDealPrice");
+        if (isTrue(isTrue((isEqual(average, null))) && isTrue(Precise.stringGt(filled, "0"))))
         {
             object contractSize = this.safeString(market, "contractSize");
             if (isTrue(getValue(market, "linear")))

@@ -1088,7 +1088,8 @@ class kucoin(ccxt.async_support.kucoin):
             self.myTrades = ArrayCacheBySymbolById(limit)
         data = self.safe_dict(message, 'data')
         parsed = self.parse_ws_trade(data)
-        self.myTrades.append(parsed)
+        myTrades = self.myTrades
+        myTrades.append(parsed)
         messageHash = 'myTrades'
         client.resolve(self.myTrades, messageHash)
         symbolSpecificMessageHash = messageHash + ':' + parsed['symbol']

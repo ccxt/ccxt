@@ -1491,7 +1491,7 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -2010,7 +2010,7 @@ class binance extends \ccxt\async\binance {
             if ($symbolsDefined) {
                 $firstMarket = $this->market($symbols[0]);
             }
-            $defaultMarket = ($isMarkPrice) ? 'swap' : 'spot';
+            $defaultMarket = ($isMarkPrice) ? 'swap' : null;
             list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params, $defaultMarket);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params($methodName, $firstMarket, $params);
@@ -3755,12 +3755,6 @@ class binance extends \ccxt\async\binance {
                 $market = $this->get_market_from_symbols($symbols);
                 $messageHash = '::' . implode(',', $symbols);
             }
-            $marketTypeObject = array();
-            if ($market !== null) {
-                $marketTypeObject['type'] = $market['type'];
-                $marketTypeObject['subType'] = $market['subType'];
-            }
-            Async\await($this->authenticate($this->extend($marketTypeObject, $params)));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
             if ($type === 'spot' || $type === 'margin') {
@@ -3773,6 +3767,10 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
+            $marketTypeObject = array();
+            $marketTypeObject['type'] = $type;
+            $marketTypeObject['subType'] = $subType;
+            Async\await($this->authenticate($this->extend($marketTypeObject, $params)));
             $messageHash = $type . ':positions' . $messageHash;
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchPositions', 'papi', 'portfolioMargin', false);

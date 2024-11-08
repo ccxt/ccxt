@@ -111,7 +111,7 @@ export default class bitmart extends Exchange {
             },
             'hostname': 'bitmart.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
                 'api': {
                     'spot': 'https://api-cloud.{hostname}',
                     'swap': 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
@@ -1858,7 +1858,7 @@ export default class bitmart extends Exchange {
             }
         }
         else {
-            const maxLimit = 1200;
+            const maxLimit = 500;
             if (limit === undefined) {
                 limit = maxLimit;
             }
@@ -4339,15 +4339,15 @@ export default class bitmart extends Exchange {
         market = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(info, 'create_time');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': 'isolated',
             'currency': this.safeCurrencyCode(this.safeString(info, 'currency')),
             'interest': this.safeNumber(info, 'interest_amount'),
             'interestRate': this.safeNumber(info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber(info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchOpenInterest(symbol, params = {}) {

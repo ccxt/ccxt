@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account, Dict, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -62,7 +62,6 @@ export default class kucoin extends Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
-    loadCurrencyPrecision(currency: any, networkCode?: Str): Promise<void>;
     parseTransactionStatus(status: Str): string;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
@@ -76,7 +75,6 @@ export default class kucoin extends Exchange {
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    parseBorrowRateHistory(response: any, code: any, since: any, limit: any): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: string;
         rate: number;
@@ -85,18 +83,8 @@ export default class kucoin extends Exchange {
         datetime: string;
         info: any;
     };
-    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any[]>;
-    parseBorrowInterest(info: Dict, market?: Market): {
-        symbol: string;
-        marginMode: string;
-        currency: string;
-        interest: any;
-        interestRate: number;
-        amountBorrowed: any;
-        timestamp: number;
-        datetime: string;
-        info: Dict;
-    };
+    fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
+    parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;

@@ -219,6 +219,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -508,6 +509,7 @@ class bingx(Exchange, ImplicitAPI):
                 },
                 'networks': {
                     'ARB': 'ARBITRUM',
+                    'MATIC': 'POLYGON',
                 },
             },
         })
@@ -2675,33 +2677,37 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.sync]: *spot only* if True, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         ordersRequests = []
-        symbol = None
+        marketIds = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
-            if symbol is None:
-                symbol = marketId
-            else:
-                if symbol != marketId:
-                    raise BadRequest(self.id + ' createOrders() requires all orders to have the same symbol')
             type = self.safe_string(rawOrder, 'type')
+            marketIds.append(marketId)
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_number(rawOrder, 'amount')
             price = self.safe_number(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
-        market = self.market(symbol)
+        symbols = self.market_symbols(marketIds, None, False, True, True)
+        symbolsLength = len(symbols)
+        market = self.market(symbols[0])
         request: dict = {}
         response = None
         if market['swap']:
+            if symbolsLength > 5:
+                raise InvalidOrder(self.id + ' createOrders() can not create more than 5 orders at once for swap markets')
             request['batchOrders'] = self.json(ordersRequests)
             response = self.swapV2PrivatePostTradeBatchOrders(request)
         else:
+            sync = self.safe_bool(params, 'sync', False)
+            if sync:
+                request['sync'] = True
             request['data'] = self.json(ordersRequests)
             response = self.spotV1PrivatePostTradeBatchOrders(request)
         #
@@ -2749,6 +2755,12 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
+        if isinstance(response, str):
+            # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
+            # and json.loadscan not handle them in JS, so we have to use .parseJson
+            # however, when order has an attached SL/TP, their value types need extra parsing
+            response = self.fix_stringified_json_members(response)
+            response = self.parse_json(response)
         data = self.safe_dict(response, 'data', {})
         result = self.safe_list(data, 'orders', [])
         return self.parse_orders(result, market)
@@ -3138,7 +3150,7 @@ class bingx(Exchange, ImplicitAPI):
                 'cost': Precise.string_abs(feeCost),
             },
             'trades': None,
-            'reduceOnly': self.safe_bool(order, 'reduceOnly'),
+            'reduceOnly': self.safe_bool_2(order, 'reduceOnly', 'ro'),
         }, market)
 
     def parse_order_status(self, status: Str):
@@ -4293,32 +4305,21 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
-        #     {
-        #         "coinId": "799",
-        #         "coin": "USDT",
-        #         "network": "BEP20",
-        #         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        #         "tag": ''
-        #     }
+        # {
+        #     "coinId":"4",
+        #     "coin":"USDT",
+        #     "network":"OMNI",
+        #     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        #     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        # }
         #
-        address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'tag')
         currencyId = self.safe_string(depositAddress, 'coin')
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
-        # the exchange API returns deposit addresses without the leading '0x' prefix
-        # however, the exchange API does require the 0x prefix to withdraw
-        # so we append the prefix before returning the address to the user
-        # that is only if the underlying contract address has the 0x prefix
-        networkCode = self.safe_string(depositAddress, 'network')
-        if networkCode is not None:
-            if networkCode in currency['networks']:
-                network = currency['networks'][networkCode]
-                contractAddress = self.safe_string(network['info'], 'contractAddress')
-                if contractAddress is not None:
-                    if contractAddress[0] == '0' and contractAddress[1] == 'x':
-                        if address[0] != '0' or address[1] != 'x':
-                            address = '0x' + address
+        address = self.safe_string(depositAddress, 'addressWithPrefix')
+        networkdId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkdId, code)
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -4979,7 +4980,7 @@ class bingx(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -4988,6 +4989,8 @@ class bingx(Exchange, ImplicitAPI):
         :param int [params.walletType]: 1 fund account, 2 standard account, 3 perpetual account
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
         walletType = self.safe_integer(params, 'walletType')
@@ -5004,6 +5007,8 @@ class bingx(Exchange, ImplicitAPI):
         network = self.safe_string_upper(params, 'network')
         if network is not None:
             request['network'] = self.network_code_to_id(network)
+        if tag is not None:
+            request['addressTag'] = tag
         params = self.omit(params, ['walletType', 'network'])
         response = self.walletsV1PrivatePostCapitalWithdrawApply(self.extend(request, params))
         data = self.safe_value(response, 'data')

@@ -1173,7 +1173,7 @@ class yobit extends yobit$1 {
         const ids = Object.keys(trades);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const trade = this.parseTrade(this.extend(trades[id], {
                 'trade_id': id,
             }), market);

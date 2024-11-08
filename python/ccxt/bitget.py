@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -113,6 +113,8 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchLeverage': True,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
@@ -179,7 +181,7 @@ class bitget(Exchange, ImplicitAPI):
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -288,6 +290,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/mix/market/current-fund-rate': 1,
                             'v2/mix/market/contracts': 1,
                             'v2/mix/market/query-position-lever': 2,
+                            'v2/mix/market/account-long-short': 20,
                         },
                     },
                     'margin': {
@@ -298,6 +301,7 @@ class bitget(Exchange, ImplicitAPI):
                             'margin/v1/isolated/public/tierData': 2,  # 10 times/1s(IP) => 20/10 = 2
                             'margin/v1/public/currencies': 1,  # 20 times/1s(IP) => 20/20 = 1
                             'v2/margin/currencies': 2,
+                            'v2/margin/market/long-short-ratio': 20,
                         },
                     },
                     'earn': {
@@ -460,6 +464,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/mix/order/orders-history': 2,
                             'v2/mix/order/orders-plan-pending': 2,
                             'v2/mix/order/orders-plan-history': 2,
+                            'v2/mix/market/position-long-short': 20,
                         },
                         'post': {
                             'mix/v1/account/sub-account-contract-assets': 200,  # 0.1 times/1s(UID) => 20/0.1 = 200
@@ -1444,7 +1449,7 @@ class bitget(Exchange, ImplicitAPI):
                     'ARB': 'ArbitrumOne',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'APT': 'APTOS',
+                    'APT': 'Aptos',
                     'MATIC': 'Polygon',
                     'VIC': 'VICTION',
                     'AVAXC': 'C-Chain',
@@ -7623,7 +7628,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://www.bitget.com/api-doc/margin/cross/record/Get-Cross-Interest-Records
@@ -7720,7 +7725,7 @@ class bitget(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         # isolated
         #
@@ -7754,15 +7759,15 @@ class bitget(Exchange, ImplicitAPI):
         marginMode = 'isolated' if (marketId is not None) else 'cross'
         timestamp = self.safe_integer(info, 'cTime')
         return {
+            'info': info,
             'symbol': self.safe_string(market, 'symbol'),
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'interestCoin')),
             'interest': self.safe_number(info, 'interestAmount'),
             'interestRate': self.safe_number(info, 'dailyInterestRate'),
             'amountBorrowed': None,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
@@ -8271,6 +8276,73 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(first, market)
+
+    def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+        """
+        fetches the long short ratio history for a unified market symbol
+        :see: https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+        :see: https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+        :param str symbol: unified symbol of the market to fetch the long short ratio for
+        :param str [timeframe]: the period for the ratio
+        :param int [since]: the earliest time in ms to fetch ratios for
+        :param int [limit]: the maximum number of long short ratio structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/#/?id=long-short-ratio-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        if timeframe is not None:
+            request['period'] = timeframe
+        response = None
+        if market['swap'] or market['future']:
+            response = self.publicMixGetV2MixMarketAccountLongShort(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1729321233281,
+            #         "data": [
+            #             {
+            #                 "longAccountRatio": "0.58",
+            #                 "shortAccountRatio": "0.42",
+            #                 "longShortAccountRatio": "0.0138",
+            #                 "ts": "1729312200000"
+            #             },
+            #         ]
+            #     }
+            #
+        else:
+            response = self.publicMarginGetV2MarginMarketLongShortRatio(self.extend(request, params))
+            #
+            #     {
+            #         "code": "00000",
+            #         "msg": "success",
+            #         "requestTime": 1729306974712,
+            #         "data": [
+            #             {
+            #                 "longShortRatio": "40.66",
+            #                 "ts": "1729306800000"
+            #             },
+            #         ]
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_long_short_ratio_history(data, market)
+
+    def parse_long_short_ratio(self, info: dict, market: Market = None) -> LongShortRatio:
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer_omit_zero(info, 'ts')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'timeframe': None,
+            'longShortRatio': self.safe_number_2(info, 'longShortRatio', 'longShortAccountRatio'),
+        }
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if not response:

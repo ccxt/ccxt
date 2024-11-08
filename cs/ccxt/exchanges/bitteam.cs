@@ -122,7 +122,7 @@ public partial class bitteam : Exchange
                 { "1d", "1D" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793" },
+                { "logo", "https://github.com/user-attachments/assets/b41b5e0d-98e5-4bd3-8a6e-aeb230a4a135" },
                 { "api", new Dictionary<string, object>() {
                     { "history", "https://history.bit.team" },
                     { "public", "https://bit.team" },

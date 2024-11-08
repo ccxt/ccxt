@@ -32,9 +32,9 @@ public partial class testMainClass
 
     public virtual void parseCliArgsAndProps()
     {
-        this.responseTests = getCliArgValue("--responseTests");
+        this.responseTests = isTrue(getCliArgValue("--responseTests")) || isTrue(getCliArgValue("--response"));
         this.idTests = getCliArgValue("--idTests");
-        this.requestTests = getCliArgValue("--requestTests");
+        this.requestTests = isTrue(getCliArgValue("--requestTests")) || isTrue(getCliArgValue("--request"));
         this.info = getCliArgValue("--info");
         this.verbose = getCliArgValue("--verbose");
         this.debug = getCliArgValue("--debug");
@@ -928,11 +928,12 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
-        object errorMessage = add(add(add(add(message, " computed "), storedString), " stored: "), calculatedString);
+        object errorMessage = message;
         if (isTrue(!isEqual(key, null)))
         {
-            errorMessage = add(add(add(add(add(add(" | ", key), " | "), "computed value: "), storedString), " stored value: "), calculatedString);
+            errorMessage = add(add("[", key), "]");
         }
+        errorMessage = add(errorMessage, add(add(add(" computed: ", storedString), " stored: "), calculatedString));
         assert(cond, errorMessage);
     }
 
@@ -1093,9 +1094,17 @@ public partial class testMainClass
                 this.assertStaticError(isEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput, assertingKey);
             } else
             {
-                object isBoolean = isTrue(((sanitizedNewOutput is bool))) || isTrue(((sanitizedStoredOutput is bool)));
-                object isString = isTrue(((sanitizedNewOutput is string))) || isTrue(((sanitizedStoredOutput is string)));
-                object isUndefined = isTrue((isEqual(sanitizedNewOutput, null))) || isTrue((isEqual(sanitizedStoredOutput, null))); // undefined is a perfetly valid value
+                object isComputedBool = ((sanitizedNewOutput is bool));
+                object isStoredBool = ((sanitizedStoredOutput is bool));
+                object isComputedString = ((sanitizedNewOutput is string));
+                object isStoredString = ((sanitizedStoredOutput is string));
+                object isComputedUndefined = (isEqual(sanitizedNewOutput, null));
+                object isStoredUndefined = (isEqual(sanitizedStoredOutput, null));
+                object shouldBeSame = isTrue(isTrue((isEqual(isComputedBool, isStoredBool))) && isTrue((isEqual(isComputedString, isStoredString)))) && isTrue((isEqual(isComputedUndefined, isStoredUndefined)));
+                this.assertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, assertingKey);
+                object isBoolean = isTrue(isComputedBool) || isTrue(isStoredBool);
+                object isString = isTrue(isComputedString) || isTrue(isStoredString);
+                object isUndefined = isTrue(isComputedUndefined) || isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (isTrue(isTrue(isTrue(isBoolean) || isTrue(isString)) || isTrue(isUndefined)))
                 {
                     if (isTrue(isEqual(this.lang, "C#")))
@@ -1260,7 +1269,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
     }
@@ -1283,7 +1292,7 @@ public partial class testMainClass
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -1568,7 +1577,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey(), this.testCoincatch()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2212,6 +2221,27 @@ public partial class testMainClass
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testCoincatch()
+    {
+        Exchange exchange = this.initOfflineExchange("coincatch");
+        object reqHeaders = null;
+        object id = "47cfy";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("coincatch - id: ", id), " not in headers."));
         if (!isTrue(isSync()))
         {
             await close(exchange);

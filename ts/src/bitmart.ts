@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int, FundingRate, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ export default class bitmart extends Exchange {
             },
             'hostname': 'bitmart.com', // bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
                 'api': {
                     'spot': 'https://api-cloud.{hostname}',
                     'swap': 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
@@ -1859,7 +1859,7 @@ export default class bitmart extends Exchange {
                 request['after'] = this.parseToInt ((since / 1000)) - 1;
             }
         } else {
-            const maxLimit = 1200;
+            const maxLimit = 500;
             if (limit === undefined) {
                 limit = maxLimit;
             }
@@ -4260,7 +4260,7 @@ export default class bitmart extends Exchange {
         return this.parseTransfers (records, currency, since, limit);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name bitmart#fetchBorrowInterest
@@ -4315,7 +4315,7 @@ export default class bitmart extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "borrow_id": "1657664327844Lk5eJJugXmdHHZoe",
@@ -4332,16 +4332,16 @@ export default class bitmart extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (info, 'create_time');
         return {
+            'info': info,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': 'isolated',
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest_amount'),
             'interestRate': this.safeNumber (info, 'hourly_interest'),
             'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,  // borrow creation time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async fetchOpenInterest (symbol: string, params = {}) {

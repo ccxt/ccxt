@@ -6,7 +6,7 @@
         "tonce",
         "client_id"
     ],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "fetchMyTrades": [
             {
@@ -1309,10 +1309,25 @@
             "TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN",
             null,
             {
-              "network": "TRX"
+              "network": "TRC20"
             }
           ],
           "output": "{\"amount\":\"15\",\"ccy\":\"USDT\",\"chain\":\"TRC20\",\"to_address\":\"TY5vq3MT6b5cQVAHWHtpGyPg1ERcQgi3UN\"}"
+        }
+      ],
+      "closePosition": [
+        {
+          "description": "swap close a position",
+          "method": "closePosition",
+          "url": "https://api.coinex.com/v2/futures/close-position",
+          "input": [
+            "BTC/USDT:USDT",
+            null,
+            {
+              "type": "market"
+            }
+          ],
+          "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"type\":\"market\"}"
         }
       ]
     },

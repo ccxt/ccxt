@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -94,6 +94,8 @@ export default class bitget extends Exchange {
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
@@ -160,7 +162,7 @@ export default class bitget extends Exchange {
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -269,6 +271,7 @@ export default class bitget extends Exchange {
                             'v2/mix/market/current-fund-rate': 1,
                             'v2/mix/market/contracts': 1,
                             'v2/mix/market/query-position-lever': 2,
+                            'v2/mix/market/account-long-short': 20,
                         },
                     },
                     'margin': {
@@ -279,6 +282,7 @@ export default class bitget extends Exchange {
                             'margin/v1/isolated/public/tierData': 2, // 10 times/1s (IP) => 20/10 = 2
                             'margin/v1/public/currencies': 1, // 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies': 2,
+                            'v2/margin/market/long-short-ratio': 20,
                         },
                     },
                     'earn': {
@@ -441,6 +445,7 @@ export default class bitget extends Exchange {
                             'v2/mix/order/orders-history': 2,
                             'v2/mix/order/orders-plan-pending': 2,
                             'v2/mix/order/orders-plan-history': 2,
+                            'v2/mix/market/position-long-short': 20,
                         },
                         'post': {
                             'mix/v1/account/sub-account-contract-assets': 200, // 0.1 times/1s (UID) => 20/0.1 = 200
@@ -1425,7 +1430,7 @@ export default class bitget extends Exchange {
                     'ARB': 'ArbitrumOne',
                     'ZKSYNC': 'zkSyncEra',
                     'STARKNET': 'Starknet',
-                    'APT': 'APTOS',
+                    'APT': 'Aptos',
                     'MATIC': 'Polygon',
                     'VIC': 'VICTION',
                     'AVAXC': 'C-Chain',
@@ -8125,7 +8130,7 @@ export default class bitget extends Exchange {
         };
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name bitget#fetchBorrowInterest
@@ -8144,7 +8149,7 @@ export default class bitget extends Exchange {
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchBorrowInterest', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, params, 'minId', 'idLessThan');
+            return await this.fetchPaginatedCallCursor ('fetchBorrowInterest', symbol, since, limit, params, 'minId', 'idLessThan') as BorrowInterest[];
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -8232,7 +8237,7 @@ export default class bitget extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         // isolated
         //
@@ -8266,16 +8271,16 @@ export default class bitget extends Exchange {
         const marginMode = (marketId !== undefined) ? 'isolated' : 'cross';
         const timestamp = this.safeInteger (info, 'cTime');
         return {
+            'info': info,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'interestCoin')),
             'interest': this.safeNumber (info, 'interestAmount'),
             'interestRate': this.safeNumber (info, 'dailyInterestRate'),
             'amountBorrowed': undefined,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
@@ -8827,6 +8832,79 @@ export default class bitget extends Exchange {
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
         return this.parseFundingRate (first, market);
+    }
+
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+        /**
+         * @method
+         * @name bitget#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+         * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
+        }
+        let response = undefined;
+        if (market['swap'] || market['future']) {
+            response = await this.publicMixGetV2MixMarketAccountLongShort (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729321233281,
+            //         "data": [
+            //             {
+            //                 "longAccountRatio": "0.58",
+            //                 "shortAccountRatio": "0.42",
+            //                 "longShortAccountRatio": "0.0138",
+            //                 "ts": "1729312200000"
+            //             },
+            //         ]
+            //     }
+            //
+        } else {
+            response = await this.publicMarginGetV2MarginMarketLongShortRatio (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1729306974712,
+            //         "data": [
+            //             {
+            //                 "longShortRatio": "40.66",
+            //                 "ts": "1729306800000"
+            //             },
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseLongShortRatioHistory (data, market);
+    }
+
+    parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeIntegerOmitZero (info, 'ts');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.safeNumber2 (info, 'longShortRatio', 'longShortAccountRatio'),
+        } as LongShortRatio;
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {

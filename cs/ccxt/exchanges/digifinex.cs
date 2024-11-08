@@ -3273,15 +3273,15 @@ public partial class digifinex : Exchange
         object currency = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "base");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
-            { "account", symbol },
+            { "info", info },
             { "symbol", symbol },
             { "currency", currency },
             { "interest", null },
             { "interestRate", 0.001 },
             { "amountBorrowed", this.parseNumber(amountBorrowed) },
+            { "marginMode", null },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 
@@ -3365,7 +3365,7 @@ public partial class digifinex : Exchange
         return this.parseBorrowRates(result, "currency");
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {

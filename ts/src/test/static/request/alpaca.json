@@ -87,6 +87,29 @@
                 ]
             }
         ],
+        "fetchTicker": [
+            {
+                "description": "spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD",
+                "input": [
+                  "BTC/USD"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot fetch multiple tickers at once",
+                "method": "fetchTickers",
+                "url": "https://data.alpaca.markets/v1beta3/crypto/us/snapshots?symbols=BTC%2FUSD%2CLTC%2FUSD",
+                "input": [
+                  [
+                    "BTC/USD",
+                    "LTC/USD"
+                  ]
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",
@@ -185,6 +208,71 @@
                 "input": [
                     "LTC/USDT"
                 ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "spot fetch my trades with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api.alpaca.markets/v2/account/activities/FILL?page_size=3",
+                "input": [
+                  "LTC/USD",
+                  null,
+                  3
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetch the BTC deposit address",
+                "method": "fetchDepositAddress",
+                "url": "https://api.alpaca.markets/v2/wallets?asset=BTC",
+                "input": [
+                  "BTC"
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDT deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch USDT deposits and withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw 20 USDT to a whitelisted address",
+                "method": "withdraw",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT",
+                  20,
+                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                ],
+                "output": "{\"asset\":\"USDT\",\"address\":\"0x49a2c0925196e4dcf05945f67f690153190fbaab\",\"amount\":\"20\"}"
             }
         ]
     }

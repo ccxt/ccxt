@@ -536,6 +536,21 @@
                   "PURR/USDC"
                 ],
                 "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"PURR/USDC\",\"interval\":\"1m\",\"startTime\":0,\"endTime\":1713610566832}}"
+            },
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1m",
+                    null,
+                    10,
+                    {
+                        "until": "1730378220000"
+                    }
+                ],
+                "output": "{\"type\":\"candleSnapshot\",\"req\":{\"coin\":\"ETH\",\"interval\":\"1m\",\"startTime\":1730342220000,\"endTime\":1730378220000}}"
             }
         ],
         "fetchFundingRateHistory": [

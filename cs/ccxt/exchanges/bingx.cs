@@ -197,6 +197,7 @@ public partial class bingx : Exchange
                                 { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "positionMargin/history", 2 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
@@ -486,6 +487,7 @@ public partial class bingx : Exchange
                 } },
                 { "networks", new Dictionary<string, object>() {
                     { "ARB", "ARBITRUM" },
+                    { "MATIC", "POLYGON" },
                 } },
             } },
         });
@@ -2840,27 +2842,19 @@ public partial class bingx : Exchange
         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
-        object symbol = null;
+        object marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
-            if (isTrue(isEqual(symbol, null)))
-            {
-                symbol = marketId;
-            } else
-            {
-                if (isTrue(!isEqual(symbol, marketId)))
-                {
-                    throw new BadRequest ((string)add(this.id, " createOrders() requires all orders to have the same symbol")) ;
-                }
-            }
             object type = this.safeString(rawOrder, "type");
+            ((IList<object>)marketIds).Add(marketId);
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
@@ -2868,15 +2862,26 @@ public partial class bingx : Exchange
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
-        object market = this.market(symbol);
+        object symbols = this.marketSymbols(marketIds, null, false, true, true);
+        object symbolsLength = getArrayLength(symbols);
+        object market = this.market(getValue(symbols, 0));
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
+            if (isTrue(isGreaterThan(symbolsLength, 5)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrders() can not create more than 5 orders at once for swap markets")) ;
+            }
             ((IDictionary<string,object>)request)["batchOrders"] = this.json(ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
+            object sync = this.safeBool(parameters, "sync", false);
+            if (isTrue(sync))
+            {
+                ((IDictionary<string,object>)request)["sync"] = true;
+            }
             ((IDictionary<string,object>)request)["data"] = this.json(ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders(request);
         }
@@ -2925,6 +2930,14 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
+        if (isTrue((response is string)))
+        {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(result, market);
@@ -3350,7 +3363,7 @@ public partial class bingx : Exchange
                 { "cost", Precise.stringAbs(feeCost) },
             } },
             { "trades", null },
-            { "reduceOnly", this.safeBool(order, "reduceOnly") },
+            { "reduceOnly", this.safeBool2(order, "reduceOnly", "ro") },
         }, market);
     }
 
@@ -4323,42 +4336,21 @@ public partial class bingx : Exchange
     public override object parseDepositAddress(object depositAddress, object currency = null)
     {
         //
-        //     {
-        //         "coinId": "799",
-        //         "coin": "USDT",
-        //         "network": "BEP20",
-        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag": ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        object address = this.safeString(depositAddress, "address");
         object tag = this.safeString(depositAddress, "tag");
         object currencyId = this.safeString(depositAddress, "coin");
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the address to the user
-        // that is only if the underlying contract address has the 0x prefix as well
-        object networkCode = this.safeString(depositAddress, "network");
-        if (isTrue(!isEqual(networkCode, null)))
-        {
-            if (isTrue(inOp(getValue(currency, "networks"), networkCode)))
-            {
-                object network = getValue(getValue(currency, "networks"), networkCode);
-                object contractAddress = this.safeString(getValue(network, "info"), "contractAddress");
-                if (isTrue(!isEqual(contractAddress, null)))
-                {
-                    if (isTrue(isTrue(isEqual(getValue(contractAddress, 0), "0")) && isTrue(isEqual(getValue(contractAddress, 1), "x"))))
-                    {
-                        if (isTrue(isTrue(!isEqual(getValue(address, 0), "0")) || isTrue(!isEqual(getValue(address, 1), "x"))))
-                        {
-                            address = add("0x", address);
-                        }
-                    }
-                }
-            }
-        }
+        object address = this.safeString(depositAddress, "addressWithPrefix");
+        object networkdId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkdId, code);
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
@@ -5014,7 +5006,7 @@ public partial class bingx : Exchange
         * @method
         * @name bingx#withdraw
         * @description make a withdrawal
-        * @see https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
@@ -5024,6 +5016,10 @@ public partial class bingx : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
+        parameters = ((IList<object>)tagparametersVariable)[1];
+        this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
         object walletType = this.safeInteger(parameters, "walletType");
@@ -5045,6 +5041,10 @@ public partial class bingx : Exchange
         if (isTrue(!isEqual(network, null)))
         {
             ((IDictionary<string,object>)request)["network"] = this.networkCodeToId(network);
+        }
+        if (isTrue(!isEqual(tag, null)))
+        {
+            ((IDictionary<string,object>)request)["addressTag"] = tag;
         }
         parameters = this.omit(parameters, new List<object>() {"walletType", "network"});
         object response = await this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters));

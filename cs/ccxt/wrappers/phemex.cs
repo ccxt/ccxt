@@ -10,6 +10,7 @@ public partial class phemex
     /// retrieves data on all markets for phemex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-product-information-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -921,5 +922,25 @@ public partial class phemex
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
+    }
+    /// <summary>
+    /// retrieves the open interest of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-24-hours-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
     }
 }

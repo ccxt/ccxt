@@ -59,6 +59,7 @@ public partial class phemex : Exchange
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
@@ -97,7 +98,7 @@ public partial class phemex : Exchange
                     { "private", "https://{hostname}" },
                 } },
                 { "www", "https://phemex.com" },
-                { "doc", "https://github.com/phemex/phemex-api-docs" },
+                { "doc", "https://phemex-docs.github.io/#overview" },
                 { "fees", "https://phemex.com/fees-conditions" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://phemex.com/register?referralCode=EDNVJ" },
@@ -155,6 +156,7 @@ public partial class phemex : Exchange
                 { "v2", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "public/products", 5 },
+                        { "public/products-plus", 5 },
                         { "md/v2/orderbook", 5 },
                         { "md/v2/trade", 5 },
                         { "md/v2/ticker/24hr", 5 },
@@ -709,7 +711,7 @@ public partial class phemex : Exchange
                     { "max", this.parseSafeNumber(this.safeString(market, "maxOrderValue")) },
                 } },
             } },
-            { "created", null },
+            { "created", this.safeInteger(market, "listTime") },
             { "info", market },
         });
     }
@@ -720,6 +722,7 @@ public partial class phemex : Exchange
         * @method
         * @name phemex#fetchMarkets
         * @description retrieves data on all markets for phemex
+        * @see https://phemex-docs.github.io/#query-product-information-3
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -5172,6 +5175,86 @@ public partial class phemex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
+    }
+
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name phemex#fetchOpenInterest
+        * @description retrieves the open interest of a trading pair
+        * @see https://phemex-docs.github.io/#query-24-hours-ticker
+        * @param {string} symbol unified CCXT market symbol
+        * @param {object} [params] exchange specific parameters
+        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.v2GetMdV2Ticker24hr(this.extend(request, parameters));
+        //
+        //    {
+        //        error: null,
+        //        id: '0',
+        //        result: {
+        //          closeRp: '67550.1',
+        //          fundingRateRr: '0.0001',
+        //          highRp: '68400',
+        //          indexPriceRp: '67567.15389794',
+        //          lowRp: '66096.4',
+        //          markPriceRp: '67550.1',
+        //          openInterestRv: '1848.1144186',
+        //          openRp: '66330',
+        //          predFundingRateRr: '0.0001',
+        //          symbol: 'BTCUSDT',
+        //          timestamp: '1729114315443343001',
+        //          turnoverRv: '228863389.3237532',
+        //          volumeRq: '3388.5600312'
+        //        }
+        //    }
+        //
+        object result = this.safeDict(response, "result");
+        return this.parseOpenInterest(result, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //    {
+        //        closeRp: '67550.1',
+        //        fundingRateRr: '0.0001',
+        //        highRp: '68400',
+        //        indexPriceRp: '67567.15389794',
+        //        lowRp: '66096.4',
+        //        markPriceRp: '67550.1',
+        //        openInterestRv: '1848.1144186',
+        //        openRp: '66330',
+        //        predFundingRateRr: '0.0001',
+        //        symbol: 'BTCUSDT',
+        //        timestamp: '1729114315443343001',
+        //        turnoverRv: '228863389.3237532',
+        //        volumeRq: '3388.5600312'
+        //    }
+        //
+        object timestamp = divide(this.safeInteger(interest, "timestamp"), 1000000);
+        object id = this.safeString(interest, "symbol");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeSymbol(id, market) },
+            { "baseVolume", this.safeString(interest, "volumeRq") },
+            { "quoteVolume", null },
+            { "openInterestAmount", this.safeString(interest, "openInterestRv") },
+            { "openInterestValue", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+        }, market);
     }
 
     public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

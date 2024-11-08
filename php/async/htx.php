@@ -1646,6 +1646,10 @@ class htx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for huobi
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -1675,8 +1679,20 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_markets_by_type_and_sub_type($type, $subType, $params = array ()) {
+    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array ()) {
         return Async\async(function () use ($type, $subType, $params) {
+            /**
+             * @ignore
+             * retrieves data on all $markets of a certain $type and/or subtype
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-$symbol-v1-deprecated
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#get-$contract-info
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-$swap-info
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-$swap-info
+             * @param {string} [$type] 'spot', 'swap' or 'future'
+             * @param {string} [$subType] 'linear' or 'inverse'
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing $market data
+             */
             $isSpot = ($type === 'spot');
             $request = array();
             $response = null;
@@ -3161,8 +3177,16 @@ class htx extends Exchange {
         );
     }
 
-    public function fetch_account_id_by_type($type, $marginMode = null, $symbol = null, $params = array ()) {
+    public function fetch_account_id_by_type(string $type, ?string $marginMode = null, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($type, $marginMode, $symbol, $params) {
+            /**
+             * fetch all the $accounts by a $type and marginModeassociated with a profile
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-$accounts-of-the-current-user
+             * @param {string} $type 'spot', 'swap' or 'future
+             * @param {string} [$marginMode] 'cross' or 'isolated'
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account $type
+             */
             $accounts = Async\await($this->load_accounts());
             $accountId = $this->safe_value_2($params, 'accountId', 'account-id');
             if ($accountId !== null) {
@@ -5028,12 +5052,7 @@ class htx extends Exchange {
         $cost = null;
         $amount = null;
         if (($type !== null) && (mb_strpos($type, 'market') !== false)) {
-            // for $market orders $amount is in quote currency, meaning it is the $cost
-            if ($side === 'sell') {
-                $cost = $this->safe_string($order, 'field-cash-amount');
-            } else {
-                $cost = $this->safe_string($order, 'amount');
-            }
+            $cost = $this->safe_string($order, 'field-cash-amount');
         } else {
             $amount = $this->safe_string_2($order, 'volume', 'amount');
             $cost = $this->safe_string_n($order, array( 'filled-cash-amount', 'field-cash-amount', 'trade_turnover' )); // same typo here
@@ -5167,22 +5186,22 @@ class htx extends Exchange {
                 // 'price' => $this->price_to_precision($symbol, $price),
                 // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
                 // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
-                // 'stop-price' => $this->price_to_precision($symbol, $stopPrice), // trigger $price for stop limit orders
+                // 'stop-price' => $this->price_to_precision($symbol, stopPrice), // trigger $price for stop limit orders
                 // 'operator' => 'gte', // gte, lte, trigger $price condition
             );
             $orderType = str_replace('buy-', '', $type);
             $orderType = str_replace('sell-', '', $orderType);
             $options = $this->safe_value($this->options, $market['type'], array());
-            $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop-price');
-            if ($stopPrice === null) {
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop-price' ));
+            if ($triggerPrice === null) {
                 $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
                 if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a stop order');
                 }
             } else {
                 $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
                 $stopOperator = $this->safe_string($params, 'operator', $defaultOperator);
-                $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stop-price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['operator'] = $stopOperator;
                 if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
                     $orderType = 'stop-' . $orderType;
@@ -5250,7 +5269,7 @@ class htx extends Exchange {
             if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
             return $this->extend($request, $params);
         }) ();
     }
@@ -5287,16 +5306,16 @@ class htx extends Exchange {
         } elseif ($timeInForce === 'IOC') {
             $type = 'ioc';
         }
-        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
         $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
         $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callback_rate');
         $trailingTriggerPrice = $this->safe_number($params, 'trailingTriggerPrice', $price);
         $isTrailingPercentOrder = $trailingPercent !== null;
-        $isStop = $triggerPrice !== null;
+        $isTrigger = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-        if ($isStop) {
+        if ($isTrigger) {
             $triggerType = $this->safe_string_2($params, 'triggerType', 'trigger_type', 'le');
             $request['trigger_type'] = $triggerType;
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -5345,7 +5364,7 @@ class htx extends Exchange {
         $broker = $this->safe_value($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, 'id');
         $request['channel_code'] = $brokerId;
-        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
         return $this->extend($request, $params);
     }
 
@@ -5368,7 +5387,7 @@ class htx extends Exchange {
              * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] the $price a trigger order is triggered at
              * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
              * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
@@ -5384,12 +5403,12 @@ class htx extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
             $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
             $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
             $trailingPercent = $this->safe_number($params, 'trailingPercent');
             $isTrailingPercentOrder = $trailingPercent !== null;
-            $isStop = $triggerPrice !== null;
+            $isTrigger = $triggerPrice !== null;
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $response = null;
@@ -5406,7 +5425,7 @@ class htx extends Exchange {
                     list($marginMode, $contractRequest) = $this->handle_margin_mode_and_params('createOrder', $contractRequest);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                     if ($marginMode === 'isolated') {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTpslOrder ($contractRequest));
@@ -5416,7 +5435,7 @@ class htx extends Exchange {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapOrder ($contractRequest));
                         }
                     } elseif ($marginMode === 'cross') {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder ($contractRequest));
@@ -5432,7 +5451,7 @@ class htx extends Exchange {
                         throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter $params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                     }
                     if ($market['swap']) {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTpslOrder ($contractRequest));
@@ -5442,7 +5461,7 @@ class htx extends Exchange {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapOrder ($contractRequest));
                         }
                     } elseif ($market['future']) {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostApiV1ContractTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostApiV1ContractTpslOrder ($contractRequest));
@@ -7023,7 +7042,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -7090,7 +7109,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7138,16 +7157,15 @@ class htx extends Exchange {
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
-            'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
             'amountBorrowed' => $this->safe_number($info, 'loan-amount'),
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 

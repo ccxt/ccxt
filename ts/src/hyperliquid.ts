@@ -152,7 +152,17 @@ export default class hyperliquid extends Exchange {
             'api': {
                 'public': {
                     'post': {
-                        'info': 1,
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'clearinghouseState': 2,
+                                'orderStatus': 2,
+                                'spotClearinghouseState': 2,
+                                'exchangeStatus': 2,
+                            },
+                        },
                     },
                 },
                 'private': {
@@ -656,9 +666,9 @@ export default class hyperliquid extends Exchange {
                 const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
-                const free = this.safeString (balance, 'hold');
+                const used = this.safeString (balance, 'hold');
                 account['total'] = total;
-                account['used'] = free;
+                account['used'] = used;
                 spotBalances[code] = account;
             }
             return this.safeBalance (spotBalances);
@@ -667,8 +677,8 @@ export default class hyperliquid extends Exchange {
         const result: Dict = {
             'info': response,
             'USDC': {
-                'total': this.safeFloat (data, 'accountValue'),
-                'used': this.safeFloat (data, 'totalMarginUsed'),
+                'total': this.safeNumber (data, 'accountValue'),
+                'free': this.safeNumber (response, 'withdrawable'),
             },
         };
         const timestamp = this.safeInteger (response, 'time');
@@ -800,9 +810,17 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until', this.milliseconds ());
-        const useTail = (since === undefined);
+        let useTail = since === undefined;
+        const originalSince = since;
         if (since === undefined) {
-            since = 0;
+            if (limit !== undefined) {
+                // optimization if limit is provided
+                const timeframeInMilliseconds = this.parseTimeframe (timeframe) * 1000;
+                since = this.sum (until, timeframeInMilliseconds * limit * -1);
+                useTail = false;
+            } else {
+                since = 0;
+            }
         }
         params = this.omit (params, [ 'until' ]);
         const request: Dict = {
@@ -831,7 +849,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs (response, market, timeframe, originalSince, limit, useTail);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1646,7 +1664,8 @@ export default class hyperliquid extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         } else {
-            request['startTime'] = this.milliseconds () - 100 * 60 * 60 * 1000;
+            const maxLimit = (limit === undefined) ? 500 : limit;
+            request['startTime'] = this.milliseconds () - maxLimit * 60 * 60 * 1000;
         }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
@@ -2270,14 +2289,17 @@ export default class hyperliquid extends Exchange {
         const leverage = this.safeDict (entry, 'leverage', {});
         const marginMode = this.safeString (leverage, 'type');
         const isIsolated = (marginMode === 'isolated');
-        const size = this.safeNumber (entry, 'szi');
+        const rawSize = this.safeString (entry, 'szi');
+        let size = rawSize;
         let side = undefined;
         if (size !== undefined) {
-            side = (size > 0) ? 'long' : 'short';
+            side = Precise.stringGt (rawSize, '0') ? 'long' : 'short';
+            size = Precise.stringAbs (size);
         }
-        const unrealizedPnl = this.safeNumber (entry, 'unrealizedPnl');
-        const initialMargin = this.safeNumber (entry, 'marginUsed');
-        const percentage = unrealizedPnl / initialMargin * 100;
+        const rawUnrealizedPnl = this.safeString (entry, 'unrealizedPnl');
+        const absRawUnrealizedPnl = Precise.stringAbs (rawUnrealizedPnl);
+        const initialMargin = this.safeString (entry, 'marginUsed');
+        const percentage = Precise.stringMul (Precise.stringDiv (absRawUnrealizedPnl, initialMargin), '100');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2287,21 +2309,21 @@ export default class hyperliquid extends Exchange {
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
-            'contracts': size,
+            'contracts': this.parseNumber (size),
             'contractSize': undefined,
             'entryPrice': this.safeNumber (entry, 'entryPx'),
             'markPrice': undefined,
             'notional': this.safeNumber (entry, 'positionValue'),
             'leverage': this.safeNumber (leverage, 'value'),
             'collateral': this.safeNumber (entry, 'marginUsed'),
-            'initialMargin': initialMargin,
+            'initialMargin': this.parseNumber (initialMargin),
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber (rawUnrealizedPnl),
             'liquidationPrice': this.safeNumber (entry, 'liquidationPx'),
             'marginMode': marginMode,
-            'percentage': percentage,
+            'percentage': this.parseNumber (percentage),
         });
     }
 
@@ -3077,6 +3099,17 @@ export default class hyperliquid extends Exchange {
             body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
+        if (('byType' in config) && ('type' in params)) {
+            const type = params['type'];
+            const byType = config['byType'] as Dict;
+            if (type in byType) {
+                return byType[type];
+            }
+        }
+        return this.safeValue (config, 'cost', 1);
     }
 
     parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

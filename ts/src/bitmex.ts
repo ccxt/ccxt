@@ -110,7 +110,7 @@ export default class bitmex extends Exchange {
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
+                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -1166,19 +1166,20 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        let fee = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
+            fee = {
+                'cost': this.parseNumber (feeCost),
+                'currency': code,
+            };
         }
-        const fee = {
-            'cost': this.parseToNumeric (feeCost),
-            'currency': code,
-        };
         let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
             after = this.convertToRealAmount (code, after);
         }
-        const before = this.parseToNumeric (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
+        const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
         let direction = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
@@ -1198,9 +1199,9 @@ export default class bitmex extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': this.parseToNumeric (amount),
+            'amount': this.parseNumber (amount),
             'before': before,
-            'after': this.parseToNumeric (after),
+            'after': this.parseNumber (after),
             'status': status,
             'fee': fee,
         }, currency) as LedgerEntry;

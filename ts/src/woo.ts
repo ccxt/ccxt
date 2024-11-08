@@ -2526,7 +2526,7 @@ export default class woo extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async repayMargin (code: string, amount, symbol: Str = undefined, params = {}) {
+    async repayMargin (code: string, amount: number, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name woo#repayMargin

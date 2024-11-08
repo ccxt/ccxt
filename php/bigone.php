@@ -41,7 +41,10 @@ class bigone extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
@@ -76,7 +79,7 @@ class bigone extends Exchange {
             ),
             'hostname' => 'big.one', // or 'bigone.com'
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api' => array(
                     'public' => 'https://{hostname}/api/v3',
                     'private' => 'https://{hostname}/api/v3/viewer',

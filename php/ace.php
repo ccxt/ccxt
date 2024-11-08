@@ -100,7 +100,7 @@ class ace extends Exchange {
                 '1M' => 31,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/115f1e4a-0fd0-4b76-85d5-a49ebf64d1c8',
                 'api' => array(
                     'public' => 'https://ace.io/polarisex',
                     'private' => 'https://ace.io/polarisex/open',

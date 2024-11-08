@@ -2958,7 +2958,7 @@ class digifinex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2993,7 +2993,7 @@ class digifinex extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -3015,15 +3015,15 @@ class digifinex extends Exchange {
         $currency = ($market === null) ? null : $market['base'];
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'account' => $symbol,
+            'info' => $info,
             'symbol' => $symbol,
             'currency' => $currency,
             'interest' => null,
             'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed' => $this->parse_number($amountBorrowed),
+            'marginMode' => null,
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 

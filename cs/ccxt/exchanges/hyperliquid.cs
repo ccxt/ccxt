@@ -141,7 +141,17 @@ public partial class hyperliquid : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "info", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                            { "byType", new Dictionary<string, object>() {
+                                { "l2Book", 2 },
+                                { "allMids", 2 },
+                                { "clearinghouseState", 2 },
+                                { "orderStatus", 2 },
+                                { "spotClearinghouseState", 2 },
+                                { "exchangeStatus", 2 },
+                            } },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -662,9 +672,9 @@ public partial class hyperliquid : Exchange
                 object code = this.safeCurrencyCode(this.safeString(balance, "coin"));
                 object account = this.account();
                 object total = this.safeString(balance, "total");
-                object free = this.safeString(balance, "hold");
+                object used = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
-                ((IDictionary<string,object>)account)["used"] = free;
+                ((IDictionary<string,object>)account)["used"] = used;
                 ((IDictionary<string,object>)spotBalances)[(string)code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -673,8 +683,8 @@ public partial class hyperliquid : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "USDC", new Dictionary<string, object>() {
-                { "total", this.safeFloat(data, "accountValue") },
-                { "used", this.safeFloat(data, "totalMarginUsed") },
+                { "total", this.safeNumber(data, "accountValue") },
+                { "free", this.safeNumber(response, "withdrawable") },
             } },
         };
         object timestamp = this.safeInteger(response, "time");
@@ -815,10 +825,20 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until", this.milliseconds());
-        object useTail = (isEqual(since, null));
+        object useTail = isEqual(since, null);
+        object originalSince = since;
         if (isTrue(isEqual(since, null)))
         {
-            since = 0;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                // optimization if limit is provided
+                object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframe), 1000);
+                since = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
+                useTail = false;
+            } else
+            {
+                since = 0;
+            }
         }
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
@@ -847,7 +867,7 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit, useTail);
+        return this.parseOHLCVs(response, market, timeframe, originalSince, limit, useTail);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1752,7 +1772,8 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)request)["startTime"] = since;
         } else
         {
-            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(100, 60), 60), 1000));
+            object maxLimit = ((bool) isTrue((isEqual(limit, null)))) ? 500 : limit;
+            ((IDictionary<string,object>)request)["startTime"] = subtract(this.milliseconds(), multiply(multiply(multiply(maxLimit, 60), 60), 1000));
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
@@ -2425,15 +2446,18 @@ public partial class hyperliquid : Exchange
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         object marginMode = this.safeString(leverage, "type");
         object isIsolated = (isEqual(marginMode, "isolated"));
-        object size = this.safeNumber(entry, "szi");
+        object rawSize = this.safeString(entry, "szi");
+        object size = rawSize;
         object side = null;
         if (isTrue(!isEqual(size, null)))
         {
-            side = ((bool) isTrue((isGreaterThan(size, 0)))) ? "long" : "short";
+            side = ((bool) isTrue(Precise.stringGt(rawSize, "0"))) ? "long" : "short";
+            size = Precise.stringAbs(size);
         }
-        object unrealizedPnl = this.safeNumber(entry, "unrealizedPnl");
-        object initialMargin = this.safeNumber(entry, "marginUsed");
-        object percentage = multiply(divide(unrealizedPnl, initialMargin), 100);
+        object rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
+        object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        object initialMargin = this.safeString(entry, "marginUsed");
+        object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, initialMargin), "100");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -2443,21 +2467,21 @@ public partial class hyperliquid : Exchange
             { "isolated", isIsolated },
             { "hedged", null },
             { "side", side },
-            { "contracts", size },
+            { "contracts", this.parseNumber(size) },
             { "contractSize", null },
             { "entryPrice", this.safeNumber(entry, "entryPx") },
             { "markPrice", null },
             { "notional", this.safeNumber(entry, "positionValue") },
             { "leverage", this.safeNumber(leverage, "value") },
             { "collateral", this.safeNumber(entry, "marginUsed") },
-            { "initialMargin", initialMargin },
+            { "initialMargin", this.parseNumber(initialMargin) },
             { "maintenanceMargin", null },
             { "initialMarginPercentage", null },
             { "maintenanceMarginPercentage", null },
-            { "unrealizedPnl", unrealizedPnl },
+            { "unrealizedPnl", this.parseNumber(rawUnrealizedPnl) },
             { "liquidationPrice", this.safeNumber(entry, "liquidationPx") },
             { "marginMode", marginMode },
-            { "percentage", percentage },
+            { "percentage", this.parseNumber(percentage) },
         });
     }
 
@@ -3323,6 +3347,21 @@ public partial class hyperliquid : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    {
+        config ??= new Dictionary<string, object>();
+        if (isTrue(isTrue((inOp(config, "byType"))) && isTrue((inOp(parameters, "type")))))
+        {
+            object type = getValue(parameters, "type");
+            object byType = getValue(config, "byType");
+            if (isTrue(inOp(byType, type)))
+            {
+                return getValue(byType, type);
+            }
+        }
+        return this.safeValue(config, "cost", 1);
     }
 
     public virtual object parseCreateOrderArgs(object symbol, object type, object side, object amount, object price = null, object parameters = null)

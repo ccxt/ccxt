@@ -2220,8 +2220,8 @@ export default class kucoinfutures extends kucoin {
         const amount = this.safeString(order, 'size');
         const filled = this.safeString(order, 'filledSize');
         const cost = this.safeString(order, 'filledValue');
-        let average = undefined;
-        if (Precise.stringGt(filled, '0')) {
+        let average = this.safeString(order, 'avgDealPrice');
+        if ((average === undefined) && Precise.stringGt(filled, '0')) {
             const contractSize = this.safeString(market, 'contractSize');
             if (market['linear']) {
                 average = Precise.stringDiv(cost, Precise.stringMul(contractSize, filled));

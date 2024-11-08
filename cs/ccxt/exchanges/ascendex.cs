@@ -103,7 +103,7 @@ public partial class ascendex : Exchange
             } },
             { "version", "v2" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://ascendex.com" },
                 } },

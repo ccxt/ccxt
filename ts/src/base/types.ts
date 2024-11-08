@@ -340,15 +340,15 @@ export interface Position {
 }
 
 export interface BorrowInterest {
-    account?: Str;
+    info: any;
+    symbol?: Str;
     currency?: Str;
     interest?: number;
     interestRate?: number;
     amountBorrowed?: number;
     marginMode?: Str;
-    timestamp?: number;
+    timestamp?: Int;
     datetime?: Str;
-    info: any;
 }
 
 export interface LeverageTier {
@@ -554,6 +554,15 @@ export interface Leverage {
     marginMode: 'isolated' | 'cross' | Str;
     longLeverage: number;
     shortLeverage: number;
+}
+
+export interface LongShortRatio {
+    info: any,
+    symbol: string,
+    timestamp?: number,
+    datetime?: string,
+    timeframe?: string,
+    longShortRatio: number,
 }
 
 export interface MarginModification {

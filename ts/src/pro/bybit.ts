@@ -693,7 +693,7 @@ export default class bybit extends bybitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}) {
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         /**
          * @method
          * @name bybit#unWatchOHLCVForSymbols

@@ -17,7 +17,7 @@ public partial class exmo : ccxt.exmo
                 { "watchTickers", true },
                 { "watchTrades", true },
                 { "watchMyTrades", true },
-                { "watchOrders", false },
+                { "watchOrders", true },
                 { "watchOrderBook", true },
                 { "watchOHLCV", false },
             } },
@@ -620,6 +620,237 @@ public partial class exmo : ccxt.exmo
         }
     }
 
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name exmo#watchOrders
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#85f7bc03-b1c9-4cd2-bd22-8fd422272825
+        * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#95e4ed18-1791-4e6d-83ad-cbfe9be1051c
+        * @description watches information on multiple orders made by the user
+        * @param {string} symbol unified market symbol of the market orders were made in
+        * @param {int} [since] the earliest time in ms to fetch orders for
+        * @param {int} [limit] the maximum number of order structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate(parameters);
+        var typequeryVariable = this.handleMarketTypeAndParams("watchOrders", null, parameters);
+        var type = ((IList<object>) typequeryVariable)[0];
+        var query = ((IList<object>) typequeryVariable)[1];
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), type);
+        object messageHash = null;
+        if (isTrue(isEqual(symbol, null)))
+        {
+            messageHash = add("orders:", type);
+        } else
+        {
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            messageHash = add("orders:", getValue(market, "symbol"));
+        }
+        object message = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "topics", new List<object>() {add(type, "/orders")} },
+            { "id", this.requestId() },
+        };
+        object request = this.deepExtend(message, query);
+        object orders = await this.watch(url, messageHash, request, messageHash, request);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    public virtual void handleOrders(WebSocketClient client, object message)
+    {
+        //
+        //  spot
+        // {
+        //     "ts": 1574427585174,
+        //     "event": "snapshot",
+        //     "topic": "spot/orders",
+        //     "data": [
+        //       {
+        //         "order_id": "14",
+        //         "client_id":"100500",
+        //         "created": "1574427585",
+        //         "pair": "BTC_USD",
+        //         "price": "7750",
+        //         "quantity": "0.1",
+        //         "amount": "775",
+        //         "original_quantity": "0.1",
+        //         "original_amount": "775",
+        //         "type": "sell",
+        //         "status": "open"
+        //       }
+        //     ]
+        // }
+        //
+        //  margin
+        // {
+        //     "ts":1624371281773,
+        //     "event":"snapshot",
+        //     "topic":"margin/orders",
+        //     "data":[
+        //        {
+        //           "order_id":"692844278081168665",
+        //           "created":"1624371250919761600",
+        //           "type":"limit_buy",
+        //           "previous_type":"limit_buy",
+        //           "pair":"BTC_USD",
+        //           "leverage":"2",
+        //           "price":"10000",
+        //           "stop_price":"0",
+        //           "distance":"0",
+        //           "trigger_price":"10000",
+        //           "init_quantity":"0.1",
+        //           "quantity":"0.1",
+        //           "funding_currency":"USD",
+        //           "funding_quantity":"1000",
+        //           "funding_rate":"0",
+        //           "client_id":"111111",
+        //           "expire":0,
+        //           "src":1,
+        //           "comment":"comment1",
+        //           "updated":1624371250938136600,
+        //           "status":"active"
+        //        }
+        //     ]
+        // }
+        //
+        object topic = this.safeString(message, "topic");
+        object parts = ((string)topic).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        object type = this.safeString(parts, 0);
+        object messageHash = add("orders:", type);
+        object eventVar = this.safeString(message, "event");
+        if (isTrue(isEqual(this.orders, null)))
+        {
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        object cachedOrders = this.orders;
+        object rawOrders = new List<object>() {};
+        if (isTrue(isEqual(eventVar, "snapshot")))
+        {
+            rawOrders = this.safeValue(message, "data", new List<object>() {});
+        } else if (isTrue(isEqual(eventVar, "update")))
+        {
+            object rawOrder = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            ((IList<object>)rawOrders).Add(rawOrder);
+        }
+        object symbols = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(rawOrders)); postFixIncrement(ref j))
+        {
+            object order = this.parseWsOrder(getValue(rawOrders, j));
+            callDynamically(cachedOrders, "append", new object[] {order});
+            ((IDictionary<string,object>)symbols)[(string)getValue(order, "symbol")] = true;
+        }
+        object symbolKeys = new List<object>(((IDictionary<string,object>)symbols).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbolKeys, i);
+            object symbolSpecificMessageHash = add("orders:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, symbolSpecificMessageHash});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {cachedOrders, messageHash});
+    }
+
+    public override object parseWsOrder(object order, object market = null)
+    {
+        //
+        // {
+        //     order_id: '43226756791',
+        //     client_id: 0,
+        //     created: '1730371416',
+        //     type: 'market_buy',
+        //     pair: 'TRX_USD',
+        //     quantity: '0',
+        //     original_quantity: '30',
+        //     status: 'cancelled',
+        //     last_trade_id: '726480870',
+        //     last_trade_price: '0.17',
+        //     last_trade_quantity: '30'
+        // }
+        //
+        object id = this.safeString(order, "order_id");
+        object timestamp = this.safeTimestamp(order, "created");
+        object orderType = this.safeString(order, "type");
+        object side = this.parseSide(orderType);
+        object marketId = this.safeString(order, "pair");
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
+        object amount = this.safeString(order, "quantity");
+        if (isTrue(isEqual(amount, null)))
+        {
+            object amountField = ((bool) isTrue((isEqual(side, "buy")))) ? "in_amount" : "out_amount";
+            amount = this.safeString(order, amountField);
+        }
+        object price = this.safeString(order, "price");
+        object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        object triggerPrice = this.omitZero(this.safeString(order, "stop_price"));
+        object type = null;
+        if (isTrue(isTrue((!isEqual(orderType, "buy"))) && isTrue((!isEqual(orderType, "sell")))))
+        {
+            type = orderType;
+        }
+        object trades = null;
+        if (isTrue(inOp(order, "last_trade_id")))
+        {
+            object trade = this.parseWsTrade(order, market);
+            trades = new List<object>() {trade};
+        }
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "id", id },
+            { "clientOrderId", clientOrderId },
+            { "datetime", this.iso8601(timestamp) },
+            { "timestamp", timestamp },
+            { "lastTradeTimestamp", null },
+            { "status", this.parseStatus(this.safeString(order, "status")) },
+            { "symbol", symbol },
+            { "type", type },
+            { "timeInForce", null },
+            { "postOnly", null },
+            { "side", side },
+            { "price", price },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
+            { "cost", null },
+            { "amount", this.safeString(order, "original_quantity") },
+            { "filled", null },
+            { "remaining", this.safeString(order, "quantity") },
+            { "average", null },
+            { "trades", trades },
+            { "fee", null },
+            { "info", order },
+        }, market);
+    }
+
+    public override object parseWsTrade(object trade, object market = null)
+    {
+        object id = this.safeString(trade, "order_id");
+        object orderType = this.safeString(trade, "type");
+        object side = this.parseSide(orderType);
+        object marketId = this.safeString(trade, "pair");
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
+        object type = null;
+        if (isTrue(isTrue((!isEqual(orderType, "buy"))) && isTrue((!isEqual(orderType, "sell")))))
+        {
+            type = orderType;
+        }
+        return this.safeTrade(new Dictionary<string, object>() {
+            { "id", this.safeString(trade, "last_trade_id") },
+            { "symbol", symbol },
+            { "order", id },
+            { "type", type },
+            { "side", side },
+            { "price", this.safeString(trade, "last_trade_price") },
+            { "amount", this.safeString(trade, "last_trade_quantity") },
+            { "cost", null },
+            { "fee", null },
+        }, market);
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         //
@@ -664,6 +895,8 @@ public partial class exmo : ccxt.exmo
                     { "spot/trades", this.handleTrades },
                     { "margin/trades", this.handleTrades },
                     { "spot/order_book_updates", this.handleOrderBook },
+                    { "spot/orders", this.handleOrders },
+                    { "margin/orders", this.handleOrders },
                     { "spot/user_trades", this.handleMyTrades },
                     { "margin/user_trades", this.handleMyTrades },
                 };

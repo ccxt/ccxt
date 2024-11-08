@@ -145,7 +145,17 @@ class hyperliquid extends Exchange {
             'api' => array(
                 'public' => array(
                     'post' => array(
-                        'info' => 1,
+                        'info' => array(
+                            'cost' => 20,
+                            'byType' => array(
+                                'l2Book' => 2,
+                                'allMids' => 2,
+                                'clearinghouseState' => 2,
+                                'orderStatus' => 2,
+                                'spotClearinghouseState' => 2,
+                                'exchangeStatus' => 2,
+                            ),
+                        ),
                     ),
                 ),
                 'private' => array(
@@ -639,9 +649,9 @@ class hyperliquid extends Exchange {
                 $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
                 $account = $this->account();
                 $total = $this->safe_string($balance, 'total');
-                $free = $this->safe_string($balance, 'hold');
+                $used = $this->safe_string($balance, 'hold');
                 $account['total'] = $total;
-                $account['used'] = $free;
+                $account['used'] = $used;
                 $spotBalances[$code] = $account;
             }
             return $this->safe_balance($spotBalances);
@@ -650,8 +660,8 @@ class hyperliquid extends Exchange {
         $result = array(
             'info' => $response,
             'USDC' => array(
-                'total' => $this->safe_float($data, 'accountValue'),
-                'used' => $this->safe_float($data, 'totalMarginUsed'),
+                'total' => $this->safe_number($data, 'accountValue'),
+                'free' => $this->safe_number($response, 'withdrawable'),
             ),
         );
         $timestamp = $this->safe_integer($response, 'time');
@@ -777,9 +787,17 @@ class hyperliquid extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $useTail = ($since === null);
+        $useTail = $since === null;
+        $originalSince = $since;
         if ($since === null) {
-            $since = 0;
+            if ($limit !== null) {
+                // optimization if $limit is provided
+                $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+                $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                $useTail = false;
+            } else {
+                $since = 0;
+            }
         }
         $params = $this->omit($params, array( 'until' ));
         $request = array(
@@ -808,7 +826,7 @@ class hyperliquid extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit, $useTail);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $originalSince, $limit, $useTail);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1603,7 +1621,8 @@ class hyperliquid extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         } else {
-            $request['startTime'] = $this->milliseconds() - 100 * 60 * 60 * 1000;
+            $maxLimit = ($limit === null) ? 500 : $limit;
+            $request['startTime'] = $this->milliseconds() - $maxLimit * 60 * 60 * 1000;
         }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
@@ -2209,14 +2228,17 @@ class hyperliquid extends Exchange {
         $leverage = $this->safe_dict($entry, 'leverage', array());
         $marginMode = $this->safe_string($leverage, 'type');
         $isIsolated = ($marginMode === 'isolated');
-        $size = $this->safe_number($entry, 'szi');
+        $rawSize = $this->safe_string($entry, 'szi');
+        $size = $rawSize;
         $side = null;
         if ($size !== null) {
-            $side = ($size > 0) ? 'long' : 'short';
+            $side = Precise::string_gt($rawSize, '0') ? 'long' : 'short';
+            $size = Precise::string_abs($size);
         }
-        $unrealizedPnl = $this->safe_number($entry, 'unrealizedPnl');
-        $initialMargin = $this->safe_number($entry, 'marginUsed');
-        $percentage = $unrealizedPnl / $initialMargin * 100;
+        $rawUnrealizedPnl = $this->safe_string($entry, 'unrealizedPnl');
+        $absRawUnrealizedPnl = Precise::string_abs($rawUnrealizedPnl);
+        $initialMargin = $this->safe_string($entry, 'marginUsed');
+        $percentage = Precise::string_mul(Precise::string_div($absRawUnrealizedPnl, $initialMargin), '100');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2226,21 +2248,21 @@ class hyperliquid extends Exchange {
             'isolated' => $isIsolated,
             'hedged' => null,
             'side' => $side,
-            'contracts' => $size,
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'entryPrice' => $this->safe_number($entry, 'entryPx'),
             'markPrice' => null,
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
             'collateral' => $this->safe_number($entry, 'marginUsed'),
-            'initialMargin' => $initialMargin,
+            'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
-            'unrealizedPnl' => $unrealizedPnl,
+            'unrealizedPnl' => $this->parse_number($rawUnrealizedPnl),
             'liquidationPrice' => $this->safe_number($entry, 'liquidationPx'),
             'marginMode' => $marginMode,
-            'percentage' => $percentage,
+            'percentage' => $this->parse_number($percentage),
         ));
     }
 
@@ -2996,6 +3018,17 @@ class hyperliquid extends Exchange {
             $body = $this->json($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
+        if ((is_array($config) && array_key_exists('byType', $config)) && (is_array($params) && array_key_exists('type', $params))) {
+            $type = $params['type'];
+            $byType = $config['byType'];
+            if (is_array($byType) && array_key_exists($type, $byType)) {
+                return $byType[$type];
+            }
+        }
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function parse_create_order_args(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

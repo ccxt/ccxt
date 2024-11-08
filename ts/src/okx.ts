@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -95,6 +95,8 @@ export default class okx extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': true,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -237,6 +239,7 @@ export default class okx extends Exchange {
                         'rubik/stat/margin/loan-ratio': 4,
                         // long/short
                         'rubik/stat/contracts/long-short-account-ratio': 4,
+                        'rubik/stat/contracts/long-short-account-ratio-contract': 4,
                         'rubik/stat/contracts/open-interest-volume': 4,
                         'rubik/stat/option/open-interest-volume': 4,
                         // put/call
@@ -355,6 +358,9 @@ export default class okx extends Exchange {
                         'account/fixed-loan/borrowing-limit': 4,
                         'account/fixed-loan/borrowing-quote': 5,
                         'account/fixed-loan/borrowing-orders-list': 5,
+                        'account/spot-manual-borrow-repay': 10,
+                        'account/set-auto-repay': 4,
+                        'account/spot-borrow-repay-history': 4,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -391,6 +397,7 @@ export default class okx extends Exchange {
                         // eth staking
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
+                        'finance/staking-defi/eth/product-info': 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -886,6 +893,11 @@ export default class okx extends Exchange {
                     '59301': ExchangeError, // Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401': ExchangeError, // Holdings already reached the limit
+                    '59410': OperationRejected, // You can only borrow this crypto if it supports borrowing and borrowing is enabled.
+                    '59411': InsufficientFunds, // Manual borrowing failed. Your account's free margin is insufficient
+                    '59412': OperationRejected, // Manual borrowing failed. The amount exceeds your borrowing limit.
+                    '59413': OperationRejected, // You didn't borrow this crypto. No repayment needed.
+                    '59414': BadRequest, // Manual borrowing failed. The minimum borrowing limit is {param0}.needed.
                     '59500': ExchangeError, // Only the APIKey of the main account has permission
                     '59501': ExchangeError, // Only 50 APIKeys can be created per account
                     '59502': ExchangeError, // Note name cannot be duplicate with the currently created APIKey note name
@@ -6667,17 +6679,6 @@ export default class okx extends Exchange {
         return borrowRateHistories;
     }
 
-    parseBorrowRateHistory (response, code, since, limit) {
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const borrowRate = this.parseBorrowRate (item);
-            result.push (borrowRate);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterByCurrencySinceLimit (sorted, code, since, limit);
-    }
-
     async fetchBorrowRateHistories (codes = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -7004,7 +7005,7 @@ export default class okx extends Exchange {
         return tiers;
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name okx#fetchBorrowInterest
@@ -7068,23 +7069,23 @@ export default class okx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         const instId = this.safeString (info, 'instId');
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
         }
         const timestamp = this.safeInteger (info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': this.safeString (info, 'mgnMode'),
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
             'amountBorrowed': this.safeNumber (info, 'liab'),
+            'marginMode': this.safeString (info, 'mgnMode'),
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async borrowCrossMargin (code: string, amount: number, params = {}) {
@@ -8519,5 +8520,78 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data');
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
+    }
+
+    async fetchLongShortRatioHistory (symbol: Str = undefined, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LongShortRatio[]> {
+        /**
+         * @method
+         * @name okx#fetchLongShortRatioHistory
+         * @description fetches the long short ratio history for a unified market symbol
+         * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-long-short-ratio
+         * @param {string} symbol unified symbol of the market to fetch the long short ratio for
+         * @param {string} [timeframe] the period for the ratio
+         * @param {int} [since] the earliest time in ms to fetch ratios for
+         * @param {int} [limit] the maximum number of long short ratio structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
+         * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+        };
+        const until = this.safeString2 (params, 'until', 'end');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetRubikStatContractsLongShortAccountRatioContract (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             ["1729323600000", "0.9398602814619824"],
+        //             ["1729323300000", "0.9398602814619824"],
+        //             ["1729323000000", "0.9398602814619824"],
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            result.push ({
+                'timestamp': this.safeString (entry, 0),
+                'longShortRatio': this.safeString (entry, 1),
+            });
+        }
+        return this.parseLongShortRatioHistory (result, market);
+    }
+
+    parseLongShortRatio (info: Dict, market: Market = undefined): LongShortRatio {
+        const timestamp = this.safeInteger (info, 'timestamp');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': info,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'timeframe': undefined,
+            'longShortRatio': this.safeNumber (info, 'longShortRatio'),
+        } as LongShortRatio;
     }
 }

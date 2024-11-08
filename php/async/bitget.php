@@ -99,6 +99,8 @@ class bitget extends Exchange {
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
                 'fetchMarketLeverageTiers' => true,
@@ -165,7 +167,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
@@ -274,6 +276,7 @@ class bitget extends Exchange {
                             'v2/mix/market/current-fund-rate' => 1,
                             'v2/mix/market/contracts' => 1,
                             'v2/mix/market/query-position-lever' => 2,
+                            'v2/mix/market/account-long-short' => 20,
                         ),
                     ),
                     'margin' => array(
@@ -284,6 +287,7 @@ class bitget extends Exchange {
                             'margin/v1/isolated/public/tierData' => 2, // 10 times/1s (IP) => 20/10 = 2
                             'margin/v1/public/currencies' => 1, // 20 times/1s (IP) => 20/20 = 1
                             'v2/margin/currencies' => 2,
+                            'v2/margin/market/long-short-ratio' => 20,
                         ),
                     ),
                     'earn' => array(
@@ -446,6 +450,7 @@ class bitget extends Exchange {
                             'v2/mix/order/orders-history' => 2,
                             'v2/mix/order/orders-plan-pending' => 2,
                             'v2/mix/order/orders-plan-history' => 2,
+                            'v2/mix/market/position-long-short' => 20,
                         ),
                         'post' => array(
                             'mix/v1/account/sub-account-contract-assets' => 200, // 0.1 times/1s (UID) => 20/0.1 = 200
@@ -1430,7 +1435,7 @@ class bitget extends Exchange {
                     'ARB' => 'ArbitrumOne',
                     'ZKSYNC' => 'zkSyncEra',
                     'STARKNET' => 'Starknet',
-                    'APT' => 'APTOS',
+                    'APT' => 'Aptos',
                     'MATIC' => 'Polygon',
                     'VIC' => 'VICTION',
                     'AVAXC' => 'C-Chain',
@@ -8130,7 +8135,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -8237,7 +8242,7 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         // isolated
         //
@@ -8271,15 +8276,15 @@ class bitget extends Exchange {
         $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
         $timestamp = $this->safe_integer($info, 'cTime');
         return array(
+            'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'interestCoin')),
             'interest' => $this->safe_number($info, 'interestAmount'),
             'interestRate' => $this->safe_number($info, 'dailyInterestRate'),
             'amountBorrowed' => null,
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 
@@ -8832,6 +8837,79 @@ class bitget extends Exchange {
             $first = $this->safe_dict($data, 0, array());
             return $this->parse_funding_rate($first, $market);
         }) ();
+    }
+
+    public function fetch_long_short_ratio_history(?string $symbol = null, ?string $timeframe = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches the long short ratio history for a unified $market $symbol
+             * @see https://www.bitget.com/api-doc/common/apidata/Margin-Ls-Ratio
+             * @see https://www.bitget.com/api-doc/common/apidata/Account-Long-Short
+             * @param {string} $symbol unified $symbol of the $market to fetch the long short ratio for
+             * @param {string} [$timeframe] the period for the ratio
+             * @param {int} [$since] the earliest time in ms to fetch ratios for
+             * @param {int} [$limit] the maximum number of long short ratio structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=long-short-ratio-structure long short ratio structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($timeframe !== null) {
+                $request['period'] = $timeframe;
+            }
+            $response = null;
+            if ($market['swap'] || $market['future']) {
+                $response = Async\await($this->publicMixGetV2MixMarketAccountLongShort ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1729321233281,
+                //         "data" => array(
+                //             array(
+                //                 "longAccountRatio" => "0.58",
+                //                 "shortAccountRatio" => "0.42",
+                //                 "longShortAccountRatio" => "0.0138",
+                //                 "ts" => "1729312200000"
+                //             ),
+                //         )
+                //     }
+                //
+            } else {
+                $response = Async\await($this->publicMarginGetV2MarginMarketLongShortRatio ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1729306974712,
+                //         "data" => array(
+                //             array(
+                //                 "longShortRatio" => "40.66",
+                //                 "ts" => "1729306800000"
+                //             ),
+                //         )
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_long_short_ratio_history($data, $market);
+        }) ();
+    }
+
+    public function parse_long_short_ratio(array $info, ?array $market = null): array {
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_omit_zero($info, 'ts');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'timeframe' => null,
+            'longShortRatio' => $this->safe_number_2($info, 'longShortRatio', 'longShortAccountRatio'),
+        );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

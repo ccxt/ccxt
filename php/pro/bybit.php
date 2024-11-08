@@ -700,7 +700,7 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
