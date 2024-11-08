@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -254,6 +254,69 @@ export default class defx extends defxRest {
         client.resolve (trades, messageHash);
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name defx#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'symbol:' + market['id'] + ':depth:20:0.001';
+        const messageHash = 'orderbook:' + symbol;
+        const orderbook = await this.watchPublic ([ topic ], [ messageHash ], params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        // {
+        //     "topic": "symbol:SOL_USDC:depth:20:0.01",
+        //     "event": "depth",
+        //     "timestamp": 1731030695319,
+        //     "data": {
+        //         "symbol": "SOL_USDC",
+        //         "timestamp": 1731030695319,
+        //         "lastTradeTimestamp": 1731030275258,
+        //         "level": "20",
+        //         "slab": "0.01",
+        //         "bids": [
+        //             {
+        //                 "price": "198.27000000",
+        //                 "qty": "1.52"
+        //             }
+        //         ],
+        //         "asks": [
+        //             {
+        //                 "price": "198.44000000",
+        //                 "qty": "6.61"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.market (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (data, 'timestamp');
+        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook (snapshot);
+            this.orderbooks[symbol] = ob;
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (snapshot);
+        const messageHash = 'orderbook:' + symbol;
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeString (message, 'code');
         if (error !== undefined) {
@@ -266,6 +329,7 @@ export default class defx extends defxRest {
                 'ohlc': this.handleOHLCV,
                 '24hrTicker': this.handleTicker,
                 'trades': this.handleTrades,
+                'depth': this.handleOrderBook,
             };
             const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
