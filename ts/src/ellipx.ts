@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies } from '../ccxt.js';
+import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -774,6 +774,86 @@ export default class ellipx extends Exchange {
             'networks': networks,
         };
         return result;
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'currencyPair': market['symbol'].replace ('/', '_'),
+        };
+        // endpoint support before trade id.
+        // The actual endpoint URL will be: https://data.ellipx.com/Market/{currencyPair}:getTrades
+        // {
+        //     "id": "BTC_USDC:1731053859:914141972:0",
+        //     "pair": [
+        //         "BTC",
+        //         "USDC"
+        //     ],
+        //     "bid": {
+        //         "id": "mktor-swishf-uv6n-hrzj-63ye-bdqnk33q",
+        //         "iss": "ellipx:beta",
+        //         "uniq": "order:1731053859:914141972:0"
+        //     },
+        //     "ask": {
+        //         "id": "mktor-p3ozvt-qurz-gmzo-bf5n-g4rcuy6u",
+        //         "iss": "ellipx:beta",
+        //         "uniq": "order:1731053859:874659786:0"
+        //     },
+        //     "type": "bid",
+        //     "amount": {
+        //         "v": "412",
+        //         "e": 8,
+        //         "f": 0.00000412
+        //     },
+        //     "price": {
+        //         "v": "75878090000",
+        //         "e": 6,
+        //         "f": 75878.09
+        //     },
+        //     "date": "2024-11-08T08:17:39.914141972Z"
+        // }
+        const response = await this.publicGetMarketCurrencyPairGetTrades (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined): Trade {
+        // Format of trade ID: "BTC_USDC:1731053859:914141972:0"
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        const type = this.safeString (trade, 'type');
+        const side = (type === 'bid') ? 'buy' : 'sell';
+        const amount = this.safeValue (trade, 'amount', {});
+        const price = this.safeValue (trade, 'price', {});
+        const amountFloat = this.parseAmount (amount);
+        const priceFloat = this.parseAmount (price);
+        const pair = this.safeValue (trade, 'pair', []);
+        let symbol = undefined;
+        if (pair.length === 2) {
+            symbol = pair[0] + '/' + pair[1];
+        } else {
+            symbol = market['symbol'];
+        }
+        const bidOrder = this.safeValue (trade, 'bid', {});
+        const askOrder = this.safeValue (trade, 'ask', {});
+        const orderId = side === 'buy' ? this.safeString (bidOrder, 'id') : this.safeString (askOrder, 'id');
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': undefined,
+            'price': priceFloat,
+            'amount': amountFloat,
+            'cost': undefined,
+            'fee': undefined,
+        });
     }
 
     parseAmount (amount: Dict): number {
