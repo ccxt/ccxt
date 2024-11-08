@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import defxRest from '../defx.js';
-import { ExchangeError } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -21,10 +21,10 @@ export default class defx extends defxRest {
                 'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrderBookForSymbols': false,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': true,
             },
             'urls': {
                 'test': {
@@ -36,7 +36,7 @@ export default class defx extends defxRest {
                 'api': {
                     'ws': {
                         'public': 'wss://marketfeed.api.defx.com/pricefeed',
-                        'private': 'wss://userfeed.api.defx.com/user', // 404
+                        'private': 'wss://userfeed.api.defx.com/user',
                     },
                 },
             },
@@ -89,16 +89,44 @@ export default class defx extends defxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = 'symbol:' + market['id'] + ':ohlc:' + timeframe;
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
-        const ohlcv = await this.watchPublic ([ topic ], [ messageHash ], params);
-        if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        await this.loadMarkets ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const marketId = this.safeString (symbolAndTimeframe, 0);
+            const market = this.market (marketId);
+            const tf = this.safeString (symbolAndTimeframe, 1);
+            const interval = this.safeString (this.timeframes, tf, tf);
+            topics.push ('symbol:' + market['id'] + ':ohlc:' + interval);
+            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
+        }
+        const [ symbol, timeframe, candles ] = await this.watchPublic (topics, messageHashes, params);
+        if (this.newUpdates) {
+            limit = candles.getLimit (symbol, limit);
+        }
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     handleOHLCV (client: Client, message) {
@@ -142,7 +170,7 @@ export default class defx extends defxRest {
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;
-        client.resolve (ohlcv, messageHash);
+        client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
