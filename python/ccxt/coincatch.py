@@ -1954,7 +1954,7 @@ class coincatch(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://coincatch.github.io/github.io/en/spot/#withdraw
@@ -1983,13 +1983,23 @@ class coincatch(Exchange, ImplicitAPI):
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode)
         response = self.privatePostApiSpotV1WalletWithdrawalV2(self.extend(request, params))
-        # todo add after withdrawal
         #
-        return response
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": {
+        #             "orderId":888291686266343424",
+        #             "clientOrderId":"123"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_transaction(data, currency)
 
     def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
         #
         # fetchDeposits
+        #
         #     {
         #         "id": "1213046466852196352",
         #         "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2009,7 +2019,17 @@ class coincatch(Exchange, ImplicitAPI):
         #         "uTime": "1724938746015"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # withdraw
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": {
+        #             "orderId":888291686266343424",
+        #             "clientOrderId":"123"
+        #         }
+        #     }
+        #
         status = self.safe_string(transaction, 'status')
         if status == 'success':
             status = 'ok'
@@ -2033,7 +2053,7 @@ class coincatch(Exchange, ImplicitAPI):
             }
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'id', 'orderId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

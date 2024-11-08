@@ -2055,7 +2055,7 @@ class coincatch extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2087,15 +2087,25 @@ class coincatch extends Exchange {
                 $request['chain'] = $this->network_code_to_id($networkCode);
             }
             $response = Async\await($this->privatePostApiSpotV1WalletWithdrawalV2 ($this->extend($request, $params)));
-            // todo add after withdrawal
             //
-            return $response;
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "orderId":888291686266343424",
+            //             "clientOrderId":"123"
+            //         }
+            //     }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_transaction($data, $currency);
         }) ();
     }
 
     public function parse_transaction($transaction, ?array $currency = null): array {
         //
         // fetchDeposits
+        //
         //     {
         //         "id" => "1213046466852196352",
         //         "txId" => "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2115,7 +2125,17 @@ class coincatch extends Exchange {
         //         "uTime" => "1724938746015"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
         $status = $this->safe_string($transaction, 'status');
         if ($status === 'success') {
             $status = 'ok';
@@ -2141,7 +2161,7 @@ class coincatch extends Exchange {
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string_2($transaction, 'id', 'orderId'),
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

@@ -810,7 +810,7 @@ class bitflyer extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds

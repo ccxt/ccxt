@@ -1018,7 +1018,7 @@ class indodax(Exchange, ImplicitAPI):
             transactions = self.array_concat(withdraws, deposits)
         return self.parse_transactions(transactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#withdraw-coin-endpoints

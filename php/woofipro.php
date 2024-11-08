@@ -2290,7 +2290,7 @@ class woofipro extends Exchange {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-$request

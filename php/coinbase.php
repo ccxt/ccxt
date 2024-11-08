@@ -3888,7 +3888,7 @@ class coinbase extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money

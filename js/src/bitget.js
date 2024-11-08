@@ -87,7 +87,7 @@ export default class bitget extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': true,
                 'fetchIsolatedBorrowRates': false,
@@ -6849,6 +6849,71 @@ export default class bitget extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseFundingRate(data[0], market);
     }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchFundingRates
+         * @description fetch the current funding rates for all markets
+         * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+         * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+         */
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue(symbols, 0);
+            const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+            if (sandboxMode) {
+                const sandboxSymbol = this.convertSymbolForSandbox(symbol);
+                market = this.market(sandboxSymbol);
+            }
+            else {
+                market = this.market(symbol);
+            }
+        }
+        const request = {};
+        let productType = undefined;
+        [productType, params] = this.handleProductTypeAndParams(market, params);
+        request['productType'] = productType;
+        const response = await this.publicMixGetV2MixMarketTickers(this.extend(request, params));
+        // {
+        //     "code": "00000",
+        //     "msg": "success",
+        //     "requestTime": 1700533773477,
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSD",
+        //             "lastPr": "29904.5",
+        //             "askPr": "29904.5",
+        //             "bidPr": "29903.5",
+        //             "bidSz": "0.5091",
+        //             "askSz": "2.2694",
+        //             "high24h": "0",
+        //             "low24h": "0",
+        //             "ts": "1695794271400",
+        //             "change24h": "0",
+        //             "baseVolume": "0",
+        //             "quoteVolume": "0",
+        //             "usdtVolume": "0",
+        //             "openUtc": "0",
+        //             "changeUtc24h": "0",
+        //             "indexPrice": "29132.353333",
+        //             "fundingRate": "-0.0007",
+        //             "holdingAmount": "125.6844",
+        //             "deliveryStartTime": null,
+        //             "deliveryTime": null,
+        //             "deliveryStatus": "delivery_normal",
+        //             "open24h": "0",
+        //             "markPrice": "12345"
+        //         },
+        //     ]
+        // }
+        const data = this.safeList(response, 'data', []);
+        return this.parseFundingRates(data, market);
+    }
     parseFundingRate(contract, market = undefined) {
         //
         // fetchFundingRate
@@ -6865,11 +6930,39 @@ export default class bitget extends Exchange {
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
-        //
+        // fetchFundingRates
+        //     {
+        //         "symbol": "BTCUSD",
+        //         "lastPr": "29904.5",
+        //         "askPr": "29904.5",
+        //         "bidPr": "29903.5",
+        //         "bidSz": "0.5091",
+        //         "askSz": "2.2694",
+        //         "high24h": "0",
+        //         "low24h": "0",
+        //         "ts": "1695794271400",
+        //         "change24h": "0",
+        //         "baseVolume": "0",
+        //         "quoteVolume": "0",
+        //         "usdtVolume": "0",
+        //         "openUtc": "0",
+        //         "changeUtc24h": "0",
+        //         "indexPrice": "29132.353333",
+        //         "fundingRate": "-0.0007",
+        //         "holdingAmount": "125.6844",
+        //         "deliveryStartTime": null,
+        //         "deliveryTime": null,
+        //         "deliveryStatus": "delivery_normal",
+        //         "open24h": "0",
+        //         "markPrice": "12345"
+        //     }
         const marketId = this.safeString(contract, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, 'swap');
         const fundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
         const interval = this.safeString(contract, 'ratePeriod');
+        const timestamp = this.safeInteger(contract, 'ts');
+        const markPrice = this.safeNumber(contract, 'markPrice');
+        const indexPrice = this.safeNumber(contract, 'indexPrice');
         let intervalString = undefined;
         if (interval !== undefined) {
             intervalString = interval + 'h';
@@ -6877,12 +6970,12 @@ export default class bitget extends Exchange {
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
             'fundingRate': this.safeNumber(contract, 'fundingRate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601(fundingTimestamp),

@@ -880,7 +880,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://api.blockchain.com/v3/#createwithdrawal

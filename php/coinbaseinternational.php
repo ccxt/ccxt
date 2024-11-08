@@ -2101,7 +2101,7 @@ class coinbaseinternational extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.cloud.coinbase.com/intx/reference/withdraw

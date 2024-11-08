@@ -1157,7 +1157,7 @@ class novadax(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://doc.novadax.com/en-US/#send-cryptocurrencies

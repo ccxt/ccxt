@@ -6233,7 +6233,7 @@ class bybit extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw

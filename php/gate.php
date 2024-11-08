@@ -3673,7 +3673,7 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw

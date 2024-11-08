@@ -756,7 +756,7 @@ class independentreserve(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'Tag'),
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.independentreserve.com/features/api#WithdrawDigitalCurrency

@@ -8480,7 +8480,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://developers.binance.com/docs/wallet/capital/withdraw

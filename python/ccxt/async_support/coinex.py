@@ -4425,7 +4425,7 @@ class coinex(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal

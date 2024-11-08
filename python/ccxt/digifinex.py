@@ -2785,7 +2785,7 @@ class digifinex(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

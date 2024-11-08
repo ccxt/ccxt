@@ -1292,7 +1292,7 @@ class idex(Exchange, ImplicitAPI):
             response = self.privatePostOrders(request)
         return self.parse_order(response, market)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://api-docs-v3.idex.io/#withdraw-funds

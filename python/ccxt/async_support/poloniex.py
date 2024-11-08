@@ -1799,7 +1799,7 @@ class poloniex(Exchange, ImplicitAPI):
             'status': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency

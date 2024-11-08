@@ -2016,7 +2016,7 @@ class coinlist extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)

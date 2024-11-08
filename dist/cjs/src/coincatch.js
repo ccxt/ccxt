@@ -2073,13 +2073,23 @@ class coincatch extends coincatch$1 {
             request['chain'] = this.networkCodeToId(networkCode);
         }
         const response = await this.privatePostApiSpotV1WalletWithdrawalV2(this.extend(request, params));
-        // todo add after withdrawal
         //
-        return response;
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTransaction(data, currency);
     }
     parseTransaction(transaction, currency = undefined) {
         //
         // fetchDeposits
+        //
         //     {
         //         "id": "1213046466852196352",
         //         "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2099,7 +2109,17 @@ class coincatch extends coincatch$1 {
         //         "uTime": "1724938746015"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
+        // withdraw
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
         let status = this.safeString(transaction, 'status');
         if (status === 'success') {
             status = 'ok';
@@ -2125,7 +2145,7 @@ class coincatch extends coincatch$1 {
         }
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString2(transaction, 'id', 'orderId'),
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

@@ -4858,7 +4858,7 @@ class okx extends Exchange {
         return $this->safe_dict($response, $first);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-withdrawal

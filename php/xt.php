@@ -3731,7 +3731,7 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://doc.xt.com/#deposit_withdrawalwithdraw

@@ -3704,7 +3704,7 @@ class coinbase(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'pricebooks', [])
         return self.parse_tickers(tickers, symbols)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money

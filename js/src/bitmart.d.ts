@@ -69,7 +69,7 @@ export default class bitmart extends Exchange {
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: any): DepositAddress;
-    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<any>;
+    withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchTransactionsByType(type: any, code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchDeposit(id: string, code?: Str, params?: {}): Promise<Transaction>;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;

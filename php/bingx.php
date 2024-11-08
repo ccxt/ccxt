@@ -5210,7 +5210,7 @@ class bingx extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
