@@ -2658,7 +2658,7 @@ export default class bingx extends Exchange {
             if (isStopLoss || isTakeProfit) {
                 const stringifiedAmount = this.numberToString (amount);
                 if (isStopLoss) {
-                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
                     const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
                     const slRequest: Dict = {
@@ -2675,7 +2675,7 @@ export default class bingx extends Exchange {
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (isTakeProfit) {
-                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                     const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
                     const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest: Dict = {
