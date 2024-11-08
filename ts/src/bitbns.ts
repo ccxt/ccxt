@@ -669,7 +669,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const request: Dict = {
             'entry_id': id,
@@ -704,7 +704,7 @@ export default class bitbns extends Exchange {
             'symbol': market['id'],
             'entry_id': id,
         };
-        const trigger = this.safeValue2 (params, 'trigger', 'stop');
+        const trigger = this.safeBool2 (params, 'trigger', 'stop');
         if (trigger) {
             throw new BadRequest (this.id + ' fetchOrder cannot fetch stop orders');
         }
@@ -758,7 +758,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
         const request: Dict = {
