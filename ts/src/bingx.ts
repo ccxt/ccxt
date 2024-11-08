@@ -2613,8 +2613,8 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-            const stopLoss = this.safeDict (params, 'stopLoss');
-            const takeProfit = this.safeDict (params, 'takeProfit');
+            const stopLoss = this.safeValue (params, 'stopLoss');
+            const takeProfit = this.safeValue (params, 'takeProfit');
             const isStopLoss = stopLoss !== undefined;
             const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
