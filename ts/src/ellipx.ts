@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV } from '../ccxt.js';
+import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -221,12 +221,14 @@ export default class ellipx extends Exchange {
                 'recvWindow': 5 * 1000,
                 'broker': 'CCXT',
                 'networks': {
-                    // todo
+                    'Bitcoin': 'Bitcoin',
+                    'Ethereum': 'ERC20',
                 },
-                'networksById': {
-                    // todo
+                'defaultNetwork': 'defaultNetwork',
+                'defaultNetworkCodeReplacements': {
+                    'BTC': 'Bitcoin',
+                    'ETH': 'Ethereum',
                 },
-                'defaultNetwork': 'ERC20',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -686,6 +688,92 @@ export default class ellipx extends Exchange {
             this.parseAmount (ohlcv['close']),     // close
             this.parseAmount (ohlcv['vol']),       // volume
         ];
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const response = await this._restGetCryptoTokenInfo (this.extend ({
+            'Can_Deposit': 'Y',
+            'results_per_page': 100,
+            '_expand': '/Crypto_Token,/Crypto_Chain',
+        }, params));
+        if (response['result'] !== 'success') {
+            throw new ExchangeError (this.id + ' fetchCurrencies() failed: ' + this.json (response));
+        }
+        const currencies = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const currency = this.parseCurrency (data[i]);
+            const code = this.safeString (currency, 'code');
+            if (code !== undefined) {
+                currencies[code] = currency;
+            }
+        }
+        return currencies;
+    }
+
+    parseCurrency (currency): Currency {
+        const id = this.safeString (currency, 'Crypto_Token_Info__');
+        const token = this.safeValue (currency, 'Crypto_Token', {});
+        const code = this.safeCurrencyCode (this.safeString (token, 'Symbol'));
+        const name = this.safeString (token, 'Name');
+        const type = this.safeString (currency, 'Type');
+        const active = this.safeString (currency, 'Status') === 'valid';
+        const deposit = this.safeString (currency, 'Can_Deposit') === 'Y';
+        const withdraw = this.safeString (currency, 'Status') === 'valid';
+        const fee = this.parseAmount (currency['Withdraw_Fee']);
+        const precision = this.safeInteger (token, 'Decimals');
+        const minDeposit = this.parseAmount (currency['Minimum_Deposit']);
+        const minWithdraw = this.parseAmount (currency['Minimum_Withdraw']);
+        const networkId = this.safeString (currency, 'Crypto_Chain__');
+        const networkData = this.safeValue (currency, 'Crypto_Chain', {});
+        const networkCode = this.safeString (networkData, 'Type', 'default');
+        const networks = {
+            'string': undefined,
+            [networkCode]: {
+                'info': networkCode === 'default' ? {} : networkData,
+                'id': networkId || id || '',
+                'network': networkCode,
+                'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                },
+            },
+        };
+        const result: Currency = {
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': fee,
+            'precision': precision,
+            'type': type,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': minWithdraw,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+        };
+        return result;
     }
 
     parseAmount (amount: Dict): number {
