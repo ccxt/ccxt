@@ -2943,7 +2943,11 @@ export default class vertex extends Exchange {
         //         "request_type": "execute_withdraw_collateral"
         //     }
         //
-        return this.parseTransaction (response, currency);
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'address': address,
+        });
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
