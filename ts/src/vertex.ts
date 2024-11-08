@@ -2897,7 +2897,7 @@ export default class vertex extends Exchange {
         return this.safeDict (response, 'data', {});
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name vertex#withdraw
