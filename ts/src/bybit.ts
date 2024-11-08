@@ -4146,15 +4146,15 @@ export default class bybit extends Exchange {
         if (market['option']) {
             response = await this.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (this.extend (request, params));
         } else {
-            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+            const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
             const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
             const stopLossPrice = this.safeValue (params, 'stopLossPrice');
             const isStopLossOrder = stopLossPrice !== undefined;
             const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
             const isTakeProfitOrder = takeProfitPrice !== undefined;
-            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isStop;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isTrigger;
             if (isStopOrder) {
-                request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+                request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
                 if (triggerPrice !== undefined) {
                     request['triggerPrice'] = this.getPrice (symbol, triggerPrice);
                 }
@@ -4327,7 +4327,7 @@ export default class bybit extends Exchange {
             // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
             // 'orderId': id,
         };
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (id !== undefined) { // The user can also use argument params["order_link_id"]
             request['orderId'] = id;
@@ -4336,7 +4336,7 @@ export default class bybit extends Exchange {
         if (market['option']) {
             response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelOrder (this.extend (request, params));
         } else {
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+            request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
             response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (this.extend (request, params));
         }
         //
@@ -4367,9 +4367,9 @@ export default class bybit extends Exchange {
         };
         if (market['spot']) {
             // only works for spot market
-            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+            const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
             params = this.omit (params, [ 'stop', 'trigger' ]);
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+            request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
         }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
@@ -4650,8 +4650,8 @@ export default class bybit extends Exchange {
         if (market['option']) {
             response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelAll (this.extend (request, params));
         } else {
-            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
-            if (isStop) {
+            const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
+            if (isTrigger) {
                 request['orderFilter'] = 'StopOrder';
             } else {
                 request['orderFilter'] = 'Order';
@@ -4724,9 +4724,9 @@ export default class bybit extends Exchange {
                 request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
@@ -4792,9 +4792,9 @@ export default class bybit extends Exchange {
         } else {
             request['category'] = 'OPTION';
         }
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5053,9 +5053,9 @@ export default class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isStop = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5231,9 +5231,9 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOrders (symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5406,7 +5406,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching open stop orders
+         * @param {boolean} [params.trigger] set to true for fetching open trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5446,9 +5447,9 @@ export default class bybit extends Exchange {
             return await this.fetchUsdcOpenOrders (symbol, since, limit, params);
         }
         request['category'] = type;
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
