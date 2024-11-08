@@ -3626,7 +3626,7 @@ export default class phemex extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -4756,7 +4756,7 @@ export default class phemex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name phemex#withdraw

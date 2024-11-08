@@ -1838,7 +1838,7 @@ export default class bitstamp extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -2154,7 +2154,7 @@ export default class bitstamp extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitstamp#withdraw

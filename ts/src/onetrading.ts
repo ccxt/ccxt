@@ -1247,7 +1247,7 @@ export default class onetrading extends Exchange {
         return this.parseTransactions (withdrawalHistory, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name onetrading#withdraw
@@ -1384,7 +1384,7 @@ export default class onetrading extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseOrderStatus (status: Str) {

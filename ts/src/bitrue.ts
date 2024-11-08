@@ -2728,10 +2728,10 @@ export default class bitrue extends Exchange {
             'internal': false,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitrue#withdraw

@@ -1969,7 +1969,7 @@ export default class bigone extends Exchange {
             'fee': undefined,
             'comment': undefined,
             'internal': internal,
-        };
+        } as Transaction;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2153,7 +2153,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bigone#withdraw

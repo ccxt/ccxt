@@ -2182,7 +2182,7 @@ export default class bitget extends Exchange {
         return this.parseTransactions (rawTransactions, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitget#withdraw

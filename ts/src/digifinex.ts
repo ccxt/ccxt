@@ -2896,7 +2896,7 @@ export default class digifinex extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransferStatus (status: Str): Str {
@@ -2980,7 +2980,7 @@ export default class digifinex extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name digifinex#withdraw

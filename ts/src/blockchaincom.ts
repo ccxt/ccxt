@@ -944,10 +944,10 @@ export default class blockchaincom extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name blockchaincom#withdraw

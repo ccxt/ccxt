@@ -1046,7 +1046,7 @@ export default class bithumb extends Exchange {
         return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bithumb#withdraw
@@ -1111,7 +1111,7 @@ export default class bithumb extends Exchange {
             'internal': undefined,
             'fee': undefined,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     fixCommaNumber (numberStr) {

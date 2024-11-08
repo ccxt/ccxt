@@ -1378,7 +1378,7 @@ export default class bitmex extends Exchange {
                 'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -2452,7 +2452,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitmex#withdraw

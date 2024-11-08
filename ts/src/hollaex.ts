@@ -1713,10 +1713,10 @@ export default class hollaex extends Exchange {
             'comment': this.safeString (transaction, 'message'),
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name hollaex#withdraw

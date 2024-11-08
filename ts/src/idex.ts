@@ -1378,7 +1378,7 @@ export default class idex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name idex#withdraw
@@ -1770,7 +1770,7 @@ export default class idex extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {

@@ -3725,7 +3725,7 @@ export default class gate extends Exchange {
         return this.parseTransactions (response, currency);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name gate#withdraw
@@ -3909,7 +3909,7 @@ export default class gate extends Exchange {
                 'currency': code,
                 'cost': this.parseNumber (feeCostString),
             },
-        };
+        } as Transaction;
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

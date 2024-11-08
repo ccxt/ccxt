@@ -2451,7 +2451,7 @@ export default class wavesexchange extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name wavesexchange#withdraw
@@ -2654,6 +2654,6 @@ export default class wavesexchange extends Exchange {
                 'cost': feeAmount,
             },
             'info': transaction,
-        };
+        } as Transaction;
     }
 }

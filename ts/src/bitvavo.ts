@@ -1738,7 +1738,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitvavo#withdraw
@@ -1971,7 +1971,7 @@ export default class bitvavo extends Exchange {
             'network': undefined,
             'comment': undefined,
             'internal': undefined,
-        };
+        } as Transaction;
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

@@ -4875,7 +4875,7 @@ export default class mexc extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -5339,7 +5339,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name mexc#withdraw

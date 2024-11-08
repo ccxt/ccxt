@@ -1408,7 +1408,7 @@ export default class kuna extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name kuna#withdraw
@@ -1827,7 +1827,7 @@ export default class kuna extends Exchange {
                 'cost': this.safeNumber (transaction, 'fee'),
                 'currency': code,
             },
-        };
+        } as Transaction;
     }
 
     nonce () {

@@ -2054,7 +2054,7 @@ export default class oxfun extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseDepositStatus (status) {
@@ -2077,7 +2077,7 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name oxfun#withdraw

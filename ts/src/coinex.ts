@@ -4678,7 +4678,7 @@ export default class coinex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name coinex#withdraw
@@ -4931,7 +4931,7 @@ export default class coinex extends Exchange {
             'fee': fee,
             'comment': remark,
             'internal': internal,
-        };
+        } as Transaction;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {

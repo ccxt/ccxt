@@ -843,7 +843,7 @@ export default class bitflyer extends Exchange {
         return response;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitflyer#withdraw
@@ -1050,7 +1050,7 @@ export default class bitflyer extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {

@@ -1093,7 +1093,7 @@ export default class indodax extends Exchange {
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name indodax#withdraw
@@ -1220,7 +1220,7 @@ export default class indodax extends Exchange {
             'internal': undefined,
             'fee': fee,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {

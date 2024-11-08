@@ -2534,7 +2534,7 @@ export default class deribit extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parsePosition (position: Dict, market: Market = undefined) {
@@ -2943,7 +2943,7 @@ export default class deribit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name deribit#withdraw
