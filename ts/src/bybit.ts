@@ -4088,7 +4088,6 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
