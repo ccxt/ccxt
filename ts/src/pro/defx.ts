@@ -22,7 +22,7 @@ export default class defx extends defxRest {
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
             },
@@ -293,12 +293,35 @@ export default class defx extends defxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name defx#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = 'symbol:' + market['id'] + ':depth:20:0.001';
-        const messageHash = 'orderbook:' + symbol;
-        const orderbook = await this.watchPublic ([ topic ], [ messageHash ], params);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':depth:20:0.001');
+            messageHashes.push ('orderbook:' + symbol);
+        }
+        const orderbook = await this.watchPublic (topics, messageHashes, params);
         return orderbook.limit ();
     }
 
