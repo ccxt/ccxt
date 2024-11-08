@@ -729,24 +729,22 @@ export default class ellipx extends Exchange {
         const networkCode = this.safeString (networkData, 'Type', 'default');
         const networks = {
             'string': undefined,
-            [networkCode]: {
-                'info': networkCode === 'default' ? {} : networkData,
-                'id': networkId || id || '',
-                'network': networkCode,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': minDeposit,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': minWithdraw,
-                        'max': undefined,
-                    },
+            'info': networkCode === 'default' ? {} : networkData,
+            'id': networkId || id || '',
+            'network': networkCode,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': fee,
+            'precision': precision,
+            'limits': {
+                'deposit': {
+                    'min': minDeposit,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': minWithdraw,
+                    'max': undefined,
                 },
             },
         };
