@@ -153,4 +153,6 @@ type IExchange interface {
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
+	SignIn(optionalArgs ...interface{}) <-chan interface{}
+	SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{}
 }
