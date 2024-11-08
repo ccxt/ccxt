@@ -1,0 +1,136 @@
+import ccxt
+import pandas as pd
+
+class DataFetcher:
+    def __init__(self, exchange_name, api_key, secret):
+        self.exchange = getattr(ccxt, exchange_name)({
+            'apiKey': api_key,
+            'secret': secret,
+        })
+
+    def fetch_data(self, symbol, timeframe):
+        ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe)
+        data = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms')
+        return data
+
+# Test kết nối
+if __name__ == "__main__":
+    fetcher = DataFetcher('binance', 'your_api_key', 'your_secret_key')
+    btc_data = fetcher.fetch_data('BTC/USDT', '1h')
+    btc_data.to_csv('btc_data.csv', index=False)
+    print("Dữ liệu đã được lưu!")
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+import tensorflow as tf
+
+class AIModel:
+    def __init__(self, sequence_length):
+        self.sequence_length = sequence_length
+        self.model = self.build_model()
+
+    def build_model(self):
+        model = tf.keras.Sequential([
+            tf.keras.layers.LSTM(50, return_sequences=True, input_shape=(self.sequence_length, 1)),
+            tf.keras.layers.LSTM(50),
+            tf.keras.layers.Dense(1)
+        ])
+        model.compile(optimizer='adam', loss='mean_squared_error')
+        return model
+
+    def train(self, data, epochs=10, batch_size=32):
+        x, y = self.create_sequences(data)
+        self.model.fit(x, y, epochs=epochs, batch_size=batch_size)
+
+    def create_sequences(self, data):
+        x, y = [], []
+        for i in range(len(data) - self.sequence_length):
+            x.append(data[i:i + self.sequence_length])
+            y.append(data[i + self.sequence_length])
+        return np.array(x), np.array(y)
+
+# Test AI model
+if __name__ == "__main__":
+    data = np.sin(np.linspace(0, 100, 1000))  # Dữ liệu giả lập
+    scaler = MinMaxScaler()
+    data_scaled = scaler.fit_transform(data.reshape(-1, 1))
+
+    ai_model = AIModel(sequence_length=60)
+    ai_model.train(data_scaled, epochs=5)
+    print("AI model đã được huấn luyện!")
+class TradingEngine:
+    def __init__(self, exchange_name, api_key, secret):
+        self.exchange = getattr(ccxt, exchange_name)({
+            'apiKey': api_key,
+            'secret': secret,
+        })
+
+    def place_order(self, symbol, action, amount):
+        if action == "buy":
+            order = self.exchange.create_market_buy_order(symbol, amount)
+        elif action == "sell":
+            order = self.exchange.create_market_sell_order(symbol, amount)
+        print(f"Đã thực hiện lệnh {action}: {order}")
+
+# Test giao dịch
+if __name__ == "__main__":
+    engine = TradingEngine('binance', 'your_api_key', 'your_secret_key')
+    engine.place_order('BTC/USDT', 'buy', 0.001)
+project/
+├── app.py            # Flask app chính
+├── templates/        # Chứa HTML
+│   └── index.html    # Dashboard chính
+├── static/           # Chứa file CSS/JS
+├── data_fetcher.py   # Module lấy dữ liệu
+├── ai_model.py       # Mô hình AI
+└── trading_engine.py # Trading engine
+from flask import Flask, render_template
+from data_fetcher import DataFetcher
+from ai_model import AIModel
+from trading_engine import TradingEngine
+
+app = Flask(__name__)
+
+# Tích hợp các module
+fetcher = DataFetcher('binance', 'your_api_key', 'your_secret_key')
+ai_model = AIModel(sequence_length=60)
+engine = TradingEngine('binance', 'your_api_key', 'your_secret_key')
+
+@app.route('/')
+def home():
+    # Lấy dữ liệu và hiển thị
+    btc_data = fetcher.fetch_data('BTC/USDT', '1h')
+    return render_template('index.html', data=btc_data.tail(10).to_dict(orient="records"))
+
+@app.route('/trade/<action>')
+def trade(action):
+    engine.place_order('BTC/USDT', action, 0.001)
+    return f"Lệnh {action} đã được thực hiện!"
+
+if __name__ == '__main__':
+    app.run(debug=True)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Trading Tool</title>
+</head>
+<body>
+    <h1>Crypto Trading Dashboard</h1>
+    <h2>Dữ liệu mới nhất</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Open</th>
+            <th>Close</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row.timestamp }}</td>
+            <td>{{ row.open }}</td>
+            <td>{{ row.close }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/trade/buy">Buy</a> | <a href="/trade/sell">Sell</a>
+</body>
+</html>
