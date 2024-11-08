@@ -18,7 +18,7 @@ export default class defx extends defxRest {
                 'watchTickers': false,
                 'watchBidsAsks': false,
                 'watchTrades': true,
-                'watchTradesForSymbols': false,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
@@ -238,17 +238,45 @@ export default class defx extends defxRest {
          * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @description watches information on multiple trades made in a market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name defx#watchTradesForSymbols
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @description watches information on multiple trades made in a market
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = 'symbol:' + market['id'] + ':trades';
-        const messageHash = 'trade:' + symbol;
-        const trades = await this.watchPublic ([ topic ], [ messageHash ], params);
+        symbols = this.marketSymbols (symbols);
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':trades');
+            messageHashes.push ('trade:' + symbol);
+        }
+        const trades = await this.watchPublic (topics, messageHashes, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
