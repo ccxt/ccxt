@@ -6746,7 +6746,7 @@ export default class bitget extends Exchange {
         return this.parseFundingRate (data[0], market);
     }
 
-    async fetchFundingRates (symbols?: Strings, params?: {}): Promise<FundingRates> {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name bitget#fetchFundingRates
