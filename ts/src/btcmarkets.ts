@@ -367,7 +367,7 @@ export default class btcmarkets extends Exchange {
                 'rate': undefined,
             },
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -1223,7 +1223,7 @@ export default class btcmarkets extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name btcmarkets#withdraw

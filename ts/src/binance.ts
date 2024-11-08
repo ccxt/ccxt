@@ -8249,7 +8249,7 @@ export default class binance extends Exchange {
             'internal': internal,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransferStatus (status: Str): Str {
@@ -8974,7 +8974,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name binance#withdraw

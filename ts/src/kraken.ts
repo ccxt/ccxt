@@ -2598,7 +2598,7 @@ export default class kraken extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             },
-        };
+        } as Transaction;
     }
 
     parseTransactionsByType (type, transactions, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
@@ -2924,7 +2924,7 @@ export default class kraken extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name kraken#withdraw

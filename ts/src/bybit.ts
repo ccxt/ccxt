@@ -6035,7 +6035,7 @@ export default class bybit extends Exchange {
             'fee': fee,
             'internal': undefined,
             'comment': undefined,
-        };
+        } as Transaction;
     }
 
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -6321,7 +6321,7 @@ export default class bybit extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bybit#withdraw

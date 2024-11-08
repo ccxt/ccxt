@@ -3452,7 +3452,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name kucoin#withdraw
@@ -3628,7 +3628,7 @@ export default class kucoin extends Exchange {
             'internal': internal,
             'fee': fee,
             'updated': updated,
-        };
+        } as Transaction;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

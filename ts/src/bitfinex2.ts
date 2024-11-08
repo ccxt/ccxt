@@ -2446,7 +2446,7 @@ export default class bitfinex2 extends Exchange {
                 'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     async fetchTradingFees (params = {}): Promise<TradingFees> {
@@ -2623,7 +2623,7 @@ export default class bitfinex2 extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitfinex2#withdraw

@@ -1917,7 +1917,7 @@ export default class poloniex extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name poloniex#withdraw
@@ -2332,7 +2332,7 @@ export default class poloniex extends Exchange {
                 'cost': this.parseNumber (feeCostString),
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     nonce () {

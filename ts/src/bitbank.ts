@@ -866,7 +866,7 @@ export default class bitbank extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitbank#withdraw
@@ -951,7 +951,7 @@ export default class bitbank extends Exchange {
             'internal': undefined,
             'fee': undefined,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     nonce () {

@@ -823,7 +823,7 @@ export default class independentreserve extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name independentreserve#withdraw
@@ -926,7 +926,7 @@ export default class independentreserve extends Exchange {
                 'rate': undefined,
             },
             'internal': false,
-        };
+        } as Transaction;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

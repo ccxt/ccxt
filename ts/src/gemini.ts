@@ -1625,7 +1625,7 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name gemini#withdraw
@@ -1765,7 +1765,7 @@ export default class gemini extends Exchange {
             'internal': undefined,
             'comment': this.safeString (transaction, 'message'),
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {

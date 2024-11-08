@@ -607,10 +607,10 @@ export default class coinmate extends Exchange {
                 'currency': code,
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name coinmate#withdraw

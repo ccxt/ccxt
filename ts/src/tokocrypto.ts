@@ -2350,10 +2350,10 @@ export default class tokocrypto extends Exchange {
             'comment': undefined,
             'internal': internal,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bybit#withdraw

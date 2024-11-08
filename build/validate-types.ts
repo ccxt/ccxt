@@ -10,7 +10,6 @@ const skipMethods = [
     // skip because of c# already typed methods
     "fetchLeverageTiers",
     "fetchDepositWithdrawFees",
-    "withdraw",
     "fetchDepositWithdrawFee",
     'watchTickers', // will be updated later
 ]

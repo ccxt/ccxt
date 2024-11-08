@@ -2717,7 +2717,7 @@ export default class hyperliquid extends Exchange {
             'comment': undefined,
             'internal': internal,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
