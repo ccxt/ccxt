@@ -1485,6 +1485,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
