@@ -2494,7 +2494,7 @@ export default class bybit extends Exchange {
         let intervalString = undefined;
         if (fundingInterval !== undefined) {
             const interval = this.parseToInt (fundingInterval / 60);
-            intervalString = interval.toString() + 'h';
+            intervalString = interval.toString () + 'h';
         }
         return {
             'info': ticker,
