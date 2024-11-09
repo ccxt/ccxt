@@ -4123,9 +4123,9 @@ export default class bybit extends Exchange {
         };
         if (market['spot']) {
             // only works for spot market
-            const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+            const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
             params = this.omit (params, [ 'stop', 'trigger' ]);
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+            request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
         }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
@@ -4151,7 +4151,8 @@ export default class bybit extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+         * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4395,7 +4396,8 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -4424,9 +4426,9 @@ export default class bybit extends Exchange {
                 request['settleCoin'] = this.safeString (params, 'settleCoin', defaultSettle);
             }
         }
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
@@ -4608,7 +4610,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4633,7 +4636,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4659,9 +4663,9 @@ export default class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isStop = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -4740,7 +4744,8 @@ export default class bybit extends Exchange {
          * @param {string} id order id
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching a closed stop order
+         * @param {boolean} [params.trigger] set to true for fetching a closed trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4772,7 +4777,8 @@ export default class bybit extends Exchange {
          * @param {string} id order id
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching an open stop order
+         * @param {boolean} [params.trigger] set to true for fetching an open trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -4807,7 +4813,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching stop orders
+         * @param {boolean} [params.trigger] set to true for fetching trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4830,9 +4837,9 @@ export default class bybit extends Exchange {
         let type = undefined;
         [ type, params ] = this.getBybitType ('fetchCanceledAndClosedOrders', market, params);
         request['category'] = type;
-        const isStop = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
+        const isTrigger = this.safeBoolN (params, [ 'trigger', 'stop' ], false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -4912,7 +4919,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching closed stop orders
+         * @param {boolean} [params.trigger] set to true for fetching closed trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4937,7 +4945,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4962,7 +4971,8 @@ export default class bybit extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching open stop orders
+         * @param {boolean} [params.trigger] set to true for fetching open trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -4994,9 +5004,9 @@ export default class bybit extends Exchange {
             }
         }
         request['category'] = type;
-        const isStop = this.safeBool2 (params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
