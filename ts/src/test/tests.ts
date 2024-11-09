@@ -182,8 +182,14 @@ class testMainClass {
         const keysLocal = getRootDir () + 'keys.local.json';
         const keysGlobalExists = ioFileExists (keysGlobal);
         const keysLocalExists = ioFileExists (keysLocal);
-        const globalSettings = keysGlobalExists ? ioFileRead (keysGlobal) : {};
-        const localSettings = keysLocalExists ? ioFileRead (keysLocal) : {};
+        let globalSettings = {};
+        if (keysGlobalExists) {
+            globalSettings = ioFileRead (keysGlobal);
+        }
+        let localSettings = {};
+        if (keysLocalExists) {
+            localSettings = ioFileRead (keysLocal);
+        }
         const allSettings = exchange.deepExtend (globalSettings, localSettings);
         const exchangeSettings = exchange.safeValue (allSettings, exchangeId, {});
         if (exchangeSettings) {
