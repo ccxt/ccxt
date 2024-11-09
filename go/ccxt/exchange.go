@@ -172,6 +172,12 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 	// to do
 }
 
+func NewExchange() IExchange {
+	exchange := &Exchange{}
+	exchange.Init(map[string]interface{}{})
+	return exchange
+}
+
 func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	// to do
 	ch := make(chan interface{})
@@ -795,6 +801,30 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 		field.Set(reflect.ValueOf(defaultValue))
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
+	}
+}
+
+func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
+	// Convert property to string
+	propName, ok := property.(string)
+	if !ok {
+		// fmt.Println("Property should be a string")
+		return nil
+	}
+
+	// Get the reflection object for the obj
+	val := reflect.ValueOf(obj).Elem()
+
+	// Get the field by name
+	field := val.FieldByName(propName)
+
+	// Check if the field exists and can be accessed
+	if field.IsValid() && field.CanInterface() {
+		// Return the field value as an interface{}
+		return field.Interface()
+	} else {
+		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		return nil
 	}
 }
 

@@ -151,6 +151,7 @@ type IExchange interface {
 	CheckProxySettings(optionalArgs ...interface{}) interface{}
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
+	GetProperty(obj interface{}, property interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
