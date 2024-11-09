@@ -1196,6 +1196,12 @@ export default class lbank extends Exchange {
         const indexPrice = this.safeNumber(ticker, 'underlyingPrice');
         const fundingRate = this.safeNumber(ticker, 'fundingRate');
         const fundingTime = this.safeInteger(ticker, 'nextFeeTime');
+        const positionFeeTime = this.safeInteger(ticker, 'positionFeeTime');
+        let intervalString = undefined;
+        if (positionFeeTime !== undefined) {
+            const interval = this.parseToInt(positionFeeTime / 60 / 60);
+            intervalString = interval + 'h';
+        }
         return {
             'info': ticker,
             'symbol': symbol,
@@ -1212,7 +1218,7 @@ export default class lbank extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     async fetchFundingRate(symbol, params = {}) {
