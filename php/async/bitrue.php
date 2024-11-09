@@ -629,7 +629,7 @@ class bitrue extends Exchange {
             //     }
             //
             $result = array();
-            $coins = $this->safe_value($response, 'coins', array());
+            $coins = $this->safe_list($response, 'coins', array());
             for ($i = 0; $i < count($coins); $i++) {
                 $currency = $coins[$i];
                 $id = $this->safe_string($currency, 'coin');
@@ -640,15 +640,15 @@ class bitrue extends Exchange {
                 $minWithdrawString = null;
                 $maxWithdrawString = null;
                 $minWithdrawFeeString = null;
-                $networkDetails = $this->safe_value($currency, 'chainDetail', array());
+                $networkDetails = $this->safe_list($currency, 'chainDetail', array());
                 $networks = array();
                 for ($j = 0; $j < count($networkDetails); $j++) {
                     $entry = $networkDetails[$j];
                     $networkId = $this->safe_string($entry, 'chain');
                     $network = $this->network_id_to_code($networkId, $code);
-                    $enableDeposit = $this->safe_value($entry, 'enableDeposit');
+                    $enableDeposit = $this->safe_bool($entry, 'enableDeposit');
                     $deposit = ($enableDeposit) ? $enableDeposit : $deposit;
-                    $enableWithdraw = $this->safe_value($entry, 'enableWithdraw');
+                    $enableWithdraw = $this->safe_bool($entry, 'enableWithdraw');
                     $withdraw = ($enableWithdraw) ? $enableWithdraw : $withdraw;
                     $networkWithdrawFeeString = $this->safe_string($entry, 'withdrawFee');
                     if ($networkWithdrawFeeString !== null) {
@@ -841,11 +841,11 @@ class bitrue extends Exchange {
         if ($settle !== null) {
             $symbol .= ':' . $settle;
         }
-        $filters = $this->safe_value($market, 'filters', array());
+        $filters = $this->safe_list($market, 'filters', array());
         $filtersByType = $this->index_by($filters, 'filterType');
         $status = $this->safe_string($market, 'status');
-        $priceFilter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-        $amountFilter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+        $priceFilter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
+        $amountFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $defaultPricePrecision = $this->safe_string($market, 'pricePrecision');
         $defaultAmountPrecision = $this->safe_string($market, 'quantityPrecision');
         $pricePrecision = $this->safe_string($priceFilter, 'priceScale', $defaultPricePrecision);
@@ -999,7 +999,7 @@ class bitrue extends Exchange {
             if ($type === 'swap') {
                 if ($subType !== null && $subType === 'inverse') {
                     $response = Async\await($this->dapiV2PrivateGetAccount ($params));
-                    $result = $this->safe_value($response, 'data', array());
+                    $result = $this->safe_dict($response, 'data', array());
                     //
                     // {
                     //         "code":"0",
@@ -1032,7 +1032,7 @@ class bitrue extends Exchange {
                     //
                 } else {
                     $response = Async\await($this->fapiV2PrivateGetAccount ($params));
-                    $result = $this->safe_value($response, 'data', array());
+                    $result = $this->safe_dict($response, 'data', array());
                     //
                     //     {
                     //         "code":"0",
@@ -1264,7 +1264,7 @@ class bitrue extends Exchange {
                     'symbol' => $market['id'],
                 );
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
-                $data = $this->safe_value($response, 0, array());
+                $data = $this->safe_dict($response, 0, array());
             } else {
                 throw new NotSupported($this->id . ' fetchTicker only support spot & swap markets');
             }
@@ -1326,11 +1326,11 @@ class bitrue extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $timeframes = $this->safe_value($this->options, 'timeframes', array());
+            $timeframes = $this->safe_dict($this->options, 'timeframes', array());
             $response = null;
             $data = null;
             if ($market['swap']) {
-                $timeframesFuture = $this->safe_value($timeframes, 'future', array());
+                $timeframesFuture = $this->safe_dict($timeframes, 'future', array());
                 $request = array(
                     'contractName' => $market['id'],
                     // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1346,7 +1346,7 @@ class bitrue extends Exchange {
                 }
                 $data = $response;
             } elseif ($market['spot']) {
-                $timeframesSpot = $this->safe_value($timeframes, 'spot', array());
+                $timeframesSpot = $this->safe_dict($timeframes, 'spot', array());
                 $request = array(
                     'symbol' => $market['id'],
                     // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1359,7 +1359,7 @@ class bitrue extends Exchange {
                     $request['fromIdx'] = $since;
                 }
                 $response = Async\await($this->spotV1PublicGetMarketKline ($this->extend($request, $params)));
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV only support spot & swap markets');
             }
@@ -1580,7 +1580,7 @@ class bitrue extends Exchange {
             // https://github.com/ccxt/ccxt/issues/13856
             $tickers = array();
             for ($i = 0; $i < count($data); $i++) {
-                $ticker = $this->safe_value($data, $i, array());
+                $ticker = $this->safe_dict($data, $i, array());
                 $market = $this->market($this->safe_value($ticker, 'symbol'));
                 $tickers[$market['id']] = $ticker;
             }
@@ -1645,8 +1645,8 @@ class bitrue extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string_2($trade, 'id', 'tradeId');
         $side = null;
-        $buyerMaker = $this->safe_value($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
-        $isBuyer = $this->safe_value($trade, 'isBuyer');
+        $buyerMaker = $this->safe_bool($trade, 'isBuyerMaker');  // ignore "m" until Bitrue fixes api
+        $isBuyer = $this->safe_bool($trade, 'isBuyer');
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy';
         }
@@ -1661,7 +1661,7 @@ class bitrue extends Exchange {
             );
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_value($trade, 'isMaker');
+        $isMaker = $this->safe_bool($trade, 'isMaker');
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }
@@ -1825,7 +1825,7 @@ class bitrue extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
         $side = $this->safe_string_lower($order, 'side');
-        $fills = $this->safe_value($order, 'fills', array());
+        $fills = $this->safe_list($order, 'fills', array());
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = ($type === 'limit_maker') || ($timeInForce === 'GTX') || ($type === 'post_only');
@@ -1968,7 +1968,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostOrder ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
@@ -2054,7 +2054,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetOrder ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['orderId'] = $id; // spot $market $id is mandatory
                 $request['symbol'] = $market['id'];
@@ -2197,7 +2197,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetOpenOrders ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV1PrivateGetOpenOrders ($this->extend($request, $params)));
@@ -2293,7 +2293,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostCancel ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV1PrivateDeleteOrder ($this->extend($request, $params)));
@@ -2349,7 +2349,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivatePostAllOpenOrders ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } else {
                 throw new NotSupported($this->id . ' cancelAllOrders only support future markets');
             }
@@ -2403,7 +2403,7 @@ class bitrue extends Exchange {
                 } elseif ($market['inverse']) {
                     $response = Async\await($this->dapiV2PrivateGetMyTrades ($this->extend($request, $params)));
                 }
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_list($response, 'data', array());
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
                 $response = Async\await($this->spotV2PrivateGetMyTrades ($this->extend($request, $params)));
@@ -2605,7 +2605,7 @@ class bitrue extends Exchange {
                 '6' => 'canceled',
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2799,7 +2799,7 @@ class bitrue extends Exchange {
         //       "chainDetail" => [ [Object] ]
         //   }
         //
-        $chainDetails = $this->safe_value($fee, 'chainDetail', array());
+        $chainDetails = $this->safe_list($fee, 'chainDetail', array());
         $chainDetailLength = count($chainDetails);
         $result = array(
             'info' => $fee,
@@ -2958,7 +2958,7 @@ class bitrue extends Exchange {
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $accountTypes = $this->safe_value($this->options, 'accountsByType', array());
+            $accountTypes = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountTypes, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountTypes, $toAccount, $toAccount);
             $request = array(

@@ -233,7 +233,7 @@ class bitopro(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = self.publicGetProvisioningCurrencies(params)
-        currencies = self.safe_value(response, 'data', [])
+        currencies = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -255,8 +255,8 @@ class bitopro(Exchange, ImplicitAPI):
             currency = currencies[i]
             currencyId = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(currencyId)
-            deposit = self.safe_value(currency, 'deposit')
-            withdraw = self.safe_value(currency, 'withdraw')
+            deposit = self.safe_bool(currency, 'deposit')
+            withdraw = self.safe_bool(currency, 'withdraw')
             fee = self.safe_number(currency, 'withdrawFee')
             withdrawMin = self.safe_number(currency, 'minWithdraw')
             withdrawMax = self.safe_number(currency, 'maxWithdraw')
@@ -293,7 +293,7 @@ class bitopro(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         response = self.publicGetProvisioningTradingPairs()
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -317,7 +317,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
-        active = not self.safe_value(market, 'maintain')
+        active = not self.safe_bool(market, 'maintain')
         id = self.safe_string(market, 'pair')
         uppercaseId = id.upper()
         baseId = self.safe_string(market, 'base')
@@ -429,7 +429,7 @@ class bitopro(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.publicGetTickersPair(self.extend(request, params))
-        ticker = self.safe_value(response, 'data', {})
+        ticker = self.safe_dict(response, 'data', {})
         #
         #     {
         #         "data":{
@@ -455,7 +455,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.publicGetTickers()
-        tickers = self.safe_value(response, 'data', [])
+        tickers = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -551,7 +551,7 @@ class bitopro(Exchange, ImplicitAPI):
         type = self.safe_string_lower(trade, 'type')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            isBuyer = self.safe_value(trade, 'isBuyer')
+            isBuyer = self.safe_bool(trade, 'isBuyer')
             if isBuyer:
                 side = 'buy'
             else:
@@ -568,7 +568,7 @@ class bitopro(Exchange, ImplicitAPI):
                 'currency': feeSymbol,
                 'rate': None,
             }
-        isTaker = self.safe_value(trade, 'isTaker')
+        isTaker = self.safe_bool(trade, 'isTaker')
         takerOrMaker = None
         if isTaker is not None:
             if isTaker:
@@ -607,7 +607,7 @@ class bitopro(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.publicGetTradesPair(self.extend(request, params))
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -631,7 +631,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.publicGetProvisioningLimitationsAndFees(params)
-        tradingFeeRate = self.safe_value(response, 'tradingFeeRate', {})
+        tradingFeeRate = self.safe_dict(response, 'tradingFeeRate', {})
         first = self.safe_value(tradingFeeRate, 0)
         #
         #     {
@@ -753,7 +753,7 @@ class bitopro(Exchange, ImplicitAPI):
             request['from'] = int(math.floor(since / 1000))
             request['to'] = self.sum(request['from'], limit * timeframeInSeconds)
         response = self.publicGetTradingHistoryPair(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -841,7 +841,7 @@ class bitopro(Exchange, ImplicitAPI):
         """
         self.load_markets()
         response = self.privateGetAccountsBalance(params)
-        balances = self.safe_value(response, 'data', [])
+        balances = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -1101,7 +1101,7 @@ class bitopro(Exchange, ImplicitAPI):
             response = self.privateDeleteOrdersPair(self.extend(request, params))
         else:
             response = self.privateDeleteOrdersAll(self.extend(request, params))
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         #
         #     {
         #         "data":{
@@ -1183,7 +1183,7 @@ class bitopro(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetOrdersAllPair(self.extend(request, params))
-        orders = self.safe_value(response, 'data')
+        orders = self.safe_list(response, 'data', [])
         if orders is None:
             orders = []
         #
@@ -1253,7 +1253,7 @@ class bitopro(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = self.privateGetOrdersTradesPair(self.extend(request, params))
-        trades = self.safe_value(response, 'data', [])
+        trades = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -1395,7 +1395,7 @@ class bitopro(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetWalletDepositHistoryCurrency(self.extend(request, params))
-        result = self.safe_value(response, 'data', [])
+        result = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -1442,7 +1442,7 @@ class bitopro(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetWalletWithdrawHistoryCurrency(self.extend(request, params))
-        result = self.safe_value(response, 'data', [])
+        result = self.safe_list(response, 'data', [])
         #
         #     {
         #         "data":[
@@ -1481,7 +1481,7 @@ class bitopro(Exchange, ImplicitAPI):
             'currency': currency['id'],
         }
         response = self.privateGetWalletWithdrawCurrencySerial(self.extend(request, params))
-        result = self.safe_value(response, 'data', {})
+        result = self.safe_dict(response, 'data', {})
         #
         #     {
         #         "data":{
@@ -1521,7 +1521,7 @@ class bitopro(Exchange, ImplicitAPI):
             'address': address,
         }
         if 'network' in params:
-            networks = self.safe_value(self.options, 'networks', {})
+            networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(params, 'network')
             params = self.omit(params, ['network'])
             networkId = self.safe_string(networks, requestedNetwork)
@@ -1531,7 +1531,7 @@ class bitopro(Exchange, ImplicitAPI):
         if tag is not None:
             request['message'] = tag
         response = self.privatePostWalletWithdrawCurrency(self.extend(request, params))
-        result = self.safe_value(response, 'data', {})
+        result = self.safe_dict(response, 'data', {})
         #
         #     {
         #         "data":{

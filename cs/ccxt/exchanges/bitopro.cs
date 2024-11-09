@@ -204,7 +204,7 @@ public partial class bitopro : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetProvisioningCurrencies(parameters);
-        object currencies = this.safeValue(response, "data", new List<object>() {});
+        object currencies = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -227,8 +227,8 @@ public partial class bitopro : Exchange
             object currency = getValue(currencies, i);
             object currencyId = this.safeString(currency, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            object deposit = this.safeValue(currency, "deposit");
-            object withdraw = this.safeValue(currency, "withdraw");
+            object deposit = this.safeBool(currency, "deposit");
+            object withdraw = this.safeBool(currency, "withdraw");
             object fee = this.safeNumber(currency, "withdrawFee");
             object withdrawMin = this.safeNumber(currency, "minWithdraw");
             object withdrawMax = this.safeNumber(currency, "maxWithdraw");
@@ -271,7 +271,7 @@ public partial class bitopro : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetProvisioningTradingPairs();
-        object markets = this.safeValue(response, "data", new List<object>() {});
+        object markets = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -297,7 +297,7 @@ public partial class bitopro : Exchange
 
     public override object parseMarket(object market)
     {
-        object active = !isTrue(this.safeValue(market, "maintain"));
+        object active = !isTrue(this.safeBool(market, "maintain"));
         object id = this.safeString(market, "pair");
         object uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
@@ -416,7 +416,7 @@ public partial class bitopro : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetTickersPair(this.extend(request, parameters));
-        object ticker = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object ticker = this.safeDict(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
@@ -447,7 +447,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTickers();
-        object tickers = this.safeValue(response, "data", new List<object>() {});
+        object tickers = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -556,7 +556,7 @@ public partial class bitopro : Exchange
         object side = this.safeStringLower(trade, "action");
         if (isTrue(isEqual(side, null)))
         {
-            object isBuyer = this.safeValue(trade, "isBuyer");
+            object isBuyer = this.safeBool(trade, "isBuyer");
             if (isTrue(isBuyer))
             {
                 side = "buy";
@@ -581,7 +581,7 @@ public partial class bitopro : Exchange
                 { "rate", null },
             };
         }
-        object isTaker = this.safeValue(trade, "isTaker");
+        object isTaker = this.safeBool(trade, "isTaker");
         object takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
@@ -630,7 +630,7 @@ public partial class bitopro : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetTradesPair(this.extend(request, parameters));
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -659,7 +659,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetProvisioningLimitationsAndFees(parameters);
-        object tradingFeeRate = this.safeValue(response, "tradingFeeRate", new Dictionary<string, object>() {});
+        object tradingFeeRate = this.safeDict(response, "tradingFeeRate", new Dictionary<string, object>() {});
         object first = this.safeValue(tradingFeeRate, 0);
         //
         //     {
@@ -790,7 +790,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["to"] = this.sum(getValue(request, "from"), multiply(limit, timeframeInSeconds));
         }
         object response = await this.publicGetTradingHistoryPair(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -899,7 +899,7 @@ public partial class bitopro : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetAccountsBalance(parameters);
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -1210,7 +1210,7 @@ public partial class bitopro : Exchange
         {
             response = await this.privateDeleteOrdersAll(this.extend(request, parameters));
         }
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
@@ -1306,7 +1306,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetOrdersAllPair(this.extend(request, parameters));
-        object orders = this.safeValue(response, "data");
+        object orders = this.safeList(response, "data", new List<object>() {});
         if (isTrue(isEqual(orders, null)))
         {
             orders = new List<object>() {};
@@ -1393,7 +1393,7 @@ public partial class bitopro : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.privateGetOrdersTradesPair(this.extend(request, parameters));
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -1549,7 +1549,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters));
-        object result = this.safeValue(response, "data", new List<object>() {});
+        object result = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -1606,7 +1606,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = await this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters));
-        object result = this.safeValue(response, "data", new List<object>() {});
+        object result = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -1654,7 +1654,7 @@ public partial class bitopro : Exchange
             { "currency", getValue(currency, "id") },
         };
         object response = await this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters));
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
@@ -1702,7 +1702,7 @@ public partial class bitopro : Exchange
         };
         if (isTrue(inOp(parameters, "network")))
         {
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
             object networkId = this.safeString(networks, requestedNetwork);
@@ -1717,7 +1717,7 @@ public partial class bitopro : Exchange
             ((IDictionary<string,object>)request)["message"] = tag;
         }
         object response = await this.privatePostWalletWithdrawCurrency(this.extend(request, parameters));
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
