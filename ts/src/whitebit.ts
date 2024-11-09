@@ -2043,7 +2043,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name whitebit#withdraw
@@ -2150,7 +2150,7 @@ export default class whitebit extends Exchange {
                 'currency': this.safeCurrencyCode (currencyId, currency),
             },
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {

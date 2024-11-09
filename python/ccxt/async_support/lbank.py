@@ -1155,6 +1155,11 @@ class lbank(Exchange, ImplicitAPI):
         indexPrice = self.safe_number(ticker, 'underlyingPrice')
         fundingRate = self.safe_number(ticker, 'fundingRate')
         fundingTime = self.safe_integer(ticker, 'nextFeeTime')
+        positionFeeTime = self.safe_integer(ticker, 'positionFeeTime')
+        intervalString = None
+        if positionFeeTime is not None:
+            interval = self.parse_to_int(positionFeeTime / 60 / 60)
+            intervalString = interval + 'h'
         return {
             'info': ticker,
             'symbol': symbol,
@@ -1171,7 +1176,7 @@ class lbank(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:

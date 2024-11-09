@@ -81,7 +81,7 @@ class bitget extends Exchange {
                 'fetchFundingIntervals' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => true,
                 'fetchIsolatedBorrowRates' => false,
@@ -2167,7 +2167,7 @@ class bitget extends Exchange {
         return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -6669,6 +6669,69 @@ class bitget extends Exchange {
         return $this->parse_funding_rate($data[0], $market);
     }
 
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the current funding rates for all markets
+         * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
+         * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
+         */
+        $this->load_markets();
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $sandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            if ($sandboxMode) {
+                $sandboxSymbol = $this->convert_symbol_for_sandbox($symbol);
+                $market = $this->market($sandboxSymbol);
+            } else {
+                $market = $this->market($symbol);
+            }
+        }
+        $request = array();
+        $productType = null;
+        list($productType, $params) = $this->handle_product_type_and_params($market, $params);
+        $request['productType'] = $productType;
+        $response = $this->publicMixGetV2MixMarketTickers ($this->extend($request, $params));
+        // {
+        //     "code" => "00000",
+        //     "msg" => "success",
+        //     "requestTime" => 1700533773477,
+        //     "data" => array(
+        //         array(
+        //             "symbol" => "BTCUSD",
+        //             "lastPr" => "29904.5",
+        //             "askPr" => "29904.5",
+        //             "bidPr" => "29903.5",
+        //             "bidSz" => "0.5091",
+        //             "askSz" => "2.2694",
+        //             "high24h" => "0",
+        //             "low24h" => "0",
+        //             "ts" => "1695794271400",
+        //             "change24h" => "0",
+        //             "baseVolume" => "0",
+        //             "quoteVolume" => "0",
+        //             "usdtVolume" => "0",
+        //             "openUtc" => "0",
+        //             "changeUtc24h" => "0",
+        //             "indexPrice" => "29132.353333",
+        //             "fundingRate" => "-0.0007",
+        //             "holdingAmount" => "125.6844",
+        //             "deliveryStartTime" => null,
+        //             "deliveryTime" => null,
+        //             "deliveryStatus" => "delivery_normal",
+        //             "open24h" => "0",
+        //             "markPrice" => "12345"
+        //         ),
+        //     )
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_funding_rates($data, $market);
+    }
+
     public function parse_funding_rate($contract, ?array $market = null): array {
         //
         // fetchFundingRate
@@ -6685,11 +6748,39 @@ class bitget extends Exchange {
         //         "nextFundingTime" => "1727942400000",
         //         "ratePeriod" => "8"
         //     }
-        //
+        // fetchFundingRates
+        //     {
+        //         "symbol" => "BTCUSD",
+        //         "lastPr" => "29904.5",
+        //         "askPr" => "29904.5",
+        //         "bidPr" => "29903.5",
+        //         "bidSz" => "0.5091",
+        //         "askSz" => "2.2694",
+        //         "high24h" => "0",
+        //         "low24h" => "0",
+        //         "ts" => "1695794271400",
+        //         "change24h" => "0",
+        //         "baseVolume" => "0",
+        //         "quoteVolume" => "0",
+        //         "usdtVolume" => "0",
+        //         "openUtc" => "0",
+        //         "changeUtc24h" => "0",
+        //         "indexPrice" => "29132.353333",
+        //         "fundingRate" => "-0.0007",
+        //         "holdingAmount" => "125.6844",
+        //         "deliveryStartTime" => null,
+        //         "deliveryTime" => null,
+        //         "deliveryStatus" => "delivery_normal",
+        //         "open24h" => "0",
+        //         "markPrice" => "12345"
+        //     }
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
         $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         $interval = $this->safe_string($contract, 'ratePeriod');
+        $timestamp = $this->safe_integer($contract, 'ts');
+        $markPrice = $this->safe_number($contract, 'markPrice');
+        $indexPrice = $this->safe_number($contract, 'indexPrice');
         $intervalString = null;
         if ($interval !== null) {
             $intervalString = $interval . 'h';
@@ -6697,12 +6788,12 @@ class bitget extends Exchange {
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => null,
-            'indexPrice' => null,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),

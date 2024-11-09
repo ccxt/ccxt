@@ -641,7 +641,7 @@ export default class mercado extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name mercado#withdraw
@@ -743,7 +743,7 @@ export default class mercado extends Exchange {
             'internal': undefined,
             'fee': undefined,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

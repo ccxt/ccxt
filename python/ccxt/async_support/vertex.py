@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2735,7 +2735,7 @@ class vertex(Exchange, ImplicitAPI):
         #
         return self.safe_dict(response, 'data', {})
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
@@ -2773,13 +2773,57 @@ class vertex(Exchange, ImplicitAPI):
         }
         response = await self.v1GatewayPostExecute(self.extend(request, params))
         #
-        # {
-        #     "status": "success",
-        #     "signature": {signature},
-        #     "request_type": "execute_withdraw_collateral"
-        # }
+        #     {
+        #         "status": "success",
+        #         "signature": {signature},
+        #         "request_type": "execute_withdraw_collateral"
+        #     }
         #
-        return response
+        transaction = self.parse_transaction(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'address': address,
+        })
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "status": "success",
+        #         "signature": {signature},
+        #         "request_type": "execute_withdraw_collateral"
+        #     }
+        #
+        code = None
+        if currency is not None:
+            code = currency['code']
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': 'withdrawal',
+            'amount': None,
+            'currency': code,
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'updated': None,
+            'network': None,
+            'comment': None,
+            'internal': None,
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def handle_public_address(self, methodName: str, params: dict):
         userAux = None

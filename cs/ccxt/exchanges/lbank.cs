@@ -1221,6 +1221,13 @@ public partial class lbank : Exchange
         object indexPrice = this.safeNumber(ticker, "underlyingPrice");
         object fundingRate = this.safeNumber(ticker, "fundingRate");
         object fundingTime = this.safeInteger(ticker, "nextFeeTime");
+        object positionFeeTime = this.safeInteger(ticker, "positionFeeTime");
+        object intervalString = null;
+        if (isTrue(!isEqual(positionFeeTime, null)))
+        {
+            object interval = this.parseToInt(divide(divide(positionFeeTime, 60), 60));
+            intervalString = add(interval, "h");
+        }
         return new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", symbol },
@@ -1237,7 +1244,7 @@ public partial class lbank : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 

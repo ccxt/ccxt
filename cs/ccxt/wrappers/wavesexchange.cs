@@ -200,6 +200,7 @@ public partial class wavesexchange
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

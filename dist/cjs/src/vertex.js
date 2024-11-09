@@ -2892,13 +2892,58 @@ class vertex extends vertex$1 {
         };
         const response = await this.v1GatewayPostExecute(this.extend(request, params));
         //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "request_type": "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
         //
-        return response;
+        const transaction = this.parseTransaction(response, currency);
+        return this.extend(transaction, {
+            'amount': amount,
+            'address': address,
+        });
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
+        //
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': 'withdrawal',
+            'amount': undefined,
+            'currency': code,
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'updated': undefined,
+            'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
+    }
+    parseTransactionStatus(status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString(statuses, status, status);
     }
     handlePublicAddress(methodName, params) {
         let userAux = undefined;

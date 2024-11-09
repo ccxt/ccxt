@@ -1566,7 +1566,7 @@ public partial class kraken : Exchange
         //     {
         //         "error": [],
         //         "result": {
-        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' }, // see more examples in "parseOrder"
         //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
@@ -1645,8 +1645,8 @@ public partial class kraken : Exchange
     {
         object statuses = new Dictionary<string, object>() {
             { "take-profit", "market" },
-            { "stop-loss-limit", "limit" },
             { "stop-loss", "market" },
+            { "stop-loss-limit", "limit" },
             { "take-profit-limit", "limit" },
             { "trailing-stop-limit", "limit" },
         };
@@ -1656,29 +1656,18 @@ public partial class kraken : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder for regular orders
+        // createOrder
         //
         //     {
-        //         "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         "descr": {
+        //            "order": "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
+        //                     "buy 0.12345678 ETHUSDT @ market" // market order
+        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
+        //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
+        //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
+        //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
+        //         },
         //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
-        //     }
-        //     {
-        //         "txid": [ "TX_ID_HERE" ],
-        //         "descr": { "order":"buy 0.12345678 ETHEUR @ market" },
-        //     }
-        //
-        //
-        // createOrder for stop orders
-        //
-        //     {
-        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
-        //         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
-        //     }
-        //
-        //
-        //     {
-        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
-        //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         //     }
         //
         // editOrder
@@ -1760,29 +1749,37 @@ public partial class kraken : Exchange
             orderDescription = this.safeString(order, "descr");
         }
         object side = null;
-        object type = null;
+        object rawType = null;
         object marketId = null;
         object price = null;
         object amount = null;
-        object stopPrice = null;
+        object triggerPrice = null;
         if (isTrue(!isEqual(orderDescription, null)))
         {
             object parts = ((string)orderDescription).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
             amount = this.safeString(parts, 1);
             marketId = this.safeString(parts, 2);
-            type = this.safeString(parts, 4);
-            if (isTrue(isEqual(type, "stop")))
+            object part4 = this.safeString(parts, 4);
+            object part5 = this.safeString(parts, 5);
+            if (isTrue(isTrue(isEqual(part4, "limit")) || isTrue(isEqual(part4, "market"))))
             {
-                stopPrice = this.safeString(parts, 6);
+                rawType = part4; // eg, limit, market
+            } else
+            {
+                rawType = add(add(part4, " "), part5); // eg. stop loss, take profit, trailing stop
+            }
+            if (isTrue(isTrue(isEqual(rawType, "stop loss")) || isTrue(isEqual(rawType, "take profit"))))
+            {
+                triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (isTrue(isEqual(type, "limit")))
+            } else if (isTrue(isEqual(rawType, "limit")))
             {
                 price = this.safeString(parts, 5);
             }
         }
         side = this.safeString(description, "type", side);
-        type = this.safeString(description, "ordertype", type);
+        rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         object foundMarket = this.findMarketByAltnameOrId(marketId);
         object symbol = null;
@@ -1862,17 +1859,34 @@ public partial class kraken : Exchange
                 ((IList<object>)trades).Add(rawTrade);
             }
         }
-        stopPrice = this.omitZero(this.safeString(order, "stopprice", stopPrice));
+        // as mentioned in #24192 PR, this field is not something consistent/actual
+        // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         object stopLossPrice = null;
         object takeProfitPrice = null;
-        if (isTrue(((string)type).StartsWith(((string)"take-profit"))))
+        // the dashed strings are not provided from fields (eg. fetch order)
+        // while spaced strings from "order" sentence (when other fields not available)
+        if (isTrue(((string)rawType).StartsWith(((string)"take-profit"))))
         {
             takeProfitPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
-        } else if (isTrue(((string)type).StartsWith(((string)"stop-loss"))))
+        } else if (isTrue(((string)rawType).StartsWith(((string)"stop-loss"))))
         {
             stopLossPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
+        } else if (isTrue(isEqual(rawType, "take profit")))
+        {
+            takeProfitPrice = triggerPrice;
+        } else if (isTrue(isEqual(rawType, "stop loss")))
+        {
+            stopLossPrice = triggerPrice;
+        }
+        object finalType = this.parseOrderType(rawType);
+        // unlike from endpoints which provide eg: "take-profit-limit"
+        // for "space-delimited" orders we dont have market/limit suffixes, their format is
+        // eg: `stop loss > limit 123`, so we need to parse them manually
+        if (isTrue(this.inArray(finalType, new List<object>() {"stop loss", "take profit"})))
+        {
+            finalType = ((bool) isTrue((isEqual(price, null)))) ? "market" : "limit";
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1883,13 +1897,13 @@ public partial class kraken : Exchange
             { "lastTradeTimestamp", null },
             { "status", status },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", finalType },
             { "timeInForce", null },
             { "postOnly", isPostOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "cost", null },

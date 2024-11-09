@@ -817,7 +817,8 @@ class bitvavo extends \ccxt\async\bitvavo {
             $messageHash = $this->build_message_hash($action, $request);
             $this->check_message_hash_does_not_exist($messageHash);
             $url = $this->urls['api']['ws'];
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $randomSubHash = (string) $this->rand_number(5) . ':' . $messageHash;
+            return Async\await($this->watch($url, $messageHash, $request, $randomSubHash));
         }) ();
     }
 

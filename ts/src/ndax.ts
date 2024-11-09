@@ -2351,10 +2351,10 @@ export default class ndax extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'network': undefined,
-        };
+        } as Transaction;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name ndax#withdraw

@@ -2157,7 +2157,7 @@ export default class exmo extends Exchange {
         return undefined;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name exmo#withdraw
@@ -2336,7 +2336,7 @@ export default class exmo extends Exchange {
             'comment': comment,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

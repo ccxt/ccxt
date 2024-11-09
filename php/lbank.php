@@ -1181,6 +1181,12 @@ class lbank extends Exchange {
         $indexPrice = $this->safe_number($ticker, 'underlyingPrice');
         $fundingRate = $this->safe_number($ticker, 'fundingRate');
         $fundingTime = $this->safe_integer($ticker, 'nextFeeTime');
+        $positionFeeTime = $this->safe_integer($ticker, 'positionFeeTime');
+        $intervalString = null;
+        if ($positionFeeTime !== null) {
+            $interval = $this->parse_to_int($positionFeeTime / 60 / 60);
+            $intervalString = $interval . 'h';
+        }
         return array(
             'info' => $ticker,
             'symbol' => $symbol,
@@ -1197,7 +1203,7 @@ class lbank extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
-            'interval' => null,
+            'interval' => $intervalString,
         );
     }
 

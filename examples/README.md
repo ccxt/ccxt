@@ -106,8 +106,6 @@ python path/to/example.py # substitute for actual filename here
 
 [CC Power Analytics Part 1: How to get the data of the exchanges](https://www.linkedin.com/pulse/part-1-cc-power-analytics-how-get-data-exchanges-steve-rein/) – The first part of a series of articles on cryptocurrency analytics.
 
-[tv2bt: Kraken Example, without leverage](https://backtest-rookies.com/2020/04/18/tv2bt-kraken-example-without-leverage/) – an article on using CCXT for backtesting.
-
 [Looking for arbitrage opportunies with ccxt](https://steemit.com/steemdev/@codewithcheese/looking-for-arbitrage-opportunies-with-javascript-library-cctx-supporting-70-exchanges) – An article @steemit on getting arbitrage started with ccxt for crypto-arbitrage.
 
 [Use CCXT to calculate Cryptocurrency trade indicators](https://itnext.io/use-ccxt-to-calculate-cryptocurrency-trade-indicators-102a3ac1428e) – an article @ Medium on building basic indicators using CCXT.

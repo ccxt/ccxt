@@ -4930,7 +4930,7 @@ export default class okx extends Exchange {
         return this.safeDict (response, first) as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name okx#withdraw
@@ -5362,7 +5362,7 @@ export default class okx extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             },
-        };
+        } as Transaction;
     }
 
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {

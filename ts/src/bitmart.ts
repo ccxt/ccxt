@@ -3494,7 +3494,7 @@ export default class bitmart extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitmart#withdraw
@@ -3803,7 +3803,7 @@ export default class bitmart extends Exchange {
             'timestamp': (timestamp !== 0) ? timestamp : undefined,
             'datetime': (timestamp !== 0) ? this.iso8601 (timestamp) : undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
