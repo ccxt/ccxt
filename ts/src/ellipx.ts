@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade } from '../ccxt.js';
+import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -268,18 +268,34 @@ export default class ellipx extends Exchange {
                 body = this.json (body);
             }
             const bodyHash = this.hash (this.encode (body), sha256);
-            const elements = [
-                method,
-                path,
-                query,
-                bodyHash,
+            // Create sign string components
+            const bodyHashBytes = new Uint8Array (bodyHash.length / 2);
+            for (let i = 0; i < bodyHash.length; i += 2) {
+                bodyHashBytes[i / 2] = parseInt (bodyHash.substr (i, 2), 16);
+            }
+            const nullByte = new Uint8Array ([ 0x00 ]);
+            const components = [
+                this.encode (method),
+                nullByte,
+                this.encode (path),
+                nullByte,
+                this.encode (query),
+                nullByte,
+                bodyHashBytes,
             ];
-            const signString = elements.join ('\x00');
-            const signature = this.urlencodeBase64 (eddsa (this.encode (signString), this.encode (this.secret).slice (-32), ed25519));
+            // Join with null byte separator using encode
+            const signString = this.binaryConcatArray (components);
+            const remainder = this.secret.length % 4;
+            const paddingLength = remainder ? 4 - remainder : 0;
+            const secretWithPadding = this.secret.replace ('-', '+').replace ('_', '/').padEnd (this.secret.length + paddingLength, '=');
+            const secretBytes = this.base64ToBinary (secretWithPadding);
+            const seed = secretBytes.slice (0, 32); // Extract first 32 bytes as seed
+            const signature = eddsa (signString, seed, ed25519);
             params['_sign'] = signature;
             url = this.urls['api'][api] + '/' + path;
-            if (method === 'GET' && Object.keys (params).length) {
+            if (method === 'GET') {
                 url += '?' + this.urlencode (params);
+                body = undefined;
             } else {
                 body = this.json (params);
                 headers = {
@@ -296,6 +312,7 @@ export default class ellipx extends Exchange {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
                 }
+                body = undefined;
             } else {
                 body = this.json (params);
                 headers = {
@@ -852,6 +869,111 @@ export default class ellipx extends Exchange {
             'cost': undefined,
             'fee': undefined,
         });
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name ellipx#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetUserWallet (params);
+        // {
+        //     "User_Wallet__": "usw-vv7hzo-qel5-gupk-neqi-7f3wz5pq",
+        //     "User__": "usr-5oint6-ozpr-alfp-2wxi-zgbm4osy",
+        //     "Realm__": "usrr-cb3c7n-qvxv-fdrb-uc2q-gpja2foi",
+        //     "Unit__": "unit-aebkye-u35b-e5zm-zt22-2qvwhsqa",
+        //     "Balance": {
+        //         "value": "0.00006394",
+        //         "value_int": "6394",
+        //         "value_disp": "0.00006394",
+        //         "value_xint": {
+        //             "v": "6394",
+        //             "e": 8,
+        //             "f": 0.00006394
+        //         },
+        //         "display": "0.00006394 BTC",
+        //         "display_short": "0.00006394 BTC",
+        //         "currency": "BTC",
+        //         "unit": "BTC",
+        //         "has_vat": false,
+        //         "tax_profile": null
+        //     },
+        //     "Balance_Date": {
+        //         "unix": 1731128270,
+        //         "us": 426208,
+        //         "iso": "2024-11-09 04:57:50.426208",
+        //         "tz": "UTC",
+        //         "full": "1731128270426208",
+        //         "unixms": "1731128270426"
+        //     },
+        //     "Liabilities": {
+        //         "value": "0.00000000",
+        //         "value_int": "0",
+        //         "value_disp": "0.00000000",
+        //         "value_xint": {
+        //             "v": "0",
+        //             "e": 8,
+        //             "f": 0
+        //         },
+        //         "display": "0.00000000 BTC",
+        //         "display_short": "0.00000000 BTC",
+        //         "currency": "BTC",
+        //         "unit": "BTC",
+        //         "has_vat": false,
+        //         "tax_profile": null
+        //     },
+        //     "Index": "5",
+        //     "Backend": "virtual",
+        //     "Disable_Limits": "N",
+        //     "Unencumbered_Balance": {
+        //         "value": "0.00006394",
+        //         "value_int": "6394",
+        //         "value_disp": "0.00006394",
+        //         "value_xint": {
+        //             "v": "6394",
+        //             "e": 8,
+        //             "f": 0.00006394
+        //         },
+        //         "display": "0.00006394 BTC",
+        //         "display_short": "0.00006394 BTC",
+        //         "currency": "BTC",
+        //         "unit": "BTC",
+        //         "has_vat": false,
+        //         "tax_profile": null
+        //     }
+        // }
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const dataArray = this.safeValue (response, 'data', []);
+        // Use first item's timestamp if available
+        if (dataArray.length > 0) {
+            const firstItem = dataArray[0];
+            const balanceDate = this.safeValue (firstItem, 'Balance_Date', {});
+            result['timestamp'] = this.safeInteger (balanceDate, 'unixms');
+            result['datetime'] = this.iso8601 (result['timestamp']);
+        }
+        // Process each balance entry
+        for (let i = 0; i < dataArray.length; i++) {
+            const entry = dataArray[i];
+            const balance = this.safeValue (entry, 'Balance', {});
+            const currency = this.safeString (balance, 'currency');
+            if (currency !== undefined) {
+                const account = {
+                    'free': this.parseAmount (entry['Unencumbered_Balance']['value_xint']),
+                    'used': this.parseAmount (entry['Liabilities']['value_xint']),
+                    'total': this.parseAmount (balance['value_xint']),
+                };
+                result[currency] = account;
+            }
+        }
+        return this.safeBalance (result);
     }
 
     parseAmount (amount: Dict): number {
