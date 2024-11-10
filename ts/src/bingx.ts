@@ -2613,8 +2613,8 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-            const stopLoss = this.safeDict (params, 'stopLoss');
-            const takeProfit = this.safeDict (params, 'takeProfit');
+            const stopLoss = this.safeValue (params, 'stopLoss');
+            const takeProfit = this.safeValue (params, 'takeProfit');
             const isStopLoss = stopLoss !== undefined;
             const isTakeProfit = takeProfit !== undefined;
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
@@ -2658,7 +2658,7 @@ export default class bingx extends Exchange {
             if (isStopLoss || isTakeProfit) {
                 const stringifiedAmount = this.numberToString (amount);
                 if (isStopLoss) {
-                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice');
+                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
                     const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
                     const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
                     const slRequest: Dict = {
@@ -2675,7 +2675,7 @@ export default class bingx extends Exchange {
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (isTakeProfit) {
-                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice');
+                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
                     const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
                     const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest: Dict = {
