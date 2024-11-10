@@ -792,7 +792,7 @@ public partial class binance : ccxt.binance
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         /**
         * @method

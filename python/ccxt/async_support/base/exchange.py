@@ -631,6 +631,9 @@ class Exchange(BaseExchange):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
+    async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchOrderBookWs() is not supported yet')
+
     async def fetch_margin_mode(self, symbol: str, params={}):
         if self.has['fetchMarginModes']:
             marginModes = await self.fetch_margin_modes([symbol], params)

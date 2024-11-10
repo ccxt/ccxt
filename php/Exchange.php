@@ -3058,6 +3058,10 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
     }
 
+    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBookWs() is not supported yet');
+    }
+
     public function fetch_margin_mode(string $symbol, $params = array ()) {
         if ($this->has['fetchMarginModes']) {
             $marginModes = $this->fetch_margin_modes(array( $symbol ), $params);
