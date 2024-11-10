@@ -2428,6 +2428,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
+    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' fetchOrderBookWs() is not supported yet');
+    }
+
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
         if (this.has['fetchMarginModes']) {
             const marginModes = await this.fetchMarginModes ([ symbol ], params);
