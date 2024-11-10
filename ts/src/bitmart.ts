@@ -758,7 +758,7 @@ export default class bitmart extends Exchange {
         if (type === 'swap') {
             type = 'contract';
         }
-        const service = this.safeValue (servicesByType, type);
+        const service = this.safeString (servicesByType, type);
         let status = undefined;
         let eta = undefined;
         if (service !== undefined) {
@@ -1428,7 +1428,7 @@ export default class bitmart extends Exchange {
         let type = undefined;
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
+            const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
@@ -2595,8 +2595,8 @@ export default class bitmart extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             let orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
@@ -2887,7 +2887,7 @@ export default class bitmart extends Exchange {
         if (market['spot']) {
             response = await this.privatePostSpotV3CancelOrder (this.extend (request, params));
         } else {
-            const stop = this.safeValue2 (params, 'stop', 'trigger');
+            const stop = this.safeBool2 (params, 'stop', 'trigger');
             params = this.omit (params, [ 'stop', 'trigger' ]);
             if (!stop) {
                 response = await this.privatePostContractPrivateCancelOrder (this.extend (request, params));
@@ -3163,7 +3163,7 @@ export default class bitmart extends Exchange {
             }
             response = await this.privatePostSpotV4QueryOpenOrders (this.extend (request, params));
         } else if (type === 'swap') {
-            const isStop = this.safeValue2 (params, 'stop', 'trigger');
+            const isStop = this.safeBool2 (params, 'stop', 'trigger');
             params = this.omit (params, [ 'stop', 'trigger' ]);
             if (isStop) {
                 response = await this.privateGetContractPrivateCurrentPlanOrder (this.extend (request, params));
@@ -3432,7 +3432,7 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
         };
         if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
@@ -3520,7 +3520,7 @@ export default class bitmart extends Exchange {
             request['address_memo'] = tag;
         }
         if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
@@ -3566,7 +3566,7 @@ export default class bitmart extends Exchange {
             request['currency'] = currency['id'];
         }
         if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
@@ -3959,7 +3959,7 @@ export default class bitmart extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const symbols = this.safeList (data, 'symbols', []);
-        const borrowRate = this.safeValue (symbols, 0);
+        const borrowRate = this.safeDict (symbols, 0, []);
         return this.parseIsolatedBorrowRate (borrowRate, market);
     }
 
