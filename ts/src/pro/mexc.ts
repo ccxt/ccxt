@@ -342,7 +342,7 @@ export default class mexc extends mexcRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             result.push (ticker);
-            const messageHash = topic + ':' + symbol;
+            const messageHash = 'ticker:' + symbol;
             client.resolve (ticker, messageHash);
         }
         client.resolve (result, topic);
