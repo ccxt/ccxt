@@ -7,31 +7,23 @@
 
 ## How To Submit An Issue
 
-If you want to submit an issue and you want your issue to be resolved quickly, here's a checklist for you:
+If you want to submit an issue & resolve it quickly:
 
+- Search for similar [issues](https://github.com/ccxt/ccxt/issues) first to avoid duplicates.
 - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
   - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
   - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-  - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
-  - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
   - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-- Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-- Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-- Search for similar issues first to avoid duplicates.
+  - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
+   - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
 - If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
   - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
   - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
   - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-  - don't confuse a single backtick with triple backticks: &#096;BAD&#096;
-  - paste a complete code snippet you're having difficulties with, avoid one-liners
-  - paste the **full verbose output** of the failing method without your keys
-  - the verbose output should include the request and response from the exchange (not just an error callstack)
-  - write your language **and version**
-  - write ccxt library version
-  - which exchange it is
-  - which method you're trying to call
+  - paste:
+    - code snippet you're having difficulties with. Remove all irrelevant parts, leave just the essence of the code to reproduce the issue.
+    - **full verbose output** of the failing method **without api keys** (include the request and response, not just an error callstack)
+    - your ccxt & programming language version
 
 ### Reporting Vulnerabilities And Critical Issues
 
