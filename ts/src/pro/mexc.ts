@@ -327,7 +327,8 @@ export default class mexc extends mexcRest {
         const channel = this.safeString (message, 'c');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
-        const isSpot = marketId === undefined ? channel.startsWith ('spot') : market['spot'];
+        const channelStartsWithSpot = channel.startsWith ('spot');
+        const isSpot = marketId === undefined ? channelStartsWithSpot : market['spot'];
         const messageHashPrefix = isSpot ? 'spot:' : '';
         const topic = messageHashPrefix + 'ticker';
         const result = [];
