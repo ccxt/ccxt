@@ -2595,8 +2595,8 @@ export default class bitmart extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeNumber (rawOrder, 'amount');
-            const price = this.safeNumber (rawOrder, 'price');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             let orderRequest = this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             orderRequest = this.omit (orderRequest, [ 'symbol' ]); // not needed because it goes in the outter object
@@ -3432,7 +3432,7 @@ export default class bitmart extends Exchange {
             'currency': currency['id'],
         };
         if (code === 'USDT') {
-            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let networkInner = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
@@ -3520,7 +3520,7 @@ export default class bitmart extends Exchange {
             request['address_memo'] = tag;
         }
         if (code === 'USDT') {
-            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
@@ -3566,7 +3566,7 @@ export default class bitmart extends Exchange {
             request['currency'] = currency['id'];
         }
         if (code === 'USDT') {
-            const defaultNetworks = this.safeString (this.options, 'defaultNetworks');
+            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
             const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
             const networks = this.safeDict (this.options, 'networks', {});
             let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
