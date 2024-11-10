@@ -238,7 +238,13 @@ export default class mexc extends mexcRest {
                 }
             } else {
                 topics.push ('spot@public.miniTickers.v3.api@UTC+8');
-                messageHashes.push ('spot:ticker');
+                if (symbols === undefined) {
+                    messageHashes.push ('spot:ticker');
+                } else {
+                    for (let i = 0; i < symbols.length; i++) {
+                        messageHashes.push ('ticker:' + symbols[i]);
+                    }
+                }
             }
             request['method'] = 'SUBSCRIPTION';
             request['params'] = topics;
