@@ -324,7 +324,7 @@ export default class mexc extends mexcRest {
         //     }
         //
         const data = this.safeList2 (message, 'data', 'd');
-        const channel = this.safeString (message, 'c');
+        const channel = this.safeString (message, 'c', '');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
         const channelStartsWithSpot = channel.startsWith ('spot');
