@@ -1504,6 +1504,7 @@ export default class mexc extends mexcRest {
             'public.kline.v3.api': this.handleOHLCV,
             'push.kline': this.handleOHLCV,
             'public.bookTicker.v3.api': this.handleTicker,
+            'public.miniTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
             'push.tickers': this.handleTickers,
             'public.increase.depth.v3.api': this.handleOrderBook,
