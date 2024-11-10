@@ -2,12 +2,12 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ellipx.js';
-import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied } from './base/errors.js';
+import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances } from '../ccxt.js';
+import { Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -250,37 +250,41 @@ export default class ellipx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const authentication = api;
-        let url = undefined;
-        if (authentication === 'private') {
+        let url = this.urls['api'][api] + '/' + path;
+        if (path.includes ('{currencyPair}') && params['currencyPair']) {
+            url = url.replace ('{currencyPair}', params['currencyPair']);
+            path = path.replace ('{currencyPair}', params['currencyPair']);
+            delete params['currencyPair'];
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.uuid ();
             const timestamp = this.seconds ().toString ();
+            if (method === 'GET') {
+                body = '';
+            } else {
+                body = this.json (params);
+            }
             params = this.extend ({
                 '_key': this.apiKey,
                 '_time': timestamp,
                 '_nonce': nonce,
             }, params);
             const query = this.urlencode (params);
-            if (body === undefined) {
-                body = '';
-            } else {
-                body = this.json (body);
-            }
             const bodyHash = this.hash (this.encode (body), sha256);
             // Create sign string components
             const bodyHashBytes = new Uint8Array (bodyHash.length / 2);
             for (let i = 0; i < bodyHash.length; i += 2) {
                 bodyHashBytes[i / 2] = parseInt (bodyHash.substr (i, 2), 16);
             }
-            const nullByte = new Uint8Array ([ 0x00 ]);
+            const nulByte = new Uint8Array ([ 0x00 ]);
             const components = [
                 this.encode (method),
-                nullByte,
+                nulByte,
                 this.encode (path),
-                nullByte,
+                nulByte,
                 this.encode (query),
-                nullByte,
+                nulByte,
                 bodyHashBytes,
             ];
             // Join with null byte separator using encode
@@ -292,33 +296,16 @@ export default class ellipx extends Exchange {
             const seed = secretBytes.slice (0, 32); // Extract first 32 bytes as seed
             const signature = eddsa (signString, seed, ed25519);
             params['_sign'] = signature;
-            url = this.urls['api'][api] + '/' + path;
-            if (method === 'GET') {
-                url += '?' + this.urlencode (params);
-                body = undefined;
-            } else {
-                body = this.json (params);
-                headers = {
-                    'Content-Type': 'application/json',
-                };
-            }
+        }
+        if (Object.keys (params).length) {
+            url += '?' + this.urlencode (params);
+        }
+        if (method === 'GET') {
+            body = undefined;
         } else {
-            url = this.urls['api'][api] + '/' + path;
-            if (method === 'GET') {
-                if (path.includes ('{currencyPair}') && params['currencyPair']) {
-                    url = url.replace ('{currencyPair}', params['currencyPair']);
-                    delete params['currencyPair'];
-                }
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
-                body = undefined;
-            } else {
-                body = this.json (params);
-                headers = {
-                    'Content-Type': 'application/json',
-                };
-            }
+            headers = {
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -895,8 +882,8 @@ export default class ellipx extends Exchange {
         //             "e": 8,
         //             "f": 0.00006394
         //         },
-        //         "display": "0.00006394 BTC",
-        //         "display_short": "0.00006394 BTC",
+        //         "display": "0.00006394BTC",
+        //         "display_short": "0.00006394BTC",
         //         "currency": "BTC",
         //         "unit": "BTC",
         //         "has_vat": false,
@@ -919,8 +906,8 @@ export default class ellipx extends Exchange {
         //             "e": 8,
         //             "f": 0
         //         },
-        //         "display": "0.00000000 BTC",
-        //         "display_short": "0.00000000 BTC",
+        //         "display": "0.00000000BTC",
+        //         "display_short": "0.00000000BTC",
         //         "currency": "BTC",
         //         "unit": "BTC",
         //         "has_vat": false,
@@ -938,8 +925,8 @@ export default class ellipx extends Exchange {
         //             "e": 8,
         //             "f": 0.00006394
         //         },
-        //         "display": "0.00006394 BTC",
-        //         "display_short": "0.00006394 BTC",
+        //         "display": "0.00006394BTC",
+        //         "display_short": "0.00006394BTC",
         //         "currency": "BTC",
         //         "unit": "BTC",
         //         "has_vat": false,
@@ -976,10 +963,107 @@ export default class ellipx extends Exchange {
         return this.safeBalance (result);
     }
 
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
+        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        let Type = 'bid';
+        if (side === 'buy') {
+            Type = 'bid';
+        } else {
+            Type = 'ask';
+        }
+        const request: any = {
+            'currencyPair': marketSymbol,
+            'Type': Type,
+        };
+        if (amount === undefined && params['Spend_Limit'] === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder requires an amount or Spend_Limit');
+        }
+        if (amount !== undefined) {
+            request['Amount'] = amount.toString ();
+        }
+        if (price !== undefined) {
+            request['Price'] = this.priceToPrecision (symbol, price);
+        }
+        if (params['Spend_Limit'] !== undefined) {
+            request['Spend_Limit'] = this.priceToPrecision (symbol, params['Spend_Limit']);
+        }
+        const query = this.omit (params, [ 'currencyPair' ]);
+        const response = await this.privatePostMarketCurrencyPairOrder (this.extend (request, query));
+        return this.parseOrder (response['data'], market);
+    }
+
+    parseOrder (order, market = undefined): Order {
+        const id = this.safeString (order, 'Market_Order__');
+        const timestamp = this.safeInteger (this.safeValue (order, 'Created'), 'unixms');
+        let side = 'sell';
+        if (this.safeString (order, 'Type') === 'bid') {
+            side = 'buy';
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        const amount = this.parseAmount (order['Amount']);
+        const price = this.parseAmount (order['Price']);
+        const type = (price === undefined) ? 'market' : 'limit';
+        const executed = this.parseAmount (order['Executed']);
+        const filled = executed;
+        const remaining = (amount !== undefined && filled !== undefined) ? amount - filled : undefined;
+        const symbol = market ? market['symbol'] : undefined;
+        const clientOrderId = undefined;
+        const timeInForce = 'GTC'; // default to Good Till Cancelled
+        const postOnly = false;
+        const average = undefined;
+        const fee = undefined;
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': average,
+            'cost': undefined,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open',
+            'open': 'open',
+            'closed': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseAmount (amount: Dict): number {
         const v = this.safeString (amount, 'v');
         const e = this.safeInteger (amount, 'e');
         const v_int = parseInt (v);
         return v_int * Math.pow (10, -e);
+    }
+
+    toAmount (amount: number, precision: number): Dict {
+        const v = amount.toString ();
+        const e = precision;
+        return {
+            'v': v,
+            'e': e,
+        };
     }
 }
