@@ -209,27 +209,36 @@ export default class mexc extends mexcRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined);
         const messageHashes = [];
-        const marketIds = this.marketIds (symbols);
-        const firstMarket = this.market (symbols[0]);
-        const isSpot = firstMarket['spot'];
+        const firstSymbol = this.safeString (symbols, 0);
+        let market = undefined;
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const isSpot = (type === 'spot');
         const url = (isSpot) ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap'];
         const request: Dict = {};
         if (isSpot) {
             let miniTicker = false;
             [ miniTicker, params ] = this.handleOptionAndParams (params, 'watchTickers', 'miniTicker');
             const topics = [];
-            for (let i = 0; i < marketIds.length; i++) {
-                const marketId = marketIds[i];
-                messageHashes.push ('ticker:' + symbols[i]);
-                let channel = undefined;
-                if (miniTicker) {
-                    channel = 'spot@public.miniTickers.v3.api@UTC+8';
-                } else {
-                    channel = 'spot@public.bookTicker.v3.api@' + marketId;
+            if (!miniTicker) {
+                if (symbols === undefined) {
+                    throw new ArgumentsRequired (this.id + 'watchTickers required symbols argument for the bookTicker channel');
                 }
-                topics.push (channel);
+                const marketIds = this.marketIds (symbols);
+                for (let i = 0; i < marketIds.length; i++) {
+                    const marketId = marketIds[i];
+                    messageHashes.push ('ticker:' + symbols[i]);
+                    const channel = 'spot@public.bookTicker.v3.api@' + marketId;
+                    topics.push (channel);
+                }
+            } else {
+                topics.push ('spot@public.miniTickers.v3.api@UTC+8');
+                messageHashes.push ('spot:ticker');
             }
             request['method'] = 'SUBSCRIPTION';
             request['params'] = topics;
@@ -309,14 +318,17 @@ export default class mexc extends mexcRest {
         //     }
         //
         const data = this.safeList2 (message, 'data', 'd');
+        const channel = this.safeString (message, 'c');
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId);
-        const topic = 'ticker';
+        const isSpot = marketId === undefined ? channel.startsWith ('spot') : market['spot'];
+        const messageHashPrefix = isSpot ? 'spot:' : '';
+        const topic = messageHashPrefix + 'ticker';
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             let ticker = undefined;
-            if (market['spot']) {
+            if (isSpot) {
                 ticker = this.parseWsTicker (entry, market);
             } else {
                 ticker = this.parseTicker (entry);
@@ -1505,6 +1517,7 @@ export default class mexc extends mexcRest {
             'push.kline': this.handleOHLCV,
             'public.bookTicker.v3.api': this.handleTicker,
             'public.miniTicker.v3.api': this.handleTicker,
+            'public.miniTickers.v3.api': this.handleTickers,
             'push.ticker': this.handleTicker,
             'push.tickers': this.handleTickers,
             'public.increase.depth.v3.api': this.handleOrderBook,
