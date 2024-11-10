@@ -10,20 +10,20 @@
 If you want to submit an issue & resolve it quickly:
 
 - Search for similar [issues](https://github.com/ccxt/ccxt/issues) first to avoid duplicates.
-- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and especially carefully read the following sections:
-  - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
-  - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
-  - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
-  - Read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section and follow troubleshooting steps.
-   - Read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions.
-- If your issue is unique, along with a basic description of the failure, the following **IS REQUIRED**:
+- Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), especially:
+  - Get familiar with [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
+  - Beware of [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit) && [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+  - Ensure you have correct [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
+  - Frequently asked questions: [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) 
+  - Follow steps in [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
+- If your issue is unique, the following **IS REQUIRED**:
+  - a basic description about the failure
   - **set `exchange.verbose = true` property on the exchange instance before calling its functions or methods**
   - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
   - **surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**
-  - paste:
-    - code snippet you're having difficulties with. Remove all irrelevant parts, leave just the essence of the code to reproduce the issue.
-    - **full verbose output** of the failing method **without api keys** (include the request and response, not just an error callstack)
-    - your ccxt & programming language version
+  - paste code snippet you're having difficulties with. Remove all irrelevant parts, leave just the essence of the code to reproduce the issue.
+  - paste **full verbose output** of the failing method **without api keys** (include the request and response, not just an error callstack)
+  - paste your ccxt & programming language version
 
 ### Reporting Vulnerabilities And Critical Issues
 
