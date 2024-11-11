@@ -237,7 +237,7 @@ def get_test_files_sync(properties, ws=False):
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/exchange/'
             module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
