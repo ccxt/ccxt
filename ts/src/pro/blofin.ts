@@ -715,7 +715,8 @@ export default class blofin extends blofinRest {
             if (event === 'subscribe') {
                 return;
             } else if (event === 'login') {
-                client.resolve (message, 'authenticate_hash');
+                const future = this.safeValue (client.futures, 'authenticate_hash');
+                future.resolve (true);
                 return;
             } else if (event === 'error') {
                 throw new ExchangeError (this.id + ' error: ' + this.json (message));
