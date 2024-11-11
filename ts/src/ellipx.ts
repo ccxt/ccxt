@@ -1,4 +1,3 @@
-
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ellipx.js';
@@ -878,7 +877,7 @@ export default class ellipx extends Exchange {
         const response = await this.privateGetUserWallet (params);
         // {
         //     "User_Wallet__": "usw-vv7hzo-qel5-gupk-neqi-7f3wz5pq",
-        //     "User__": "usr-5oint6-ozpr-alfp-2wxi-zgbm4osy",
+        //     "User__": "usr-...",
         //     "Realm__": "usrr-cb3c7n-qvxv-fdrb-uc2q-gpja2foi",
         //     "Unit__": "unit-aebkye-u35b-e5zm-zt22-2qvwhsqa",
         //     "Balance": {
@@ -1014,6 +1013,115 @@ export default class ellipx extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name ellipx#fetchOrdersByStatus
+         * @description fetches a list of orders placed on the exchange
+         * @param {string|undefined} status 'open' or 'closed', omit for all orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] timestamp in ms of the earliest order
+         * @param {int} [limit] the maximum amount of orders to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: any = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['symbol'].replace ('/', '_');
+        }
+        if (status !== undefined) {
+            request['Status'] = status;
+        }
+        const response = await this.privateGetMarketCurrencyPairOrder (this.extend (request, params));
+        // {
+        //     "result": "success",
+        //     "data": [
+        //         {
+        //             "Market_Order__": "mktor-aglvd2-iy5v-enbj-nwrb-scqsnosa",
+        //             "Market__": "mkt-lrnp2e-eaor-eobj-ua73-75j6sjxe",
+        //             "User__": "usr-...",
+        //             "Uniq": "order:1728712511:964332600:0",
+        //             "Type": "ask",
+        //             "Status": "open",
+        //             "Flags": {},
+        //             "Amount": {
+        //                 "v": "1",
+        //                 "e": 8,
+        //                 "f": 1.0e-8
+        //             },
+        //             "Price": {
+        //                 "v": "63041306872",
+        //                 "e": 6,
+        //                 "f": 63041.306872
+        //             },
+        //             "Spend_Limit": null,
+        //             "Executed": {
+        //                 "v": "892",
+        //                 "e": 8,
+        //                 "f": 8.92e-6
+        //             },
+        //             "Secured": null,
+        //             "Version": "3",
+        //             "Created": {
+        //                 "unix": 1728712510,
+        //                 "us": 669096,
+        //                 "iso": "2024-10-12 05:55:10.669096",
+        //                 "tz": "UTC",
+        //                 "full": "1728712510669096",
+        //                 "unixms": "1728712510669"
+        //             },
+        //             "Updated": {
+        //                 "unix": 1728712510,
+        //                 "us": 669096,
+        //                 "iso": "2024-10-12 05:55:10.669096",
+        //                 "tz": "UTC",
+        //                 "full": "1728712510669096",
+        //                 "unixms": "1728712510669"
+        //             }
+        //         }
+        //     ],
+        //     "paging": {
+        //         "page_no": 1,
+        //         "count": "1",
+        //         "page_max": 1,
+        //         "results_per_page": 20
+        //     }
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name ellipx#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum amount of orders to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.fetchOrdersByStatus (undefined, symbol, since, limit, params);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name ellipx#fetchOpenOrders
+         * @description fetches information on open orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the maximum amount of orders to fetch
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+    }
+
     parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'Market_Order__');
         const timestamp = this.safeInteger (this.safeValue (order, 'Created'), 'unixms');
@@ -1065,10 +1173,15 @@ export default class ellipx extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
-            'pending': 'open',
-            'open': 'open',
-            'closed': 'closed',
-            'canceled': 'canceled',
+            'pending': 'open', // starting state of all orders
+            'running': 'open', // when order is being executed
+            'post-pending': 'open', // post-only order waiting to be placed
+            'open': 'open', // active order in the orderbook
+            'stop': 'open', // when stop order not yet triggered
+            'invalid': 'rejected', // order rejected
+            'done': 'closed', // order fully executed
+            'cancel': 'canceled', // order canceled by user
+            'canceled': 'canceled', // alternative spelling
         };
         return this.safeString (statuses, status, status);
     }
@@ -1125,8 +1238,11 @@ export default class ellipx extends Exchange {
     }
 
     parseAmount (amount: Dict): number {
-        const v = this.safeString (amount, 'v');
-        const e = this.safeInteger (amount, 'e');
+        const v = this.safeString (amount, 'v', undefined);
+        const e = this.safeInteger (amount, 'e', undefined);
+        if (v === undefined || e === undefined) {
+            return undefined;
+        }
         const v_int = parseInt (v);
         return v_int * Math.pow (10, -e);
     }
