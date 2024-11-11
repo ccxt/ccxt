@@ -76,6 +76,17 @@ export default class defx extends defxRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    async unWatchPublic (topics, messageHashes, params = {}) {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'topics': topics,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -91,6 +102,20 @@ export default class defx extends defxRest {
          */
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
+    }
+
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -127,6 +152,35 @@ export default class defx extends defxRest {
         }
         const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const marketId = this.safeString (symbolAndTimeframe, 0);
+            const market = this.market (marketId);
+            const tf = this.safeString (symbolAndTimeframe, 1);
+            const interval = this.safeString (this.timeframes, tf, tf);
+            topics.push ('symbol:' + market['id'] + ':ohlc:' + interval);
+            messageHashes.push ('candles:' + interval + ':' + market['symbol']);
+        }
+        return await this.unWatchPublic (topics, messageHashes, params);
     }
 
     handleOHLCV (client: Client, message) {
