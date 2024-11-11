@@ -1185,7 +1185,7 @@ class lbank extends Exchange {
         $intervalString = null;
         if ($positionFeeTime !== null) {
             $interval = $this->parse_to_int($positionFeeTime / 60 / 60);
-            $intervalString = $interval . 'h';
+            $intervalString = (string) $interval . 'h';
         }
         return array(
             'info' => $ticker,

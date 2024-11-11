@@ -1158,7 +1158,7 @@ class lbank(Exchange, ImplicitAPI):
         intervalString = None
         if positionFeeTime is not None:
             interval = self.parse_to_int(positionFeeTime / 60 / 60)
-            intervalString = interval + 'h'
+            intervalString = str(interval) + 'h'
         return {
             'info': ticker,
             'symbol': symbol,

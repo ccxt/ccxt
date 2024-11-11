@@ -720,7 +720,8 @@ class blofin extends \ccxt\async\blofin {
             if ($event === 'subscribe') {
                 return;
             } elseif ($event === 'login') {
-                $client->resolve ($message, 'authenticate_hash');
+                $future = $this->safe_value($client->futures, 'authenticate_hash');
+                $future->resolve (true);
                 return;
             } elseif ($event === 'error') {
                 throw new ExchangeError($this->id . ' error => ' . $this->json($message));
