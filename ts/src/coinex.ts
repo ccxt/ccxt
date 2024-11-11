@@ -73,7 +73,7 @@ export default class coinex extends Exchange {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
-                'fetchDepositWithdrawFees': false,
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
                 'fetchFundingIntervals': false,
@@ -5464,6 +5464,22 @@ export default class coinex extends Exchange {
         };
     }
 
+    async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         * @param {string[]|undefined} codes list of unified currency codes
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v2PublicGetAssetsAllDepositWithdrawConfig (params);
+        const data = this.safeList (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'asset.ccy');
+    }
+ 
     async fetchDepositWithdrawFee (code: string, params = {}) {
         /**
          * @method
