@@ -5469,7 +5469,7 @@ export default class coinex extends Exchange {
          * @method
          * @name coinex#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+         * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
          * @param {string[]|undefined} codes list of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
