@@ -6971,7 +6971,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   ```php
   echo "CCXT v." . \ccxt\Exchange::VERSION . "\n"; // PHP
   ```
-- Check the [Issues](https://github.com/ccxt/ccxt/issues) or [Announcements](#rate-limit) for recent updates.
+- Check the [Issues](https://github.com/ccxt/ccxt/issues) or [Announcements](#announcements) for recent updates.
 - Make sure you have not turned off [rate-limiter with `enableRateLimit: false`](#rate-limit) (If anyone has custom rate-limit solution built, ensure it does not misbehave).
 - If you use ccxt's proxy functionality, ensure it does not misbehave.
 - Turn `verbose = true` to get more detail about it!
