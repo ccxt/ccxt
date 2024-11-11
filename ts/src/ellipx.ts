@@ -161,6 +161,7 @@ export default class ellipx extends Exchange {
                     'get': {
                         'User/Wallet': 1,
                         'Market/{currencyPair}/Order': 1,
+                        'Market/Order/{orderUuid}': 1,
                         'Market/TradeFee:query': 1,
                         'Unit/{currency}': 1,
                         'Crypto/Token/{currency}': 1,
@@ -1003,11 +1004,22 @@ export default class ellipx extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const request = {
+            'orderUuid': id,
+        };
+        const response = await this.privateGetMarketOrderOrderUuid (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, undefined);
+    }
+
     parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'Market_Order__');
         const timestamp = this.safeInteger (this.safeValue (order, 'Created'), 'unixms');
+        const typeResponse = this.safeString (order, 'Type');
         let side = 'sell';
-        if (this.safeString (order, 'Type') === 'bid') {
+        if (typeResponse === 'bid') {
             side = 'buy';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
@@ -1023,13 +1035,15 @@ export default class ellipx extends Exchange {
         const postOnly = false;
         const average = undefined;
         const fee = undefined;
+        const updated = this.safeValue (order, 'Updated', {});
+        const lastTradeTimestamp = this.safeInteger (updated, 'unixms', undefined);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': type,
