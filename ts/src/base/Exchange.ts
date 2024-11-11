@@ -1439,6 +1439,12 @@ export default class Exchange {
         if (errorStr !== undefined) {
             client.reject (new ExchangeError (errorStr), messageHash);
             delete this.clients[client.url];
+            // due to https://github.com/ccxt/ccxt/pull/24224 we need to access subscriptionHash
+            const hashes = this.safeDict (this.options, 'subscriptionHashesByMessageHashes', {});
+            const subscriptionHash = this.safeString (hashes, messageHash);
+            if (subscriptionHash !== undefined) {
+                delete client[subscriptionHash];
+            }
         }
     }
 
@@ -2449,7 +2455,6 @@ export default class Exchange {
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
-        throw new Error('');
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {

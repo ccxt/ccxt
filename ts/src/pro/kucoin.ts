@@ -708,13 +708,15 @@ export default class kucoin extends kucoinRest {
             method = '/spotMarket/level2Depth' + limit.toString ();
         }
         const topic = method + ':' + marketIds.join (',');
+        this.options['subscriptionHashesByMessageHashes'] = this.safeDict (this.options, 'subscriptionHashesByMessageHashes', {}); // see the reason in base.loadOrderBook method comment
         const messageHashes = [];
         const subscriptionHashes = [];
         for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            messageHashes.push ('orderbook:' + symbol);
-            const marketId = marketIds[i];
-            subscriptionHashes.push (method + ':' + marketId);
+            const messageHash = 'orderbook:' + symbols[i];
+            messageHashes.push (messageHash);
+            const subscriptionHash = method + marketIds[i];
+            subscriptionHashes.push (subscriptionHash);
+            this.options['subscriptionHashesByMessageHashes'][messageHash] = subscriptionHash;
         }
         let subscription = {};
         if (method === '/market/level2') { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
