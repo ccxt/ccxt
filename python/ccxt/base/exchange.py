@@ -90,8 +90,10 @@ import hmac
 import io
 
 ## load orjson if available, otherwise default to json
+orjson_available = False
 try:
     import orjson as json
+    orjson_available = True
 except ImportError:
     import json
 
@@ -117,14 +119,15 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
-class SafeJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Exception):
-            return {"name": obj.__class__.__name__}
-        try:
-            return super().default(obj)
-        except TypeError:
-            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
+if not orjson_available:
+    class SafeJSONEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, Exception):
+                return {"name": obj.__class__.__name__}
+            try:
+                return super().default(obj)
+            except TypeError:
+                return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
@@ -1439,6 +1442,8 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
+        if orjson_available:
+            return json.dumps(data)
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
