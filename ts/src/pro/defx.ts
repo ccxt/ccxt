@@ -478,6 +478,19 @@ export default class defx extends defxRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string} symbol unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -505,6 +518,33 @@ export default class defx extends defxRest {
         }
         const orderbook = await this.watchPublic (topics, messageHashes, params);
         return orderbook.limit ();
+    }
+
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchOrderBookForSymbols
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[]} symbols unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' unWatchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':depth:20:0.001');
+            messageHashes.push ('orderbook:' + symbol);
+        }
+        return await this.unWatchPublic (topics, messageHashes, params);
     }
 
     handleOrderBook (client: Client, message) {
