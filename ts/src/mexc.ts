@@ -1168,7 +1168,16 @@ export default class mexc extends Exchange {
         let symbol = base + '/' + quote;
         let amountPrecision = undefined;
         let pricePrecision = undefined;
+        let linear = undefined;
+        let inverse = undefined;
         if (settleId !== undefined) {
+            if (settleId === quoteId) {
+                linear = true;
+                inverse = false;
+            } else {
+                linear = false;
+                inverse = true;
+            }
             settle = this.safeCurrencyCode (settleId);
             type = 'swap';
             isSwap = true;
@@ -1204,8 +1213,8 @@ export default class mexc extends Exchange {
             'option': false,
             'active': active,
             'contract': isSwap,
-            'linear': undefined,
-            'inverse': undefined,
+            'linear': linear,
+            'inverse': inverse,
             'taker': this.safeNumber2 (market, 'takerCommission', 'takerFeeRate'),
             'maker': this.safeNumber2 (market, 'makerCommission', 'makerFeeRate'),
             'contractSize': this.safeNumber (market, 'contractSize'),
