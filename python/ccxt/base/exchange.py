@@ -90,13 +90,13 @@ import hmac
 import io
 
 ## load orjson if available, otherwise default to json
-orjson_available = False
+orjson = None
 try:
-    import orjson as json
-    orjson_available = True
+    import orjson as orjson
 except ImportError:
-    import json
+    pass
 
+import json
 import math
 import random
 from numbers import Number
@@ -119,7 +119,7 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
-if not orjson_available:
+if orjson is None:
     class SafeJSONEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, Exception):
@@ -495,10 +495,10 @@ class Exchange(object):
         return response_body.strip()
 
     def on_json_response(self, response_body):
-        if self.quoteJsonNumbers:
+        if self.quoteJsonNumbers and orjson is None:
             return json.loads(response_body, parse_float=str, parse_int=str)
         else:
-            return json.loads(response_body)
+            return orjson.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1442,8 +1442,8 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        if orjson_available:
-            return json.dumps(data)
+        if orjson:
+            return orjson.dumps(data)
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod

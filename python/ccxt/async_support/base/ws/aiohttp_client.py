@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+orjson = None
 try:
-    import orjson as json
+    import orjson as orjson
 except ImportError:
-    import json
+    pass
 
+import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
@@ -84,7 +86,15 @@ class AiohttpClient(Client):
     async def send(self, message):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'sending', message)
-        return await self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
+        send_msg = None
+        if isinstance(message, str):
+            send_msg = message
+        else:
+            if orjson is None:
+                send_msg = json.dumps(message, separators=(',', ':'))
+            else:
+                send_msg = orjson.dumps(message).decode('utf-8')
+        return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):
         if self.verbose:
