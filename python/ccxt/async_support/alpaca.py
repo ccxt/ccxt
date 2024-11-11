@@ -61,6 +61,7 @@ class alpaca(Exchange, ImplicitAPI):
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createOrder': True,
+                'editOrder': True,
                 'fetchBalance': False,
                 'fetchBidsAsks': False,
                 'fetchClosedOrders': True,
@@ -142,6 +143,7 @@ class alpaca(Exchange, ImplicitAPI):
                             'v2/wallets/transfers',
                         ],
                         'put': [
+                            'v2/orders/{order_id}',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
                         ],
@@ -800,6 +802,15 @@ class alpaca(Exchange, ImplicitAPI):
             results.append(ticker)
         return self.filter_by_array(results, 'symbol', symbols)
 
+    def generate_client_order_id(self, params):
+        clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
+        uuid = self.uuid()
+        parts = uuid.split('-')
+        random_id = ''.join(parts)
+        defaultClientId = self.implode_params(clientOrderIdprefix, {'id': random_id})
+        clientOrderId = self.safe_string(params, 'clientOrderId', defaultClientId)
+        return clientOrderId
+
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
@@ -836,13 +847,7 @@ class alpaca(Exchange, ImplicitAPI):
         defaultTIF = self.safe_string(self.options, 'defaultTimeInForce')
         request['time_in_force'] = self.safe_string(params, 'timeInForce', defaultTIF)
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
-        clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
-        uuid = self.uuid()
-        parts = uuid.split('-')
-        random_id = ''.join(parts)
-        defaultClientId = self.implode_params(clientOrderIdprefix, {'id': random_id})
-        clientOrderId = self.safe_string(params, 'clientOrderId', defaultClientId)
-        request['client_order_id'] = clientOrderId
+        request['client_order_id'] = self.generate_client_order_id(params)
         params = self.omit(params, ['clientOrderId'])
         order = await self.traderPrivatePostV2Orders(self.extend(request, params))
         #
@@ -1042,6 +1047,46 @@ class alpaca(Exchange, ImplicitAPI):
             'status': 'closed',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://docs.alpaca.markets/reference/patchorderbyorderid-1
+        :param str id: order id
+        :param str [symbol]: unified symbol of the market to create an order in
+        :param str [type]: 'market', 'limit' or 'stop_limit'
+        :param str [side]: 'buy' or 'sell'
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.triggerPrice]: the price to trigger a stop order
+        :param str [params.timeInForce]: for crypto trading either 'gtc' or 'ioc' can be used
+        :param str [params.clientOrderId]: a unique identifier for the order, automatically generated if not sent
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        request: dict = {
+            'order_id': id,
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        if amount is not None:
+            request['qty'] = self.amount_to_precision(symbol, amount)
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stop_price'])
+        if triggerPrice is not None:
+            request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
+            params = self.omit(params, 'triggerPrice')
+        if price is not None:
+            request['limit_price'] = self.price_to_precision(symbol, price)
+        timeInForce = None
+        timeInForce, params = self.handle_option_and_params_2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce')
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
+        request['client_order_id'] = self.generate_client_order_id(params)
+        params = self.omit(params, ['clientOrderId'])
+        response = await self.traderPrivatePatchV2OrdersOrderId(self.extend(request, params))
+        return self.parse_order(response, market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #

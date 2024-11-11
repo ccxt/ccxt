@@ -702,7 +702,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->safe_integer($data, 'server_time');
     }
 
@@ -712,7 +712,7 @@ class bitmart extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
          */
-        $options = $this->safe_value($this->options, 'fetchStatus', array());
+        $options = $this->safe_dict($this->options, 'fetchStatus', array());
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $type = $this->safe_string($options, 'type', $defaultType);
         $type = $this->safe_string($params, 'type', $type);
@@ -743,13 +743,13 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $services = $this->safe_value($data, 'service', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $services = $this->safe_list($data, 'service', array());
         $servicesByType = $this->index_by($services, 'service_type');
         if ($type === 'swap') {
             $type = 'contract';
         }
-        $service = $this->safe_value($servicesByType, $type);
+        $service = $this->safe_string($servicesByType, $type);
         $status = null;
         $eta = null;
         if ($service !== null) {
@@ -798,8 +798,8 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $symbols = $this->safe_value($data, 'symbols', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $symbols = $this->safe_list($data, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $symbols[$i];
@@ -909,8 +909,8 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $symbols = $this->safe_value($data, 'symbols', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $symbols = $this->safe_list($data, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $market = $symbols[$i];
@@ -1016,16 +1016,16 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $currencies = $this->safe_value($data, 'currencies', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $currencies = $this->safe_list($data, 'currencies', array());
         $result = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'id');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $withdrawEnabled = $this->safe_value($currency, 'withdraw_enabled');
-            $depositEnabled = $this->safe_value($currency, 'deposit_enabled');
+            $withdrawEnabled = $this->safe_bool($currency, 'withdraw_enabled');
+            $depositEnabled = $this->safe_bool($currency, 'deposit_enabled');
             $active = $withdrawEnabled && $depositEnabled;
             $result[$code] = array(
                 'id' => $id,
@@ -1388,7 +1388,7 @@ class bitmart extends Exchange {
         } else {
             $data = $this->safe_dict($response, 'data', array());
             $tickers = $this->safe_list($data, 'symbols', array());
-            $ticker = $this->safe_value($tickers, 0, array());
+            $ticker = $this->safe_dict($tickers, 0, array());
         }
         return $this->parse_ticker($ticker, $market);
     }
@@ -1407,7 +1407,7 @@ class bitmart extends Exchange {
         $type = null;
         $market = null;
         if ($symbols !== null) {
-            $symbol = $this->safe_value($symbols, 0);
+            $symbol = $this->safe_string($symbols, 0);
             $market = $this->market($symbol);
         }
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
@@ -1575,7 +1575,7 @@ class bitmart extends Exchange {
         //         "trace" => "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $timestamp = $this->safe_integer_2($data, 'ts', 'timestamp');
         return $this->parse_order_book($data, $market['symbol'], $timestamp);
     }
@@ -1924,7 +1924,7 @@ class bitmart extends Exchange {
             if ($marginMode === 'isolated') {
                 $request['orderMode'] = 'iso_margin';
             }
-            $options = $this->safe_value($this->options, 'fetchMyTrades', array());
+            $options = $this->safe_dict($this->options, 'fetchMyTrades', array());
             $defaultLimit = $this->safe_integer($options, 'limit', 200);
             if ($limit === null) {
                 $limit = $defaultLimit;
@@ -2027,14 +2027,14 @@ class bitmart extends Exchange {
     }
 
     public function custom_parse_balance($response, $marketType): array {
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $wallet = null;
         if ($marketType === 'swap') {
-            $wallet = $this->safe_value($response, 'data', array());
+            $wallet = $this->safe_list($response, 'data', array());
         } elseif ($marketType === 'margin') {
-            $wallet = $this->safe_value($data, 'symbols', array());
+            $wallet = $this->safe_list($data, 'symbols', array());
         } else {
-            $wallet = $this->safe_value($data, 'wallet', array());
+            $wallet = $this->safe_list($data, 'wallet', array());
         }
         $result = array( 'info' => $response );
         if ($marketType === 'margin') {
@@ -2042,8 +2042,8 @@ class bitmart extends Exchange {
                 $entry = $wallet[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, '_');
-                $base = $this->safe_value($entry, 'base', array());
-                $quote = $this->safe_value($entry, 'quote', array());
+                $base = $this->safe_dict($entry, 'base', array());
+                $quote = $this->safe_dict($entry, 'quote', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
@@ -2255,7 +2255,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_trading_fee($data);
     }
 
@@ -2421,7 +2421,7 @@ class bitmart extends Exchange {
                 '4' => 'closed', // Completed
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2517,7 +2517,7 @@ class bitmart extends Exchange {
         // swap
         // array("code":1000,"message":"Ok","data":array("order_id":231116359426639,"price":"market $price"),"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911")
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $order = $this->parse_order($data, $market);
         $order['type'] = $type;
         $order['side'] = $side;
@@ -2840,7 +2840,7 @@ class bitmart extends Exchange {
         if ($market['spot']) {
             $response = $this->privatePostSpotV3CancelOrder ($this->extend($request, $params));
         } else {
-            $stop = $this->safe_value_2($params, 'stop', 'trigger');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             if (!$stop) {
                 $response = $this->privatePostContractPrivateCancelOrder ($this->extend($request, $params));
@@ -3057,7 +3057,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -3110,7 +3110,7 @@ class bitmart extends Exchange {
             }
             $response = $this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params));
         } elseif ($type === 'swap') {
-            $isStop = $this->safe_value_2($params, 'stop', 'trigger');
+            $isStop = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             if ($isStop) {
                 $response = $this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params));
@@ -3373,7 +3373,7 @@ class bitmart extends Exchange {
         if ($code === 'USDT') {
             $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
             $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_value($this->options, 'networks', array());
+            $networks = $this->safe_dict($this->options, 'networks', array());
             $networkInner = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             $networkInner = $this->safe_string($networks, $networkInner, $networkInner); // handle ERC20>ETH alias
             if ($networkInner !== null) {
@@ -3459,7 +3459,7 @@ class bitmart extends Exchange {
         if ($code === 'USDT') {
             $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
             $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_value($this->options, 'networks', array());
+            $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
             if ($network !== null) {
@@ -3478,7 +3478,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_transaction($data, $currency);
         return $this->extend($transaction, array(
             'code' => $code,
@@ -3505,7 +3505,7 @@ class bitmart extends Exchange {
         if ($code === 'USDT') {
             $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
             $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
-            $networks = $this->safe_value($this->options, 'networks', array());
+            $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
             if ($network !== null) {
@@ -3539,7 +3539,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $records = $this->safe_list($data, 'records', array());
         return $this->parse_transactions($records, $currency, $since, $limit);
     }
@@ -3579,7 +3579,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $record = $this->safe_dict($data, 'record', array());
         return $this->parse_transaction($record);
     }
@@ -3631,7 +3631,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $record = $this->safe_dict($data, 'record', array());
         return $this->parse_transaction($record);
     }
@@ -3764,7 +3764,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_margin_loan($data, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
@@ -3801,7 +3801,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_margin_loan($data, $currency);
         return $this->extend($transaction, array(
             'amount' => $amount,
@@ -3880,9 +3880,9 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $symbols = $this->safe_value($data, 'symbols', array());
-        $borrowRate = $this->safe_value($symbols, 0);
+        $data = $this->safe_dict($response, 'data', array());
+        $symbols = $this->safe_list($data, 'symbols', array());
+        $borrowRate = $this->safe_dict($symbols, 0, array());
         return $this->parse_isolated_borrow_rate($borrowRate, $market);
     }
 
@@ -3912,8 +3912,8 @@ class bitmart extends Exchange {
         //
         $marketId = $this->safe_string($info, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $baseData = $this->safe_value($info, 'base', array());
-        $quoteData = $this->safe_value($info, 'quote', array());
+        $baseData = $this->safe_dict($info, 'base', array());
+        $quoteData = $this->safe_dict($info, 'quote', array());
         $baseId = $this->safe_string($baseData, 'currency');
         $quoteId = $this->safe_string($quoteData, 'currency');
         return array(
@@ -3970,8 +3970,8 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $symbols = $this->safe_value($data, 'symbols', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $symbols = $this->safe_list($data, 'symbols', array());
         return $this->parse_isolated_borrow_rates($symbols);
     }
 
@@ -4044,7 +4044,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->extend($this->parse_transfer($data, $currency), array(
             'status' => $this->parse_transfer_status($this->safe_string_2($response, 'code', 'message')),
         ));
@@ -4172,7 +4172,7 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $records = $this->safe_list($data, 'records', array());
         return $this->parse_transfers($records, $currency, $since, $limit);
     }
@@ -4224,8 +4224,8 @@ class bitmart extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'records', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'records', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
@@ -4374,7 +4374,7 @@ class bitmart extends Exchange {
         //         "trace" => "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -4455,7 +4455,7 @@ class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         return $this->parse_position($first, $market);
     }
@@ -4512,7 +4512,7 @@ class bitmart extends Exchange {
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        $positions = $this->safe_value($response, 'data', array());
+        $positions = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
@@ -4638,7 +4638,7 @@ class bitmart extends Exchange {
         //         "trace" => "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];

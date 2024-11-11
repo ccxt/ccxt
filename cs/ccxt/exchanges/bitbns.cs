@@ -182,11 +182,11 @@ public partial class bitbns : Exchange
             object quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object marketPrecision = this.safeValue(market, "precision", new Dictionary<string, object>() {});
-            object marketLimits = this.safeValue(market, "limits", new Dictionary<string, object>() {});
-            object amountLimits = this.safeValue(marketLimits, "amount", new Dictionary<string, object>() {});
-            object priceLimits = this.safeValue(marketLimits, "price", new Dictionary<string, object>() {});
-            object costLimits = this.safeValue(marketLimits, "cost", new Dictionary<string, object>() {});
+            object marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
+            object marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
+            object amountLimits = this.safeDict(marketLimits, "amount", new Dictionary<string, object>() {});
+            object priceLimits = this.safeDict(marketLimits, "price", new Dictionary<string, object>() {});
+            object costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
             object usdt = (isEqual(quoteId, "USDT"));
             // INR markets don't need a _INR prefix
             object uppercaseId = ((bool) isTrue(usdt)) ? (add(add(baseId, "_"), quoteId)) : baseId;
@@ -403,7 +403,7 @@ public partial class bitbns : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -643,7 +643,7 @@ public partial class bitbns : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object request = new Dictionary<string, object>() {
             { "entry_id", id },
@@ -681,7 +681,7 @@ public partial class bitbns : Exchange
             { "symbol", getValue(market, "id") },
             { "entry_id", id },
         };
-        object trigger = this.safeValue2(parameters, "trigger", "stop");
+        object trigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(trigger))
         {
             throw new BadRequest ((string)add(this.id, " fetchOrder cannot fetch stop orders")) ;
@@ -712,7 +712,7 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0);
         return this.parseOrder(first, market);
     }
@@ -739,7 +739,7 @@ public partial class bitbns : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object isTrigger = this.safeValue2(parameters, "trigger", "stop");
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtListOpen" : "listOpen";
         object request = new Dictionary<string, object>() {
@@ -1066,7 +1066,7 @@ public partial class bitbns : Exchange
                 { "6", "ok" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        object statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -1173,7 +1173,7 @@ public partial class bitbns : Exchange
         //         "error":null
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object address = this.safeString(data, "token");
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);

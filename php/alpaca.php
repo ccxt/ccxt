@@ -49,6 +49,7 @@ class alpaca extends Exchange {
                 'closeAllPositions' => false,
                 'closePosition' => false,
                 'createOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => false,
                 'fetchBidsAsks' => false,
                 'fetchClosedOrders' => true,
@@ -130,6 +131,7 @@ class alpaca extends Exchange {
                             'v2/wallets/transfers',
                         ),
                         'put' => array(
+                            'v2/orders/{order_id}',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
                         ),
@@ -807,6 +809,16 @@ class alpaca extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
+    public function generate_client_order_id($params) {
+        $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
+        $uuid = $this->uuid();
+        $parts = explode('-', $uuid);
+        $random_id = implode('', $parts);
+        $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
+        $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
+        return $clientOrderId;
+    }
+
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
@@ -846,13 +858,7 @@ class alpaca extends Exchange {
         $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
         $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
         $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
-        $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
-        $uuid = $this->uuid();
-        $parts = explode('-', $uuid);
-        $random_id = implode('', $parts);
-        $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
-        $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
-        $request['client_order_id'] = $clientOrderId;
+        $request['client_order_id'] = $this->generate_client_order_id($params);
         $params = $this->omit($params, array( 'clientOrderId' ));
         $order = $this->traderPrivatePostV2Orders ($this->extend($request, $params));
         //
@@ -1063,6 +1069,52 @@ class alpaca extends Exchange {
             'status' => 'closed',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+         * @param {string} $id order $id
+         * @param {string} [$symbol] unified $symbol of the $market to create an order in
+         * @param {string} [$type] 'market', 'limit' or 'stop_limit'
+         * @param {string} [$side] 'buy' or 'sell'
+         * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price for the order, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->triggerPrice] the $price to trigger a stop order
+         * @param {string} [$params->timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+         * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'order_id' => $id,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($amount !== null) {
+            $request['qty'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+        if ($triggerPrice !== null) {
+            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $params = $this->omit($params, 'triggerPrice');
+        }
+        if ($price !== null) {
+            $request['limit_price'] = $this->price_to_precision($symbol, $price);
+        }
+        $timeInForce = null;
+        list($timeInForce, $params) = $this->handle_option_and_params_2($params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        if ($timeInForce !== null) {
+            $request['time_in_force'] = $timeInForce;
+        }
+        $request['client_order_id'] = $this->generate_client_order_id($params);
+        $params = $this->omit($params, array( 'clientOrderId' ));
+        $response = $this->traderPrivatePatchV2OrdersOrderId ($this->extend($request, $params));
+        return $this->parse_order($response, $market);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
