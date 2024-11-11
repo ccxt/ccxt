@@ -231,8 +231,8 @@ export default class defx extends defxRest {
         /**
          * @method
          * @name defx#watchTicker
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -245,12 +245,26 @@ export default class defx extends defxRest {
         return await this.watchPublic ([ topic ], [ messageHash ], params);
     }
 
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchTicker
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name defx#watchTickers
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -267,6 +281,28 @@ export default class defx extends defxRest {
         }
         await this.watchPublic (topics, messageHashes, params);
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name defx#unWatchTickers
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':24hrTicker');
+            messageHashes.push ('ticker:' + symbol);
+        }
+        return await this.unWatchPublic (topics, messageHashes, params);
     }
 
     handleTicker (client: Client, message) {
@@ -313,8 +349,8 @@ export default class defx extends defxRest {
         /**
          * @method
          * @name defx#watchTrades
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @description watches information on multiple trades made in a market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -328,8 +364,8 @@ export default class defx extends defxRest {
         /**
          * @method
          * @name defx#watchTradesForSymbols
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @description watches information on multiple trades made in a market
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
          * @param {string[]} symbols unified symbol of the market to fetch trades for
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
