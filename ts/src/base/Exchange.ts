@@ -1416,6 +1416,7 @@ export default class Exchange {
         }
         const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
+        let errorStr = undefined;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
@@ -1431,10 +1432,13 @@ export default class Exchange {
                 }
                 tries++;
             }
-            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
-            delete this.clients[client.url];
+            errorStr = this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.';
         } catch (e) {
-            client.reject (e, messageHash);
+            errorStr = e.toString ();
+        }
+        if (errorStr !== undefined) {
+            client.reject (new ExchangeError (errorStr), messageHash);
+            delete this.clients[client.url];
         }
     }
 
@@ -2445,6 +2449,7 @@ export default class Exchange {
     }
 
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
+        throw new Error('');
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
