@@ -31,8 +31,16 @@ class AiohttpClient(Client):
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
             data = data.decode()
-        decoded = json.loads(data) if is_json_encoded_object(data) else data
-        self.on_message_callback(self, decoded)
+        # decoded = json.loads(data) if is_json_encoded_object(data) else data
+        decode = None
+        if is_json_encoded_object(data):
+            if orjson is None:
+                decode = json.loads(data)
+            else:
+                decode = orjson.loads(data)
+        else:
+            decode = data
+        self.on_message_callback(self, decode)
 
     def handle_message(self, message):
         # self.log(iso8601(milliseconds()), message)
