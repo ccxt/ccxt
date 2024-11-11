@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order } from '../ccxt.js';
+import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -251,10 +251,17 @@ export default class ellipx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        if (path.includes ('{currencyPair}') && params['currencyPair']) {
-            url = url.replace ('{currencyPair}', params['currencyPair']);
-            path = path.replace ('{currencyPair}', params['currencyPair']);
-            delete params['currencyPair'];
+        if (path.includes ('{currencyPair}')) {
+            const value = params['currencyPair'];
+            const pattern = '{' + 'currencyPair' + '}';
+            path = path.replace (pattern, value);
+            url = url.replace (pattern, value);
+        }
+        if (path.includes ('{orderUuid}')) {
+            const value = params['orderUuid'];
+            const pattern = '{' + 'orderUuid' + '}';
+            path = path.replace (pattern, value);
+            url = url.replace (pattern, value);
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -992,7 +999,8 @@ export default class ellipx extends Exchange {
         }
         const query = this.omit (params, [ 'currencyPair' ]);
         const response = await this.privatePostMarketCurrencyPairOrder (this.extend (request, query));
-        return this.parseOrder (response['data'], market);
+        const order = this.safeValue (response, 'data', {});
+        return this.parseOrder (order, market);
     }
 
     parseOrder (order, market = undefined): Order {
@@ -1049,6 +1057,57 @@ export default class ellipx extends Exchange {
             'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const request = {
+            'orderUuid': id,
+        };
+        const response = await this.privateDeleteMarketOrderOrderUuid (this.extend (request, params));
+        // {
+        //     result: "success",
+        //     request_id: "887dba33-d11b-43f0-8034-dd7890882cc5",
+        //     time: "0.8975801467895508",
+        //     data: true,
+        //     access: {
+        //       "mktor-rf5k5b-5fhf-dmde-wxqj-3y23jeii": {
+        //         required: "A",
+        //         available: "O",
+        //       },
+        //     },
+        //   }
+        // this endpoint always returns true and a warning message if the order cancelled before.
+        const warningResponse = this.safeValue (response, 'warning', undefined);
+        const statusResponse = this.safeBool (response, 'data');
+        let status = 'canceled';
+        if (statusResponse !== true || warningResponse !== undefined) {
+            status = 'closed';
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'info': this.json (response), // original response
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'average': undefined,
+            'cost': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'fee': undefined,
+            'trades': undefined,
+        }, undefined);
     }
 
     parseAmount (amount: Dict): number {
