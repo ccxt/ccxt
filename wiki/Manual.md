@@ -63,9 +63,9 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - <sub>[![Telegram Chat](https://img.shields.io/badge/CCXT-Chat-blue?logo=telegram)](https://t.me/ccxt_chat)</sub> CCXT Chat on Telegram (technical support)
 <a name="announcements" id="announcements"></a>
 - <sub>Announcement channels:</sub>
-- - <sub>[![Telegram Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub>
-- - <sub>[![Discord Announcements](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub>
-https://discord.com/channels/690203284119617602/1057748769690619984
+- - <sub>[![Telegram](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub>
+- - <sub>[![Discord](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://discord.com/channels/690203284119617602/1057748769690619984)</sub>
+
 
 # Exchanges
 
