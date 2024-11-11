@@ -5479,7 +5479,7 @@ export default class coinex extends Exchange {
         const data = this.safeList (response, 'data');
         return this.parseDepositWithdrawFees (data, codes, 'asset.ccy');
     }
- 
+
     async fetchDepositWithdrawFee (code: string, params = {}) {
         /**
          * @method

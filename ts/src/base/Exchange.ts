@@ -6542,12 +6542,12 @@ export default class Exchange {
         let result = obj;
         const length = keys.length;
         for (let i = 0; i < length; i++) {
-            const key = keys[i];
+            const keyInner = keys[i];
             const isLastKey = (i === length - 1);
             if (!isLastKey) {
-                result = this.safeDict (result, key);
+                result = this.safeDict (result, keyInner);
             } else {
-                return this.safeString (result, key);
+                return this.safeString (result, keyInner);
             }
         }
         return undefined;
@@ -6576,7 +6576,7 @@ export default class Exchange {
                 // currency id would be key
                 currencyId = entryOrKey;
             } else {
-               // get currency id from dict
+                // get currency id from dict
                 currencyId = this.getDeepString (dictionary, currencyIdKey);
             }
             const currency = this.safeCurrency (currencyId);
