@@ -89,7 +89,7 @@ import hashlib
 import hmac
 import io
 
-## load orjson if available, otherwise default to json
+# load orjson if available, otherwise default to json
 orjson = None
 try:
     import orjson as orjson
