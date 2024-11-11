@@ -64,7 +64,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 <a name="announcements" id="announcements"></a>
 - <sub>Announcement channels:</sub>
 - - <sub>[![Telegram](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://t.me/ccxt_announcements)</sub>
-- - <sub>[![Discord](https://img.shields.io/badge/CCXT-Channel-blue?logo=telegram)](https://discord.com/channels/690203284119617602/1057748769690619984)</sub>
+- - <sub>[![Discord](https://img.shields.io/badge/CCXT-Channel-blue?logo=discord)](https://discord.com/channels/690203284119617602/1057748769690619984)</sub>
 
 
 # Exchanges
