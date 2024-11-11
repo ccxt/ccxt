@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import json
+try:
+    import orjson as json
+except ImportError:
+    import json
+
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object

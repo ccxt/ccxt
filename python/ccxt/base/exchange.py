@@ -88,7 +88,13 @@ import gzip
 import hashlib
 import hmac
 import io
-import json
+
+## load orjson if available, otherwise default to json
+try:
+    import orjson as json
+except ImportError:
+    import json
+
 import math
 import random
 from numbers import Number
