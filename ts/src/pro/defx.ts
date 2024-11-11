@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ export default class defx extends defxRest {
                 'ws': true,
                 'watchBalance': false,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchBidsAsks': false,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -189,6 +189,30 @@ export default class defx extends defxRest {
         const topic = 'symbol:' + market['id'] + ':24hrTicker';
         const messageHash = 'ticker:' + symbol;
         return await this.watchPublic ([ topic ], [ messageHash ], params);
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name defx#watchTickers
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':24hrTicker');
+            messageHashes.push ('ticker:' + symbol);
+        }
+        await this.watchPublic (topics, messageHashes, params);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client: Client, message) {
