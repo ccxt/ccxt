@@ -1435,7 +1435,6 @@ export default class Exchange {
             delete this.clients[client.url];
         } catch (e) {
             client.reject (e, messageHash);
-            await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
     }
 
