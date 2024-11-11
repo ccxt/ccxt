@@ -50,6 +50,7 @@ export default class alpaca extends Exchange {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
@@ -820,6 +821,16 @@ export default class alpaca extends Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
+    generateClientOrderId (params) {
+        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
+        const uuid = this.uuid ();
+        const parts = uuid.split ('-');
+        const random_id = parts.join ('');
+        const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
+        const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
+        return clientOrderId;
+    }
+
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
@@ -861,13 +872,7 @@ export default class alpaca extends Exchange {
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
         request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
-        const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
-        const uuid = this.uuid ();
-        const parts = uuid.split ('-');
-        const random_id = parts.join ('');
-        const defaultClientId = this.implodeParams (clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString (params, 'clientOrderId', defaultClientId);
-        request['client_order_id'] = clientOrderId;
+        request['client_order_id'] = this.generateClientOrderId (params);
         params = this.omit (params, [ 'clientOrderId' ]);
         const order = await this.traderPrivatePostV2Orders (this.extend (request, params));
         //
@@ -1134,12 +1139,9 @@ export default class alpaca extends Exchange {
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        let clientOrderId = undefined;
-        [ clientOrderId, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'clientOrderId', 'defaultClientOrderId');
-        if (clientOrderId !== undefined) {
-            request['client_order_id'] = clientOrderId;
-        }
-        const response = await this.traderPrivatePutV2OrdersOrderId (this.extend (request, params));
+        request['client_order_id'] = this.generateClientOrderId (params);
+        params = this.omit (params, [ 'clientOrderId' ]);
+        const response = await this.traderPrivatePatchV2OrdersOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
