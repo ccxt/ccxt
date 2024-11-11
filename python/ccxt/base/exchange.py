@@ -1443,7 +1443,7 @@ class Exchange(object):
     @staticmethod
     def json(data, params=None):
         if orjson:
-            return orjson.dumps(data)
+            return orjson.dumps(data).decode('utf-8')
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
