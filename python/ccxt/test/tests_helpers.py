@@ -238,7 +238,7 @@ def get_test_files_sync(properties, ws=False):
         if (ws):
             prefix = 'pro'
             dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+            module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
