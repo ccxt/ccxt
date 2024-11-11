@@ -1206,7 +1206,7 @@ export default class lbank extends Exchange {
         let intervalString = undefined;
         if (positionFeeTime !== undefined) {
             const interval = this.parseToInt (positionFeeTime / 60 / 60);
-            intervalString = interval + 'h';
+            intervalString = interval.toString () + 'h';
         }
         return {
             'info': ticker,
