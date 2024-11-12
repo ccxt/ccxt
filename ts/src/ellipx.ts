@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order } from '../ccxt.js';
+import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -68,7 +68,7 @@ export default class ellipx extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -1171,21 +1171,6 @@ export default class ellipx extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
-            'pending': 'open', // starting state of all orders
-            'running': 'open', // when order is being executed
-            'post-pending': 'open', // post-only order waiting to be placed
-            'open': 'open', // active order in the orderbook
-            'stop': 'open', // when stop order not yet triggered
-            'invalid': 'rejected', // order rejected
-            'done': 'closed', // order fully executed
-            'cancel': 'canceled', // order canceled by user
-            'canceled': 'canceled', // alternative spelling
-        };
-        return this.safeString (statuses, status, status);
-    }
-
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request = {
@@ -1235,6 +1220,47 @@ export default class ellipx extends Exchange {
             'fee': undefined,
             'trades': undefined,
         }, undefined);
+    }
+
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const network = this.safeValue (currency['info'], 'Crypto_Chain', undefined);
+        // check if the currency supports deposit
+        if (!currency['info']['Can_Deposit']) {
+            throw new ExchangeError (this.id + ' does not support deposit for ' + code);
+        }
+        const request = {
+            'Crypto_Token__': this.safeString (network, 'Crypto_Token__'),
+            'Crypto_Chain__': this.safeString (network, 'Crypto_Chain__'),
+        };
+        const response = await this.privatePostCryptoAddressFetch (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'Address');
+        const tag = this.safeString (data, 'memo');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': response,
+        };
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'pending': 'open', // starting state of all orders
+            'running': 'open', // when order is being executed
+            'post-pending': 'open', // post-only order waiting to be placed
+            'open': 'open', // active order in the orderbook
+            'stop': 'open', // when stop order not yet triggered
+            'invalid': 'rejected', // order rejected
+            'done': 'closed', // order fully executed
+            'cancel': 'canceled', // order canceled by user
+            'canceled': 'canceled', // alternative spelling
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseAmount (amount: Dict): number {
