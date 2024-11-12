@@ -6,7 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+import math
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -75,7 +76,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -131,12 +132,12 @@ class hyperliquid(Exchange, ImplicitAPI):
                 '1h': '1h',
                 '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
+                '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
                 '3d': '3d',
                 '1w': '1w',
-                '1M': '1m',
+                '1M': '1M',
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
@@ -736,6 +737,110 @@ class hyperliquid(Exchange, ImplicitAPI):
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        retrieves data on all swap markets for hyperliquid
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        request: dict = {
+            'type': 'metaAndAssetCtxs',
+        }
+        response = await self.publicPostInfo(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "universe": [
+        #                 {
+        #                     "maxLeverage": 50,
+        #                     "name": "SOL",
+        #                     "onlyIsolated": False,
+        #                     "szDecimals": 2
+        #                 }
+        #             ]
+        #         },
+        #         [
+        #             {
+        #                 "dayNtlVlm": "9450588.2273",
+        #                 "funding": "0.0000198",
+        #                 "impactPxs": [
+        #                     "108.04",
+        #                     "108.06"
+        #                 ],
+        #                 "markPx": "108.04",
+        #                 "midPx": "108.05",
+        #                 "openInterest": "10764.48",
+        #                 "oraclePx": "107.99",
+        #                 "premium": "0.00055561",
+        #                 "prevDayPx": "111.81"
+        #             }
+        #         ]
+        #     ]
+        #
+        #
+        meta = self.safe_dict(response, 0, {})
+        universe = self.safe_list(meta, 'universe', [])
+        assetCtxs = self.safe_list(response, 1, [])
+        result = []
+        for i in range(0, len(universe)):
+            data = self.extend(
+                self.safe_dict(universe, i, {}),
+                self.safe_dict(assetCtxs, i, {})
+            )
+            result.append(data)
+        funding_rates = self.parse_funding_rates(result)
+        return self.filter_by_array(funding_rates, 'symbol', symbols)
+
+    def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "maxLeverage": "50",
+        #         "name": "ETH",
+        #         "onlyIsolated": False,
+        #         "szDecimals": "4",
+        #         "dayNtlVlm": "1709813.11535",
+        #         "funding": "0.00004807",
+        #         "impactPxs": [
+        #             "2369.3",
+        #             "2369.6"
+        #         ],
+        #         "markPx": "2369.6",
+        #         "midPx": "2369.45",
+        #         "openInterest": "1815.4712",
+        #         "oraclePx": "2367.3",
+        #         "premium": "0.00090821",
+        #         "prevDayPx": "2381.5"
+        #     }
+        #
+        base = self.safe_string(info, 'name')
+        marketId = self.coin_to_market_id(base)
+        symbol = self.safe_symbol(marketId, market)
+        funding = self.safe_number(info, 'funding')
+        markPx = self.safe_number(info, 'markPx')
+        oraclePx = self.safe_number(info, 'oraclePx')
+        fundingTimestamp = (int(math.floor(self.milliseconds()) / 60 / 60 / 1000) + 1) * 60 * 60 * 1000
+        return {
+            'info': info,
+            'symbol': symbol,
+            'markPrice': markPx,
+            'indexPrice': oraclePx,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': funding,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': '1h',
+        }
+
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
@@ -795,7 +900,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'type': 'candleSnapshot',
             'req': {
                 'coin': market['base'] if market['swap'] else market['id'],
-                'interval': timeframe,
+                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
             },

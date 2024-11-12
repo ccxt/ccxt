@@ -71,7 +71,7 @@ export default class hyperliquid extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -127,12 +127,12 @@ export default class hyperliquid extends Exchange {
                 '1h': '1h',
                 '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
+                '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
                 '3d': '3d',
                 '1w': '1w',
-                '1M': '1m',
+                '1M': '1M',
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
@@ -749,6 +749,110 @@ export default class hyperliquid extends Exchange {
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchFundingRates
+         * @description retrieves data on all swap markets for hyperliquid
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const request = {
+            'type': 'metaAndAssetCtxs',
+        };
+        const response = await this.publicPostInfo(this.extend(request, params));
+        //
+        //     [
+        //         {
+        //             "universe": [
+        //                 {
+        //                     "maxLeverage": 50,
+        //                     "name": "SOL",
+        //                     "onlyIsolated": false,
+        //                     "szDecimals": 2
+        //                 }
+        //             ]
+        //         },
+        //         [
+        //             {
+        //                 "dayNtlVlm": "9450588.2273",
+        //                 "funding": "0.0000198",
+        //                 "impactPxs": [
+        //                     "108.04",
+        //                     "108.06"
+        //                 ],
+        //                 "markPx": "108.04",
+        //                 "midPx": "108.05",
+        //                 "openInterest": "10764.48",
+        //                 "oraclePx": "107.99",
+        //                 "premium": "0.00055561",
+        //                 "prevDayPx": "111.81"
+        //             }
+        //         ]
+        //     ]
+        //
+        //
+        const meta = this.safeDict(response, 0, {});
+        const universe = this.safeList(meta, 'universe', []);
+        const assetCtxs = this.safeList(response, 1, []);
+        const result = [];
+        for (let i = 0; i < universe.length; i++) {
+            const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
+            result.push(data);
+        }
+        const funding_rates = this.parseFundingRates(result);
+        return this.filterByArray(funding_rates, 'symbol', symbols);
+    }
+    parseFundingRate(info, market = undefined) {
+        //
+        //     {
+        //         "maxLeverage": "50",
+        //         "name": "ETH",
+        //         "onlyIsolated": false,
+        //         "szDecimals": "4",
+        //         "dayNtlVlm": "1709813.11535",
+        //         "funding": "0.00004807",
+        //         "impactPxs": [
+        //             "2369.3",
+        //             "2369.6"
+        //         ],
+        //         "markPx": "2369.6",
+        //         "midPx": "2369.45",
+        //         "openInterest": "1815.4712",
+        //         "oraclePx": "2367.3",
+        //         "premium": "0.00090821",
+        //         "prevDayPx": "2381.5"
+        //     }
+        //
+        const base = this.safeString(info, 'name');
+        const marketId = this.coinToMarketId(base);
+        const symbol = this.safeSymbol(marketId, market);
+        const funding = this.safeNumber(info, 'funding');
+        const markPx = this.safeNumber(info, 'markPx');
+        const oraclePx = this.safeNumber(info, 'oraclePx');
+        const fundingTimestamp = (Math.floor(this.milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        return {
+            'info': info,
+            'symbol': symbol,
+            'markPrice': markPx,
+            'indexPrice': oraclePx,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': funding,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
+        };
+    }
     parseTicker(ticker, market = undefined) {
         //
         //     {
@@ -813,7 +917,7 @@ export default class hyperliquid extends Exchange {
             'type': 'candleSnapshot',
             'req': {
                 'coin': market['swap'] ? market['base'] : market['id'],
-                'interval': timeframe,
+                'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
             },

@@ -393,6 +393,12 @@ class binance extends binance$1 {
                         'eth-staking/wbeth/history/wrapHistory': 15,
                         'eth-staking/wbeth/history/unwrapHistory': 15,
                         'eth-staking/eth/history/wbethRewardsHistory': 15,
+                        'sol-staking/sol/history/stakingHistory': 15,
+                        'sol-staking/sol/history/redemptionHistory': 15,
+                        'sol-staking/sol/history/bnsolRewardsHistory': 15,
+                        'sol-staking/sol/history/rateHistory': 15,
+                        'sol-staking/account': 15,
+                        'sol-staking/sol/quota': 15,
                         // mining endpoints
                         'mining/pub/algoList': 0.1,
                         'mining/pub/coinList': 0.1,
@@ -604,6 +610,8 @@ class binance extends binance$1 {
                         'eth-staking/eth/stake': 15,
                         'eth-staking/eth/redeem': 15,
                         'eth-staking/wbeth/wrap': 15,
+                        'sol-staking/sol/stake': 15,
+                        'sol-staking/sol/redeem': 15,
                         // mining endpoints
                         'mining/hash-transfer/config': 0.5,
                         'mining/hash-transfer/config/cancel': 0.5,
@@ -638,6 +646,7 @@ class binance extends binance$1 {
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        'simple-earn/locked/setRedeemOption': 5,
                         // convert
                         'dci/product/subscribe': 0.1,
                         'dci/product/auto_compound/edit': 0.1,
