@@ -763,7 +763,7 @@ export default class hyperliquid extends Exchange {
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    async fetchFundingRates (symbols?: Strings, params?: {}): Promise<FundingRates> {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name hyperliquid#fetchFundingRates
