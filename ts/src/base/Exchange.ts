@@ -2742,7 +2742,7 @@ export default class Exchange {
     afterConstruct () {
         this.createNetworksByIdObject ();
         if (this.has['ws']) {
-            // see the comments in loadOrderBook->catch 
+            // see the comments in loadOrderBook->catch
             this.options['subscriptionHashesByMessageHashes'] = {};
         }
     }
@@ -2750,7 +2750,6 @@ export default class Exchange {
     mapSubscirptionHashToMessageHash (messageHash: string, subscriptionHash: string) {
         this.options['subscriptionHashesByMessageHashes'][messageHash] = subscriptionHash;
     }
-
 
     orderbookChecksumMessage (symbol:Str) {
         return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
