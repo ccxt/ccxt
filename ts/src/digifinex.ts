@@ -3851,8 +3851,8 @@ export default class digifinex extends Exchange {
         /**
          * @method
          * @name digifinex#fetchMarketLeverageTiers
-         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -3927,9 +3927,10 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString (info, 'instrument_id');
-            market = this.safeMarket (marketId);
+            market = this.safeMarket (marketId, market);
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
                 'currency': market['settle'],
                 'minNotional': undefined,
                 'maxNotional': this.safeNumber (tier, 'max_limit'),
@@ -3938,7 +3939,7 @@ export default class digifinex extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

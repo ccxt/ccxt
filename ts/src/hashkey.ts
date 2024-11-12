@@ -81,6 +81,7 @@ export default class hashkey extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -4062,8 +4063,8 @@ export default class hashkey extends Exchange {
         /**
          * @method
          * @name hashkey#fetchLeverageTiers
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -4155,14 +4156,15 @@ export default class hashkey extends Exchange {
         //     }
         //
         const riskLimits = this.safeList (info, 'riskLimits', []);
-        const id = this.safeString (info, 'symbol');
-        market = this.safeMarket (id, market);
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
         const tiers = [];
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const initialMarginRate = this.safeString (tier, 'initialMargin');
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
                 'minNotional': undefined,
                 'maxNotional': this.safeNumber (tier, 'quantity'),
@@ -4171,7 +4173,7 @@ export default class hashkey extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
