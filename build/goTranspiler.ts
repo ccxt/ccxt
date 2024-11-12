@@ -1580,6 +1580,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
     createFunctionsMapFile() {
         // const normalizedTestNames = goTests.map(test => 'Test' + this.capitalize(test.replace('Test.', '').replace('test.', '')) );
         const normalizedTestNames: string[] = [];
+        const normalizedFunctionNames: string[] = [];
         for (let test of goTests) {
             const skipTests = [
                 "test.sharedMethods",
@@ -1591,7 +1592,9 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             if (test === 'test.ohlcv') {
                 test = 'test.OHLCV';
             }
-            test = 'Test' + this.capitalize(test.replace('Test.', '').replace('test.', ''))
+            const methodName = test.replace('Test.', '').replace('test.', '');
+            normalizedFunctionNames.push(methodName);
+            test = 'Test' + this.capitalize(methodName)
             normalizedTestNames.push(test);
         }
         const file = [
@@ -1599,8 +1602,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             this.createGeneratedHeader().join('\n'),
             '',
-            'var functionsMap = map[string]interface{}{',
-            ...normalizedTestNames.map(test => `    "${test}": ${test},`),
+            'var FunctionsMap = map[string]interface{}{',
+            ...normalizedTestNames.map((test,i) => `    "${normalizedFunctionNames[i]}": ${test},`),
             '}',
         ].join('\n');
         overwriteFileAndFolder (BASE_TESTS_FOLDER + '/test.functions.go', file);
