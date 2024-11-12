@@ -149,6 +149,7 @@ class Exchange(object):
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
+    instanceData = {}
     symbols = None
     codes = None
     timeframes = {}

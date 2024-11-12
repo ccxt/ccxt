@@ -271,6 +271,7 @@ class Exchange {
     public $reduceFees = true;
 
     public $timeframes = array();
+    public $instanceData = array();
 
     public $requiredCredentials = array(
         'apiKey' => true,

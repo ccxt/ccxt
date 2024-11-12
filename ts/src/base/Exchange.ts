@@ -307,6 +307,7 @@ export default class Exchange {
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>;
+    instanceData: Dictionary<any> = {}
 
     status: {
         status: Str,
