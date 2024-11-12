@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress } from '../ccxt.js';
+import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -41,7 +41,7 @@ export default class ellipx extends Exchange {
                 'cancelWithdraw': false,
                 'closePosition': false,
                 'createConvertTrade': false,
-                'createDepositAddress': true,
+                'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': false,
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
@@ -101,7 +101,7 @@ export default class ellipx extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -1245,6 +1245,54 @@ export default class ellipx extends Exchange {
             'tag': tag,
             'network': network,
             'info': response,
+        };
+    }
+
+    async fetchTradingFee (symbol: string = undefined, params = {}): Promise<TradingFeeInterface> {
+        /**
+         * @method
+         * @name ellipx#fetchTradingFee
+         * @description Fetches the current trading fees (maker and taker) applicable to the user.
+         * @param {string} [symbol] Not used by EllipX as fees are not symbol-specific.
+         * @param {object} [params] Extra parameters specific to the EllipX API endpoint.
+         * @returns {Promise<object>} A promise resolving to a unified trading fee structure:
+         * {
+         *     'info': object,        // the raw response from the exchange
+         *     'symbol': undefined,   // symbol is not used for this exchange
+         *     'maker': number,       // maker fee rate in decimal form
+         *     'taker': number,       // taker fee rate in decimal form
+         *     'percentage': true,    // indicates fees are in percentage
+         *     'tierBased': false,    // indicates fees do not vary by volume tiers
+         * }
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetMarketTradeFeeQuery (params);
+        //
+        // Example response:
+        // {
+        //     "result": "success",
+        //     "data": {
+        //         "maker": 15.0,      // in basis points
+        //         "taker": 25.0,      // in basis points
+        //         "volume": 123456.78,
+        //         "promo": {
+        //             // promotional discounts if any
+        //         }
+        //     }
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const maker = this.safeNumber (data, 'maker');  // in basis points
+        const taker = this.safeNumber (data, 'taker');  // in basis points
+        const makerFee = (maker !== undefined) ? maker / 10000 : undefined;
+        const takerFee = (taker !== undefined) ? taker / 10000 : undefined;
+        return {
+            'info': response,
+            'symbol': undefined, // the exchange only have separate fees for stablecoin pairs
+            'maker': makerFee,
+            'taker': takerFee,
+            'percentage': true, // fees are expressed in percentages
+            'tierBased': true,  // fees can vary based on volume tiers
         };
     }
 
