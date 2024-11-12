@@ -18,6 +18,7 @@ const (
 	PROXY_TEST_FILE_NAME = ""
 	IS_SYNCHRONOUS       = false
 	ROOT_DIR             = "/../../"
+	// TEST_METHODS         = map[string]interface{}{}
 )
 
 func AuthenticationError(v ...interface{}) interface{} {
@@ -202,17 +203,74 @@ func CallMethodSync(testFiles2 interface{}, methodName2 interface{}, exchange in
 	return nil
 }
 
+// func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
+// 	testFiles := testFiles2.(map[string]interface{})
+// 	methodName := methodName2.(string)
+// 	args := args2.([]interface{})
+// 	method := reflect.ValueOf(testFiles[methodName])
+// 	in := make([]reflect.Value, len(args))
+// 	for i, arg := range args {
+// 		in[i] = reflect.ValueOf(arg)
+// 	}
+// 	method.Call(in)
+// 	return nil
+// }
+
 func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
-	testFiles := testFiles2.(map[string]interface{})
-	methodName := methodName2.(string)
-	args := args2.([]interface{})
-	method := reflect.ValueOf(testFiles[methodName])
-	in := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		in[i] = reflect.ValueOf(arg)
-	}
-	method.Call(in)
-	return nil
+	// Cast parameters to their expected types
+	ch := make(chan interface{})
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		testFiles := testFiles2.(map[string]interface{})
+		methodName := methodName2.(string)
+
+		// Assert args2 to []interface{}, or default to an empty slice if nil
+		var args []interface{}
+		if args2 != nil {
+			args = args2.([]interface{})
+		} else {
+			args = []interface{}{}
+		}
+
+		// Retrieve the function from testFiles
+		method, exists := testFiles[methodName]
+		if !exists {
+			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+		}
+
+		// Convert the method to a reflect.Value
+		methodVal := reflect.ValueOf(method)
+		if methodVal.Kind() != reflect.Func {
+			// Return an error if the item is not a function
+			ch <- fmt.Errorf("%s is not a function", methodName)
+		}
+
+		// Prepare the input arguments, starting with exchange and skippedProperties
+		in := []reflect.Value{reflect.ValueOf(exchange), reflect.ValueOf(skippedProperties)}
+		for _, arg := range args {
+			in = append(in, reflect.ValueOf(arg))
+		}
+
+		// Check if the number of arguments matches the function's requirements
+		if methodVal.Type().NumIn() != len(in) {
+			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+		}
+
+		// Call the method and capture the results
+		result := methodVal.Call(in)
+
+		// Create a channel to return the single result
+		if len(result) > 0 {
+			// Send the first result if available
+			ch <- result[0].Interface()
+		} else {
+			// Send nil if no result is returned
+			ch <- nil
+		}
+	}()
+
+	return ch
 }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
@@ -273,20 +331,21 @@ func ExitScript(code interface{}) {
 
 // getExchangeProp function to retrieve a property from exchange
 func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...interface{}) interface{} {
-	exchange := exchange2.(map[string]interface{})
-	prop := prop2.(string)
-	if val, ok := exchange[prop]; ok {
-		return val
+	exchange := exchange2.(ccxt.IExchange)
+	res := exchange.GetProperty(exchange, prop2)
+	if res != nil {
+		return res
 	}
-	return defaultValue
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return nil
 }
 
 // setExchangeProp function to set a property on exchange
 func SetExchangeProp(exchange2 interface{}, prop2 interface{}, value interface{}) {
-	exchange := exchange2.(map[string]interface{})
-	prop := prop2.(string)
-	exchange[prop] = value
-	exchange[UnCamelCase(prop)] = value
+	exchange := exchange2.(ccxt.IExchange)
+	exchange.SetProperty(exchange, value, value)
 }
 
 // unCamelCase function (basic stub)
@@ -331,26 +390,37 @@ func GetTestFilesSync(properties interface{}, ws interface{}) interface{} {
 // 	return nil
 // }
 
-func GetTestFiles(properties []string, ws bool) map[string]interface{} {
-	testFiles := make(map[string]interface{})
+func GetTestFiles(properties2 interface{}, ws bool) <-chan map[string]interface{} {
+	properties := properties2.([]string)
+	_ = properties
+	_ = ws
 
-	// for _, key := range properties {
-	// 	var testFilePath string
-	// 	if !ws {
-	// 		testFilePath = filepath.Join(ROOT_DIR, "cs/tests/Generated/Exchange/test."+key+".cs")
-	// 	} else {
-	// 		// testFilePath = filepath.Join(ROOT_DIR, "cs/tests/Generated/Exchange/Ws/test."+key+".cs")
-	// 	}
+	ch := make(chan map[string]interface{})
+	go func() {
 
-	// 	if IoFileExists(testFilePath) {
-	// 		methodName := "Test" + strings.Title(key) // Go equivalent to key.Substring(0, 1).ToUpper() + key.Substring(1)
-	// 		method := reflect.ValueOf(&TestMethods{}).MethodByName(methodName)
-	// 		if method.IsValid() {
-	// 			testFiles[key] = method.Interface()
-	// 		}
-	// 	}
-	// }
-	return testFiles
+		defer close(ch)
+
+		// for _, key := range properties {
+		// 	var testFilePath string
+		// 	if !ws {
+		// 		testFilePath = filepath.Join(ROOT_DIR, "go/tests/base/test."+key+".go")
+		// 	} else {
+		// 		// testFilePath = filepath.Join(ROOT_DIR, "cs/tests/Generated/Exchange/Ws/test."+key+".cs")
+		// 	}
+
+		// 	if IoFileExists(testFilePath) {
+		// 		methodName := "Test" + strings.Title(key) // Go equivalent to key.Substring(0, 1).ToUpper() + key.Substring(1)
+		// 		method := reflect.ValueOf(base).MethodByName(methodName)
+		// 		// method := reflect.ValueOf(&TestMethods{}).MethodByName(methodName)
+		// 		// if method.IsValid() {
+		// 		// 	testFiles[key] = method.Interface()
+		// 		// }
+		// 	}
+		// }
+
+		ch <- FunctionsMap
+	}()
+	return ch
 }
 
 func IsNullValue(value interface{}) bool {

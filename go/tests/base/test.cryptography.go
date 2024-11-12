@@ -3,8 +3,9 @@ package base
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
+// even though no AUTO_TRANSP flag here, this file is manually transpiled
 
-func TestCryptography() {
+func TestCryptography()  {
     // const exchange = new Exchange ();
     // ---------------------------------------------------------------------------------------------------------------------
     Assert(IsEqual(Hash(Encode(""), sha256, "hex"), "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"))
