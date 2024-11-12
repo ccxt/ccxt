@@ -126,12 +126,12 @@ export default class hyperliquid extends Exchange {
                 '1h': '1h',
                 '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
+                '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
                 '3d': '3d',
                 '1w': '1w',
-                '1M': '1m',
+                '1M': '1M',
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
@@ -827,7 +827,7 @@ export default class hyperliquid extends Exchange {
             'type': 'candleSnapshot',
             'req': {
                 'coin': market['swap'] ? market['base'] : market['id'],
-                'interval': timeframe,
+                'interval': this.safeString (this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
             },
