@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ export default class defx extends defxRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchBidsAsks': false,
@@ -41,6 +41,7 @@ export default class defx extends defxRest {
                 },
             },
             'options': {
+                'listenKeyRefreshRate': 3540000, // 1 hour (59 mins so we have 1min to renew the token)
                 'ws': {
                     'timeframes': {
                         '1m': '1m',
@@ -590,6 +591,88 @@ export default class defx extends defxRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async keepAliveListenKey (params = {}) {
+        const listenKey = this.safeString (this.options, 'listenKey');
+        if (listenKey === undefined) {
+            // A network error happened: we can't renew a listen key that does not exist.
+            return;
+        }
+        try {
+            await this.v1PrivatePutApiUsersSocketListenKeysListenKey ({ 'listenKey': listenKey }); // extend the expiry
+        } catch (error) {
+            const url = this.urls['api']['ws']['private'] + '?listenKey=' + listenKey;
+            const client = this.client (url);
+            const messageHashes = Object.keys (client.futures);
+            for (let j = 0; j < messageHashes.length; j++) {
+                const messageHash = messageHashes[j];
+                client.reject (error, messageHash);
+            }
+            this.options['listenKey'] = undefined;
+            this.options['lastAuthenticatedTime'] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000);
+        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+    }
+
+    async authenticate (params = {}) {
+        const time = this.milliseconds ();
+        const lastAuthenticatedTime = this.safeInteger (this.options, 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3540000); // 1 hour
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+            const response = await this.v1PrivatePostApiUsersSocketListenKeys ();
+            this.options['listenKey'] = this.safeString (response, 'listenKey');
+            this.options['lastAuthenticatedTime'] = time;
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+        }
+    }
+
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name defx#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const baseUrl = this.urls['api']['ws']['private'];
+        const messageHash = 'WALLET_BALANCE_UPDATE';
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        return await this.watch (url, messageHash, undefined, messageHash);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        // {
+        //     "event": "WALLET_BALANCE_UPDATE",
+        //     "timestamp": 1711015961397,
+        //     "data": {
+        //         "asset": "USDC", "balance": "27.64712963"
+        //     }
+        // }
+        //
+        const messageHash = this.safeString (message, 'event');
+        const data = this.safeDict (message, 'data', []);
+        const timestamp = this.safeInteger (message, 'timestamp');
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601 (timestamp);
+        const currencyId = this.safeString (data, 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = (code in this.balance) ? this.balance[code] : this.account ();
+        account['free'] = this.safeString (data, 'balance');
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeString (message, 'code');
         if (error !== undefined) {
@@ -603,6 +686,7 @@ export default class defx extends defxRest {
                 '24hrTicker': this.handleTicker,
                 'trades': this.handleTrades,
                 'depth': this.handleOrderBook,
+                'WALLET_BALANCE_UPDATE': this.handleBalance,
             };
             const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
