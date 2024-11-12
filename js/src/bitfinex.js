@@ -423,7 +423,7 @@ export default class bitfinex extends Exchange {
         //     }
         // }
         //
-        const fees = this.safeValue(response, 'withdraw');
+        const fees = this.safeDict(response, 'withdraw', {});
         const ids = Object.keys(fees);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -530,7 +530,7 @@ export default class bitfinex extends Exchange {
         //     }
         //
         const result = {};
-        const fiat = this.safeValue(this.options, 'fiat', {});
+        const fiat = this.safeDict(this.options, 'fiat', {});
         const makerFee = this.safeNumber(response, 'maker_fee');
         const takerFee = this.safeNumber(response, 'taker_fee');
         const makerFee2Fiat = this.safeNumber(response, 'maker_fee_2fiat');
@@ -629,7 +629,7 @@ export default class bitfinex extends Exchange {
                 'settleId': undefined,
                 'type': type,
                 'spot': (type === 'spot'),
-                'margin': this.safeValue(market, 'margin'),
+                'margin': this.safeBool(market, 'margin'),
                 'swap': (type === 'swap'),
                 'future': false,
                 'option': false,
@@ -699,7 +699,7 @@ export default class bitfinex extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const requestedType = this.safeString(params, 'type', 'exchange');
         const accountType = this.safeString(accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -763,7 +763,7 @@ export default class bitfinex extends Exchange {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
         await this.loadMarkets();
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const currency = this.currency(code);
@@ -1239,8 +1239,8 @@ export default class bitfinex extends Exchange {
         //     }
         //
         const side = this.safeString(order, 'side');
-        const open = this.safeValue(order, 'is_live');
-        const canceled = this.safeValue(order, 'is_cancelled');
+        const open = this.safeBool(order, 'is_live');
+        const canceled = this.safeBool(order, 'is_cancelled');
         let status = undefined;
         if (open) {
             status = 'open';
@@ -1648,7 +1648,7 @@ export default class bitfinex extends Exchange {
         //         }
         //     ]
         //
-        const response = this.safeValue(responses, 0, {});
+        const response = this.safeDict(responses, 0, {});
         const id = this.safeInteger(response, 'withdrawal_id');
         const message = this.safeString(response, 'message');
         const errorMessage = this.findBroadlyMatchedKey(this.exceptions['broad'], message);
@@ -1743,7 +1743,7 @@ export default class bitfinex extends Exchange {
         else {
             // json response with error, i.e:
             // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            const responseObject = this.safeValue(response, 0, {});
+            const responseObject = this.safeDict(response, 0, {});
             const status = this.safeString(responseObject, 'status', '');
             if (status === 'error') {
                 throwError = true;

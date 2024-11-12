@@ -630,7 +630,8 @@ class blofin(ccxt.async_support.blofin):
             if event == 'subscribe':
                 return
             elif event == 'login':
-                client.resolve(message, 'authenticate_hash')
+                future = self.safe_value(client.futures, 'authenticate_hash')
+                future.resolve(True)
                 return
             elif event == 'error':
                 raise ExchangeError(self.id + ' error: ' + self.json(message))

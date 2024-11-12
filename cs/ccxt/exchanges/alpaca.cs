@@ -42,6 +42,7 @@ public partial class alpaca : Exchange
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "editOrder", true },
                 { "fetchBalance", false },
                 { "fetchBidsAsks", false },
                 { "fetchClosedOrders", true },
@@ -94,7 +95,7 @@ public partial class alpaca : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "get", new List<object>() {"v2/account", "v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/account/portfolio/history", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/account/configurations", "v2/account/activities", "v2/account/activities/{activity_type}", "v2/calendar", "v2/clock", "v2/assets", "v2/assets/{symbol_or_asset_id}", "v2/corporate_actions/announcements/{id}", "v2/corporate_actions/announcements", "v2/wallets", "v2/wallets/transfers"} },
                         { "post", new List<object>() {"v2/orders", "v2/watchlists", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/wallets/transfers"} },
-                        { "put", new List<object>() {"v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
+                        { "put", new List<object>() {"v2/orders/{order_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name"} },
                         { "patch", new List<object>() {"v2/orders/{order_id}", "v2/account/configurations"} },
                         { "delete", new List<object>() {"v2/orders", "v2/orders/{order_id}", "v2/positions", "v2/positions/{symbol_or_asset_id}", "v2/watchlists/{watchlist_id}", "v2/watchlists:by_name", "v2/watchlists/{watchlist_id}/{symbol}"} },
                     } },
@@ -737,6 +738,19 @@ public partial class alpaca : Exchange
         return this.filterByArray(results, "symbol", symbols);
     }
 
+    public virtual object generateClientOrderId(object parameters)
+    {
+        object clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
+        object uuid = this.uuid();
+        object parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        object random_id = String.Join("", ((IList<object>)parts).ToArray());
+        object defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
+            { "id", random_id },
+        });
+        object clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
+        return clientOrderId;
+    }
+
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         /**
@@ -784,15 +798,7 @@ public partial class alpaca : Exchange
         object defaultTIF = this.safeString(this.options, "defaultTimeInForce");
         ((IDictionary<string,object>)request)["time_in_force"] = this.safeString(parameters, "timeInForce", defaultTIF);
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
-        object clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
-        object uuid = this.uuid();
-        object parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object random_id = String.Join("", ((IList<object>)parts).ToArray());
-        object defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
-            { "id", random_id },
-        });
-        object clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
-        ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         object order = await this.traderPrivatePostV2Orders(this.extend(request, parameters));
         //
@@ -1031,6 +1037,63 @@ public partial class alpaca : Exchange
             { "status", "closed" },
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+    }
+
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name alpaca#editOrder
+        * @description edit a trade order
+        * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+        * @param {string} id order id
+        * @param {string} [symbol] unified symbol of the market to create an order in
+        * @param {string} [type] 'market', 'limit' or 'stop_limit'
+        * @param {string} [side] 'buy' or 'sell'
+        * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+        * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.triggerPrice] the price to trigger a stop order
+        * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+        * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "order_id", id },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        if (isTrue(!isEqual(amount, null)))
+        {
+            ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+        }
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price"});
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            ((IDictionary<string,object>)request)["stop_price"] = this.priceToPrecision(symbol, triggerPrice);
+            parameters = this.omit(parameters, "triggerPrice");
+        }
+        if (isTrue(!isEqual(price, null)))
+        {
+            ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
+        }
+        object timeInForce = null;
+        var timeInForceparametersVariable = this.handleOptionAndParams2(parameters, "editOrder", "timeInForce", "defaultTimeInForce");
+        timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
+        parameters = ((IList<object>)timeInForceparametersVariable)[1];
+        if (isTrue(!isEqual(timeInForce, null)))
+        {
+            ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
+        }
+        ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
+        object response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters));
+        return this.parseOrder(response, market);
     }
 
     public override object parseOrder(object order, object market = null)

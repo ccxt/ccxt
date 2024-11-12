@@ -51,6 +51,7 @@ class alpaca extends alpaca$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
@@ -131,6 +132,7 @@ class alpaca extends alpaca$1 {
                             'v2/wallets/transfers',
                         ],
                         'put': [
+                            'v2/orders/{order_id}',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
                         ],
@@ -816,6 +818,15 @@ class alpaca extends alpaca$1 {
         }
         return this.filterByArray(results, 'symbol', symbols);
     }
+    generateClientOrderId(params) {
+        const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
+        const uuid = this.uuid();
+        const parts = uuid.split('-');
+        const random_id = parts.join('');
+        const defaultClientId = this.implodeParams(clientOrderIdprefix, { 'id': random_id });
+        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
+        return clientOrderId;
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -858,13 +869,7 @@ class alpaca extends alpaca$1 {
         const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
         request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
-        const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
-        const uuid = this.uuid();
-        const parts = uuid.split('-');
-        const random_id = parts.join('');
-        const defaultClientId = this.implodeParams(clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
-        request['client_order_id'] = clientOrderId;
+        request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
         const order = await this.traderPrivatePostV2Orders(this.extend(request, params));
         //
@@ -1082,6 +1087,53 @@ class alpaca extends alpaca$1 {
             'status': 'closed',
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
+    }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#editOrder
+         * @description edit a trade order
+         * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market to create an order in
+         * @param {string} [type] 'market', 'limit' or 'stop_limit'
+         * @param {string} [side] 'buy' or 'sell'
+         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.triggerPrice] the price to trigger a stop order
+         * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+         * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'order_id': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision(symbol, amount);
+        }
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+            params = this.omit(params, 'triggerPrice');
+        }
+        if (price !== undefined) {
+            request['limit_price'] = this.priceToPrecision(symbol, price);
+        }
+        let timeInForce = undefined;
+        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
+        request['client_order_id'] = this.generateClientOrderId(params);
+        params = this.omit(params, ['clientOrderId']);
+        const response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, params));
+        return this.parseOrder(response, market);
     }
     parseOrder(order, market = undefined) {
         //

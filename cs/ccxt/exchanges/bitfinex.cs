@@ -369,7 +369,7 @@ public partial class bitfinex : Exchange
         //     }
         // }
         //
-        object fees = this.safeValue(response, "withdraw");
+        object fees = this.safeDict(response, "withdraw", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)fees).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -486,7 +486,7 @@ public partial class bitfinex : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object fiat = this.safeValue(this.options, "fiat", new Dictionary<string, object>() {});
+        object fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
         object makerFee = this.safeNumber(response, "maker_fee");
         object takerFee = this.safeNumber(response, "taker_fee");
         object makerFee2Fiat = this.safeNumber(response, "maker_fee_2fiat");
@@ -596,7 +596,7 @@ public partial class bitfinex : Exchange
                 { "settleId", null },
                 { "type", type },
                 { "spot", (isEqual(type, "spot")) },
-                { "margin", this.safeValue(market, "margin") },
+                { "margin", this.safeBool(market, "margin") },
                 { "swap", (isEqual(type, "swap")) },
                 { "future", false },
                 { "option", false },
@@ -670,7 +670,7 @@ public partial class bitfinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object requestedType = this.safeString(parameters, "type", "exchange");
         object accountType = this.safeString(accountsByType, requestedType, requestedType);
         if (isTrue(isEqual(accountType, null)))
@@ -743,7 +743,7 @@ public partial class bitfinex : Exchange
         // however we support it in CCXT (from just looking at web inspector)
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object currency = this.currency(code);
@@ -1274,8 +1274,8 @@ public partial class bitfinex : Exchange
         //     }
         //
         object side = this.safeString(order, "side");
-        object open = this.safeValue(order, "is_live");
-        object canceled = this.safeValue(order, "is_cancelled");
+        object open = this.safeBool(order, "is_live");
+        object canceled = this.safeBool(order, "is_cancelled");
         object status = null;
         if (isTrue(open))
         {
@@ -1727,7 +1727,7 @@ public partial class bitfinex : Exchange
         //         }
         //     ]
         //
-        object response = this.safeValue(responses, 0, new Dictionary<string, object>() {});
+        object response = this.safeDict(responses, 0, new Dictionary<string, object>() {});
         object id = this.safeInteger(response, "withdrawal_id");
         object message = this.safeString(response, "message");
         object errorMessage = this.findBroadlyMatchedKey(getValue(this.exceptions, "broad"), message);
@@ -1848,7 +1848,7 @@ public partial class bitfinex : Exchange
         {
             // json response with error, i.e:
             // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            object responseObject = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            object responseObject = this.safeDict(response, 0, new Dictionary<string, object>() {});
             object status = this.safeString(responseObject, "status", "");
             if (isTrue(isEqual(status, "error")))
             {
