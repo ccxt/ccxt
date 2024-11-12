@@ -7028,6 +7028,39 @@ export default class Exchange {
         return [ request, params ];
     }
 
+    handleSinceUntilWithDiapason (request: any, params: any, sinceKey: string, untilKey: string, since: Int, maxDaysBetween: number) {
+        /*
+        * @ignore
+        * @method
+        * @description handles 'since' and 'until' options for endpoints that require both start & end parameters for fetching past data
+        * @param {object} request the request object
+        * @param {object} params the params object
+        * @param {string} sinceKey the key for the start time parameter
+        * @param {string} untilKey the key for the end time parameter
+        * @param {int} since the start time in milliseconds
+        * @param {int} maxDaysBetween the maximum number of days between since and until
+        * @returns {object[]} an array containing the updated request and params objects
+        */
+        [ request, params ] = this.handleUntilOption (untilKey, request, params);
+        const until = this.safeString (params, untilKey);
+        const sinceDefined = since !== undefined;
+        const untilDefined = until !== undefined;
+        const distance = 1000 * 60 * 60 * 24 * maxDaysBetween - 1; // minus 1 millisecond
+        if (sinceDefined) {
+            request[sinceKey] = since;
+            // set mandatory end time
+            if (!untilDefined) {
+                request[untilKey] = this.sum (since, distance);
+            }
+        } else if (untilDefined) {
+            // set mandatory start time
+            if (!sinceDefined) {
+                request[sinceKey] = this.sum (until, -distance);
+            }
+        }
+        return [ request, params ];
+    }
+
     safeOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         let symbol = this.safeString (interest, 'symbol');
         if (symbol === undefined) {
