@@ -9,6 +9,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { numberToBytesBE, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
 import { eddsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 
@@ -250,19 +251,8 @@ export default class ellipx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + '/' + path;
-        if (path.includes ('{currencyPair}')) {
-            const value = params['currencyPair'];
-            const pattern = '{' + 'currencyPair' + '}';
-            path = path.replace (pattern, value);
-            url = url.replace (pattern, value);
-        }
-        if (path.includes ('{orderUuid}')) {
-            const value = params['orderUuid'];
-            const pattern = '{' + 'orderUuid' + '}';
-            path = path.replace (pattern, value);
-            url = url.replace (pattern, value);
-        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.uuid ();
@@ -280,11 +270,8 @@ export default class ellipx extends Exchange {
             const query = this.urlencode (params);
             const bodyHash = this.hash (this.encode (body), sha256);
             // Create sign string components
-            const bodyHashBytes = new Uint8Array (bodyHash.length / 2);
-            for (let i = 0; i < bodyHash.length; i += 2) {
-                bodyHashBytes[i / 2] = parseInt (bodyHash.substr (i, 2), 16);
-            }
-            const nulByte = new Uint8Array ([ 0x00 ]);
+            const bodyHashBytes = hexToBytes(bodyHash);
+            const nulByte = numberToBytesBE(0n, 1);
             const components = [
                 this.encode (method),
                 nulByte,
@@ -337,15 +324,8 @@ export default class ellipx extends Exchange {
         if (response.result !== 'success') {
             throw new ExchangeError ('Failed to fetch markets: ' + request_id);
         }
-        return this.parseMarkets (response.data);
-    }
-
-    parseMarkets (markets): Market[] {
-        const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            result.push (this.parseMarket (markets[i]));
-        }
-        return result;
+        const markets = this.safeValue (response, 'data', []);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
