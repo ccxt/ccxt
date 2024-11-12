@@ -663,12 +663,12 @@ export default class btcturk extends Exchange {
         const volume = this.safeList (ohlcvs, 'v', []);
         for (let i = 0; i < timestamp.length; i++) {
             const ohlcv: Dict = {
-                'timestamp': this.safeList (timestamp, i),
-                'high': this.safeList (high, i),
-                'open': this.safeList (open, i),
-                'low': this.safeList (low, i),
-                'close': this.safeList (close, i),
-                'volume': this.safeList (volume, i),
+                'timestamp': this.safeInteger (timestamp, i),
+                'high': this.safeNumber (high, i),
+                'open': this.safeNumber (open, i),
+                'low': this.safeNumber (low, i),
+                'close': this.safeNumber (close, i),
+                'volume': this.safeNumber (volume, i),
             };
             results.push (this.parseOHLCV (ohlcv, market));
         }
