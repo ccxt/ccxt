@@ -3068,7 +3068,10 @@ export default class bitget extends Exchange {
             const spotMethod = this.safeString (params, 'method', defaultSpotMethod);
             params = this.omit (params, 'method');
             if (spotMethod === 'publicSpotGetV2SpotMarketFillsHistory') {
-                [ request, params ] = this.handleSinceUntilWithDiapason (request, params, 'startTime', 'endTime', since, 7);
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
                 response = await this.publicSpotGetV2SpotMarketFillsHistory (this.extend (request, params));
             } else if (spotMethod === 'publicSpotGetV2SpotMarketFills') {
                 response = await this.publicSpotGetV2SpotMarketFills (this.extend (request, params));
