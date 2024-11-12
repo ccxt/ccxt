@@ -843,6 +843,8 @@ class deribit(Exchange, ImplicitAPI):
                     type = 'option'
                 elif isSpot:
                     type = 'spot'
+                inverse = None
+                linear = None
                 if isSpot:
                     symbol = base + '/' + quote
                 elif not isComboMarket:
@@ -854,6 +856,8 @@ class deribit(Exchange, ImplicitAPI):
                             optionType = self.safe_string(market, 'option_type')
                             letter = 'C' if (optionType == 'call') else 'P'
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
+                    inverse = (quote != settle)
+                    linear = (settle == quote)
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
                 if parsedMarketValue:
                     continue
@@ -877,8 +881,8 @@ class deribit(Exchange, ImplicitAPI):
                     'option': option,
                     'active': self.safe_value(market, 'is_active'),
                     'contract': not isSpot,
-                    'linear': (settle == quote),
-                    'inverse': (settle != quote),
+                    'linear': linear,
+                    'inverse': inverse,
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
                     'contractSize': self.safe_number(market, 'contract_size'),
@@ -1697,7 +1701,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if market['inverse']:
+        if self.safe_bool(market, 'inverse'):
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
