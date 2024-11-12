@@ -843,19 +843,9 @@ export default class hyperliquid extends Exchange {
         //         "prevDayPx": "2381.5"
         //     }
         //
-        const quoteId = 'USDC';
         const base = this.safeString (info, 'name');
-        const quote = this.safeCurrencyCode (quoteId);
-        const settleId = 'USDC';
-        const settle = this.safeCurrencyCode (settleId);
-        let symbol = base + '/' + quote;
-        const contract = true;
-        const swap = true;
-        if (contract) {
-            if (swap) {
-                symbol = symbol + ':' + settle;
-            }
-        }
+        const marketId = this.coinToMarketId (base);
+        const symbol = this.safeSymbol (marketId, market);
         const funding = this.safeNumber (info, 'funding');
         const markPx = this.safeNumber (info, 'markPx');
         const oraclePx = this.safeNumber (info, 'oraclePx');
