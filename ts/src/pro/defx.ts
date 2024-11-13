@@ -16,7 +16,7 @@ export default class defx extends defxRest {
                 'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchBidsAsks': false,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': false,
@@ -335,6 +335,7 @@ export default class defx extends defxRest {
         //     }
         // }
         //
+        this.handleBidAsk (client, message);
         const data = this.safeDict (message, 'data', {});
         const parsedTicker = this.parseTicker (data);
         const symbol = parsedTicker['symbol'];
@@ -343,7 +344,59 @@ export default class defx extends defxRest {
         parsedTicker['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = parsedTicker;
         const messageHash = 'ticker:' + symbol;
-        client.resolve (this.tickers[symbol], messageHash);
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name defx#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const marketId = this.marketId (symbol);
+            topics.push ('symbol:' + marketId + ':24hrTicker');
+            messageHashes.push ('bidask:' + symbol);
+        }
+        await this.watchPublic (topics, messageHashes, params);
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        const data = this.safeDict (message, 'data', {});
+        const parsedTicker = this.parseWsBidAsk (data);
+        const symbol = parsedTicker['symbol'];
+        const timestamp = this.safeInteger (message, 'timestamp');
+        parsedTicker['timestamp'] = timestamp;
+        parsedTicker['datetime'] = this.iso8601 (timestamp);
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskQty'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidQty'),
+            'info': ticker,
+        }, market);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
