@@ -901,8 +901,7 @@ class Transpiler {
         if (found === null) {
             return false // capabilities not found
         }
-        const fullRegexMatch = found[0];
-        let capabilities = fullRegexMatch.split (lineBreak);
+        let capabilities = found[0].split (lineBreak);
         const sortingOrder = {
             'CORS': 'undefined,',
             'spot': 'true,',
@@ -940,7 +939,7 @@ class Transpiler {
             sortingOrder[key] = (key in features) ? features[key] : sortingOrder[key]
         }
         const result = Object.entries (sortingOrder).map (([ key, value ]) => indentation + "'" + key + "': " + value).join (lineBreak)
-        if (result === fullRegexMatch) {
+        if (result === found[0]) {
             return false
         }
         return code.replace (capabilitiesObjectRegex, result)
