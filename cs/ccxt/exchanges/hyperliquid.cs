@@ -418,7 +418,8 @@ public partial class hyperliquid : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
-            object extraData = this.safeDict(second, i, new Dictionary<string, object>() {});
+            object index = this.safeInteger(market, "index");
+            object extraData = this.safeDict(second, index, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2

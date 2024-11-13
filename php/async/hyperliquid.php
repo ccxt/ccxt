@@ -425,7 +425,8 @@ class hyperliquid extends Exchange {
             $markets = array();
             for ($i = 0; $i < count($meta); $i++) {
                 $market = $this->safe_dict($meta, $i, array());
-                $extraData = $this->safe_dict($second, $i, array());
+                $index = $this->safe_integer($market, 'index');
+                $extraData = $this->safe_dict($second, $index, array());
                 $marketName = $this->safe_string($market, 'name');
                 // if (mb_strpos($marketName, '/') === false) {
                 //     // there are some weird spot $markets in testnet, eg @2

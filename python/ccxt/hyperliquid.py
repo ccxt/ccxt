@@ -415,7 +415,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
-            extraData = self.safe_dict(second, i, {})
+            index = self.safe_integer(market, 'index')
+            extraData = self.safe_dict(second, index, {})
             marketName = self.safe_string(market, 'name')
             # if marketName.find('/') < 0:
             #     # there are some weird spot markets in testnet, eg @2
