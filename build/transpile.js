@@ -119,6 +119,9 @@ class Transpiler {
             [ /\.parseTimeInForce /g, '.parse_time_in_force'],
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.describeData /g, '.describe_data'],
+            [ /\.defaultHas /g, '.default_has'],
+            [ /\.getOwnMethods /g, '.get_own_methods'],
+            [ /\.populateHasTree /g, '.populate_has_tree'],
             [ /\.randNumber /g, '.rand_number'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
@@ -889,13 +892,16 @@ class Transpiler {
     // exchange capabilities ordering
 
     sortExchangeCapabilities (code) {
+        const baseExchange = this.getBaseClass ()
+        const defaultHas = baseExchange.defaultHas ();
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
         if (found === null) {
             return false // capabilities not found
         }
-        let capabilities = found[0].split (lineBreak);
+        const fullRegexMatch = found[0];
+        let capabilities = fullRegexMatch.split (lineBreak);
         const sortingOrder = {
             'CORS': 'undefined,',
             'spot': 'true,',
@@ -917,6 +923,14 @@ class Transpiler {
                 features[feature] = value
             }
         }
+        // check unified methods and autofill the .has tree
+        for (const methodName of Object.keys (defaultHas)) {
+            if (code.includes ('    async ' + methodName + ' (')) {
+                if (!(methodName in features) || features[methodName] !== 'true,') {
+                    features[methodName] = 'true,';
+                }
+            }
+        }
         let keys = Object.keys (features)
         keys.sort ((a, b) => a.localeCompare (b))
         const allKeys = Object.keys (sortingOrder).concat (keys)
@@ -925,7 +939,7 @@ class Transpiler {
             sortingOrder[key] = (key in features) ? features[key] : sortingOrder[key]
         }
         const result = Object.entries (sortingOrder).map (([ key, value ]) => indentation + "'" + key + "': " + value).join (lineBreak)
-        if (result === found[0]) {
+        if (result === fullRegexMatch) {
             return false
         }
         return code.replace (capabilitiesObjectRegex, result)
