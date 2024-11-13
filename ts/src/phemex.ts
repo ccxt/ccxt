@@ -4343,7 +4343,7 @@ export default class phemex extends Exchange {
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info: Dict[], market: Market = undefined): LeverageTier[] {
         /**
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market

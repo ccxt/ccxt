@@ -4176,7 +4176,7 @@ export default class xt extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info: Dict[], market = undefined): LeverageTier[] {
         //
         //     {
         //         "symbol": "rad_usdt",

@@ -2055,7 +2055,7 @@ export default class bitget extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info: Dict[], market: Market = undefined): LeverageTier[] {
         //
         // swap and future
         //
