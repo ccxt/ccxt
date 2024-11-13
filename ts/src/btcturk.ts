@@ -758,7 +758,7 @@ export default class btcturk extends Exchange {
             request['pairSymbol'] = market['id'];
         }
         const response = await this.privateGetOpenOrders (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         const bids = this.safeList (data, 'bids', []);
         const asks = this.safeList (data, 'asks', []);
         return this.parseOrders (this.arrayConcat (bids, asks), market, since, limit);
