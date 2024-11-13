@@ -924,7 +924,7 @@ class Transpiler {
             }
         }
         // check unified methods and autofill the .has tree
-        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin' ];
+        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
         const specialMethods = [ 'fetchMarkOHLCV', 'fetchPremiumOHLCV', 'fetchIndexOHLCV' ];
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method defition, then it should be true
