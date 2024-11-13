@@ -5143,6 +5143,12 @@ class bybit(Exchange):
         maintenanceMarginPercentage = Precise.string_div(maintenanceMarginString, notional)
         marginRatio = Precise.string_div(maintenanceMarginString, collateralString, 4)
         risk_id = self.safe_integer(position, "riskId")
+        maintenance_margin = self.parse_number(collateralString)  # cornix "actual value"
+        if isUnifiedAccount and not maintenance_margin:  # UTA doesn't return "positionBalance"
+            initial_margin = self.safe_string(position, 'positionIM')
+            unrealisedPnl_str = self.safe_string(position, 'unrealisedPnl')
+            maintenance_margin = self.parse_number(Precise.string_add(initial_margin, unrealisedPnl_str))
+
         return self.safe_position({
             'info': position,
             'id': None,
@@ -5153,7 +5159,7 @@ class bybit(Exchange):
             'lastUpdateTimestamp': None,
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(Precise.string_div(initialMarginString, notional)),
-            'maintenance_margin': self.parse_number(collateralString), # cornix "actual value"
+            'maintenance_margin': maintenance_margin,
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
             'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
             'entryPrice': self.parse_number(entryPrice),
