@@ -2,8 +2,8 @@
 
 import defxRest from '../defx.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances, Str, Order } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -20,7 +20,7 @@ export default class defx extends defxRest {
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
                 'watchMyTrades': false,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
@@ -673,6 +673,75 @@ export default class defx extends defxRest {
         client.resolve (this.balance, messageHash);
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name defx#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+         * @param {string} [symbol] unified market symbol of the market the orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.stop] true if fetching trigger or conditional orders
+         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
+         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        const baseUrl = this.urls['api']['ws']['private'];
+        const market = this.market (symbol);
+        const messageHash = 'orders:' + market['symbol'];
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        return await this.watch (url, messageHash, undefined, messageHash);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // {
+        //     "event": "ORDER_UPDATE",
+        //     "timestamp": 1731417961446,
+        //     "data": {
+        //         "orderId": "766738557656630928",
+        //         "symbol": "SOL_USDC",
+        //         "side": "SELL",
+        //         "type": "MARKET",
+        //         "status": "FILLED",
+        //         "clientOrderId": "0193208d-717b-7811-a80e-c036e220ad9b",
+        //         "reduceOnly": false,
+        //         "postOnly": false,
+        //         "timeInForce": "GTC",
+        //         "isTriggered": false,
+        //         "createdAt": "2024-11-12T13:26:00.829Z",
+        //         "updatedAt": "2024-11-12T13:26:01.436Z",
+        //         "avgPrice": "209.60000000",
+        //         "cumulativeQuote": "104.80000000",
+        //         "totalFee": "0.05764000",
+        //         "executedQty": "0.50",
+        //         "origQty": "0.50",
+        //         "role": "TAKER",
+        //         "pnl": "0.00000000",
+        //         "lastFillPnL": "0.00000000",
+        //         "lastFillPrice": "209.60000000",
+        //         "lastFillQty": "0.50",
+        //         "linkedOrderParentType": null,
+        //         "workingType": null
+        //     }
+        // }
+        //
+        const data = this.safeDict (message, 'data', {});
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        const parsedOrder = this.parseOrder (data);
+        orders.append (parsedOrder);
+        const messageHash = 'orders:' + parsedOrder['symbol'];
+        client.resolve (orders, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeString (message, 'code');
         if (error !== undefined) {
@@ -687,6 +756,7 @@ export default class defx extends defxRest {
                 'trades': this.handleTrades,
                 'depth': this.handleOrderBook,
                 'WALLET_BALANCE_UPDATE': this.handleBalance,
+                'ORDER_UPDATE': this.handleOrder,
             };
             const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
