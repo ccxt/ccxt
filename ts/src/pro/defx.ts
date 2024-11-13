@@ -3,7 +3,7 @@
 import defxRest from '../defx.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances, Str, Order } from '../base/types.js';
+import type { Int, OHLCV, Dict, Ticker, Trade, OrderBook, Strings, Tickers, Balances, Str, Order, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -736,18 +736,22 @@ export default class defx extends defxRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] true if fetching trigger or conditional orders
-         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
-         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
         const baseUrl = this.urls['api']['ws']['private'];
-        const market = this.market (symbol);
-        const messageHash = 'orders:' + market['symbol'];
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            messageHash += ':' + market['symbol'];
+        }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
-        return await this.watch (url, messageHash, undefined, messageHash);
+        const orders = await this.watch (url, messageHash, undefined, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
     handleOrder (client: Client, message) {
@@ -783,6 +787,7 @@ export default class defx extends defxRest {
         //     }
         // }
         //
+        const channel = 'orders';
         const data = this.safeDict (message, 'data', {});
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -791,8 +796,77 @@ export default class defx extends defxRest {
         const orders = this.orders;
         const parsedOrder = this.parseOrder (data);
         orders.append (parsedOrder);
-        const messageHash = 'orders:' + parsedOrder['symbol'];
+        const messageHash = channel + ':' + parsedOrder['symbol'];
+        client.resolve (orders, channel);
         client.resolve (orders, messageHash);
+    }
+
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name defx#watchPositions
+         * @description watch all open positions
+         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        const baseUrl = this.urls['api']['ws']['private'];
+        const channel = 'positions';
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        let newPosition = undefined;
+        if (symbols !== undefined) {
+            const messageHashes = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (channel + ':' + symbol);
+            }
+            newPosition = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
+        } else {
+            newPosition = await this.watch (url, channel, undefined, channel);
+        }
+        if (this.newUpdates) {
+            return newPosition;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePositions (client, message) {
+        //
+        // {
+        //     "event": "POSITION_UPDATE",
+        //     "timestamp": 1731417961456,
+        //     "data": {
+        //         "positionId": "0193208d-735d-7fe9-90bd-8bc6d6bc1eda",
+        //         "createdAt": 1289847904328,
+        //         "symbol": "SOL_USDC",
+        //         "positionSide": "SHORT",
+        //         "entryPrice": "209.60000000",
+        //         "quantity": "0.50",
+        //         "status": "ACTIVE",
+        //         "marginAsset": "USDC",
+        //         "marginAmount": "15.17475649",
+        //         "realizedPnL": "0.00000000"
+        //     }
+        // }
+        //
+        const channel = 'positions';
+        const data = this.safeDict (message, 'data', {});
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolById ();
+        }
+        const cache = this.positions;
+        const parsedPosition = this.parsePosition (data);
+        const timestamp = this.safeInteger (message, 'timestamp');
+        parsedPosition['timestamp'] = timestamp;
+        parsedPosition['datetime'] = this.iso8601 (timestamp);
+        cache.append (parsedPosition);
+        const messageHash = channel + ':' + parsedPosition['symbol'];
+        client.resolve ([ parsedPosition ], channel);
+        client.resolve ([ parsedPosition ], messageHash);
     }
 
     handleMessage (client: Client, message) {
@@ -810,6 +884,7 @@ export default class defx extends defxRest {
                 'depth': this.handleOrderBook,
                 'WALLET_BALANCE_UPDATE': this.handleBalance,
                 'ORDER_UPDATE': this.handleOrder,
+                'POSITION_UPDATE': this.handlePositions,
             };
             const exacMethod = this.safeValue (methods, event);
             if (exacMethod !== undefined) {
