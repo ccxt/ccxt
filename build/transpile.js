@@ -925,13 +925,14 @@ class Transpiler {
         }
         // check unified methods and autofill the .has tree
         const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin' ];
+        const specialMethods = [ 'fetchMarkOHLCV', 'fetchPremiumOHLCV', 'fetchIndexOHLCV' ];
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method defition, then it should be true
             if (code.includes ('\n    async ' + methodName + ' (')) {
                 if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
                     features[methodName] = 'true,';
                 }
-            } else if (!exclusions.includes (methodName)) {
+            } else if (!exclusions.includes (methodName) && !specialMethods.includes (methodName)) {
                 // if code does not contain unified method definition, then we remove (unless false)
                 if (!(methodName in features) || features[methodName] !== 'false,') {
                     delete features[methodName];
