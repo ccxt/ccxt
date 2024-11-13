@@ -425,7 +425,8 @@ export default class hyperliquid extends Exchange {
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
-            const extraData = this.safeDict (second, i, {});
+            const index = this.safeInteger (market, 'index');
+            const extraData = this.safeDict (second, index, {});
             const marketName = this.safeString (market, 'name');
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
