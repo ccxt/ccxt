@@ -1688,8 +1688,8 @@ export default class coincatch extends Exchange {
          */
         await this.loadMarkets ();
         const methodName = 'fetchBalance';
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params);
         let response = undefined;
         if (marketType === 'spot') {
             //
