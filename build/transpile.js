@@ -932,7 +932,7 @@ class Transpiler {
                     features[methodName] = 'true,';
                 }
             } else if (!exclusions.includes (methodName)) {
-                // if code does not contain unified method definition, then it should be undefined
+                // if code does not contain unified method definition, then we remove (unless false)
                 if (!(methodName in features) || features[methodName] !== 'false,') {
                     delete features[methodName];
                 }
