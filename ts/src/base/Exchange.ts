@@ -624,15 +624,6 @@ export default class Exchange {
         }
     }
 
-    getOwnMethods(obj) {
-        const proto = Object.getPrototypeOf(obj);
-        let methods = Object.getOwnPropertyNames(proto);
-        methods = methods.filter(method => 
-            typeof proto[method] === 'function' && method !== 'constructor'
-        );
-        return methods;
-    }
-
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args)
@@ -2745,19 +2736,6 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
-        this.populateHasTree (this);
-    }
-
-    populateHasTree (obj) {
-        const methods = this.getOwnMethods (obj);
-        const defaultHas = this.defaultHas ();
-        const exclusions = [ 'publicAPI', 'privateAPI', 'CORS', 'spot', 'margin', 'swap', 'future', 'option'];
-        for (let i = 0; i < methods.length; i++) {
-            const methodName = methods[i];
-            if (!this.inArray (methodName, exclusions) && methodName in defaultHas) {
-                obj.has[methodName] = true;
-            }
-        }
     }
 
     orderbookChecksumMessage (symbol:Str) {

@@ -893,7 +893,8 @@ class Transpiler {
 
     sortExchangeCapabilities (code) {
         const baseExchange = this.getBaseClass ()
-        const defaultHas = baseExchange.defaultHas ();
+        const defaultDescribe = baseExchange.describe ();
+        const defaultHas = defaultDescribe.has;
         const lineBreak = '\n';
         const capabilitiesObjectRegex = /(?<='has': {[\n])([^|})]*)(?=\n(\s+}))/;
         const found = capabilitiesObjectRegex.exec (code);
