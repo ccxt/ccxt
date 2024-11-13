@@ -928,7 +928,7 @@ class Transpiler {
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method defition, then it should be true
             if (code.includes ('\n    async ' + methodName + ' (')) {
-                if (!(methodName in features) || features[methodName] !== 'true,') {
+                if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
                     features[methodName] = 'true,';
                 }
             } else if (!exclusions.includes (methodName)) {
