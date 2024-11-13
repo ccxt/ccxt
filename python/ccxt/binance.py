@@ -1653,12 +1653,7 @@ class binance(Exchange):
         else:
             if 'isBuyer' in trade:
                 side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
-        fee = None
-        if 'commission' in trade:
-            fee = {
-                'cost': self.safe_float(trade, 'commission'),
-                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
-            }
+        fee = self.parse_fee(trade)
         takerOrMaker = None
         if 'isMaker' in trade:
             takerOrMaker = 'maker' if trade['isMaker'] else 'taker'
@@ -1686,6 +1681,15 @@ class binance(Exchange):
             'cost': cost,
             'fee': fee,
         }
+
+    def parse_fee(self, order_or_trade):
+        fee = None
+        if 'commission' in order_or_trade:
+            fee = {
+                'cost': self.safe_float(order_or_trade, 'commission'),
+                'currency': self.safe_currency_code(self.safe_string(order_or_trade, 'commissionAsset')),
+            }
+        return fee
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1880,6 +1884,8 @@ class binance(Exchange):
             numTrades = len(trades)
             if numTrades > 0:
                 cost, fee = self.parse_trades_cost_fee(symbol, trades)
+        if fee is None:
+            fee = self.parse_fee(order)  # ws
         average = None
         if cost is not None:
             if filled:
