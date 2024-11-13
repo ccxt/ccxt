@@ -925,7 +925,8 @@ class Transpiler {
         }
         // check unified methods and autofill the .has tree
         for (const methodName of Object.keys (defaultHas)) {
-            if (code.includes ('    async ' + methodName + ' (')) {
+            // if code contains unified method defition, then it should be true
+            if (code.includes ('\n    async ' + methodName + ' (')) {
                 if (!(methodName in features) || features[methodName] !== 'true,') {
                     features[methodName] = 'true,';
                 }
