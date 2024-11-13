@@ -1624,8 +1624,8 @@ class coincatch(Exchange, ImplicitAPI):
         """
         self.load_markets()
         methodName = 'fetchBalance'
-        marketType = 'spot'
-        marketType, params = self.handle_market_type_and_params(methodName, None, params, marketType)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params(methodName, None, params)
         response = None
         if marketType == 'spot':
             #

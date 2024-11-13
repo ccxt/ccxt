@@ -2515,10 +2515,13 @@ class coinex(Exchange, ImplicitAPI):
         stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
+        requestIds = []
+        for i in range(0, len(ids)):
+            requestIds.append(int(ids[i]))
         if stop:
-            request['stop_ids'] = ids
+            request['stop_ids'] = requestIds
         else:
-            request['order_ids'] = ids
+            request['order_ids'] = requestIds
         if market['spot']:
             if stop:
                 response = await self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))

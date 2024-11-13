@@ -2353,12 +2353,17 @@ public partial class coinex : Exchange
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
+        object requestIds = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
+        }
         if (isTrue(stop))
         {
-            ((IDictionary<string,object>)request)["stop_ids"] = ids;
+            ((IDictionary<string,object>)request)["stop_ids"] = requestIds;
         } else
         {
-            ((IDictionary<string,object>)request)["order_ids"] = ids;
+            ((IDictionary<string,object>)request)["order_ids"] = requestIds;
         }
         if (isTrue(getValue(market, "spot")))
         {

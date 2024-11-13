@@ -1691,8 +1691,8 @@ class coincatch extends Exchange {
              */
             Async\await($this->load_markets());
             $methodName = 'fetchBalance';
-            $marketType = 'spot';
-            list($marketType, $params) = $this->handle_market_type_and_params($methodName, null, $params, $marketType);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params($methodName, null, $params);
             $response = null;
             if ($marketType === 'spot') {
                 //
