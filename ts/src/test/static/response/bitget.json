@@ -1462,6 +1462,117 @@
                   "takeProfitPrice": null
                 }
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731480251909",
+                  "data": {
+                    "resultList": [
+                      {
+                        "interestId": "1240483507970117633",
+                        "interestCoin": "USDT",
+                        "dailyInterestRate": "0.00014",
+                        "loanCoin": "USDT",
+                        "interestAmount": "0.00003034",
+                        "interstType": "first",
+                        "cTime": "1731480236046",
+                        "uTime": "1731480236046"
+                      }
+                    ],
+                    "maxId": "1240483507970117633",
+                    "minId": "1240483507970117633"
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "interestId": "1240483507970117633",
+                      "interestCoin": "USDT",
+                      "dailyInterestRate": "0.00014",
+                      "loanCoin": "USDT",
+                      "interestAmount": "0.00003034",
+                      "interstType": "first",
+                      "cTime": "1731480236046",
+                      "uTime": "1731480236046"
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "USDT",
+                    "interest": 0.00003034,
+                    "interestRate": 0.00014,
+                    "amountBorrowed": null,
+                    "marginMode": "cross",
+                    "timestamp": 1731480236046,
+                    "datetime": "2024-11-13T06:43:56.046Z"
+                  }
+                ]
+            },
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731480120096",
+                  "data": {
+                    "resultList": [
+                      {
+                        "interestId": "1240482481565208581",
+                        "interestCoin": "USDT",
+                        "dailyInterestRate": "0.00014",
+                        "loanCoin": "USDT",
+                        "interestAmount": "0.00006125",
+                        "interstType": "first",
+                        "symbol": "BTCUSDT",
+                        "cTime": "1731479991332",
+                        "uTime": "1731479991332"
+                      }
+                    ],
+                    "maxId": "1240482481565208581",
+                    "minId": "1240482481565208581"
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "interestId": "1240482481565208581",
+                      "interestCoin": "USDT",
+                      "dailyInterestRate": "0.00014",
+                      "loanCoin": "USDT",
+                      "interestAmount": "0.00006125",
+                      "interstType": "first",
+                      "symbol": "BTCUSDT",
+                      "cTime": "1731479991332",
+                      "uTime": "1731479991332"
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "USDT",
+                    "interest": 0.00006125,
+                    "interestRate": 0.00014,
+                    "amountBorrowed": null,
+                    "marginMode": "isolated",
+                    "timestamp": 1731479991332,
+                    "datetime": "2024-11-13T06:39:51.332Z"
+                  }
+                ]
+            }
         ]
     }
 }
