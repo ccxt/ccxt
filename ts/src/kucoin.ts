@@ -4530,7 +4530,8 @@ export default class kucoin extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const assets = (marginMode === 'isolated') ? this.safeList (data, 'assets', []) : this.safeList (data, 'accounts', []);
         const interest = this.parseBorrowInterests (assets, market);
-        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+        const filteredByCurrency = this.filterByCurrencySinceLimit (interest, code, since, limit);
+        return this.filterBySymbolSinceLimit (filteredByCurrency, symbol, since, limit);
     }
 
     parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
