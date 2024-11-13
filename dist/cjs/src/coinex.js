@@ -522,6 +522,7 @@ class coinex extends coinex$1 {
                     '3008': errors.RequestTimeout,
                     '3109': errors.InsufficientFunds,
                     '3127': errors.InvalidOrder,
+                    '3600': errors.OrderNotFound,
                     '3606': errors.InvalidOrder,
                     '3610': errors.ExchangeError,
                     '3612': errors.InvalidOrder,

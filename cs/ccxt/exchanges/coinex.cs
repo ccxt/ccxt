@@ -503,6 +503,7 @@ public partial class coinex : Exchange
                     { "3008", typeof(RequestTimeout) },
                     { "3109", typeof(InsufficientFunds) },
                     { "3127", typeof(InvalidOrder) },
+                    { "3600", typeof(OrderNotFound) },
                     { "3606", typeof(InvalidOrder) },
                     { "3610", typeof(ExchangeError) },
                     { "3612", typeof(InvalidOrder) },

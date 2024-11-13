@@ -525,6 +525,7 @@ export default class coinex extends Exchange {
                     '3008': RequestTimeout,
                     '3109': InsufficientFunds,
                     '3127': InvalidOrder,
+                    '3600': OrderNotFound,
                     '3606': InvalidOrder,
                     '3610': ExchangeError,
                     '3612': InvalidOrder,
