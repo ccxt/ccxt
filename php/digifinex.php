@@ -2925,7 +2925,7 @@ class digifinex extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2958,7 +2958,7 @@ class digifinex extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2993,7 +2993,7 @@ class digifinex extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         //
         //     {
         //         "amount" => 0.0006103,
@@ -3015,15 +3015,15 @@ class digifinex extends Exchange {
         $currency = ($market === null) ? null : $market['base'];
         $symbol = $this->safe_symbol($marketId, $market);
         return array(
-            'account' => $symbol,
+            'info' => $info,
             'symbol' => $symbol,
             'currency' => $currency,
             'interest' => null,
             'interestRate' => 0.001, // all interest rates on digifinex are 0.1%
             'amountBorrowed' => $this->parse_number($amountBorrowed),
+            'marginMode' => null,
             'timestamp' => null,
             'datetime' => null,
-            'info' => $info,
         );
     }
 
@@ -3770,8 +3770,8 @@ class digifinex extends Exchange {
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
-         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * retrieve information on the maximum leverage, for different trade sizes for a single $market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -3846,9 +3846,10 @@ class digifinex extends Exchange {
         for ($i = 0; $i < count($brackets); $i++) {
             $tier = $brackets[$i];
             $marketId = $this->safe_string($info, 'instrument_id');
-            $market = $this->safe_market($marketId);
+            $market = $this->safe_market($marketId, $market);
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
                 'currency' => $market['settle'],
                 'minNotional' => null,
                 'maxNotional' => $this->safe_number($tier, 'max_limit'),

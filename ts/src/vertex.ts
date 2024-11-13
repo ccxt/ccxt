@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate, FundingRates, Currency, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2897,7 +2897,7 @@ export default class vertex extends Exchange {
         return this.safeDict (response, 'data', {});
     }
 
-    async withdraw (code: string, amount, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name vertex#withdraw
@@ -2937,13 +2937,60 @@ export default class vertex extends Exchange {
         };
         const response = await this.v1GatewayPostExecute (this.extend (request, params));
         //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "request_type": "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
         //
-        return response;
+        const transaction = this.parseTransaction (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+            'address': address,
+        });
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
+        //
+        let code = undefined;
+        if (currency !== undefined) {
+            code = currency['code'];
+        }
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'type': 'withdrawal',
+            'amount': undefined,
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'updated': undefined,
+            'network': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: Str) {
+        const statuses: Dict = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     handlePublicAddress (methodName: string, params: Dict) {

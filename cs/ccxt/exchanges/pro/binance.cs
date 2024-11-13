@@ -708,7 +708,7 @@ public partial class binance : ccxt.binance
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -772,7 +772,7 @@ public partial class binance : ccxt.binance
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -792,7 +792,7 @@ public partial class binance : ccxt.binance
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -1220,7 +1220,7 @@ public partial class binance : ccxt.binance
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -1291,7 +1291,7 @@ public partial class binance : ccxt.binance
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -1633,7 +1633,7 @@ public partial class binance : ccxt.binance
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
-    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         /**
         * @method
@@ -2056,7 +2056,7 @@ public partial class binance : ccxt.binance
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
-    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -2224,7 +2224,7 @@ public partial class binance : ccxt.binance
         {
             firstMarket = this.market(getValue(symbols, 0));
         }
-        object defaultMarket = ((bool) isTrue((isMarkPrice))) ? "swap" : "spot";
+        object defaultMarket = ((bool) isTrue((isMarkPrice))) ? "swap" : null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -4197,13 +4197,6 @@ public partial class binance : ccxt.binance
             market = this.getMarketFromSymbols(symbols);
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object marketTypeObject = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(market, null)))
-        {
-            ((IDictionary<string,object>)marketTypeObject)["type"] = getValue(market, "type");
-            ((IDictionary<string,object>)marketTypeObject)["subType"] = getValue(market, "subType");
-        }
-        await this.authenticate(this.extend(marketTypeObject, parameters));
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -4223,6 +4216,10 @@ public partial class binance : ccxt.binance
         {
             type = "delivery";
         }
+        object marketTypeObject = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)marketTypeObject)["type"] = type;
+        ((IDictionary<string,object>)marketTypeObject)["subType"] = subType;
+        await this.authenticate(this.extend(marketTypeObject, parameters));
         messageHash = add(add(type, ":positions"), messageHash);
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);

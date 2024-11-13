@@ -100,7 +100,7 @@ class bitso extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
                 'api' => array(
                     'rest' => 'https://bitso.com/api',
                 ),
@@ -1609,7 +1609,7 @@ class bitso extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

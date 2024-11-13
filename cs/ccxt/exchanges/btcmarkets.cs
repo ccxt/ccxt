@@ -77,7 +77,7 @@ public partial class btcmarkets : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/8c8d6907-3873-4cc4-ad20-e22fba28247e" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.btcmarkets.net" },
                     { "private", "https://api.btcmarkets.net" },

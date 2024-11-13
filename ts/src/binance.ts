@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -190,7 +190,7 @@ export default class binance extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
@@ -390,6 +390,12 @@ export default class binance extends Exchange {
                         'eth-staking/wbeth/history/wrapHistory': 150,
                         'eth-staking/wbeth/history/unwrapHistory': 150,
                         'eth-staking/eth/history/wbethRewardsHistory': 150,
+                        'sol-staking/sol/history/stakingHistory': 150,
+                        'sol-staking/sol/history/redemptionHistory': 150,
+                        'sol-staking/sol/history/bnsolRewardsHistory': 150,
+                        'sol-staking/sol/history/rateHistory': 150,
+                        'sol-staking/account': 150,
+                        'sol-staking/sol/quota': 150,
                         'mining/pub/algoList': 1,
                         'mining/pub/coinList': 1,
                         'mining/worker/detail': 5,
@@ -596,6 +602,8 @@ export default class binance extends Exchange {
                         'eth-staking/eth/stake': 15,
                         'eth-staking/eth/redeem': 150,
                         'eth-staking/wbeth/wrap': 150,
+                        'sol-staking/sol/stake': 150,
+                        'sol-staking/sol/redeem': 150,
                         'mining/hash-transfer/config': 5,
                         'mining/hash-transfer/config/cancel': 5,
                         'portfolio/repay': 3000,
@@ -1055,6 +1063,9 @@ export default class binance extends Exchange {
                         'mmp': 1,
                         'countdownCancelAll': 1 * 30,
                         'order': 1 * 30,
+                        'block/order/orders': 5,
+                        'block/order/execute': 5,
+                        'block/user-trades': 5,
                     },
                     'post': {
                         'order': 1,
@@ -1064,9 +1075,12 @@ export default class binance extends Exchange {
                         'mmpReset': 1 * 30,
                         'countdownCancelAll': 1 * 30,
                         'countdownCancelAllHeartBeat': 10 * 30,
+                        'block/order/create': 5,
+                        'block/order/execute': 5,
                     },
                     'put': {
                         'listenKey': 1 * 30,
+                        'block/order/create': 5,
                     },
                     'delete': {
                         'order': 1 * 30,
@@ -1074,6 +1088,7 @@ export default class binance extends Exchange {
                         'allOpenOrders': 1 * 30,
                         'allOpenOrdersByUnderlying': 1 * 30,
                         'listenKey': 1 * 30,
+                        'block/order/create': 5,
                     },
                 },
                 'public': {
@@ -8392,7 +8407,7 @@ export default class binance extends Exchange {
             'internal': internal,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransferStatus (status: Str): Str {
@@ -9117,7 +9132,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name binance#withdraw
@@ -10363,6 +10378,7 @@ export default class binance extends Exchange {
             const bracket = brackets[j];
             tiers.push ({
                 'tier': this.safeNumber (bracket, 'bracket'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber2 (bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional': this.safeNumber2 (bracket, 'notionalCap', 'qtyCap'),
@@ -10371,7 +10387,7 @@ export default class binance extends Exchange {
                 'info': bracket,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchPosition (symbol: string, params = {}) {
@@ -12254,7 +12270,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name binance#fetchBorrowInterest
@@ -12336,22 +12352,21 @@ export default class binance extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         const symbol = this.safeString (info, 'isolatedSymbol');
         const timestamp = this.safeInteger (info, 'interestAccuredTime');
         const marginMode = (symbol === undefined) ? 'cross' : 'isolated';
         return {
-            'account': (symbol === undefined) ? 'cross' : symbol,
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'asset')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
             'amountBorrowed': this.safeNumber (info, 'principal'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async repayCrossMargin (code: string, amount, params = {}) {

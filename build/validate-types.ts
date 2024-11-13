@@ -8,10 +8,7 @@ const skipMethods = [
     'fetchMarketsWs',
     'createDepositAddress', // will be updated later
     // skip because of c# already typed methods
-    "fetchLeverageTiers",
     "fetchDepositWithdrawFees",
-    "fetchBorrowInterest",
-    "withdraw",
     "fetchDepositWithdrawFee",
     'watchTickers', // will be updated later
 ]

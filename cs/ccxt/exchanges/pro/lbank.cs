@@ -703,7 +703,7 @@ public partial class lbank : ccxt.lbank
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -866,10 +866,16 @@ public partial class lbank : ccxt.lbank
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         object pingId = this.safeString(message, "ping");
-        await client.send(new Dictionary<string, object>() {
-            { "action", "pong" },
-            { "pong", pingId },
-        });
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "action", "pong" },
+                { "pong", pingId },
+            });
+        } catch(Exception e)
+        {
+            this.onError(client as WebSocketClient, e);
+        }
     }
 
     public override void handleMessage(WebSocketClient client, object message)

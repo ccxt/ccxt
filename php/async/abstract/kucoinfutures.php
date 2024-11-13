@@ -148,6 +148,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function private_get_market_orderbook_level3($params = array()) {
         return $this->request('market/orderbook/level3', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function private_get_hf_accounts_opened($params = array()) {
+        return $this->request('hf/accounts/opened', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_hf_orders_active($params = array()) {
         return $this->request('hf/orders/active', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -885,6 +888,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function privateGetMarketOrderbookLevel3($params = array()) {
         return $this->request('market/orderbook/level3', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetHfAccountsOpened($params = array()) {
+        return $this->request('hf/accounts/opened', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
     public function privateGetHfOrdersActive($params = array()) {
         return $this->request('hf/orders/active', 'private', 'GET', $params, null, null, array("cost" => 2));

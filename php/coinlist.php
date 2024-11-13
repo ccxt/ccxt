@@ -1958,7 +1958,7 @@ class coinlist extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet

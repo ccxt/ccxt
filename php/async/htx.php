@@ -96,7 +96,7 @@ class htx extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
                 'fetchMarginAdjustmentHistory' => false,
-                'fetchMarketLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => false,
@@ -5186,22 +5186,22 @@ class htx extends Exchange {
                 // 'price' => $this->price_to_precision($symbol, $price),
                 // 'source' => 'spot-api', // optional, spot-api, margin-api = isolated margin, super-margin-api = cross margin, c2c-margin-api
                 // 'client-order-id' => $clientOrderId, // optional, max 64 chars, must be unique within 8 hours
-                // 'stop-price' => $this->price_to_precision($symbol, $stopPrice), // trigger $price for stop limit orders
+                // 'stop-price' => $this->price_to_precision($symbol, stopPrice), // trigger $price for stop limit orders
                 // 'operator' => 'gte', // gte, lte, trigger $price condition
             );
             $orderType = str_replace('buy-', '', $type);
             $orderType = str_replace('sell-', '', $orderType);
             $options = $this->safe_value($this->options, $market['type'], array());
-            $stopPrice = $this->safe_string_2($params, 'stopPrice', 'stop-price');
-            if ($stopPrice === null) {
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop-price' ));
+            if ($triggerPrice === null) {
                 $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
                 if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $stopPrice or a stop-$price parameter for a stop order');
+                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a stop order');
                 }
             } else {
                 $defaultOperator = ($side === 'sell') ? 'lte' : 'gte';
                 $stopOperator = $this->safe_string($params, 'operator', $defaultOperator);
-                $request['stop-price'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['stop-price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['operator'] = $stopOperator;
                 if (($orderType === 'limit') || ($orderType === 'limit-fok')) {
                     $orderType = 'stop-' . $orderType;
@@ -5269,7 +5269,7 @@ class htx extends Exchange {
             if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $params = $this->omit($params, array( 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
             return $this->extend($request, $params);
         }) ();
     }
@@ -5306,16 +5306,16 @@ class htx extends Exchange {
         } elseif ($timeInForce === 'IOC') {
             $type = 'ioc';
         }
-        $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
+        $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
         $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
         $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
         $trailingPercent = $this->safe_string_2($params, 'trailingPercent', 'callback_rate');
         $trailingTriggerPrice = $this->safe_number($params, 'trailingTriggerPrice', $price);
         $isTrailingPercentOrder = $trailingPercent !== null;
-        $isStop = $triggerPrice !== null;
+        $isTrigger = $triggerPrice !== null;
         $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
         $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
-        if ($isStop) {
+        if ($isTrigger) {
             $triggerType = $this->safe_string_2($params, 'triggerType', 'trigger_type', 'le');
             $request['trigger_type'] = $triggerType;
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
@@ -5364,7 +5364,7 @@ class htx extends Exchange {
         $broker = $this->safe_value($this->options, 'broker', array());
         $brokerId = $this->safe_string($broker, 'id');
         $request['channel_code'] = $brokerId;
-        $params = $this->omit($params, array( 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
+        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ));
         return $this->extend($request, $params);
     }
 
@@ -5387,7 +5387,7 @@ class htx extends Exchange {
              * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
+             * @param {float} [$params->triggerPrice] the $price a trigger order is triggered at
              * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
              * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
@@ -5403,12 +5403,12 @@ class htx extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'trigger_price');
+            $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
             $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
             $takeProfitTriggerPrice = $this->safe_number_2($params, 'takeProfitPrice', 'tp_trigger_price');
             $trailingPercent = $this->safe_number($params, 'trailingPercent');
             $isTrailingPercentOrder = $trailingPercent !== null;
-            $isStop = $triggerPrice !== null;
+            $isTrigger = $triggerPrice !== null;
             $isStopLossTriggerOrder = $stopLossTriggerPrice !== null;
             $isTakeProfitTriggerOrder = $takeProfitTriggerPrice !== null;
             $response = null;
@@ -5425,7 +5425,7 @@ class htx extends Exchange {
                     list($marginMode, $contractRequest) = $this->handle_margin_mode_and_params('createOrder', $contractRequest);
                     $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
                     if ($marginMode === 'isolated') {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapTpslOrder ($contractRequest));
@@ -5435,7 +5435,7 @@ class htx extends Exchange {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapOrder ($contractRequest));
                         }
                     } elseif ($marginMode === 'cross') {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder ($contractRequest));
@@ -5451,7 +5451,7 @@ class htx extends Exchange {
                         throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter $params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                     }
                     if ($market['swap']) {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTpslOrder ($contractRequest));
@@ -5461,7 +5461,7 @@ class htx extends Exchange {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapOrder ($contractRequest));
                         }
                     } elseif ($market['future']) {
-                        if ($isStop) {
+                        if ($isTrigger) {
                             $response = Async\await($this->contractPrivatePostApiV1ContractTriggerOrder ($contractRequest));
                         } elseif ($isStopLossTriggerOrder || $isTakeProfitTriggerOrder) {
                             $response = Async\await($this->contractPrivatePostApiV1ContractTpslOrder ($contractRequest));
@@ -6547,7 +6547,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
@@ -7042,7 +7042,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing $currency for margin trading
@@ -7109,7 +7109,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest(array $info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7157,16 +7157,15 @@ class htx extends Exchange {
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_integer($info, 'accrued-at');
         return array(
-            'account' => ($marginMode === 'isolated') ? $symbol : 'cross',  // deprecated
+            'info' => $info,
             'symbol' => $symbol,
-            'marginMode' => $marginMode,
             'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
             'interest' => $this->safe_number($info, 'interest-amount'),
             'interestRate' => $this->safe_number($info, 'interest-rate'),
             'amountBorrowed' => $this->safe_number($info, 'loan-amount'),
+            'marginMode' => $marginMode,
             'timestamp' => $timestamp,  // Interest accrued time
             'datetime' => $this->iso8601($timestamp),
-            'info' => $info,
         );
     }
 
@@ -8196,96 +8195,36 @@ class htx extends Exchange {
             //        )
             //    }
             //
-            $data = $this->safe_list($response, 'data');
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
         }) ();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-$tiers-structure leverage $tiers structure~
-             */
-            Async\await($this->load_markets());
-            $request = array();
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                if (!$market['contract']) {
-                    throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol supports contract markets only');
-                }
-                $request['contract_code'] = $market['id'];
-            }
-            $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($this->extend($request, $params)));
-            //
-            //    {
-            //        "status" => "ok",
-            //        "data" => array(
-            //            {
-            //                "symbol" => "MANA",
-            //                "contract_code" => "MANA-USDT",
-            //                "margin_mode" => "isolated",
-            //                "trade_partition" => "USDT",
-            //                "list" => array(
-            //                    array(
-            //                        "lever_rate" => 75,
-            //                        "ladders" => array(
-            //                            array(
-            //                                "ladder" => 0,
-            //                                "min_size" => 0,
-            //                                "max_size" => 999,
-            //                                "adjust_factor" => 0.7
-            //                            ),
-            //                            ...
-            //                        )
-            //                    }
-            //                    ...
-            //                )
-            //            ),
-            //            ...
-            //        )
-            //    }
-            //
-            $data = $this->safe_value($response, 'data');
-            $tiers = $this->parse_leverage_tiers($data, array( $symbol ), 'contract_code');
-            return $this->safe_value($tiers, $symbol);
-        }) ();
-    }
-
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $list = $this->safe_value($item, 'list', array());
-            $tiers = array();
-            $currency = $this->safe_string($item, 'trade_partition');
-            $id = $this->safe_string($item, $marketIdKey);
-            $symbol = $this->safe_symbol($id);
-            if ($this->in_array($symbol, $symbols)) {
-                for ($j = 0; $j < count($list); $j++) {
-                    $obj = $list[$j];
-                    $leverage = $this->safe_string($obj, 'lever_rate');
-                    $ladders = $this->safe_value($obj, 'ladders', array());
-                    for ($k = 0; $k < count($ladders); $k++) {
-                        $bracket = $ladders[$k];
-                        $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
-                        $tiers[] = array(
-                            'tier' => $this->safe_integer($bracket, 'ladder'),
-                            'currency' => $this->safe_currency_code($currency),
-                            'minNotional' => $this->safe_number($bracket, 'min_size'),
-                            'maxNotional' => $this->safe_number($bracket, 'max_size'),
-                            'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
-                            'maxLeverage' => $this->parse_number($leverage),
-                            'info' => $bracket,
-                        );
-                    }
-                }
-                $result[$symbol] = $tiers;
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+        $currencyId = $this->safe_string($info, 'trade_partition');
+        $marketId = $this->safe_string($info, 'contract_code');
+        $tiers = array();
+        $brackets = $this->safe_list($info, 'list', array());
+        for ($i = 0; $i < count($brackets); $i++) {
+            $item = $brackets[$i];
+            $leverage = $this->safe_string($item, 'lever_rate');
+            $ladders = $this->safe_list($item, 'ladders', array());
+            for ($k = 0; $k < count($ladders); $k++) {
+                $bracket = $ladders[$k];
+                $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
+                $tiers[] = array(
+                    'tier' => $this->safe_integer($bracket, 'ladder'),
+                    'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+                    'currency' => $this->safe_currency_code($currencyId),
+                    'minNotional' => $this->safe_number($bracket, 'min_size'),
+                    'maxNotional' => $this->safe_number($bracket, 'max_size'),
+                    'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
+                    'maxLeverage' => $this->parse_number($leverage),
+                    'info' => $bracket,
+                );
             }
         }
-        return $result;
+        return $tiers;
     }
 
     public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {

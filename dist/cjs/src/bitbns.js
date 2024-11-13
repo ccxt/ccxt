@@ -67,7 +67,7 @@ class bitbns extends bitbns$1 {
             },
             'hostname': 'bitbns.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
                 'api': {
                     'www': 'https://{hostname}',
                     'v1': 'https://api.{hostname}/api/trade/v1',
@@ -223,11 +223,11 @@ class bitbns extends bitbns$1 {
             const quoteId = this.safeString(market, 'quote');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
-            const marketPrecision = this.safeValue(market, 'precision', {});
-            const marketLimits = this.safeValue(market, 'limits', {});
-            const amountLimits = this.safeValue(marketLimits, 'amount', {});
-            const priceLimits = this.safeValue(marketLimits, 'price', {});
-            const costLimits = this.safeValue(marketLimits, 'cost', {});
+            const marketPrecision = this.safeDict(market, 'precision', {});
+            const marketLimits = this.safeDict(market, 'limits', {});
+            const amountLimits = this.safeDict(marketLimits, 'amount', {});
+            const priceLimits = this.safeDict(marketLimits, 'price', {});
+            const costLimits = this.safeDict(marketLimits, 'cost', {});
             const usdt = (quoteId === 'USDT');
             // INR markets don't need a _INR prefix
             const uppercaseId = usdt ? (baseId + '_' + quoteId) : baseId;
@@ -433,7 +433,7 @@ class bitbns extends bitbns$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const keys = Object.keys(data);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -659,7 +659,7 @@ class bitbns extends bitbns$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         const request = {
             'entry_id': id,
@@ -693,7 +693,7 @@ class bitbns extends bitbns$1 {
             'symbol': market['id'],
             'entry_id': id,
         };
-        const trigger = this.safeValue2(params, 'trigger', 'stop');
+        const trigger = this.safeBool2(params, 'trigger', 'stop');
         if (trigger) {
             throw new errors.BadRequest(this.id + ' fetchOrder cannot fetch stop orders');
         }
@@ -723,7 +723,7 @@ class bitbns extends bitbns$1 {
         //         "code":200
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0);
         return this.parseOrder(first, market);
     }
@@ -746,7 +746,7 @@ class bitbns extends bitbns$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const isTrigger = this.safeValue2(params, 'trigger', 'stop');
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
         const request = {
@@ -1048,7 +1048,7 @@ class bitbns extends bitbns$1 {
                 '6': 'ok', // Completed
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1144,7 +1144,7 @@ class bitbns extends bitbns$1 {
         //         "error":null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const address = this.safeString(data, 'token');
         const tag = this.safeString(data, 'tag');
         this.checkAddress(address);

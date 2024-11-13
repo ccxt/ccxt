@@ -71,7 +71,7 @@ class hyperliquid extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -127,12 +127,12 @@ class hyperliquid extends Exchange {
                 '1h' => '1h',
                 '2h' => '2h',
                 '4h' => '4h',
-                '6h' => '6h',
+                '8h' => '8h',
                 '12h' => '12h',
                 '1d' => '1d',
                 '3d' => '3d',
                 '1w' => '1w',
-                '1M' => '1m',
+                '1M' => '1M',
             ),
             'hostname' => 'hyperliquid.xyz',
             'urls' => array(
@@ -153,7 +153,17 @@ class hyperliquid extends Exchange {
             'api' => array(
                 'public' => array(
                     'post' => array(
-                        'info' => 1,
+                        'info' => array(
+                            'cost' => 20,
+                            'byType' => array(
+                                'l2Book' => 2,
+                                'allMids' => 2,
+                                'clearinghouseState' => 2,
+                                'orderStatus' => 2,
+                                'spotClearinghouseState' => 2,
+                                'exchangeStatus' => 2,
+                            ),
+                        ),
                     ),
                 ),
                 'private' => array(
@@ -415,7 +425,8 @@ class hyperliquid extends Exchange {
             $markets = array();
             for ($i = 0; $i < count($meta); $i++) {
                 $market = $this->safe_dict($meta, $i, array());
-                $extraData = $this->safe_dict($second, $i, array());
+                $index = $this->safe_integer($market, 'index');
+                $extraData = $this->safe_dict($second, $index, array());
                 $marketName = $this->safe_string($market, 'name');
                 // if (mb_strpos($marketName, '/') === false) {
                 //     // there are some weird spot $markets in testnet, eg @2
@@ -754,6 +765,115 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * retrieves $data on all swap markets for hyperliquid
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of objects representing market $data
+             */
+            $request = array(
+                'type' => 'metaAndAssetCtxs',
+            );
+            $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "universe" => array(
+            //                 array(
+            //                     "maxLeverage" => 50,
+            //                     "name" => "SOL",
+            //                     "onlyIsolated" => false,
+            //                     "szDecimals" => 2
+            //                 }
+            //             )
+            //         ),
+            //         array(
+            //             {
+            //                 "dayNtlVlm" => "9450588.2273",
+            //                 "funding" => "0.0000198",
+            //                 "impactPxs" => array(
+            //                     "108.04",
+            //                     "108.06"
+            //                 ),
+            //                 "markPx" => "108.04",
+            //                 "midPx" => "108.05",
+            //                 "openInterest" => "10764.48",
+            //                 "oraclePx" => "107.99",
+            //                 "premium" => "0.00055561",
+            //                 "prevDayPx" => "111.81"
+            //             }
+            //         )
+            //     )
+            //
+            //
+            $meta = $this->safe_dict($response, 0, array());
+            $universe = $this->safe_list($meta, 'universe', array());
+            $assetCtxs = $this->safe_list($response, 1, array());
+            $result = array();
+            for ($i = 0; $i < count($universe); $i++) {
+                $data = $this->extend(
+                    $this->safe_dict($universe, $i, array()),
+                    $this->safe_dict($assetCtxs, $i, array())
+                );
+                $result[] = $data;
+            }
+            $funding_rates = $this->parse_funding_rates($result);
+            return $this->filter_by_array($funding_rates, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function parse_funding_rate($info, ?array $market = null): array {
+        //
+        //     {
+        //         "maxLeverage" => "50",
+        //         "name" => "ETH",
+        //         "onlyIsolated" => false,
+        //         "szDecimals" => "4",
+        //         "dayNtlVlm" => "1709813.11535",
+        //         "funding" => "0.00004807",
+        //         "impactPxs" => array(
+        //             "2369.3",
+        //             "2369.6"
+        //         ),
+        //         "markPx" => "2369.6",
+        //         "midPx" => "2369.45",
+        //         "openInterest" => "1815.4712",
+        //         "oraclePx" => "2367.3",
+        //         "premium" => "0.00090821",
+        //         "prevDayPx" => "2381.5"
+        //     }
+        //
+        $base = $this->safe_string($info, 'name');
+        $marketId = $this->coin_to_market_id($base);
+        $symbol = $this->safe_symbol($marketId, $market);
+        $funding = $this->safe_number($info, 'funding');
+        $markPx = $this->safe_number($info, 'markPx');
+        $oraclePx = $this->safe_number($info, 'oraclePx');
+        $fundingTimestamp = ((int) floor($this->milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        return array(
+            'info' => $info,
+            'symbol' => $symbol,
+            'markPrice' => $markPx,
+            'indexPrice' => $oraclePx,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $funding,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => '1h',
+        );
+    }
+
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     array(
@@ -800,16 +920,24 @@ class hyperliquid extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $until = $this->safe_integer($params, 'until', $this->milliseconds());
-            $useTail = ($since === null);
+            $useTail = $since === null;
+            $originalSince = $since;
             if ($since === null) {
-                $since = 0;
+                if ($limit !== null) {
+                    // optimization if $limit is provided
+                    $timeframeInMilliseconds = $this->parse_timeframe($timeframe) * 1000;
+                    $since = $this->sum($until, $timeframeInMilliseconds * $limit * -1);
+                    $useTail = false;
+                } else {
+                    $since = 0;
+                }
             }
             $params = $this->omit($params, array( 'until' ));
             $request = array(
                 'type' => 'candleSnapshot',
                 'req' => array(
                     'coin' => $market['swap'] ? $market['base'] : $market['id'],
-                    'interval' => $timeframe,
+                    'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                     'startTime' => $since,
                     'endTime' => $until,
                 ),
@@ -831,7 +959,7 @@ class hyperliquid extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit, $useTail);
+            return $this->parse_ohlcvs($response, $market, $timeframe, $originalSince, $limit, $useTail);
         }) ();
     }
 
@@ -1644,7 +1772,8 @@ class hyperliquid extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             } else {
-                $request['startTime'] = $this->milliseconds() - 100 * 60 * 60 * 1000;
+                $maxLimit = ($limit === null) ? 500 : $limit;
+                $request['startTime'] = $this->milliseconds() - $maxLimit * 60 * 60 * 1000;
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');
@@ -2296,7 +2425,7 @@ class hyperliquid extends Exchange {
             'notional' => $this->safe_number($entry, 'positionValue'),
             'leverage' => $this->safe_number($leverage, 'value'),
             'collateral' => $this->safe_number($entry, 'marginUsed'),
-            'initialMargin' => $initialMargin,
+            'initialMargin' => $this->parse_number($initialMargin),
             'maintenanceMargin' => null,
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
@@ -3081,6 +3210,17 @@ class hyperliquid extends Exchange {
             $body = $this->json($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {
+        if ((is_array($config) && array_key_exists('byType', $config)) && (is_array($params) && array_key_exists('type', $params))) {
+            $type = $params['type'];
+            $byType = $config['byType'];
+            if (is_array($byType) && array_key_exists($type, $byType)) {
+                return $byType[$type];
+            }
+        }
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function parse_create_order_args(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

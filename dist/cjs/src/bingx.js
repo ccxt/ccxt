@@ -204,6 +204,7 @@ class bingx extends bingx$1 {
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'positionMargin/history': 2,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
@@ -2854,23 +2855,17 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const ordersRequests = [];
-        let symbol = undefined;
+        const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
-            if (symbol === undefined) {
-                symbol = marketId;
-            }
-            else {
-                if (symbol !== marketId) {
-                    throw new errors.BadRequest(this.id + ' createOrders() requires all orders to have the same symbol');
-                }
-            }
             const type = this.safeString(rawOrder, 'type');
+            marketIds.push(marketId);
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeNumber(rawOrder, 'amount');
             const price = this.safeNumber(rawOrder, 'price');
@@ -2878,14 +2873,23 @@ class bingx extends bingx$1 {
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
-        const market = this.market(symbol);
+        const symbols = this.marketSymbols(marketIds, undefined, false, true, true);
+        const symbolsLength = symbols.length;
+        const market = this.market(symbols[0]);
         const request = {};
         let response = undefined;
         if (market['swap']) {
+            if (symbolsLength > 5) {
+                throw new errors.InvalidOrder(this.id + ' createOrders() can not create more than 5 orders at once for swap markets');
+            }
             request['batchOrders'] = this.json(ordersRequests);
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         }
         else {
+            const sync = this.safeBool(params, 'sync', false);
+            if (sync) {
+                request['sync'] = true;
+            }
             request['data'] = this.json(ordersRequests);
             response = await this.spotV1PrivatePostTradeBatchOrders(request);
         }
@@ -2934,6 +2938,13 @@ class bingx extends bingx$1 {
         //         }
         //     }
         //
+        if (typeof response === 'string') {
+            // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            response = this.fixStringifiedJsonMembers(response);
+            response = this.parseJson(response);
+        }
         const data = this.safeDict(response, 'data', {});
         const result = this.safeList(data, 'orders', []);
         return this.parseOrders(result, market);
@@ -3339,7 +3350,7 @@ class bingx extends bingx$1 {
                 'cost': Precise["default"].stringAbs(feeCost),
             },
             'trades': undefined,
-            'reduceOnly': this.safeBool(order, 'reduceOnly'),
+            'reduceOnly': this.safeBool2(order, 'reduceOnly', 'ro'),
         }, market);
     }
     parseOrderStatus(status) {
@@ -4574,37 +4585,21 @@ class bingx extends bingx$1 {
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
-        //     {
-        //         "coinId": "799",
-        //         "coin": "USDT",
-        //         "network": "BEP20",
-        //         "address": "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag": ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        let address = this.safeString(depositAddress, 'address');
         const tag = this.safeString(depositAddress, 'tag');
         const currencyId = this.safeString(depositAddress, 'coin');
         currency = this.safeCurrency(currencyId, currency);
         const code = currency['code'];
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the address to the user
-        // that is only if the underlying contract address has the 0x prefix as well
-        const networkCode = this.safeString(depositAddress, 'network');
-        if (networkCode !== undefined) {
-            if (networkCode in currency['networks']) {
-                const network = currency['networks'][networkCode];
-                const contractAddress = this.safeString(network['info'], 'contractAddress');
-                if (contractAddress !== undefined) {
-                    if (contractAddress[0] === '0' && contractAddress[1] === 'x') {
-                        if (address[0] !== '0' || address[1] !== 'x') {
-                            address = '0x' + address;
-                        }
-                    }
-                }
-            }
-        }
+        const address = this.safeString(depositAddress, 'addressWithPrefix');
+        const networkdId = this.safeString(depositAddress, 'network');
+        const networkCode = this.networkIdToCode(networkdId, code);
         this.checkAddress(address);
         return {
             'info': depositAddress,

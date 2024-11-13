@@ -3100,15 +3100,15 @@ class digifinex extends digifinex$1 {
         const currency = (market === undefined) ? undefined : market['base'];
         const symbol = this.safeSymbol(marketId, market);
         return {
-            'account': symbol,
+            'info': info,
             'symbol': symbol,
             'currency': currency,
             'interest': undefined,
             'interestRate': 0.001,
             'amountBorrowed': this.parseNumber(amountBorrowed),
+            'marginMode': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'info': info,
         };
     }
     async fetchCrossBorrowRate(code, params = {}) {
@@ -3870,8 +3870,8 @@ class digifinex extends digifinex$1 {
         /**
          * @method
          * @name digifinex#fetchMarketLeverageTiers
-         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -3945,9 +3945,10 @@ class digifinex extends digifinex$1 {
         for (let i = 0; i < brackets.length; i++) {
             const tier = brackets[i];
             const marketId = this.safeString(info, 'instrument_id');
-            market = this.safeMarket(marketId);
+            market = this.safeMarket(marketId, market);
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
                 'currency': market['settle'],
                 'minNotional': undefined,
                 'maxNotional': this.safeNumber(tier, 'max_limit'),

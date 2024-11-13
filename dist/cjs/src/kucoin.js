@@ -203,6 +203,7 @@ class kucoin extends kucoin$1 {
                         'market/orderbook/level{level}': 3,
                         'market/orderbook/level2': 3,
                         'market/orderbook/level3': 3,
+                        'hf/accounts/opened': 2,
                         'hf/orders/active': 2,
                         'hf/orders/active/symbols': 2,
                         'hf/margin/order/active/symbols': 2,
@@ -632,7 +633,7 @@ class kucoin extends kucoin$1 {
                 'FUD': 'FTX Users\' Debt',
             },
             'options': {
-                'hf': false,
+                'hf': undefined,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1070,7 +1071,8 @@ class kucoin extends kucoin$1 {
         //                 "enableTrading": true
         //             },
         //
-        const requestMarginables = this.checkRequiredCredentials(false);
+        const credentialsSet = this.checkRequiredCredentials(false);
+        const requestMarginables = credentialsSet && this.safeBool(params, 'marginables', true);
         if (requestMarginables) {
             promises.push(this.privateGetMarginSymbols(params)); // cross margin symbols
             //
@@ -1134,6 +1136,10 @@ class kucoin extends kucoin$1 {
             //                     "makerCoefficient": "1" // Maker Fee Coefficient
             //                 }
             //
+        }
+        if (credentialsSet) {
+            // load migration status for account
+            promises.push(this.loadMigrationStatus());
         }
         const responses = await Promise.all(promises);
         const symbolsData = this.safeList(responses[0], 'data');
@@ -1222,15 +1228,19 @@ class kucoin extends kucoin$1 {
         return result;
     }
     async loadMigrationStatus(force = false) {
-        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
-            const result = await this.privateGetMigrateUserAccountStatus();
-            const data = this.safeDict(result, 'data', {});
-            const status = this.safeInteger(data, 'status');
-            this.options['hfMigrated'] = (status === 2);
+        /**
+         * @method
+         * @name kucoin#loadMigrationStatus
+         * @description loads the migration status for the account (hf or not)
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+         */
+        if (!('hf' in this.options) || (this.options['hf'] === undefined) || force) {
+            const result = await this.privateGetHfAccountsOpened();
+            this.options['hf'] = this.safeBool(result, 'data');
         }
     }
     handleHfAndParams(params = {}) {
-        const migrated = this.safeBool2(this.options, 'hfMigrated', 'hf', false);
+        const migrated = this.safeBool(this.options, 'hf', false);
         let loadedHf = undefined;
         if (migrated !== undefined) {
             if (migrated) {
@@ -4421,8 +4431,8 @@ class kucoin extends kucoin$1 {
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @see https://docs.kucoin.com/#get-repay-record
          * @see https://docs.kucoin.com/#query-isolated-margin-account-info
-         * @param {string} code unified currency code
-         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol, required for isolated margin
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4431,16 +4441,23 @@ class kucoin extends kucoin$1 {
          */
         await this.loadMarkets();
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params);
-        if (marginMode === undefined) {
-            marginMode = 'cross'; // cross as default marginMode
-        }
+        [marginMode, params] = this.handleMarginModeAndParams('fetchBorrowInterest', params, 'cross');
         const request = {};
-        let response = undefined;
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency(code);
-            request['quoteCurrency'] = currency['id'];
+            currency = this.currency(code);
+            if (marginMode === 'isolated') {
+                request['balanceCurrency'] = currency['id'];
+            }
+            else {
+                request['quoteCurrency'] = currency['id'];
+            }
         }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        let response = undefined;
         if (marginMode === 'isolated') {
             response = await this.privateGetIsolatedAccounts(this.extend(request, params));
         }
@@ -4513,7 +4530,9 @@ class kucoin extends kucoin$1 {
         //
         const data = this.safeDict(response, 'data', {});
         const assets = (marginMode === 'isolated') ? this.safeList(data, 'assets', []) : this.safeList(data, 'accounts', []);
-        return this.parseBorrowInterests(assets, undefined);
+        const interest = this.parseBorrowInterests(assets, market);
+        const filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
+        return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
     }
     parseBorrowInterest(info, market = undefined) {
         //
@@ -4580,15 +4599,15 @@ class kucoin extends kucoin$1 {
             currencyId = this.safeString(info, 'currency');
         }
         return {
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode(currencyId),
             'interest': interest,
             'interestRate': this.safeNumber(info, 'dailyIntRate'),
             'amountBorrowed': amountBorrowed,
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async fetchBorrowRateHistories(codes = undefined, since = undefined, limit = undefined, params = {}) {

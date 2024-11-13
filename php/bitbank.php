@@ -90,7 +90,7 @@ class bitbank extends Exchange {
             ),
             'hostname' => 'bitbank.cc',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348',
                 'api' => array(
                     'public' => 'https://public.{hostname}',
                     'private' => 'https://api.{hostname}',
@@ -836,7 +836,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-$request

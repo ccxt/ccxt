@@ -621,7 +621,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -636,7 +636,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method
@@ -853,7 +853,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -868,7 +868,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
     }
 
-    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         /**
         * @method

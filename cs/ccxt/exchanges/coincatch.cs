@@ -1613,8 +1613,8 @@ public partial class coincatch : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchBalance";
-        object marketType = "spot";
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, null, parameters, marketType);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
@@ -2061,15 +2061,25 @@ public partial class coincatch : Exchange
             ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode);
         }
         object response = await this.privatePostApiSpotV1WalletWithdrawalV2(this.extend(request, parameters));
-        // todo add after withdrawal
         //
-        return response;
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTransaction(data, currency);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
     {
         //
         // fetchDeposits
+        //
         //     {
         //         "id": "1213046466852196352",
         //         "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
@@ -2089,7 +2099,17 @@ public partial class coincatch : Exchange
         //         "uTime": "1724938746015"
         //     }
         //
-        object id = this.safeString(transaction, "id");
+        // withdraw
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "orderId":888291686266343424",
+        //             "clientOrderId":"123"
+        //         }
+        //     }
+        //
         object status = this.safeString(transaction, "status");
         if (isTrue(isEqual(status, "success")))
         {
@@ -2117,7 +2137,7 @@ public partial class coincatch : Exchange
         }
         return new Dictionary<string, object>() {
             { "info", transaction },
-            { "id", id },
+            { "id", this.safeString2(transaction, "id", "orderId") },
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },

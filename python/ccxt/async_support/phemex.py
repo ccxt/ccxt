@@ -121,7 +121,7 @@ class phemex(Exchange, ImplicitAPI):
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
-                'doc': 'https://github.com/phemex/phemex-api-docs',
+                'doc': 'https://phemex-docs.github.io/#overview',
                 'fees': 'https://phemex.com/fees-conditions',
                 'referral': {
                     'url': 'https://phemex.com/register?referralCode=EDNVJ',
@@ -179,6 +179,7 @@ class phemex(Exchange, ImplicitAPI):
                 'v2': {
                     'get': {
                         'public/products': 5,
+                        'public/products-plus': 5,
                         'md/v2/orderbook': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/trade': 5,  # ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': 5,  # ?symbol=<symbol>&id=<id>
@@ -746,13 +747,14 @@ class phemex(Exchange, ImplicitAPI):
                     'max': self.parse_safe_number(self.safe_string(market, 'maxOrderValue')),
                 },
             },
-            'created': None,
+            'created': self.safe_integer(market, 'listTime'),
             'info': market,
         })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for phemex
+        :see: https://phemex-docs.github.io/#query-product-information-3
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -4078,7 +4080,8 @@ class phemex(Exchange, ImplicitAPI):
         #         ]
         #     },
         #
-        market = self.safe_market(None, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         riskLimits = (market['info']['riskLimits'])
         tiers = []
         minNotional = 0
@@ -4087,6 +4090,7 @@ class phemex(Exchange, ImplicitAPI):
             maxNotional = self.safe_integer(tier, 'limit')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4429,7 +4433,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

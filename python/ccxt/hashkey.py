@@ -104,6 +104,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -1874,7 +1875,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://hashkeyglobal-apidoc.readme.io/reference/withdraw
@@ -3787,8 +3788,8 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -3879,14 +3880,15 @@ class hashkey(Exchange, ImplicitAPI):
         #     }
         #
         riskLimits = self.safe_list(info, 'riskLimits', [])
-        id = self.safe_string(info, 'symbol')
-        market = self.safe_market(id, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(riskLimits)):
             tier = riskLimits[i]
             initialMarginRate = self.safe_string(tier, 'initialMargin')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': None,
                 'maxNotional': self.safe_number(tier, 'quantity'),

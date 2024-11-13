@@ -4476,6 +4476,7 @@ export default class mexc extends Exchange {
         //        "isHidden": false
         //    }
         //
+        const marketId = this.safeString (info, 'symbol');
         let maintenanceMarginRate = this.safeString (info, 'maintenanceMarginRate');
         let initialMarginRate = this.safeString (info, 'initialMarginRate');
         const maxVol = this.safeString (info, 'maxVol');
@@ -4489,6 +4490,7 @@ export default class mexc extends Exchange {
             return [
                 {
                     'tier': 0,
+                    'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                     'currency': this.safeCurrencyCode (quoteId),
                     'minNotional': undefined,
                     'maxNotional': undefined,
@@ -4502,6 +4504,7 @@ export default class mexc extends Exchange {
             const cap = Precise.stringAdd (floor, riskIncrVol);
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskIncrVol)),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeCurrencyCode (quoteId),
                 'minNotional': this.parseNumber (floor),
                 'maxNotional': this.parseNumber (cap),
@@ -4513,7 +4516,7 @@ export default class mexc extends Exchange {
             maintenanceMarginRate = Precise.stringAdd (maintenanceMarginRate, riskIncrMmr);
             floor = cap;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
@@ -4875,7 +4878,7 @@ export default class mexc extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -5339,7 +5342,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name mexc#withdraw

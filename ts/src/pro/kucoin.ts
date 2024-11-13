@@ -1209,7 +1209,8 @@ export default class kucoin extends kucoinRest {
         }
         const data = this.safeDict (message, 'data');
         const parsed = this.parseWsTrade (data);
-        this.myTrades.append (parsed);
+        const myTrades = this.myTrades;
+        myTrades.append (parsed);
         const messageHash = 'myTrades';
         client.resolve (this.myTrades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];

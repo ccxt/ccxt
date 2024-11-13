@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -1749,6 +1749,10 @@ export default class xt extends Exchange {
         market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (ticker, 't');
+        let percentage = this.safeString2 (ticker, 'cr', 'r');
+        if (percentage !== undefined) {
+            percentage = Precise.stringMul (percentage, '100');
+        }
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1765,7 +1769,7 @@ export default class xt extends Exchange {
             'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
             'change': this.safeNumber (ticker, 'cv'),
-            'percentage': this.safeNumber2 (ticker, 'cr', 'r'),
+            'percentage': this.parseNumber (percentage),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeNumber2 (ticker, 'a', 'v'),
@@ -1970,6 +1974,17 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // spot: watchMyTrades
         //
         //    {
@@ -1980,17 +1995,6 @@ export default class xt extends Exchange {
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
-        //    }
-        //
-        // spot: watchTrades
-        //
-        //    {
-        //        s: 'btc_usdt',
-        //        i: '228825383103928709',
-        //        t: 1684258222702,
-        //        p: '27003.65',
-        //        q: '0.000796',
-        //        b: true
         //    }
         //
         // swap and future: fetchTrades
@@ -2072,22 +2076,31 @@ export default class xt extends Exchange {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
-        const bidOrAsk = this.safeString (trade, 'm');
-        let side = this.safeStringLower (trade, 'orderSide');
-        if (bidOrAsk !== undefined) {
-            side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
-        }
-        const buyerMaker = this.safeValue (trade, 'b');
-        if (buyerMaker !== undefined) {
-            side = 'buy';
-        }
-        let takerOrMaker = this.safeStringLower (trade, 'takerMaker');
-        if (buyerMaker !== undefined) {
-            takerOrMaker = buyerMaker ? 'maker' : 'taker';
-        }
-        const isMaker = this.safeBool (trade, 'isMaker');
-        if (isMaker !== undefined) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+        let side = undefined;
+        let takerOrMaker = undefined;
+        const isBuyerMaker = this.safeBool (trade, 'b');
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // public trades always taker
+        } else {
+            const takerMaker = this.safeStringLower (trade, 'takerMaker');
+            if (takerMaker !== undefined) {
+                takerOrMaker = takerMaker;
+            } else {
+                const isMaker = this.safeBool (trade, 'isMaker');
+                if (isMaker !== undefined) {
+                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                }
+            }
+            const orderSide = this.safeStringLower (trade, 'orderSide');
+            if (orderSide !== undefined) {
+                side = orderSide;
+            } else {
+                const bidOrAsk = this.safeString (trade, 'm');
+                if (bidOrAsk !== undefined) {
+                    side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
@@ -3773,7 +3786,7 @@ export default class xt extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit, params);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name xt#withdraw
@@ -3891,7 +3904,7 @@ export default class xt extends Exchange {
                 'rate': undefined,
             },
             'internal': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status) {
@@ -4031,12 +4044,12 @@ export default class xt extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols: string[] = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: string[] = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name xt#fetchLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @description retrieve information on the maximum leverage for different trade sizes
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @param {string} [symbols] a list of unified market symbols
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4079,7 +4092,7 @@ export default class xt extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined): LeverageTiers {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4111,15 +4124,15 @@ export default class xt extends Exchange {
                 result[symbol] = this.parseMarketLeverageTiers (response[i], market);
             }
         }
-        return result;
+        return result as LeverageTiers;
     }
 
     async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         /**
          * @method
          * @name xt#fetchMarketLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @description retrieve information on the maximum leverage for different trade sizes of a single market
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4163,7 +4176,7 @@ export default class xt extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    parseMarketLeverageTiers (info, market = undefined) {
+    parseMarketLeverageTiers (info, market = undefined): LeverageTier[] {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4189,6 +4202,7 @@ export default class xt extends Exchange {
             market = this.safeMarket (marketId, market, '_', 'contract');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'bracket'),
+                'symbol': this.safeSymbol (marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber (brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': this.safeNumber (tier, 'maxNominalValue'),
@@ -4197,7 +4211,7 @@ export default class xt extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchFundingRateHistory (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

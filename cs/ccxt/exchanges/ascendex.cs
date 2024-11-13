@@ -103,7 +103,7 @@ public partial class ascendex : Exchange
             } },
             { "version", "v2" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://ascendex.com" },
                 } },
@@ -3244,8 +3244,8 @@ public partial class ascendex : Exchange
         //    }
         //
         object marginRequirements = this.safeList(info, "marginRequirements", new List<object>() {});
-        object id = this.safeString(info, "symbol");
-        market = this.safeMarket(id, market);
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marginRequirements)); postFixIncrement(ref i))
         {
@@ -3253,6 +3253,7 @@ public partial class ascendex : Exchange
             object initialMarginRate = this.safeString(tier, "initialMarginRate");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "positionNotionalLowerBound") },
                 { "maxNotional", this.safeNumber(tier, "positionNotionalUpperBound") },

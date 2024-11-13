@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, MarketInterface, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -211,7 +211,7 @@ class binance(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo': 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
@@ -416,6 +416,12 @@ class binance(Exchange, ImplicitAPI):
                         'eth-staking/wbeth/history/wrapHistory': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/history/unwrapHistory': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/history/wbethRewardsHistory': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/history/stakingHistory': 15,
+                        'sol-staking/sol/history/redemptionHistory': 15,
+                        'sol-staking/sol/history/bnsolRewardsHistory': 15,
+                        'sol-staking/sol/history/rateHistory': 15,
+                        'sol-staking/account': 15,
+                        'sol-staking/sol/quota': 15,
                         # mining endpoints
                         'mining/pub/algoList': 0.1,
                         'mining/pub/coinList': 0.1,
@@ -627,6 +633,8 @@ class binance(Exchange, ImplicitAPI):
                         'eth-staking/eth/stake': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/redeem': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/wrap': 15,  # Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/stake': 15,
+                        'sol-staking/sol/redeem': 15,
                         # mining endpoints
                         'mining/hash-transfer/config': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'mining/hash-transfer/config/cancel': 0.5,  # Weight(IP): 5 => cost = 0.1 * 5 = 0.5
@@ -661,6 +669,7 @@ class binance(Exchange, ImplicitAPI):
                         'simple-earn/locked/redeem': 0.1,
                         'simple-earn/flexible/setAutoSubscribe': 15,
                         'simple-earn/locked/setAutoSubscribe': 15,
+                        'simple-earn/locked/setRedeemOption': 5,
                         # convert
                         'dci/product/subscribe': 0.1,
                         'dci/product/auto_compound/edit': 0.1,
@@ -973,6 +982,9 @@ class binance(Exchange, ImplicitAPI):
                         'mmp': 1,
                         'countdownCancelAll': 1,
                         'order': 1,
+                        'block/order/orders': 5,
+                        'block/order/execute': 5,
+                        'block/user-trades': 5,
                     },
                     'post': {
                         'order': 1,
@@ -982,9 +994,12 @@ class binance(Exchange, ImplicitAPI):
                         'mmpReset': 1,
                         'countdownCancelAll': 1,
                         'countdownCancelAllHeartBeat': 10,
+                        'block/order/create': 5,
+                        'block/order/execute': 5,
                     },
                     'put': {
                         'listenKey': 1,
+                        'block/order/create': 5,
                     },
                     'delete': {
                         'order': 1,
@@ -992,6 +1007,7 @@ class binance(Exchange, ImplicitAPI):
                         'allOpenOrders': 1,
                         'allOpenOrdersByUnderlying': 1,
                         'listenKey': 1,
+                        'block/order/create': 5,
                     },
                 },
                 'public': {
@@ -1117,7 +1133,7 @@ class binance(Exchange, ImplicitAPI):
                         'cm/adlQuantile': 5,
                         'um/trade/asyn': 300,
                         'um/trade/asyn/id': 2,
-                        'um/order/asyn/': 300,
+                        'um/order/asyn': 300,
                         'um/order/asyn/id': 2,
                         'um/income/asyn': 300,
                         'um/income/asyn/id': 2,
@@ -8473,7 +8489,7 @@ class binance(Exchange, ImplicitAPI):
             }
         return result
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://developers.binance.com/docs/wallet/capital/withdraw
@@ -9621,6 +9637,7 @@ class binance(Exchange, ImplicitAPI):
             bracket = brackets[j]
             tiers.append({
                 'tier': self.safe_number(bracket, 'bracket'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
                 'minNotional': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional': self.safe_number_2(bracket, 'notionalCap', 'qtyCap'),
@@ -11304,7 +11321,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
@@ -11378,21 +11395,20 @@ class binance(Exchange, ImplicitAPI):
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         symbol = self.safe_string(info, 'isolatedSymbol')
         timestamp = self.safe_integer(info, 'interestAccuredTime')
         marginMode = 'cross' if (symbol is None) else 'isolated'
         return {
-            'account': 'cross' if (symbol is None) else symbol,
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': self.safe_currency_code(self.safe_string(info, 'asset')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': self.safe_number(info, 'interestRate'),
             'amountBorrowed': self.safe_number(info, 'principal'),
+            'marginMode': marginMode,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'info': info,
         }
 
     def repay_cross_margin(self, code: str, amount, params={}):

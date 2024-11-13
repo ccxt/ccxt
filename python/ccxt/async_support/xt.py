@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1699,6 +1699,9 @@ class xt(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '_', marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 't')
+        percentage = self.safe_string_2(ticker, 'cr', 'r')
+        if percentage is not None:
+            percentage = Precise.string_mul(percentage, '100')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1715,7 +1718,7 @@ class xt(Exchange, ImplicitAPI):
             'last': self.safe_string(ticker, 'c'),
             'previousClose': None,
             'change': self.safe_number(ticker, 'cv'),
-            'percentage': self.safe_number_2(ticker, 'cr', 'r'),
+            'percentage': self.parse_number(percentage),
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
@@ -1903,6 +1906,17 @@ class xt(Exchange, ImplicitAPI):
         #         "b": True
         #     }
         #
+        # spot: watchTrades
+        #
+        #    {
+        #        s: 'btc_usdt',
+        #        i: '228825383103928709',
+        #        t: 1684258222702,
+        #        p: '27003.65',
+        #        q: '0.000796',
+        #        b: True
+        #    }
+        #
         # spot: watchMyTrades
         #
         #    {
@@ -1913,17 +1927,6 @@ class xt(Exchange, ImplicitAPI):
         #        "p": "30000",                   # trade price
         #        "q": "3",                       # qty quantity
         #        "v": "90000"                    # volume trade amount
-        #    }
-        #
-        # spot: watchTrades
-        #
-        #    {
-        #        s: 'btc_usdt',
-        #        i: '228825383103928709',
-        #        t: 1684258222702,
-        #        p: '27003.65',
-        #        q: '0.000796',
-        #        b: True
         #    }
         #
         # swap and future: fetchTrades
@@ -2004,19 +2007,27 @@ class xt(Exchange, ImplicitAPI):
         if marketType is None:
             marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
-        bidOrAsk = self.safe_string(trade, 'm')
-        side = self.safe_string_lower(trade, 'orderSide')
-        if bidOrAsk is not None:
-            side = 'buy' if (bidOrAsk == 'BID') else 'sell'
-        buyerMaker = self.safe_value(trade, 'b')
-        if buyerMaker is not None:
-            side = 'buy'
-        takerOrMaker = self.safe_string_lower(trade, 'takerMaker')
-        if buyerMaker is not None:
-            takerOrMaker = 'maker' if buyerMaker else 'taker'
-        isMaker = self.safe_bool(trade, 'isMaker')
-        if isMaker is not None:
-            takerOrMaker = 'maker' if isMaker else 'taker'
+        side = None
+        takerOrMaker = None
+        isBuyerMaker = self.safe_bool(trade, 'b')
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # public trades always taker
+        else:
+            takerMaker = self.safe_string_lower(trade, 'takerMaker')
+            if takerMaker is not None:
+                takerOrMaker = takerMaker
+            else:
+                isMaker = self.safe_bool(trade, 'isMaker')
+                if isMaker is not None:
+                    takerOrMaker = 'maker' if isMaker else 'taker'
+            orderSide = self.safe_string_lower(trade, 'orderSide')
+            if orderSide is not None:
+                side = orderSide
+            else:
+                bidOrAsk = self.safe_string(trade, 'm')
+                if bidOrAsk is not None:
+                    side = 'buy' if (bidOrAsk == 'BID') else 'sell'
         timestamp = self.safe_integer_n(trade, ['t', 'time', 'timestamp'])
         quantity = self.safe_string_2(trade, 'q', 'quantity')
         amount = None
@@ -3577,7 +3588,7 @@ class xt(Exchange, ImplicitAPI):
         withdrawals = self.safe_value(data, 'items', [])
         return self.parse_transactions(withdrawals, currency, since, limit, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://doc.xt.com/#deposit_withdrawalwithdraw
@@ -3813,10 +3824,10 @@ class xt(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: List[str] = None, params={}) -> LeverageTiers:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBrackets
         retrieve information on the maximum leverage for different trade sizes
+        :see: https://doc.xt.com/#futures_quotesgetLeverageBrackets
         :param str [symbols]: a list of unified market symbols
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3857,7 +3868,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3890,8 +3901,8 @@ class xt(Exchange, ImplicitAPI):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBracket
         retrieve information on the maximum leverage for different trade sizes of a single market
+        :see: https://doc.xt.com/#futures_quotesgetLeverageBracket
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3933,7 +3944,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3959,6 +3970,7 @@ class xt(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market, '_', 'contract')
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
+                'symbol': self.safe_symbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': self.safe_number(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': self.safe_number(tier, 'maxNominalValue'),

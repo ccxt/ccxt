@@ -74,7 +74,7 @@ class blockchaincom extends Exchange {
             ),
             'timeframes' => null,
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo' => 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test' => array(
                     'public' => 'https://testnet-api.delta.exchange',
                     'private' => 'https://testnet-api.delta.exchange',
@@ -917,7 +917,7 @@ class blockchaincom extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://api.blockchain.com/v3/#createwithdrawal

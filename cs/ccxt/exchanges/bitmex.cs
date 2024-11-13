@@ -96,7 +96,7 @@ public partial class bitmex : Exchange
                     { "public", "https://testnet.bitmex.com" },
                     { "private", "https://testnet.bitmex.com" },
                 } },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445" },
+                { "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitmex.com" },
                     { "private", "https://www.bitmex.com" },
@@ -1219,21 +1219,22 @@ public partial class bitmex : Exchange
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
+        object fee = null;
         object feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
             feeCost = this.convertToRealAmount(code, feeCost);
+            fee = new Dictionary<string, object>() {
+                { "cost", this.parseNumber(feeCost) },
+                { "currency", code },
+            };
         }
-        object fee = new Dictionary<string, object>() {
-            { "cost", this.parseToNumeric(feeCost) },
-            { "currency", code },
-        };
         object after = this.safeString(item, "walletBalance");
         if (isTrue(!isEqual(after, null)))
         {
             after = this.convertToRealAmount(code, after);
         }
-        object before = this.parseToNumeric(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
+        object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
         object direction = null;
         if (isTrue(Precise.stringLt(amountString, "0")))
         {
@@ -1255,9 +1256,9 @@ public partial class bitmex : Exchange
             { "referenceAccount", referenceAccount },
             { "type", type },
             { "currency", code },
-            { "amount", this.parseToNumeric(amount) },
+            { "amount", this.parseNumber(amount) },
             { "before", before },
-            { "after", this.parseToNumeric(after) },
+            { "after", this.parseNumber(after) },
             { "status", status },
             { "fee", fee },
         }, currency);

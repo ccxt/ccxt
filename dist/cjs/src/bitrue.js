@@ -95,7 +95,7 @@ class bitrue extends bitrue$1 {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
+                'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
                     'spot': 'https://www.bitrue.com/api',
                     'fapi': 'https://fapi.bitrue.com/fapi',
@@ -619,7 +619,7 @@ class bitrue extends bitrue$1 {
         //     }
         //
         const result = {};
-        const coins = this.safeValue(response, 'coins', []);
+        const coins = this.safeList(response, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const currency = coins[i];
             const id = this.safeString(currency, 'coin');
@@ -630,15 +630,15 @@ class bitrue extends bitrue$1 {
             let minWithdrawString = undefined;
             let maxWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
-            const networkDetails = this.safeValue(currency, 'chainDetail', []);
+            const networkDetails = this.safeList(currency, 'chainDetail', []);
             const networks = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString(entry, 'chain');
                 const network = this.networkIdToCode(networkId, code);
-                const enableDeposit = this.safeValue(entry, 'enableDeposit');
+                const enableDeposit = this.safeBool(entry, 'enableDeposit');
                 deposit = (enableDeposit) ? enableDeposit : deposit;
-                const enableWithdraw = this.safeValue(entry, 'enableWithdraw');
+                const enableWithdraw = this.safeBool(entry, 'enableWithdraw');
                 withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
                 const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
                 if (networkWithdrawFeeString !== undefined) {
@@ -833,11 +833,11 @@ class bitrue extends bitrue$1 {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
-        const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-        const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+        const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
         const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
         const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
@@ -990,7 +990,7 @@ class bitrue extends bitrue$1 {
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 // {
                 //         "code":"0",
@@ -1024,7 +1024,7 @@ class bitrue extends bitrue$1 {
             }
             else {
                 response = await this.fapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 //     {
                 //         "code":"0",
@@ -1260,7 +1260,7 @@ class bitrue extends bitrue$1 {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = this.safeValue(response, 0, {});
+            data = this.safeDict(response, 0, {});
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTicker only support spot & swap markets');
@@ -1322,11 +1322,11 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const timeframesFuture = this.safeValue(timeframes, 'future', {});
+            const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
                 // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1344,7 +1344,7 @@ class bitrue extends bitrue$1 {
             data = response;
         }
         else if (market['spot']) {
-            const timeframesSpot = this.safeValue(timeframes, 'spot', {});
+            const timeframesSpot = this.safeDict(timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
                 // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1357,7 +1357,7 @@ class bitrue extends bitrue$1 {
                 request['fromIdx'] = since;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOHLCV only support spot & swap markets');
@@ -1582,7 +1582,7 @@ class bitrue extends bitrue$1 {
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeValue(data, i, {});
+            const ticker = this.safeDict(data, i, {});
             const market = this.market(this.safeValue(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
@@ -1645,8 +1645,8 @@ class bitrue extends bitrue$1 {
         const orderId = this.safeString(trade, 'orderId');
         const id = this.safeString2(trade, 'id', 'tradeId');
         let side = undefined;
-        const buyerMaker = this.safeValue(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
-        const isBuyer = this.safeValue(trade, 'isBuyer');
+        const buyerMaker = this.safeBool(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
+        const isBuyer = this.safeBool(trade, 'isBuyer');
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy';
         }
@@ -1661,7 +1661,7 @@ class bitrue extends bitrue$1 {
             };
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeValue(trade, 'isMaker');
+        const isMaker = this.safeBool(trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1826,7 +1826,7 @@ class bitrue extends bitrue$1 {
         const id = this.safeString(order, 'orderId');
         let type = this.safeStringLower(order, 'type');
         const side = this.safeStringLower(order, 'side');
-        const fills = this.safeValue(order, 'fills', []);
+        const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX') || (type === 'post_only');
@@ -1973,7 +1973,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2063,7 +2063,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['orderId'] = id; // spot market id is mandatory
@@ -2207,7 +2207,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2307,7 +2307,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2365,7 +2365,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' cancelAllOrders only support future markets');
@@ -2420,7 +2420,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2620,7 +2620,7 @@ class bitrue extends bitrue$1 {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2811,7 +2811,7 @@ class bitrue extends bitrue$1 {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeValue(fee, 'chainDetail', []);
+        const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result = {
             'info': fee,
@@ -2967,7 +2967,7 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountTypes = this.safeValue(this.options, 'accountsByType', {});
+        const accountTypes = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
         const toId = this.safeString(accountTypes, toAccount, toAccount);
         const request = {

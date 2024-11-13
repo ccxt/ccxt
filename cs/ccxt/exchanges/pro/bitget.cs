@@ -581,7 +581,7 @@ public partial class bitget : ccxt.bitget
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -872,7 +872,7 @@ public partial class bitget : ccxt.bitget
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method

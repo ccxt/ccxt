@@ -2254,8 +2254,8 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -2349,8 +2349,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         marginLevels = self.safe_value(info, 'marginLevels')
-        id = self.safe_string(info, 'symbol')
-        market = self.safe_market(id, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(marginLevels)):
             tier = marginLevels[i]
@@ -2362,6 +2362,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 previousTier['notionalCap'] = notionalFloor
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': None,

@@ -74,7 +74,7 @@ class bitbns(Exchange, ImplicitAPI):
             },
             'hostname': 'bitbns.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
                 'api': {
                     'www': 'https://{hostname}',
                     'v1': 'https://api.{hostname}/api/trade/v1',
@@ -226,11 +226,11 @@ class bitbns(Exchange, ImplicitAPI):
             quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            marketPrecision = self.safe_value(market, 'precision', {})
-            marketLimits = self.safe_value(market, 'limits', {})
-            amountLimits = self.safe_value(marketLimits, 'amount', {})
-            priceLimits = self.safe_value(marketLimits, 'price', {})
-            costLimits = self.safe_value(marketLimits, 'cost', {})
+            marketPrecision = self.safe_dict(market, 'precision', {})
+            marketLimits = self.safe_dict(market, 'limits', {})
+            amountLimits = self.safe_dict(marketLimits, 'amount', {})
+            priceLimits = self.safe_dict(marketLimits, 'price', {})
+            costLimits = self.safe_dict(marketLimits, 'cost', {})
             usdt = (quoteId == 'USDT')
             # INR markets don't need a _INR prefix
             uppercaseId = (baseId + '_' + quoteId) if usdt else baseId
@@ -430,7 +430,7 @@ class bitbns(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         }
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         keys = list(data.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -637,7 +637,7 @@ class bitbns(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         request: dict = {
             'entry_id': id,
@@ -668,7 +668,7 @@ class bitbns(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'entry_id': id,
         }
-        trigger = self.safe_value_2(params, 'trigger', 'stop')
+        trigger = self.safe_bool_2(params, 'trigger', 'stop')
         if trigger:
             raise BadRequest(self.id + ' fetchOrder cannot fetch stop orders')
         response = await self.v1PostOrderStatusSymbol(self.extend(request, params))
@@ -697,7 +697,7 @@ class bitbns(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         return self.parse_order(first, market)
 
@@ -717,7 +717,7 @@ class bitbns(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
         request: dict = {
@@ -1000,7 +1000,7 @@ class bitbns(Exchange, ImplicitAPI):
                 '6': 'ok',  # Completed
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -1090,7 +1090,7 @@ class bitbns(Exchange, ImplicitAPI):
         #         "error":null
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         address = self.safe_string(data, 'token')
         tag = self.safe_string(data, 'tag')
         self.check_address(address)

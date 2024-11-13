@@ -81,7 +81,7 @@ class btcmarkets extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/89731817-b3fb8480-da52-11ea-817f-783b08aaf32b.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/8c8d6907-3873-4cc4-ad20-e22fba28247e',
                 'api' => array(
                     'public' => 'https://api.btcmarkets.net',
                     'private' => 'https://api.btcmarkets.net',
@@ -1181,7 +1181,7 @@ class btcmarkets extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.btcmarkets.net/v3/#tag/Fund-Management-APIs/paths/{1v3}1withdrawals/post

@@ -4402,6 +4402,7 @@ public partial class mexc : Exchange
         //        "isHidden": false
         //    }
         //
+        object marketId = this.safeString(info, "symbol");
         object maintenanceMarginRate = this.safeString(info, "maintenanceMarginRate");
         object initialMarginRate = this.safeString(info, "initialMarginRate");
         object maxVol = this.safeString(info, "maxVol");
@@ -4415,6 +4416,7 @@ public partial class mexc : Exchange
         {
             return new List<object>() {new Dictionary<string, object>() {
     { "tier", 0 },
+    { "symbol", this.safeSymbol(marketId, market, null, "contract") },
     { "currency", this.safeCurrencyCode(quoteId) },
     { "minNotional", null },
     { "maxNotional", null },
@@ -4428,6 +4430,7 @@ public partial class mexc : Exchange
             object cap = Precise.stringAdd(floor, riskIncrVol);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskIncrVol)) },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", this.safeCurrencyCode(quoteId) },
                 { "minNotional", this.parseNumber(floor) },
                 { "maxNotional", this.parseNumber(cap) },

@@ -1728,6 +1728,10 @@ class xt extends Exchange {
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($ticker, 't');
+        $percentage = $this->safe_string_2($ticker, 'cr', 'r');
+        if ($percentage !== null) {
+            $percentage = Precise::string_mul($percentage, '100');
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1744,7 +1748,7 @@ class xt extends Exchange {
             'last' => $this->safe_string($ticker, 'c'),
             'previousClose' => null,
             'change' => $this->safe_number($ticker, 'cv'),
-            'percentage' => $this->safe_number_2($ticker, 'cr', 'r'),
+            'percentage' => $this->parse_number($percentage),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
@@ -1945,6 +1949,17 @@ class xt extends Exchange {
         //         "b" => true
         //     }
         //
+        // spot => watchTrades
+        //
+        //    {
+        //        s => 'btc_usdt',
+        //        i => '228825383103928709',
+        //        t => 1684258222702,
+        //        p => '27003.65',
+        //        q => '0.000796',
+        //        b => true
+        //    }
+        //
         // spot => watchMyTrades
         //
         //    {
@@ -1955,17 +1970,6 @@ class xt extends Exchange {
         //        "p" => "30000",                   // $trade price
         //        "q" => "3",                       // qty $quantity
         //        "v" => "90000"                    // volume $trade $amount
-        //    }
-        //
-        // spot => watchTrades
-        //
-        //    {
-        //        s => 'btc_usdt',
-        //        i => '228825383103928709',
-        //        t => 1684258222702,
-        //        p => '27003.65',
-        //        q => '0.000796',
-        //        b => true
         //    }
         //
         // swap and future => fetchTrades
@@ -2047,22 +2051,31 @@ class xt extends Exchange {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
         $market = $this->safe_market($marketId, $market, '_', $marketType);
-        $bidOrAsk = $this->safe_string($trade, 'm');
-        $side = $this->safe_string_lower($trade, 'orderSide');
-        if ($bidOrAsk !== null) {
-            $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
-        }
-        $buyerMaker = $this->safe_value($trade, 'b');
-        if ($buyerMaker !== null) {
-            $side = 'buy';
-        }
-        $takerOrMaker = $this->safe_string_lower($trade, 'takerMaker');
-        if ($buyerMaker !== null) {
-            $takerOrMaker = $buyerMaker ? 'maker' : 'taker';
-        }
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        if ($isMaker !== null) {
-            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        $side = null;
+        $takerOrMaker = null;
+        $isBuyerMaker = $this->safe_bool($trade, 'b');
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // public trades always taker
+        } else {
+            $takerMaker = $this->safe_string_lower($trade, 'takerMaker');
+            if ($takerMaker !== null) {
+                $takerOrMaker = $takerMaker;
+            } else {
+                $isMaker = $this->safe_bool($trade, 'isMaker');
+                if ($isMaker !== null) {
+                    $takerOrMaker = $isMaker ? 'maker' : 'taker';
+                }
+            }
+            $orderSide = $this->safe_string_lower($trade, 'orderSide');
+            if ($orderSide !== null) {
+                $side = $orderSide;
+            } else {
+                $bidOrAsk = $this->safe_string($trade, 'm');
+                if ($bidOrAsk !== null) {
+                    $side = ($bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         $timestamp = $this->safe_integer_n($trade, array( 't', 'time', 'timestamp' ));
         $quantity = $this->safe_string_2($trade, 'q', 'quantity');
@@ -3718,7 +3731,7 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://doc.xt.com/#deposit_withdrawalwithdraw
@@ -3968,10 +3981,10 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * retrieve information on the maximum leverage for different trade sizes
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @param {string} [$symbols] a list of unified market $symbols
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~
@@ -4014,7 +4027,7 @@ class xt extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4051,8 +4064,8 @@ class xt extends Exchange {
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * retrieve information on the maximum leverage for different trade sizes of a single $market
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -4096,7 +4109,7 @@ class xt extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, $market = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4122,6 +4135,7 @@ class xt extends Exchange {
             $market = $this->safe_market($marketId, $market, '_', 'contract');
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market, '_', 'contract'),
                 'currency' => $market['settle'],
                 'minNotional' => $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0),
                 'maxNotional' => $this->safe_number($tier, 'maxNominalValue'),

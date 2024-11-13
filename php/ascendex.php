@@ -110,7 +110,7 @@ class ascendex extends Exchange {
             ),
             'version' => 'v2',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1',
                 'api' => array(
                     'rest' => 'https://ascendex.com',
                 ),
@@ -3011,14 +3011,15 @@ class ascendex extends Exchange {
         //    }
         //
         $marginRequirements = $this->safe_list($info, 'marginRequirements', array());
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($marginRequirements); $i++) {
             $tier = $marginRequirements[$i];
             $initialMarginRate = $this->safe_string($tier, 'initialMarginRate');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number($tier, 'positionNotionalLowerBound'),
                 'maxNotional' => $this->safe_number($tier, 'positionNotionalUpperBound'),

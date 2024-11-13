@@ -69,7 +69,7 @@ public partial class bithumb : Exchange
             } },
             { "hostname", "bithumb.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}/public" },
                     { "private", "https://api.{hostname}" },

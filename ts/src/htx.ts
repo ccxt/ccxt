@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -90,7 +90,7 @@ export default class htx extends Exchange {
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarketLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': false,
@@ -5175,16 +5175,16 @@ export default class htx extends Exchange {
         let orderType = type.replace ('buy-', '');
         orderType = orderType.replace ('sell-', '');
         const options = this.safeValue (this.options, market['type'], {});
-        const stopPrice = this.safeString2 (params, 'stopPrice', 'stop-price');
-        if (stopPrice === undefined) {
+        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopPrice', 'stop-price' ]);
+        if (triggerPrice === undefined) {
             const stopOrderTypes = this.safeValue (options, 'stopOrderTypes', {});
             if (orderType in stopOrderTypes) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice or a stop-price parameter for a stop order');
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for a stop order');
             }
         } else {
             const defaultOperator = (side === 'sell') ? 'lte' : 'gte';
             const stopOperator = this.safeString (params, 'operator', defaultOperator);
-            request['stop-price'] = this.priceToPrecision (symbol, stopPrice);
+            request['stop-price'] = this.priceToPrecision (symbol, triggerPrice);
             request['operator'] = stopOperator;
             if ((orderType === 'limit') || (orderType === 'limit-fok')) {
                 orderType = 'stop-' + orderType;
@@ -5252,7 +5252,7 @@ export default class htx extends Exchange {
         if (orderType in limitOrderTypes) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        params = this.omit (params, [ 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ]);
+        params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ]);
         return this.extend (request, params);
     }
 
@@ -5290,16 +5290,16 @@ export default class htx extends Exchange {
         } else if (timeInForce === 'IOC') {
             type = 'ioc';
         }
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeString2 (params, 'trailingPercent', 'callback_rate');
         const trailingTriggerPrice = this.safeNumber (params, 'trailingTriggerPrice', price);
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-        if (isStop) {
+        if (isTrigger) {
             const triggerType = this.safeString2 (params, 'triggerType', 'trigger_type', 'le');
             request['trigger_type'] = triggerType;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
@@ -5348,7 +5348,7 @@ export default class htx extends Exchange {
         const broker = this.safeValue (this.options, 'broker', {});
         const brokerId = this.safeString (broker, 'id');
         request['channel_code'] = brokerId;
-        params = this.omit (params, [ 'reduceOnly', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
+        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'triggerType', 'leverRate', 'timeInForce', 'leverage', 'trailingPercent', 'trailingTriggerPrice' ]);
         return this.extend (request, params);
     }
 
@@ -5372,7 +5372,7 @@ export default class htx extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.stopPrice] the price a trigger order is triggered at
+         * @param {float} [params.triggerPrice] the price a trigger order is triggered at
          * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
          * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
          * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
@@ -5388,12 +5388,12 @@ export default class htx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'trigger_price');
+        const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'trigger_price' ]);
         const stopLossTriggerPrice = this.safeNumber2 (params, 'stopLossPrice', 'sl_trigger_price');
         const takeProfitTriggerPrice = this.safeNumber2 (params, 'takeProfitPrice', 'tp_trigger_price');
         const trailingPercent = this.safeNumber (params, 'trailingPercent');
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isStop = triggerPrice !== undefined;
+        const isTrigger = triggerPrice !== undefined;
         const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
         const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
         let response = undefined;
@@ -5410,7 +5410,7 @@ export default class htx extends Exchange {
                 [ marginMode, contractRequest ] = this.handleMarginModeAndParams ('createOrder', contractRequest);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTpslOrder (contractRequest);
@@ -5420,7 +5420,7 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (marginMode === 'cross') {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTpslOrder (contractRequest);
@@ -5436,7 +5436,7 @@ export default class htx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' createOrder () requires an extra parameter params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
                 }
                 if (market['swap']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostSwapApiV1SwapTpslOrder (contractRequest);
@@ -5446,7 +5446,7 @@ export default class htx extends Exchange {
                         response = await this.contractPrivatePostSwapApiV1SwapOrder (contractRequest);
                     }
                 } else if (market['future']) {
-                    if (isStop) {
+                    if (isTrigger) {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder (contractRequest);
                     } else if (isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
                         response = await this.contractPrivatePostApiV1ContractTpslOrder (contractRequest);
@@ -6502,7 +6502,7 @@ export default class htx extends Exchange {
                 'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -6529,7 +6529,7 @@ export default class htx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name htx#withdraw
@@ -7024,7 +7024,7 @@ export default class htx extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name htx#fetchBorrowInterest
@@ -7091,7 +7091,7 @@ export default class htx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7139,17 +7139,16 @@ export default class htx extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (info, 'accrued-at');
         return {
-            'account': (marginMode === 'isolated') ? symbol : 'cross',  // deprecated
+            'info': info,
             'symbol': symbol,
-            'marginMode': marginMode,
             'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
             'interest': this.safeNumber (info, 'interest-amount'),
             'interestRate': this.safeNumber (info, 'interest-rate'),
             'amountBorrowed': this.safeNumber (info, 'loan-amount'),
+            'marginMode': marginMode,
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -8179,95 +8178,35 @@ export default class htx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
-        /**
-         * @method
-         * @name htx#fetchMarketLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-         */
-        await this.loadMarkets ();
-        const request: Dict = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            if (!market['contract']) {
-                throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
-            }
-            request['contract_code'] = market['id'];
-        }
-        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor (this.extend (request, params));
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "MANA",
-        //                "contract_code": "MANA-USDT",
-        //                "margin_mode": "isolated",
-        //                "trade_partition": "USDT",
-        //                "list": [
-        //                    {
-        //                        "lever_rate": 75,
-        //                        "ladders": [
-        //                            {
-        //                                "ladder": 0,
-        //                                "min_size": 0,
-        //                                "max_size": 999,
-        //                                "adjust_factor": 0.7
-        //                            },
-        //                            ...
-        //                        ]
-        //                    }
-        //                    ...
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const data = this.safeValue (response, 'data');
-        const tiers = this.parseLeverageTiers (data, [ symbol ], 'contract_code');
-        return this.safeValue (tiers, symbol);
-    }
-
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const list = this.safeValue (item, 'list', []);
-            const tiers = [];
-            const currency = this.safeString (item, 'trade_partition');
-            const id = this.safeString (item, marketIdKey);
-            const symbol = this.safeSymbol (id);
-            if (this.inArray (symbol, symbols)) {
-                for (let j = 0; j < list.length; j++) {
-                    const obj = list[j];
-                    const leverage = this.safeString (obj, 'lever_rate');
-                    const ladders = this.safeValue (obj, 'ladders', []);
-                    for (let k = 0; k < ladders.length; k++) {
-                        const bracket = ladders[k];
-                        const adjustFactor = this.safeString (bracket, 'adjust_factor');
-                        tiers.push ({
-                            'tier': this.safeInteger (bracket, 'ladder'),
-                            'currency': this.safeCurrencyCode (currency),
-                            'minNotional': this.safeNumber (bracket, 'min_size'),
-                            'maxNotional': this.safeNumber (bracket, 'max_size'),
-                            'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
-                            'maxLeverage': this.parseNumber (leverage),
-                            'info': bracket,
-                        });
-                    }
-                }
-                result[symbol] = tiers;
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+        const currencyId = this.safeString (info, 'trade_partition');
+        const marketId = this.safeString (info, 'contract_code');
+        const tiers = [];
+        const brackets = this.safeList (info, 'list', []);
+        for (let i = 0; i < brackets.length; i++) {
+            const item = brackets[i];
+            const leverage = this.safeString (item, 'lever_rate');
+            const ladders = this.safeList (item, 'ladders', []);
+            for (let k = 0; k < ladders.length; k++) {
+                const bracket = ladders[k];
+                const adjustFactor = this.safeString (bracket, 'adjust_factor');
+                tiers.push ({
+                    'tier': this.safeInteger (bracket, 'ladder'),
+                    'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+                    'currency': this.safeCurrencyCode (currencyId),
+                    'minNotional': this.safeNumber (bracket, 'min_size'),
+                    'maxNotional': this.safeNumber (bracket, 'max_size'),
+                    'maintenanceMarginRate': this.parseNumber (Precise.stringDiv (adjustFactor, leverage)),
+                    'maxLeverage': this.parseNumber (leverage),
+                    'info': bracket,
+                });
             }
         }
-        return result;
+        return tiers as LeverageTier[];
     }
 
     async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {

@@ -2398,8 +2398,8 @@ class krakenfutures extends krakenfutures$1 {
         /**
          * @method
          * @name krakenfutures#fetchLeverageTiers
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2494,8 +2494,8 @@ class krakenfutures extends krakenfutures$1 {
         //    }
         //
         const marginLevels = this.safeValue(info, 'marginLevels');
-        const id = this.safeString(info, 'symbol');
-        market = this.safeMarket(id, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const tiers = [];
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
@@ -2508,6 +2508,7 @@ class krakenfutures extends krakenfutures$1 {
             }
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['quote'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': undefined,

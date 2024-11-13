@@ -683,7 +683,8 @@ class blofin extends blofin$1 {
                 return;
             }
             else if (event === 'login') {
-                client.resolve(message, 'authenticate_hash');
+                const future = this.safeValue(client.futures, 'authenticate_hash');
+                future.resolve(true);
                 return;
             }
             else if (event === 'error') {

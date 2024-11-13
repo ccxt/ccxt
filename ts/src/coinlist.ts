@@ -2010,7 +2010,7 @@ export default class coinlist extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name coinlist#withdraw
@@ -2099,7 +2099,7 @@ export default class coinlist extends Exchange {
             'fee': fee,
             'comment': this.safeString (transaction, 'description'),
             'internal': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionType (type) {

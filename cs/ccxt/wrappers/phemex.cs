@@ -10,6 +10,7 @@ public partial class phemex
     /// retrieves data on all markets for phemex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-product-information-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

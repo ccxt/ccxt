@@ -1191,7 +1191,7 @@ export default class yobit extends Exchange {
         const ids = Object.keys (trades);
         const result = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const trade = this.parseTrade (this.extend (trades[id], {
                 'trade_id': id,
             }), market);
@@ -1262,7 +1262,7 @@ export default class yobit extends Exchange {
         } as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name yobit#withdraw

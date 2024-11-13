@@ -60,6 +60,67 @@
                   "lastUpdateTimestamp": null,
                   "reduceOnly": null
                 }
+            },
+            {
+                "description": "spot limit buy stopLossPrice",
+                "method": "createOrder",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1,
+                  30,
+                  {
+                    "stopLossPrice": 29
+                  }
+                ],
+                "httpResponse": {
+                  "error": [],
+                  "result": {
+                    "txid": [
+                      "OJZ42L-YACUJ-YCYN4C"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ stop loss 29.00000 -> limit 30.00000"
+                    }
+                  }
+                },
+                "parsedResponse": {
+                  "id": "OJZ42L-YACUJ-YCYN4C",
+                  "clientOrderId": null,
+                  "info": {
+                    "txid": [
+                      "OJZ42L-YACUJ-YCYN4C"
+                    ],
+                    "descr": {
+                      "order": "buy 0.10000000 LTCUSDT @ stop loss 29.00000 -> limit 30.00000"
+                    }
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "lastTradeTimestamp": null,
+                  "status": null,
+                  "symbol": "LTC/USDT",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": false,
+                  "side": "buy",
+                  "price": 30,
+                  "stopPrice": 29,
+                  "triggerPrice": 29,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": 29,
+                  "cost": null,
+                  "amount": 0.1,
+                  "filled": null,
+                  "average": null,
+                  "remaining": null,
+                  "reduceOnly": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "lastUpdateTimestamp": null
+                }
             }
         ],
         "fetchOrder": [
@@ -382,8 +443,8 @@
                         "postOnly": false,
                         "side": "sell",
                         "price": null,
-                        "stopPrice": null,
-                        "triggerPrice": null,
+                        "stopPrice": 120,
+                        "triggerPrice": 120,
                         "takeProfitPrice": 120,
                         "stopLossPrice": null,
                         "cost": null,
@@ -489,8 +550,8 @@
                         "postOnly": false,
                         "side": "sell",
                         "price": 54,
-                        "stopPrice": null,
-                        "triggerPrice": null,
+                        "stopPrice": 55,
+                        "triggerPrice": 55,
                         "takeProfitPrice": null,
                         "stopLossPrice": 55,
                         "cost": 0,

@@ -119,7 +119,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
+                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -1108,17 +1108,18 @@ class bitmex(Exchange, ImplicitAPI):
             # set the timestamp to zero, 1970 Jan 1 00:00:00
             # for unrealized pnl and other transactions without a timestamp
             timestamp = 0  # see comments above
+        fee = None
         feeCost = self.safe_string(item, 'fee')
         if feeCost is not None:
             feeCost = self.convert_to_real_amount(code, feeCost)
-        fee = {
-            'cost': self.parse_to_numeric(feeCost),
-            'currency': code,
-        }
+            fee = {
+                'cost': self.parse_number(feeCost),
+                'currency': code,
+            }
         after = self.safe_string(item, 'walletBalance')
         if after is not None:
             after = self.convert_to_real_amount(code, after)
-        before = self.parse_to_numeric(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
+        before = self.parse_number(Precise.string_sub(self.number_to_string(after), self.number_to_string(amount)))
         direction = None
         if Precise.string_lt(amountString, '0'):
             direction = 'out'
@@ -1137,9 +1138,9 @@ class bitmex(Exchange, ImplicitAPI):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': self.parse_to_numeric(amount),
+            'amount': self.parse_number(amount),
             'before': before,
-            'after': self.parse_to_numeric(after),
+            'after': self.parse_number(after),
             'status': status,
             'fee': fee,
         }, currency)
@@ -2284,7 +2285,7 @@ class bitmex(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.bitmex.com/api/explorer/#not /User/User_requestWithdrawal

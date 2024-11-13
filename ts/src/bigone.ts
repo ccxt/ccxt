@@ -85,7 +85,7 @@ export default class bigone extends Exchange {
             },
             'hostname': 'big.one', // or 'bigone.com'
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
@@ -1969,7 +1969,7 @@ export default class bigone extends Exchange {
             'fee': undefined,
             'comment': undefined,
             'internal': internal,
-        };
+        } as Transaction;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2153,7 +2153,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bigone#withdraw

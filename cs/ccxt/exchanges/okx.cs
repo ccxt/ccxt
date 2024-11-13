@@ -372,6 +372,7 @@ public partial class okx : Exchange
                         { "finance/staking-defi/orders-history", divide(10, 3) },
                         { "finance/staking-defi/eth/balance", divide(5, 3) },
                         { "finance/staking-defi/eth/purchase-redeem-history", divide(5, 3) },
+                        { "finance/staking-defi/eth/product-info", 3 },
                         { "copytrading/current-subpositions", 1 },
                         { "copytrading/subpositions-history", 1 },
                         { "copytrading/instruments", 4 },
@@ -7321,8 +7322,10 @@ public partial class okx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = getValue(info, i);
+            object marketId = this.safeString(tier, "instId");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "minSz") },
                 { "maxNotional", this.safeNumber(tier, "maxSz") },
@@ -7416,15 +7419,15 @@ public partial class okx : Exchange
         }
         object timestamp = this.safeInteger(info, "ts");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", this.safeString(market, "symbol") },
-            { "marginMode", this.safeString(info, "mgnMode") },
             { "currency", this.safeCurrencyCode(this.safeString(info, "ccy")) },
             { "interest", this.safeNumber(info, "interest") },
             { "interestRate", this.safeNumber(info, "interestRate") },
             { "amountBorrowed", this.safeNumber(info, "liab") },
+            { "marginMode", this.safeString(info, "mgnMode") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 

@@ -2293,7 +2293,7 @@ class woo(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.woo.org/#token-withdraw
@@ -2332,7 +2332,7 @@ class woo(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def repay_margin(self, code: str, amount, symbol: Str = None, params={}):
+    def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
         :see: https://docs.woo.org/#repay-interest

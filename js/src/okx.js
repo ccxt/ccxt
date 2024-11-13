@@ -398,6 +398,7 @@ export default class okx extends Exchange {
                         // eth staking
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
+                        'finance/staking-defi/eth/product-info': 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -6994,8 +6995,10 @@ export default class okx extends Exchange {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
+            const marketId = this.safeString(tier, 'instId');
             tiers.push({
                 'tier': this.safeInteger(tier, 'tier'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber(tier, 'minSz'),
                 'maxNotional': this.safeNumber(tier, 'maxSz'),
@@ -7076,15 +7079,15 @@ export default class okx extends Exchange {
         }
         const timestamp = this.safeInteger(info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString(market, 'symbol'),
-            'marginMode': this.safeString(info, 'mgnMode'),
             'currency': this.safeCurrencyCode(this.safeString(info, 'ccy')),
             'interest': this.safeNumber(info, 'interest'),
             'interestRate': this.safeNumber(info, 'interestRate'),
             'amountBorrowed': this.safeNumber(info, 'liab'),
+            'marginMode': this.safeString(info, 'mgnMode'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'info': info,
         };
     }
     async borrowCrossMargin(code, amount, params = {}) {

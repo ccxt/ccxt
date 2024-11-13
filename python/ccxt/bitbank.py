@@ -100,7 +100,7 @@ class bitbank(Exchange, ImplicitAPI):
             },
             'hostname': 'bitbank.cc',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
+                'logo': 'https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348',
                 'api': {
                     'public': 'https://public.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -814,7 +814,7 @@ class bitbank(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://github.com/bitbankinc/bitbank-api-docs/blob/38d6d7c6f486c793872fd4b4087a0d090a04cd0a/rest-api.md#new-withdrawal-request

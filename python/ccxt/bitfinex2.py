@@ -147,7 +147,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             # cheapest endpoint is 240 requests per minute => ~ 4 requests per second =>( 1000ms / 4 ) = 250ms between requests on average
             'rateLimit': 250,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178',
                 'api': {
                     'v1': 'https://api.bitfinex.com',
                     'public': 'https://api-pub.bitfinex.com',
@@ -2458,7 +2458,7 @@ class bitfinex2(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/reference/rest-auth-withdraw

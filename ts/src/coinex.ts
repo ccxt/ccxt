@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -462,9 +462,43 @@ export default class coinex extends Exchange {
                     'FUTURES': 'swap',
                 },
                 'networks': {
+                    'BTC': 'BTC',
                     'BEP20': 'BSC',
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'ERC20': 'ERC20',
+                    'BRC20': 'BRC20',
+                    'SOL': 'SOL',
+                    'TON': 'SOL',
+                    'BSV': 'BSV',
+                    'AVAXC': 'AVA_C',
+                    'AVAXX': 'AVA',
+                    'SUI': 'SUI',
+                    'ACA': 'ACA',
+                    'CHZ': 'CHILIZ',
+                    'ADA': 'ADA',
+                    'ARB': 'ARBITRUM',
+                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'OP': 'OPTIMISM',
+                    'APT': 'APTOS',
+                    'ATOM': 'ATOM',
+                    'FTM': 'FTM',
+                    'BCH': 'BCH',
+                    'ASTR': 'ASTR',
+                    'LTC': 'LTC',
+                    'MATIC': 'MATIC',
+                    'CRONOS': 'CRONOS',
+                    'DASH': 'DASH',
+                    'DOT': 'DOT',
+                    'ETC': 'ETC',
+                    'ETHW': 'ETHPOW',
+                    'FIL': 'FIL',
+                    'ZIL': 'ZIL',
+                    'DOGE': 'DOGE',
+                    'TIA': 'CELESTIA',
+                    'SEI': 'SEI',
+                    'XRP': 'XRP',
+                    'XMR': 'XMR',
+                    // CSC, AE, BASE, AIPG, AKASH, POLKADOTASSETHUB ?, ALEO, STX, ALGO, ALPH, BLAST, AR, ARCH, ARDR, ARK, ARRR, MANTA, NTRN, LUNA, AURORA, AVAIL, ASC20, AVA, AYA, AZERO, BAN, BAND, BB, RUNES, BEAM, BELLSCOIN, BITCI, NEAR, AGORIC, BLOCX, BNC, BOBA, BRISE, KRC20, CANTO, CAPS, CCD, CELO, CFX, CHI, CKB, CLORE, CLV, CORE, CSPR, CTXC, DAG, DCR, DERO, DESO, DEFI, DGB, DNX, DOCK, DOGECHAIN, DYDX, DYMENSION, EGLD, ELA, ELF, ENJIN, EOSIO, ERG, ETN_SC, EVMOS, EWC, SGB, FACT, FB, FET, FIO, FIRO, NEO3, FLOW, FLARE, FLUX, LINEA, FREN, FSN, FB_BRC20, GLMR, GRIN, GRS, HACASH, HBAR, HERB, HIVE, MAPO, HMND, HNS, ZKSYNC, HTR, HUAHUA, MERLIN, ICP, ICX, INJ, IOST, IOTA, IOTX, IRIS, IRON, ONE, JOYSTREAM, KAI, KAR, KAS, KAVA, KCN, KDA, KLAY, KLY, KMD, KSM, KUB, KUJIRA, LAT, LBC, LUNC, LUKSO, MARS, METIS, MINA, MANTLE, MOB, MODE, MONA, MOVR, MTL, NEOX, NEXA, NIBI, NIMIQ, NMC, ONOMY, NRG, WAVES, NULS, OAS, OCTA, OLT, ONT, OORT, ORAI, OSMO, P3D, COMPOSABLE, PIVX, RON, POKT, POLYMESH, PRE_MARKET, PYI, QKC, QTUM, QUBIC, RSK, ROSE, ROUTE, RTM, THORCHAIN, RVN, RADIANT, SAGA, SALVIUM, SATOX, SC, SCP, _NULL, SCRT, SDN, RGBPP, SELF, SMH, SPACE, STARGAZE, STC, STEEM, STRATISEVM, STRD, STARKNET, SXP, SYS, TAIKO, TAO, TARA, TENET, THETA, TT, VENOM, VECHAIN, TOMO, VITE, VLX, VSYS, VTC, WAN, WAXP, WEMIX, XCH, XDC, XEC, XELIS, NEM, XHV, XLM, XNA, NANO, XPLA, XPR, XPRT, XRD, XTZ, XVG, XYM, ZANO, ZEC, ZEN, ZEPH, ZETA
                 },
             },
             'commonCurrencies': {
@@ -490,6 +524,7 @@ export default class coinex extends Exchange {
                     '3008': RequestTimeout, // Service busy, please try again later.
                     '3109': InsufficientFunds, // {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder, // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3600': OrderNotFound, // {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder, // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError, // Order cancellation prohibited during the Call Auction period.
                     '3612': InvalidOrder, // The est. ask price is lower than the current bottom ask price. Please reduce the amount.
@@ -2591,10 +2626,14 @@ export default class coinex extends Exchange {
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
+        const requestIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            requestIds.push (parseInt (ids[i]));
+        }
         if (stop) {
-            request['stop_ids'] = ids;
+            request['stop_ids'] = requestIds;
         } else {
-            request['order_ids'] = ids;
+            request['order_ids'] = requestIds;
         }
         if (market['spot']) {
             if (stop) {
@@ -3726,23 +3765,15 @@ export default class coinex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networks = this.safeDict (currency, 'networks', {});
-        const network = this.safeString2 (params, 'network', 'chain');
-        params = this.omit (params, 'network');
-        const networksKeys = Object.keys (networks);
-        const numOfNetworks = networksKeys.length;
-        if (networks !== undefined && numOfNetworks > 1) {
-            if (network === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() ' + code + ' requires a network parameter');
-            }
-            if (!(network in networks)) {
-                throw new ExchangeError (this.id + ' fetchDepositAddress() ' + network + ' network not supported for ' + code);
-            }
-        }
         const request: Dict = {
             'ccy': currency['id'],
-            'chain': network,
         };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
+        }
+        request['chain'] = this.networkCodeToId (networkCode); // required for on-chain, not required for inter-user transfer
         const response = await this.v2PrivateGetAssetsDepositAddress (this.extend (request, params));
         //
         //     {
@@ -3755,13 +3786,7 @@ export default class coinex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const depositAddress = this.parseDepositAddress (data, currency);
-        const options = this.safeDict (this.options, 'fetchDepositAddress', {});
-        const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest) {
-            depositAddress['network'] = this.networkIdToCode (network, currency).toUpperCase ();
-        }
-        return depositAddress as DepositAddress;
+        return this.parseDepositAddress (data, currency);
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
@@ -4259,6 +4284,7 @@ export default class coinex extends Exchange {
             const maxNotional = this.safeNumber (tier, 'amount');
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
                 'currency': market['linear'] ? market['base'] : market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4268,7 +4294,7 @@ export default class coinex extends Exchange {
             });
             minNotional = maxNotional;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
@@ -4658,7 +4684,7 @@ export default class coinex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name coinex#withdraw
@@ -4676,8 +4702,6 @@ export default class coinex extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const networkCode = this.safeStringUpper2 (params, 'network', 'chain');
-        params = this.omit (params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
@@ -4686,6 +4710,8 @@ export default class coinex extends Exchange {
             'to_address': address, // must be authorized, inter-user transfer by a registered mobile phone number or an email address is supported
             'amount': this.numberToString (amount), // the actual amount without fees, https://www.coinex.com/fees
         };
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode); // required for on-chain, not required for inter-user transfer
         }
@@ -4724,6 +4750,7 @@ export default class coinex extends Exchange {
         const statuses: Dict = {
             'audit': 'pending',
             'pass': 'pending',
+            'audit_required': 'pending',
             'processing': 'pending',
             'confirming': 'pending',
             'not_pass': 'failed',
@@ -4910,7 +4937,7 @@ export default class coinex extends Exchange {
             'fee': fee,
             'comment': remark,
             'internal': internal,
-        };
+        } as Transaction;
     }
 
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
@@ -4930,7 +4957,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        const accountsByType = this.safeDict (this.options, 'accountsById', {});
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request: Dict = {
@@ -5246,7 +5273,7 @@ export default class coinex extends Exchange {
         return this.parseIsolatedBorrowRate (data, market);
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name coinex#fetchBorrowInterest
@@ -5299,7 +5326,7 @@ export default class coinex extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         //
         //     {
         //         "borrow_id": 2642934,
@@ -5318,18 +5345,16 @@ export default class coinex extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger (info, 'expired_at');
         return {
-            'account': undefined, // deprecated
+            'info': info,
             'symbol': market['symbol'],
-            'marginMode': 'isolated',
-            'marginType': undefined, // deprecated
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'to_repaied_amount'),
             'interestRate': this.safeNumber (info, 'daily_interest_rate'),
             'amountBorrowed': this.safeNumber (info, 'borrow_amount'),
+            'marginMode': 'isolated',
             'timestamp': timestamp,  // expiry time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async borrowIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {

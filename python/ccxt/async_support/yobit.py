@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1125,7 +1125,7 @@ class yobit(Exchange, ImplicitAPI):
         ids = list(trades.keys())
         result = []
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             trade = self.parse_trade(self.extend(trades[id], {
                 'trade_id': id,
             }), market)
@@ -1186,7 +1186,7 @@ class yobit(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         :see: https://yobit.net/en/api
         make a withdrawal

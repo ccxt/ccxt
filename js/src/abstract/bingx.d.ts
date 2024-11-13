@@ -35,6 +35,7 @@ interface Exchange {
     swapV1PrivateGetMarketMarkPriceKlines(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeBatchCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeFullOrder(params?: {}): Promise<implicitReturnType>;
+    swapV1PrivateGetPositionMarginHistory(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeCancelReplace(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeClosePosition(params?: {}): Promise<implicitReturnType>;

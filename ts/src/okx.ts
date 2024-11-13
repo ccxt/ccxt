@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -397,6 +397,7 @@ export default class okx extends Exchange {
                         // eth staking
                         'finance/staking-defi/eth/balance': 5 / 3,
                         'finance/staking-defi/eth/purchase-redeem-history': 5 / 3,
+                        'finance/staking-defi/eth/product-info': 3,
                         // copytrading
                         'copytrading/current-subpositions': 1,
                         'copytrading/subpositions-history': 1,
@@ -4929,7 +4930,7 @@ export default class okx extends Exchange {
         return this.safeDict (response, first) as DepositAddress;
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name okx#withdraw
@@ -5361,7 +5362,7 @@ export default class okx extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             },
-        };
+        } as Transaction;
     }
 
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
@@ -6991,8 +6992,10 @@ export default class okx extends Exchange {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
+            const marketId = this.safeString (tier, 'instId');
             tiers.push ({
                 'tier': this.safeInteger (tier, 'tier'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber (tier, 'minSz'),
                 'maxNotional': this.safeNumber (tier, 'maxSz'),
@@ -7001,10 +7004,10 @@ export default class okx extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
-    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         /**
          * @method
          * @name okx#fetchBorrowInterest
@@ -7068,23 +7071,23 @@ export default class okx extends Exchange {
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
-    parseBorrowInterest (info: Dict, market: Market = undefined) {
+    parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {
         const instId = this.safeString (info, 'instId');
         if (instId !== undefined) {
             market = this.safeMarket (instId, market);
         }
         const timestamp = this.safeInteger (info, 'ts');
         return {
+            'info': info,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': this.safeString (info, 'mgnMode'),
             'currency': this.safeCurrencyCode (this.safeString (info, 'ccy')),
             'interest': this.safeNumber (info, 'interest'),
             'interestRate': this.safeNumber (info, 'interestRate'),
             'amountBorrowed': this.safeNumber (info, 'liab'),
+            'marginMode': this.safeString (info, 'mgnMode'),
             'timestamp': timestamp,  // Interest accrued time
             'datetime': this.iso8601 (timestamp),
-            'info': info,
-        };
+        } as BorrowInterest;
     }
 
     async borrowCrossMargin (code: string, amount: number, params = {}) {

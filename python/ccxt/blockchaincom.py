@@ -82,7 +82,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             },
             'timeframes': None,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/147515585-1296e91b-7398-45e5-9d32-f6121538533f.jpeg',
+                'logo': 'https://github.com/user-attachments/assets/975e3054-3399-4363-bcee-ec3c6d63d4e8',
                 'test': {
                     'public': 'https://testnet-api.delta.exchange',
                     'private': 'https://testnet-api.delta.exchange',
@@ -880,7 +880,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://api.blockchain.com/v3/#createwithdrawal

@@ -128,7 +128,7 @@ export default class woofipro extends Exchange {
                 '1y': '1y',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69',
+                'logo': 'https://github.com/user-attachments/assets/9ba21b8a-a9c7-4770-b7f1-ce3bcbde68c1',
                 'api': {
                     'public': 'https://api-evm.orderly.org',
                     'private': 'https://api-evm.orderly.org',
@@ -2249,7 +2249,7 @@ export default class woofipro extends Exchange {
             'internal': undefined,
             'fee': fee,
             'network': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -2358,7 +2358,7 @@ export default class woofipro extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name woofipro#withdraw
