@@ -6,6 +6,26 @@ namespace ccxt;
 
 public partial class gate
 {
+    /// <summary>
+    /// fetches the current integer timestamp in milliseconds from the exchange server
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int</term> the current integer timestamp in milliseconds from the exchange server.</returns>
+    public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTime(parameters);
+        return (Int64)res;
+    }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
     {
         var res = this.createExpiredOptionMarket(symbol);

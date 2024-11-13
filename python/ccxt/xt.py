@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.xt import ImplicitAPI
 import hashlib
-from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
+from ccxt.base.types import Currencies, Currency, DepositAddress, Int, LedgerEntry, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderSide, OrderType, Str, Tickers, FundingRate, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3823,10 +3823,10 @@ class xt(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def fetch_leverage_tiers(self, symbols: List[str] = None, params={}):
+    def fetch_leverage_tiers(self, symbols: List[str] = None, params={}) -> LeverageTiers:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBrackets
         retrieve information on the maximum leverage for different trade sizes
+        :see: https://doc.xt.com/#futures_quotesgetLeverageBrackets
         :param str [symbols]: a list of unified market symbols
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3867,7 +3867,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3900,8 +3900,8 @@ class xt(Exchange, ImplicitAPI):
 
     def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
-        :see: https://doc.xt.com/#futures_quotesgetLeverageBracket
         retrieve information on the maximum leverage for different trade sizes of a single market
+        :see: https://doc.xt.com/#futures_quotesgetLeverageBracket
         :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3943,7 +3943,7 @@ class xt(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'result', {})
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market=None):
+    def parse_market_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -3969,6 +3969,7 @@ class xt(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market, '_', 'contract')
             tiers.append({
                 'tier': self.safe_integer(tier, 'bracket'),
+                'symbol': self.safe_symbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': self.safe_number(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': self.safe_number(tier, 'maxNominalValue'),

@@ -72,6 +72,7 @@ public partial class hashkey : Exchange
                 { "fetchLeverageTiers", true },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
@@ -4015,8 +4016,8 @@ public partial class hashkey : Exchange
         /**
         * @method
         * @name hashkey#fetchLeverageTiers
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -4110,8 +4111,8 @@ public partial class hashkey : Exchange
         //     }
         //
         object riskLimits = this.safeList(info, "riskLimits", new List<object>() {});
-        object id = this.safeString(info, "symbol");
-        market = this.safeMarket(id, market);
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
         {
@@ -4119,6 +4120,7 @@ public partial class hashkey : Exchange
             object initialMarginRate = this.safeString(tier, "initialMargin");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", null },
                 { "maxNotional", this.safeNumber(tier, "quantity") },

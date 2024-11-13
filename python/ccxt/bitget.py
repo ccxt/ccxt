@@ -2072,8 +2072,10 @@ class bitget(Exchange, ImplicitAPI):
             maxNotional = self.safe_number_n(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount'])
             marginCurrency = self.safe_string_2(item, 'coin', 'baseCoin')
             currencyId = marginCurrency if (marginCurrency is not None) else market['base']
+            marketId = self.safe_string(item, 'symbol')
             tiers.append({
                 'tier': self.safe_integer_2(item, 'level', 'tier'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': self.safe_currency_code(currencyId),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,

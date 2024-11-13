@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oxfun import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -94,7 +94,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -1213,7 +1213,7 @@ class oxfun(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for self market
         :see: https://docs.ox.fun/?json#get-v3-leverage-tiers
@@ -1267,7 +1267,7 @@ class oxfun(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'marketCode')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         marketCode: 'SOL-USD-SWAP-LIN',
@@ -1292,6 +1292,7 @@ class oxfun(Exchange, ImplicitAPI):
             tier = listOfTiers[j]
             tiers.append({
                 'tier': self.safe_number(tier, 'tier'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': self.safe_number(tier, 'positionFloor'),
                 'maxNotional': self.safe_number(tier, 'positionCap'),

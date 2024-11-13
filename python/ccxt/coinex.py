@@ -4057,6 +4057,7 @@ class coinex(Exchange, ImplicitAPI):
             maxNotional = self.safe_number(tier, 'amount')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market, None, 'swap'),
                 'currency': market['base'] if market['linear'] else market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,

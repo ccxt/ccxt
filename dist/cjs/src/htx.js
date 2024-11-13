@@ -88,7 +88,7 @@ class htx extends htx$1 {
                 'fetchLeverageTiers': true,
                 'fetchLiquidations': true,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarketLeverageTiers': true,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMyLiquidations': false,
@@ -8358,93 +8358,34 @@ class htx extends htx$1 {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseLeverageTiers(data, symbols, 'contract_code');
     }
-    async fetchMarketLeverageTiers(symbol, params = {}) {
-        /**
-         * @method
-         * @name htx#fetchMarketLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-         */
-        await this.loadMarkets();
-        const request = {};
-        if (symbol !== undefined) {
-            const market = this.market(symbol);
-            if (!market['contract']) {
-                throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() symbol supports contract markets only');
-            }
-            request['contract_code'] = market['id'];
-        }
-        const response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(this.extend(request, params));
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "MANA",
-        //                "contract_code": "MANA-USDT",
-        //                "margin_mode": "isolated",
-        //                "trade_partition": "USDT",
-        //                "list": [
-        //                    {
-        //                        "lever_rate": 75,
-        //                        "ladders": [
-        //                            {
-        //                                "ladder": 0,
-        //                                "min_size": 0,
-        //                                "max_size": 999,
-        //                                "adjust_factor": 0.7
-        //                            },
-        //                            ...
-        //                        ]
-        //                    }
-        //                    ...
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        const data = this.safeValue(response, 'data');
-        const tiers = this.parseLeverageTiers(data, [symbol], 'contract_code');
-        return this.safeValue(tiers, symbol);
-    }
-    parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            const list = this.safeValue(item, 'list', []);
-            const tiers = [];
-            const currency = this.safeString(item, 'trade_partition');
-            const id = this.safeString(item, marketIdKey);
-            const symbol = this.safeSymbol(id);
-            if (this.inArray(symbol, symbols)) {
-                for (let j = 0; j < list.length; j++) {
-                    const obj = list[j];
-                    const leverage = this.safeString(obj, 'lever_rate');
-                    const ladders = this.safeValue(obj, 'ladders', []);
-                    for (let k = 0; k < ladders.length; k++) {
-                        const bracket = ladders[k];
-                        const adjustFactor = this.safeString(bracket, 'adjust_factor');
-                        tiers.push({
-                            'tier': this.safeInteger(bracket, 'ladder'),
-                            'currency': this.safeCurrencyCode(currency),
-                            'minNotional': this.safeNumber(bracket, 'min_size'),
-                            'maxNotional': this.safeNumber(bracket, 'max_size'),
-                            'maintenanceMarginRate': this.parseNumber(Precise["default"].stringDiv(adjustFactor, leverage)),
-                            'maxLeverage': this.parseNumber(leverage),
-                            'info': bracket,
-                        });
-                    }
-                }
-                result[symbol] = tiers;
+    parseMarketLeverageTiers(info, market = undefined) {
+        const currencyId = this.safeString(info, 'trade_partition');
+        const marketId = this.safeString(info, 'contract_code');
+        const tiers = [];
+        const brackets = this.safeList(info, 'list', []);
+        for (let i = 0; i < brackets.length; i++) {
+            const item = brackets[i];
+            const leverage = this.safeString(item, 'lever_rate');
+            const ladders = this.safeList(item, 'ladders', []);
+            for (let k = 0; k < ladders.length; k++) {
+                const bracket = ladders[k];
+                const adjustFactor = this.safeString(bracket, 'adjust_factor');
+                tiers.push({
+                    'tier': this.safeInteger(bracket, 'ladder'),
+                    'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
+                    'currency': this.safeCurrencyCode(currencyId),
+                    'minNotional': this.safeNumber(bracket, 'min_size'),
+                    'maxNotional': this.safeNumber(bracket, 'max_size'),
+                    'maintenanceMarginRate': this.parseNumber(Precise["default"].stringDiv(adjustFactor, leverage)),
+                    'maxLeverage': this.parseNumber(leverage),
+                    'info': bracket,
+                });
             }
         }
-        return result;
+        return tiers;
     }
     async fetchOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**

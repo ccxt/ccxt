@@ -139,7 +139,7 @@ export default class bybit extends Exchange {
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     getLeverageTiersPaginated(symbol?: Str, params?: {}): Promise<any>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
-    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): Dict;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: any): LeverageTiers;
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
     parseIncome(income: any, market?: Market): {

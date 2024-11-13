@@ -2530,8 +2530,8 @@ public partial class krakenfutures : Exchange
         /**
         * @method
         * @name krakenfutures#fetchLeverageTiers
-        * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2629,8 +2629,8 @@ public partial class krakenfutures : Exchange
         //    }
         //
         object marginLevels = this.safeValue(info, "marginLevels");
-        object id = this.safeString(info, "symbol");
-        market = this.safeMarket(id, market);
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object tiers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marginLevels)); postFixIncrement(ref i))
         {
@@ -2645,6 +2645,7 @@ public partial class krakenfutures : Exchange
             }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
                 { "notionalFloor", notionalFloor },
                 { "notionalCap", null },

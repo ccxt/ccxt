@@ -9637,6 +9637,7 @@ class binance(Exchange, ImplicitAPI):
             bracket = brackets[j]
             tiers.append({
                 'tier': self.safe_number(bracket, 'bracket'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
                 'minNotional': self.safe_number_2(bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional': self.safe_number_2(bracket, 'notionalCap', 'qtyCap'),

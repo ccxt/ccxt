@@ -1,5 +1,5 @@
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress } from './base/types.js';
+import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry, LedgerEntry, FundingRate, DepositAddress, LeverageTiers } from './base/types.js';
 /**
  * @class xt
  * @augments Exchange
@@ -56,10 +56,10 @@ export default class xt extends Exchange {
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     modifyMarginHelper(symbol: string, amount: any, addOrReduce: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: any, market?: any): MarginModification;
-    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<{}>;
-    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): {};
+    fetchLeverageTiers(symbols?: string[], params?: {}): Promise<LeverageTiers>;
+    parseLeverageTiers(response: any, symbols?: any, marketIdKey?: any): LeverageTiers;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
-    parseMarketLeverageTiers(info: any, market?: any): any[];
+    parseMarketLeverageTiers(info: any, market?: any): LeverageTier[];
     fetchFundingRateHistory(symbol?: string, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     fetchFundingInterval(symbol: string, params?: {}): Promise<FundingRate>;
     fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;

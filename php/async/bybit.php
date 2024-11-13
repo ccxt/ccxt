@@ -7153,7 +7153,7 @@ class bybit extends Exchange {
         );
     }
 
-    public function fetch_derivatives_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_derivatives_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -7969,8 +7969,8 @@ class bybit extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
              * retrieve information on the maximum leverage, for different trade sizes
+             * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
              * @param {string[]} [$symbols] a list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] $market subType, ['linear', 'inverse'], default is 'linear'
@@ -7993,7 +7993,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null): array {
         //
         //  array(
         //      {
@@ -8051,6 +8051,7 @@ class bybit extends Exchange {
             }
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'id'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $this->safe_number($tier, 'riskLimitValue'),

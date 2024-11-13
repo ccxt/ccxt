@@ -10116,6 +10116,7 @@ class binance extends Exchange {
             $bracket = $brackets[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),

@@ -145,7 +145,7 @@ public partial class gate : Exchange
                 { "fetchSettlementHistory", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
-                { "fetchTime", false },
+                { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", true },
@@ -858,6 +858,26 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         return await this.privateUnifiedPutUnifiedMode(parameters);
+    }
+
+    public async override Task<object> fetchTime(object parameters = null)
+    {
+        /**
+        * @method
+        * @name gate#fetchTime
+        * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int} the current integer timestamp in milliseconds from the exchange server
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicSpotGetTime(parameters);
+        //
+        //     {
+        //         "server_time": 1731447921098
+        //     }
+        //
+        return this.safeInteger(response, "server_time");
     }
 
     public override object createExpiredOptionMarket(object symbol)
@@ -6626,6 +6646,7 @@ public partial class gate : Exchange
 
     public virtual object parseEmulatedLeverageTiers(object info, object market = null)
     {
+        object marketId = this.safeString(info, "name");
         object maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
         object leverageMax = this.safeString(info, "leverage_max"); // '100',
         object riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
@@ -6640,6 +6661,7 @@ public partial class gate : Exchange
             object cap = Precise.stringAdd(floor, riskLimitStep);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.parseNumber(Precise.stringDiv(cap, riskLimitStep)) },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", this.safeString(market, "settle") },
                 { "minNotional", this.parseNumber(floor) },
                 { "maxNotional", this.parseNumber(cap) },
@@ -6679,6 +6701,7 @@ public partial class gate : Exchange
             object maxNotional = this.safeNumber(item, "risk_limit");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", getValue(market, "symbol") },
                 { "currency", getValue(market, "base") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },

@@ -7322,8 +7322,10 @@ public partial class okx : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = getValue(info, i);
+            object marketId = this.safeString(tier, "instId");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "tier") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber(tier, "minSz") },
                 { "maxNotional", this.safeNumber(tier, "maxSz") },

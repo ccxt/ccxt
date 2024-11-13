@@ -3578,8 +3578,8 @@ class digifinex(Exchange, ImplicitAPI):
 
     async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
-        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         retrieve information on the maximum leverage, for different trade sizes for a single market
+        :see: https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -3652,9 +3652,10 @@ class digifinex(Exchange, ImplicitAPI):
         for i in range(0, len(brackets)):
             tier = brackets[i]
             marketId = self.safe_string(info, 'instrument_id')
-            market = self.safe_market(marketId)
+            market = self.safe_market(marketId, market)
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market, None, 'swap'),
                 'currency': market['settle'],
                 'minNotional': None,
                 'maxNotional': self.safe_number(tier, 'max_limit'),

@@ -107,7 +107,7 @@ class htx(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': True,
                 'fetchLiquidations': True,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarketLeverageTiers': True,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
                 'fetchMyLiquidations': False,
@@ -7646,85 +7646,32 @@ class htx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
-        """
-        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        :param str symbol: unified market symbol
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
-        """
-        await self.load_markets()
-        request: dict = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            if not market['contract']:
-                raise BadRequest(self.id + ' fetchMarketLeverageTiers() symbol supports contract markets only')
-            request['contract_code'] = market['id']
-        response = await self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(self.extend(request, params))
-        #
-        #    {
-        #        "status": "ok",
-        #        "data": [
-        #            {
-        #                "symbol": "MANA",
-        #                "contract_code": "MANA-USDT",
-        #                "margin_mode": "isolated",
-        #                "trade_partition": "USDT",
-        #                "list": [
-        #                    {
-        #                        "lever_rate": 75,
-        #                        "ladders": [
-        #                            {
-        #                                "ladder": 0,
-        #                                "min_size": 0,
-        #                                "max_size": 999,
-        #                                "adjust_factor": 0.7
-        #                            },
-        #                            ...
-        #                        ]
-        #                    }
-        #                    ...
-        #                ]
-        #            },
-        #            ...
-        #        ]
-        #    }
-        #
-        data = self.safe_value(response, 'data')
-        tiers = self.parse_leverage_tiers(data, [symbol], 'contract_code')
-        return self.safe_value(tiers, symbol)
-
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
-        result: dict = {}
-        for i in range(0, len(response)):
-            item = response[i]
-            list = self.safe_value(item, 'list', [])
-            tiers = []
-            currency = self.safe_string(item, 'trade_partition')
-            id = self.safe_string(item, marketIdKey)
-            symbol = self.safe_symbol(id)
-            if self.in_array(symbol, symbols):
-                for j in range(0, len(list)):
-                    obj = list[j]
-                    leverage = self.safe_string(obj, 'lever_rate')
-                    ladders = self.safe_value(obj, 'ladders', [])
-                    for k in range(0, len(ladders)):
-                        bracket = ladders[k]
-                        adjustFactor = self.safe_string(bracket, 'adjust_factor')
-                        tiers.append({
-                            'tier': self.safe_integer(bracket, 'ladder'),
-                            'currency': self.safe_currency_code(currency),
-                            'minNotional': self.safe_number(bracket, 'min_size'),
-                            'maxNotional': self.safe_number(bracket, 'max_size'),
-                            'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
-                            'maxLeverage': self.parse_number(leverage),
-                            'info': bracket,
-                        })
-                result[symbol] = tiers
-        return result
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+        currencyId = self.safe_string(info, 'trade_partition')
+        marketId = self.safe_string(info, 'contract_code')
+        tiers = []
+        brackets = self.safe_list(info, 'list', [])
+        for i in range(0, len(brackets)):
+            item = brackets[i]
+            leverage = self.safe_string(item, 'lever_rate')
+            ladders = self.safe_list(item, 'ladders', [])
+            for k in range(0, len(ladders)):
+                bracket = ladders[k]
+                adjustFactor = self.safe_string(bracket, 'adjust_factor')
+                tiers.append({
+                    'tier': self.safe_integer(bracket, 'ladder'),
+                    'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+                    'currency': self.safe_currency_code(currencyId),
+                    'minNotional': self.safe_number(bracket, 'min_size'),
+                    'maxNotional': self.safe_number(bracket, 'max_size'),
+                    'maintenanceMarginRate': self.parse_number(Precise.string_div(adjustFactor, leverage)),
+                    'maxLeverage': self.parse_number(leverage),
+                    'info': bracket,
+                })
+        return tiers
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         """

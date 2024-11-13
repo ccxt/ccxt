@@ -2131,8 +2131,10 @@ public partial class bitget : Exchange
             object maxNotional = this.safeNumberN(item, new List<object>() {"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount"});
             object marginCurrency = this.safeString2(item, "coin", "baseCoin");
             object currencyId = ((bool) isTrue((!isEqual(marginCurrency, null)))) ? marginCurrency : getValue(market, "base");
+            object marketId = this.safeString(item, "symbol");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger2(item, "level", "tier") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", this.safeCurrencyCode(currencyId) },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },

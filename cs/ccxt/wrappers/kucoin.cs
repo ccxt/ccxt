@@ -1421,6 +1421,18 @@ public partial class kucoin
     /// See <see href="https://docs.kucoin.com/#query-isolated-margin-account-info"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, required for isolated margin
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : the earliest time in ms to fetch borrrow interest for

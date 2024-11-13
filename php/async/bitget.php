@@ -2108,8 +2108,10 @@ class bitget extends Exchange {
             $maxNotional = $this->safe_number_n($item, array( 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount' ));
             $marginCurrency = $this->safe_string_2($item, 'coin', 'baseCoin');
             $currencyId = ($marginCurrency !== null) ? $marginCurrency : $market['base'];
+            $marketId = $this->safe_string($item, 'symbol');
             $tiers[] = array(
                 'tier' => $this->safe_integer_2($item, 'level', 'tier'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $this->safe_currency_code($currencyId),
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,

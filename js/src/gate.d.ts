@@ -9,6 +9,7 @@ export default class gate extends Exchange {
     setSandboxMode(enable: boolean): void;
     loadUnifiedStatus(params?: {}): Promise<void>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
+    fetchTime(params?: {}): Promise<number>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     fetchMarkets(params?: {}): Promise<Market[]>;
@@ -151,7 +152,7 @@ export default class gate extends Exchange {
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
     fetchLeverageTiers(symbols?: Strings, params?: {}): Promise<LeverageTiers>;
     fetchMarketLeverageTiers(symbol: string, params?: {}): Promise<LeverageTier[]>;
-    parseEmulatedLeverageTiers(info: any, market?: any): any[];
+    parseEmulatedLeverageTiers(info: any, market?: any): LeverageTier[];
     parseMarketLeverageTiers(info: any, market?: Market): LeverageTier[];
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
         id: number;

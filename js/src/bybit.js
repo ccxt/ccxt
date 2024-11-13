@@ -7953,8 +7953,8 @@ export default class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchLeverageTiers
-         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @description retrieve information on the maximum leverage, for different trade sizes
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
@@ -8032,6 +8032,7 @@ export default class bybit extends Exchange {
             }
             tiers.push({
                 'tier': this.safeInteger(tier, 'id'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': this.safeNumber(tier, 'riskLimitValue'),

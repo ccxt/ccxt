@@ -6648,7 +6648,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}):
+    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -7401,8 +7401,8 @@ class bybit(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
         retrieve information on the maximum leverage, for different trade sizes
+        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: market subType, ['linear', 'inverse'], default is 'linear'
@@ -7421,7 +7421,7 @@ class bybit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
         #
         #  [
         #      {
@@ -7475,6 +7475,7 @@ class bybit(Exchange, ImplicitAPI):
                 minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
             tiers.append({
                 'tier': self.safe_integer(tier, 'id'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': self.safe_number(tier, 'riskLimitValue'),

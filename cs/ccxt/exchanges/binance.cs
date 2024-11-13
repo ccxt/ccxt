@@ -10756,6 +10756,7 @@ public partial class binance : Exchange
             object bracket = getValue(brackets, j);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(bracket, "bracket") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber2(bracket, "notionalFloor", "qtyFloor") },
                 { "maxNotional", this.safeNumber2(bracket, "notionalCap", "qtyCap") },

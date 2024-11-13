@@ -4077,8 +4077,8 @@ export default class xt extends Exchange {
         /**
          * @method
          * @name xt#fetchLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @description retrieve information on the maximum leverage for different trade sizes
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @param {string} [symbols] a list of unified market symbols
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4160,8 +4160,8 @@ export default class xt extends Exchange {
         /**
          * @method
          * @name xt#fetchMarketLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @description retrieve information on the maximum leverage for different trade sizes of a single market
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4231,6 +4231,7 @@ export default class xt extends Exchange {
             market = this.safeMarket(marketId, market, '_', 'contract');
             tiers.push({
                 'tier': this.safeInteger(tier, 'bracket'),
+                'symbol': this.safeSymbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': this.safeNumber(tier, 'maxNominalValue'),

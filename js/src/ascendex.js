@@ -3056,14 +3056,15 @@ export default class ascendex extends Exchange {
         //    }
         //
         const marginRequirements = this.safeList(info, 'marginRequirements', []);
-        const id = this.safeString(info, 'symbol');
-        market = this.safeMarket(id, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const tiers = [];
         for (let i = 0; i < marginRequirements.length; i++) {
             const tier = marginRequirements[i];
             const initialMarginRate = this.safeString(tier, 'initialMarginRate');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber(tier, 'positionNotionalLowerBound'),
                 'maxNotional': this.safeNumber(tier, 'positionNotionalUpperBound'),

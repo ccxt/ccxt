@@ -6529,8 +6529,10 @@ class okx(Exchange, ImplicitAPI):
         tiers = []
         for i in range(0, len(info)):
             tier = info[i]
+            marketId = self.safe_string(tier, 'instId')
             tiers.append({
                 'tier': self.safe_integer(tier, 'tier'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
                 'minNotional': self.safe_number(tier, 'minSz'),
                 'maxNotional': self.safe_number(tier, 'maxSz'),

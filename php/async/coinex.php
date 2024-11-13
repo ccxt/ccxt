@@ -4295,6 +4295,7 @@ class coinex extends Exchange {
             $maxNotional = $this->safe_number($tier, 'amount');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
                 'currency' => $market['linear'] ? $market['base'] : $market['quote'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
