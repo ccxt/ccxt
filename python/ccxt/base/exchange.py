@@ -3019,7 +3019,7 @@ class Exchange(object):
             feeCurrencyCode = self.safe_string(fee, 'currency')
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
-                cost = self.safe_value(fee, 'cost')
+                cost = self.safe_string(fee, 'cost')
                 if Precise.string_eq(cost, '0'):
                     # omit zero cost fees
                     continue

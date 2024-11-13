@@ -28,7 +28,7 @@ from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import NotChanged
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
-
+from ccxt.base.types import Str, Int
 
 STATUSES_MAPPING = {
     'NEW': 'open',
@@ -2233,6 +2233,28 @@ class binance(Exchange):
         else:
             return response
 
+    def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all the trades made from a single order
+        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+        :param str id: order id
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch trades for
+        :param int [limit]: the maximum number of trades to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.load_markets()
+        request: dict = {
+            'orderId': id,
+        }
+        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
@@ -2247,21 +2269,15 @@ class binance(Exchange):
         params = self.omit(params, 'order_id')
         if type == 'spot':
             method = 'privateGetMyTrades'
-            if order_id:
-                request['orderId'] = order_id
         elif type == 'future':
             method = 'fapiPrivateGetUserTrades'
         elif type == 'delivery':
             method = 'dapiPrivateGetUserTrades'
         elif type == 'margin_isolated':
             method = 'sapiGetMarginMyTrades'
-            if order_id:
-                request['orderId'] = order_id
             request["isIsolated"] = "TRUE"
         elif type == 'margin_cross':
             method = 'sapiGetMarginMyTrades'
-            if order_id:
-                request['orderId'] = order_id
         params = self.omit(params, 'type')
         if since is not None:
             request['startTime'] = since
@@ -2714,6 +2730,7 @@ class binance(Exchange):
         response = self.sapi_get_account_apirestrictions()
         permissions = self.extract_trading_permissions(PERMISSION_TO_VALUE, response=response)
         return {
+            'info': response,
             "creation": self.safe_integer(response, "createTime"),
             "expiration": self.safe_integer(response, "tradingAuthorityExpirationTime"),
             "permissions": permissions,

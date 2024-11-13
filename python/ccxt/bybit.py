@@ -4154,13 +4154,19 @@ class bybit(Exchange):
          *
         """
         request = {}
+        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
+        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'orderLinkId')
-        if clientOrderId is not None:
+        if clientOrderId is not None and isUnifiedAccount:
             request['orderLinkId'] = clientOrderId
         else:
             request['orderId'] = id
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
-        return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+        trades = self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+        if clientOrderId is not None:
+            return [trade for trade in trades
+                    if trade["order"] == id or trade.get("orderLinkId", -1) == clientOrderId]
+        return trades
 
     def fetch_my_usdc_trades(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         self.load_markets()
