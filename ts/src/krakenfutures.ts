@@ -2412,8 +2412,8 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchLeverageTiers
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2509,8 +2509,8 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const marginLevels = this.safeValue (info, 'marginLevels');
-        const id = this.safeString (info, 'symbol');
-        market = this.safeMarket (id, market);
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
         const tiers = [];
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
@@ -2523,6 +2523,7 @@ export default class krakenfutures extends Exchange {
             }
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['quote'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': undefined,
@@ -2531,7 +2532,7 @@ export default class krakenfutures extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {

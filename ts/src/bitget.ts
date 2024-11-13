@@ -2103,8 +2103,10 @@ export default class bitget extends Exchange {
             const maxNotional = this.safeNumberN (item, [ 'endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount' ]);
             const marginCurrency = this.safeString2 (item, 'coin', 'baseCoin');
             const currencyId = (marginCurrency !== undefined) ? marginCurrency : market['base'];
+            const marketId = this.safeString (item, 'symbol');
             tiers.push ({
                 'tier': this.safeInteger2 (item, 'level', 'tier'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': this.safeCurrencyCode (currencyId),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -2114,7 +2116,7 @@ export default class bitget extends Exchange {
             });
             minNotional = maxNotional;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {

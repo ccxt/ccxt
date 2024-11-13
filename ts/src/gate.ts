@@ -6124,7 +6124,8 @@ export default class gate extends Exchange {
         return this.parseMarketLeverageTiers (response, market);
     }
 
-    parseEmulatedLeverageTiers (info, market = undefined) {
+    parseEmulatedLeverageTiers (info, market = undefined): LeverageTier[] {
+        const marketId = this.safeString (info, 'name');
         const maintenanceMarginUnit = this.safeString (info, 'maintenance_rate'); // '0.005',
         const leverageMax = this.safeString (info, 'leverage_max'); // '100',
         const riskLimitStep = this.safeString (info, 'risk_limit_step'); // '1000000',
@@ -6138,6 +6139,7 @@ export default class gate extends Exchange {
             const cap = Precise.stringAdd (floor, riskLimitStep);
             tiers.push ({
                 'tier': this.parseNumber (Precise.stringDiv (cap, riskLimitStep)),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
                 'currency': this.safeString (market, 'settle'),
                 'minNotional': this.parseNumber (floor),
                 'maxNotional': this.parseNumber (cap),
@@ -6149,7 +6151,7 @@ export default class gate extends Exchange {
             initialMarginRatio = Precise.stringAdd (initialMarginRatio, initialMarginUnit);
             floor = cap;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
@@ -6174,6 +6176,7 @@ export default class gate extends Exchange {
             const maxNotional = this.safeNumber (item, 'risk_limit');
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': market['symbol'],
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -6183,7 +6186,7 @@ export default class gate extends Exchange {
             });
             minNotional = maxNotional;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {

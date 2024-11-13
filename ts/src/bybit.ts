@@ -7143,7 +7143,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    async fetchDerivativesMarketLeverageTiers (symbol: string, params = {}) {
+    async fetchDerivativesMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -7956,8 +7956,8 @@ export default class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchLeverageTiers
-         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @description retrieve information on the maximum leverage, for different trade sizes
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
@@ -7979,7 +7979,7 @@ export default class bybit extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined) {
+    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey = undefined): LeverageTiers {
         //
         //  [
         //      {
@@ -8009,7 +8009,7 @@ export default class bybit extends Exchange {
             const symbol = market['symbol'];
             tiers[symbol] = this.parseMarketLeverageTiers (this.sortBy (entry, 'id'), market);
         }
-        return tiers;
+        return tiers as LeverageTiers;
     }
 
     parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
@@ -8037,6 +8037,7 @@ export default class bybit extends Exchange {
             }
             tiers.push ({
                 'tier': this.safeInteger (tier, 'id'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': this.safeNumber (tier, 'riskLimitValue'),
@@ -8045,7 +8046,7 @@ export default class bybit extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
