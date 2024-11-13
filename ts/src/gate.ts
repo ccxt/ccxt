@@ -151,7 +151,7 @@ export default class gate extends Exchange {
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
@@ -934,6 +934,24 @@ export default class gate extends Exchange {
 
     async upgradeUnifiedTradeAccount (params = {}) {
         return await this.privateUnifiedPutUnifiedMode (params);
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name gate#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicSpotGetTime (params);
+        //
+        //     {
+        //         "server_time": 1731447921098
+        //     }
+        //
+        return this.safeInteger (response, 'server_time');
     }
 
     createExpiredOptionMarket (symbol: string) {
