@@ -812,7 +812,8 @@ public partial class blofin : ccxt.blofin
                 return;
             } else if (isTrue(isEqual(eventVar, "login")))
             {
-                callDynamically(client as WebSocketClient, "resolve", new object[] {message, "authenticate_hash"});
+                var future = this.safeValue((client as WebSocketClient).futures, "authenticate_hash");
+                (future as Future).resolve(true);
                 return;
             } else if (isTrue(isEqual(eventVar, "error")))
             {

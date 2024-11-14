@@ -2249,7 +2249,7 @@ export default class woofipro extends Exchange {
             'internal': undefined,
             'fee': fee,
             'network': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -2358,7 +2358,7 @@ export default class woofipro extends Exchange {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name woofipro#withdraw

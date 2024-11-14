@@ -3731,7 +3731,7 @@ class xt extends Exchange {
         return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://doc.xt.com/#deposit_withdrawalwithdraw
@@ -3981,10 +3981,10 @@ class xt extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * retrieve information on the maximum leverage for different trade sizes
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @param {string} [$symbols] a list of unified market $symbols
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~
@@ -4027,7 +4027,7 @@ class xt extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4064,8 +4064,8 @@ class xt extends Exchange {
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * retrieve information on the maximum leverage for different trade sizes of a single $market
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -4109,7 +4109,7 @@ class xt extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, $market = null) {
+    public function parse_market_leverage_tiers($info, $market = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4135,6 +4135,7 @@ class xt extends Exchange {
             $market = $this->safe_market($marketId, $market, '_', 'contract');
             $tiers[] = array(
                 'tier' => $this->safe_integer($tier, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market, '_', 'contract'),
                 'currency' => $market['settle'],
                 'minNotional' => $this->safe_number($brackets[$i - 1], 'maxNominalValue', 0),
                 'maxNotional' => $this->safe_number($tier, 'maxNominalValue'),

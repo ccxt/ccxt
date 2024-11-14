@@ -2724,6 +2724,206 @@
                   }
                 ]
               }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68641.30",
+                        "indexPrice": "68650.75",
+                        "markPrice": "68649.90",
+                        "prevPrice24h": "68042.70",
+                        "price24hPcnt": "0.008797",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69145.90",
+                        "openInterest": "69655.813",
+                        "openInterestValue": "4781864596.87",
+                        "turnover24h": "7940401914.5025",
+                        "volume24h": "115859.1120",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "14.246",
+                        "bid1Price": "68641.20",
+                        "ask1Price": "68641.30",
+                        "bid1Size": "0.043",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730729903941
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730729903941"
+                },
+                "parsedResponse": {
+                  "BTC/USDT:USDT": {
+                    "info": {
+                      "symbol": "BTCUSDT",
+                      "lastPrice": "68641.30",
+                      "indexPrice": "68650.75",
+                      "markPrice": "68649.90",
+                      "prevPrice24h": "68042.70",
+                      "price24hPcnt": "0.008797",
+                      "highPrice24h": "69497.00",
+                      "lowPrice24h": "67456.10",
+                      "prevPrice1h": "69145.90",
+                      "openInterest": "69655.813",
+                      "openInterestValue": "4781864596.87",
+                      "turnover24h": "7940401914.5025",
+                      "volume24h": "115859.1120",
+                      "fundingRate": "0.0001",
+                      "nextFundingTime": "1730736000000",
+                      "predictedDeliveryPrice": "",
+                      "basisRate": "",
+                      "deliveryFeeRate": "",
+                      "deliveryTime": "0",
+                      "ask1Size": "14.246",
+                      "bid1Price": "68641.20",
+                      "ask1Price": "68641.30",
+                      "bid1Size": "0.043",
+                      "basis": "",
+                      "preOpenPrice": "",
+                      "preQty": "",
+                      "curPreListingPhase": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": 68649.9,
+                    "indexPrice": 68650.75,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1730729903941,
+                    "datetime": "2024-11-04T14:18:23.941Z",
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": 1730736000000,
+                    "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                  }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "OK",
+                  "result": {
+                    "category": "linear",
+                    "list": [
+                      {
+                        "symbol": "BTCUSDT",
+                        "lastPrice": "68577.50",
+                        "indexPrice": "68599.90",
+                        "markPrice": "68591.46",
+                        "prevPrice24h": "67993.80",
+                        "price24hPcnt": "0.008584",
+                        "highPrice24h": "69497.00",
+                        "lowPrice24h": "67456.10",
+                        "prevPrice1h": "69200.10",
+                        "openInterest": "69604.924",
+                        "openInterestValue": "4774303360.35",
+                        "turnover24h": "7939403499.8677",
+                        "volume24h": "115843.2740",
+                        "fundingRate": "0.0001",
+                        "nextFundingTime": "1730736000000",
+                        "predictedDeliveryPrice": "",
+                        "basisRate": "",
+                        "deliveryFeeRate": "",
+                        "deliveryTime": "0",
+                        "ask1Size": "7.927",
+                        "bid1Price": "68577.40",
+                        "ask1Price": "68577.50",
+                        "bid1Size": "6.371",
+                        "basis": "",
+                        "preOpenPrice": "",
+                        "preQty": "",
+                        "curPreListingPhase": "",
+                        "timestamp": 1730730080834
+                      }
+                    ]
+                  },
+                  "retExtInfo": {},
+                  "time": "1730730080834"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSDT",
+                    "lastPrice": "68577.50",
+                    "indexPrice": "68599.90",
+                    "markPrice": "68591.46",
+                    "prevPrice24h": "67993.80",
+                    "price24hPcnt": "0.008584",
+                    "highPrice24h": "69497.00",
+                    "lowPrice24h": "67456.10",
+                    "prevPrice1h": "69200.10",
+                    "openInterest": "69604.924",
+                    "openInterestValue": "4774303360.35",
+                    "turnover24h": "7939403499.8677",
+                    "volume24h": "115843.2740",
+                    "fundingRate": "0.0001",
+                    "nextFundingTime": "1730736000000",
+                    "predictedDeliveryPrice": "",
+                    "basisRate": "",
+                    "deliveryFeeRate": "",
+                    "deliveryTime": "0",
+                    "ask1Size": "7.927",
+                    "bid1Price": "68577.40",
+                    "ask1Price": "68577.50",
+                    "bid1Size": "6.371",
+                    "basis": "",
+                    "preOpenPrice": "",
+                    "preQty": "",
+                    "curPreListingPhase": ""
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "markPrice": 68591.46,
+                  "indexPrice": 68599.9,
+                  "interestRate": null,
+                  "estimatedSettlePrice": null,
+                  "timestamp": 1730730080834,
+                  "datetime": "2024-11-04T14:21:20.834Z",
+                  "fundingRate": 0.0001,
+                  "fundingTimestamp": 1730736000000,
+                  "fundingDatetime": "2024-11-04T16:00:00.000Z",
+                  "nextFundingRate": null,
+                  "nextFundingTimestamp": null,
+                  "nextFundingDatetime": null,
+                  "previousFundingRate": null,
+                  "previousFundingTimestamp": null,
+                  "previousFundingDatetime": null,
+                  "interval": "8h"
+                }
+            }
         ]
     }
 }

@@ -82,15 +82,23 @@ class mexc(ccxt.async_support.mexc):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         if market['spot']:
-            channel = 'spot@public.bookTicker.v3.api@' + market['id']
+            miniTicker = False
+            miniTicker, params = self.handle_option_and_params(params, 'watchTicker', 'miniTicker')
+            channel = None
+            if miniTicker:
+                channel = 'spot@public.miniTicker.v3.api@' + market['id'] + '@UTC+8'
+            else:
+                channel = 'spot@public.bookTicker.v3.api@' + market['id']
             return await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.ticker'
@@ -100,6 +108,38 @@ class mexc(ccxt.async_support.mexc):
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
 
     def handle_ticker(self, client: Client, message):
+        #
+        # swap
+        #
+        #     {
+        #         "symbol": "BTC_USDT",
+        #         "data": {
+        #             "symbol": "BTC_USDT",
+        #             "lastPrice": 76376.2,
+        #             "riseFallRate": -0.0006,
+        #             "fairPrice": 76374.4,
+        #             "indexPrice": 76385.8,
+        #             "volume24": 962062810,
+        #             "amount24": 7344207079.96768,
+        #             "maxBidPrice": 84024.3,
+        #             "minAskPrice": 68747.2,
+        #             "lower24Price": 75620.2,
+        #             "high24Price": 77210,
+        #             "timestamp": 1731137509138,
+        #             "bid1": 76376.2,
+        #             "ask1": 76376.3,
+        #             "holdVol": 95479623,
+        #             "riseFallValue": -46.5,
+        #             "fundingRate": 0.0001,
+        #             "zone": "UTC+8",
+        #             "riseFallRates": [-0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564],
+        #             "riseFallRatesOfTimezone": [0.0065, -0.0013, -0.0006]
+        #         },
+        #         "channel": "push.ticker",
+        #         "ts": 1731137509138
+        #     }
+        #
+        # spot
         #
         #    {
         #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -113,8 +153,30 @@ class mexc(ccxt.async_support.mexc):
         #        "t": 1678643605721
         #    }
         #
+        # spot miniTicker
+        #
+        #     {
+        #         "d": {
+        #             "s": "BTCUSDT",
+        #             "p": "76522",
+        #             "r": "0.0012",
+        #             "tr": "0.0012",
+        #             "h": "77196.3",
+        #             "l": "75630.77",
+        #             "v": "584664223.92",
+        #             "q": "7666.720258",
+        #             "lastRT": "-1",
+        #             "MT": "0",
+        #             "NV": "--",
+        #             "t": "1731135533126"
+        #         },
+        #         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        #         "t": 1731135533126,
+        #         "s": "BTCUSDT"
+        #     }
+        #
         self.handle_bid_ask(client, message)
-        rawTicker = self.safe_value_2(message, 'd', 'data')
+        rawTicker = self.safe_dict_2(message, 'd', 'data')
         marketId = self.safe_string_2(message, 's', 'symbol')
         timestamp = self.safe_integer(message, 't')
         market = self.safe_market(marketId)
@@ -135,24 +197,44 @@ class mexc(ccxt.async_support.mexc):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.miniTicker]: set to True for using the miniTicker endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        symbols = self.market_symbols(symbols, None, False)
+        symbols = self.market_symbols(symbols, None)
         messageHashes = []
-        marketIds = self.market_ids(symbols)
-        firstMarket = self.market(symbols[0])
-        isSpot = firstMarket['spot']
+        firstSymbol = self.safe_string(symbols, 0)
+        market = None
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+        type = None
+        type, params = self.handle_market_type_and_params('watchTickers', market, params)
+        isSpot = (type == 'spot')
         url = self.urls['api']['ws']['spot'] if (isSpot) else self.urls['api']['ws']['swap']
         request: dict = {}
         if isSpot:
+            miniTicker = False
+            miniTicker, params = self.handle_option_and_params(params, 'watchTickers', 'miniTicker')
             topics = []
-            for i in range(0, len(marketIds)):
-                marketId = marketIds[i]
-                messageHashes.append('ticker:' + symbols[i])
-                topics.append('spot@public.bookTicker.v3.api@' + marketId)
+            if not miniTicker:
+                if symbols is None:
+                    raise ArgumentsRequired(self.id + 'watchTickers required symbols argument for the bookTicker channel')
+                marketIds = self.market_ids(symbols)
+                for i in range(0, len(marketIds)):
+                    marketId = marketIds[i]
+                    messageHashes.append('ticker:' + symbols[i])
+                    channel = 'spot@public.bookTicker.v3.api@' + marketId
+                    topics.append(channel)
+            else:
+                topics.append('spot@public.miniTickers.v3.api@UTC+8')
+                if symbols is None:
+                    messageHashes.append('spot:ticker')
+                else:
+                    for i in range(0, len(symbols)):
+                        messageHashes.append('ticker:' + symbols[i])
             request['method'] = 'SUBSCRIPTION'
             request['params'] = topics
         else:
@@ -167,6 +249,8 @@ class mexc(ccxt.async_support.mexc):
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_tickers(self, client: Client, message):
+        #
+        # swap
         #
         #     {
         #       "channel": "push.tickers",
@@ -189,36 +273,108 @@ class mexc(ccxt.async_support.mexc):
         #       "ts": 1725872514111
         #     }
         #
-        data = self.safe_list(message, 'data')
-        topic = 'ticker'
+        # spot
+        #
+        #    {
+        #        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        #        "d": {
+        #            "A": "4.70432",
+        #            "B": "6.714863",
+        #            "a": "20744.54",
+        #            "b": "20744.17"
+        #        },
+        #        "s": "BTCUSDT",
+        #        "t": 1678643605721
+        #    }
+        #
+        # spot miniTicker
+        #
+        #     {
+        #         "d": {
+        #             "s": "BTCUSDT",
+        #             "p": "76522",
+        #             "r": "0.0012",
+        #             "tr": "0.0012",
+        #             "h": "77196.3",
+        #             "l": "75630.77",
+        #             "v": "584664223.92",
+        #             "q": "7666.720258",
+        #             "lastRT": "-1",
+        #             "MT": "0",
+        #             "NV": "--",
+        #             "t": "1731135533126"
+        #         },
+        #         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        #         "t": 1731135533126,
+        #         "s": "BTCUSDT"
+        #     }
+        #
+        data = self.safe_list_2(message, 'data', 'd')
+        channel = self.safe_string(message, 'c', '')
+        marketId = self.safe_string(message, 's')
+        market = self.safe_market(marketId)
+        channelStartsWithSpot = channel.startswith('spot')
+        marketIdIsUndefined = marketId is None
+        isSpot = channelStartsWithSpot if marketIdIsUndefined else market['spot']
+        spotPrefix = 'spot:'
+        messageHashPrefix = spotPrefix if isSpot else ''
+        topic = messageHashPrefix + 'ticker'
         result = []
         for i in range(0, len(data)):
-            ticker = self.parse_ticker(data[i])
+            entry = data[i]
+            ticker = None
+            if isSpot:
+                ticker = self.parse_ws_ticker(entry, market)
+            else:
+                ticker = self.parse_ticker(entry)
             symbol = ticker['symbol']
             self.tickers[symbol] = ticker
             result.append(ticker)
-            messageHash = topic + ':' + symbol
+            messageHash = 'ticker:' + symbol
             client.resolve(ticker, messageHash)
         client.resolve(result, topic)
 
     def parse_ws_ticker(self, ticker, market=None):
         #
         # spot
-        #    {
-        #        "A": "4.70432",
-        #        "B": "6.714863",
-        #        "a": "20744.54",
-        #        "b": "20744.17"
-        #    }
         #
+        #     {
+        #         "A": "4.70432",
+        #         "B": "6.714863",
+        #         "a": "20744.54",
+        #         "b": "20744.17"
+        #     }
+        #
+        # spot miniTicker
+        #
+        #     {
+        #         "s": "BTCUSDT",
+        #         "p": "76522",
+        #         "r": "0.0012",
+        #         "tr": "0.0012",
+        #         "h": "77196.3",
+        #         "l": "75630.77",
+        #         "v": "584664223.92",
+        #         "q": "7666.720258",
+        #         "lastRT": "-1",
+        #         "MT": "0",
+        #         "NV": "--",
+        #         "t": "1731135533126"
+        #     }
+        #
+        marketId = self.safe_string(ticker, 's')
+        timestamp = self.safe_integer(ticker, 't')
+        price = self.safe_string(ticker, 'p')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(None, market),
-            'timestamp': None,
-            'datetime': None,
+            'info': ticker,
+            'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'open': None,
-            'high': None,
-            'low': None,
-            'close': None,
+            'high': self.safe_number(ticker, 'h'),
+            'low': self.safe_number(ticker, 'l'),
+            'close': price,
+            'last': price,
             'bid': self.safe_number(ticker, 'b'),
             'bidVolume': self.safe_number(ticker, 'B'),
             'ask': self.safe_number(ticker, 'a'),
@@ -226,11 +382,10 @@ class mexc(ccxt.async_support.mexc):
             'vwap': None,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'tr'),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': None,
-            'info': ticker,
+            'baseVolume': self.safe_number(ticker, 'v'),
+            'quoteVolume': self.safe_number(ticker, 'q'),
         }, market)
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1258,6 +1413,8 @@ class mexc(ccxt.async_support.mexc):
             'public.kline.v3.api': self.handle_ohlcv,
             'push.kline': self.handle_ohlcv,
             'public.bookTicker.v3.api': self.handle_ticker,
+            'public.miniTicker.v3.api': self.handle_ticker,
+            'public.miniTickers.v3.api': self.handle_tickers,
             'push.ticker': self.handle_ticker,
             'push.tickers': self.handle_tickers,
             'public.increase.depth.v3.api': self.handle_order_book,

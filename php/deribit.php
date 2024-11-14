@@ -844,6 +844,8 @@ class deribit extends Exchange {
                 } elseif ($isSpot) {
                     $type = 'spot';
                 }
+                $inverse = null;
+                $linear = null;
                 if ($isSpot) {
                     $symbol = $base . '/' . $quote;
                 } elseif (!$isComboMarket) {
@@ -857,6 +859,8 @@ class deribit extends Exchange {
                             $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
                         }
                     }
+                    $inverse = ($quote !== $settle);
+                    $linear = ($settle === $quote);
                 }
                 $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
                 if ($parsedMarketValue) {
@@ -882,8 +886,8 @@ class deribit extends Exchange {
                     'option' => $option,
                     'active' => $this->safe_value($market, 'is_active'),
                     'contract' => !$isSpot,
-                    'linear' => ($settle === $quote),
-                    'inverse' => ($settle !== $quote),
+                    'linear' => $linear,
+                    'inverse' => $inverse,
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
                     'contractSize' => $this->safe_number($market, 'contract_size'),
@@ -1740,7 +1744,7 @@ class deribit extends Exchange {
         $filledString = $this->safe_string($order, 'filled_amount');
         $amount = $this->safe_string($order, 'amount');
         $cost = Precise::string_mul($filledString, $averageString);
-        if ($market['inverse']) {
+        if ($this->safe_bool($market, 'inverse')) {
             if ($averageString !== '0') {
                 $cost = Precise::string_div($amount, $averageString);
             }
@@ -2877,7 +2881,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.deribit.com/#private-withdraw

@@ -74,7 +74,7 @@ class oxfun extends Exchange {
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -1229,7 +1229,7 @@ class oxfun extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
          * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
@@ -1284,7 +1284,7 @@ class oxfun extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'marketCode');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //     {
         //         marketCode => 'SOL-USD-SWAP-LIN',
@@ -1309,6 +1309,7 @@ class oxfun extends Exchange {
             $tier = $listOfTiers[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'tier'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => $this->safe_number($tier, 'positionFloor'),
                 'maxNotional' => $this->safe_number($tier, 'positionCap'),
@@ -2034,7 +2035,7 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.ox.fun/?json#post-v3-withdrawal

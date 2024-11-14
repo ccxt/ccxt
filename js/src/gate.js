@@ -154,7 +154,7 @@ export default class gate extends Exchange {
                 'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
@@ -909,26 +909,49 @@ export default class gate extends Exchange {
          */
         const unifiedAccount = this.safeBool(this.options, 'unifiedAccount');
         if (unifiedAccount === undefined) {
-            const response = await this.privateAccountGetDetail(params);
-            //
-            //     {
-            //         "user_id": 10406147,
-            //         "ip_whitelist": [],
-            //         "currency_pairs": [],
-            //         "key": {
-            //             "mode": 1
-            //         },
-            //         "tier": 0,
-            //         "tier_expire_time": "0001-01-01T00:00:00Z",
-            //         "copy_trading_role": 0
-            //     }
-            //
-            const result = this.safeDict(response, 'key', {});
-            this.options['unifiedAccount'] = this.safeInteger(result, 'mode') === 2;
+            try {
+                //
+                //     {
+                //         "user_id": 10406147,
+                //         "ip_whitelist": [],
+                //         "currency_pairs": [],
+                //         "key": {
+                //             "mode": 1
+                //         },
+                //         "tier": 0,
+                //         "tier_expire_time": "0001-01-01T00:00:00Z",
+                //         "copy_trading_role": 0
+                //     }
+                //
+                const response = await this.privateAccountGetDetail(params);
+                const result = this.safeDict(response, 'key', {});
+                this.options['unifiedAccount'] = this.safeInteger(result, 'mode') === 2;
+            }
+            catch (e) {
+                // if the request fails, the unifiedAccount is disabled
+                this.options['unifiedAccount'] = false;
+            }
         }
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privateUnifiedPutUnifiedMode(params);
+    }
+    async fetchTime(params = {}) {
+        /**
+         * @method
+         * @name gate#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicSpotGetTime(params);
+        //
+        //     {
+        //         "server_time": 1731447921098
+        //     }
+        //
+        return this.safeInteger(response, 'server_time');
     }
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
@@ -6142,6 +6165,7 @@ export default class gate extends Exchange {
         return this.parseMarketLeverageTiers(response, market);
     }
     parseEmulatedLeverageTiers(info, market = undefined) {
+        const marketId = this.safeString(info, 'name');
         const maintenanceMarginUnit = this.safeString(info, 'maintenance_rate'); // '0.005',
         const leverageMax = this.safeString(info, 'leverage_max'); // '100',
         const riskLimitStep = this.safeString(info, 'risk_limit_step'); // '1000000',
@@ -6155,6 +6179,7 @@ export default class gate extends Exchange {
             const cap = Precise.stringAdd(floor, riskLimitStep);
             tiers.push({
                 'tier': this.parseNumber(Precise.stringDiv(cap, riskLimitStep)),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': this.safeString(market, 'settle'),
                 'minNotional': this.parseNumber(floor),
                 'maxNotional': this.parseNumber(cap),
@@ -6190,6 +6215,7 @@ export default class gate extends Exchange {
             const maxNotional = this.safeNumber(item, 'risk_limit');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': market['symbol'],
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,

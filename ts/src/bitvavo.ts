@@ -111,7 +111,7 @@ export default class bitvavo extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
@@ -1133,6 +1133,10 @@ export default class bitvavo extends Exchange {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['clientOrderId'] = this.uuid22 ();
+        }
         return this.extend (request, params);
     }
 
@@ -1738,7 +1742,7 @@ export default class bitvavo extends Exchange {
         return this.extend (request, params);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bitvavo#withdraw
@@ -1971,7 +1975,7 @@ export default class bitvavo extends Exchange {
             'network': undefined,
             'comment': undefined,
             'internal': undefined,
-        };
+        } as Transaction;
     }
 
     parseDepositWithdrawFee (fee, currency: Currency = undefined) {

@@ -176,7 +176,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -306,7 +306,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return this.tickers;
     }
 
-    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -555,7 +555,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
-    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         /**
         * @method

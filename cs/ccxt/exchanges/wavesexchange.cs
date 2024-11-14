@@ -117,7 +117,7 @@ public partial class wavesexchange : Exchange
                     { "forward", "https://wx.network/api/v1/forward/matcher" },
                     { "market", "https://wx.network/api/v1/forward/marketdata/api/v1" },
                 } },
-                { "doc", "https://docs.wx.network" },
+                { "doc", new List<object>() {"https://docs.wx.network", "https://docs.waves.tech", "https://api.wavesplatform.com/v0/docs/", "https://nodes.wavesnodes.com/api-docs/index.html", "https://matcher.waves.exchange/api-docs/index.html"} },
                 { "www", "https://wx.network" },
             } },
             { "api", new Dictionary<string, object>() {
@@ -455,6 +455,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -634,6 +635,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#signIn
         * @description sign in, must be called prior to using other authenticated methods
+        * @see https://docs.wx.network/en/api/auth/oauth2-token
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns response from exchange
         */
@@ -753,6 +755,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -799,7 +802,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
@@ -843,6 +846,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://api.wavesplatform.com/v0/docs/#/candles/getCandles
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1224,6 +1228,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#createOrder
         * @description create a trade order
+        * @see https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
@@ -1480,6 +1485,7 @@ public partial class wavesexchange : Exchange
         * @method
         * @name wavesexchange#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

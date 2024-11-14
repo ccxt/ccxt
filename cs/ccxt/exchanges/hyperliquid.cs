@@ -59,7 +59,7 @@ public partial class hyperliquid : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
@@ -115,12 +115,12 @@ public partial class hyperliquid : Exchange
                 { "1h", "1h" },
                 { "2h", "2h" },
                 { "4h", "4h" },
-                { "6h", "6h" },
+                { "8h", "8h" },
                 { "12h", "12h" },
                 { "1d", "1d" },
                 { "3d", "3d" },
                 { "1w", "1w" },
-                { "1M", "1m" },
+                { "1M", "1M" },
             } },
             { "hostname", "hyperliquid.xyz" },
             { "urls", new Dictionary<string, object>() {
@@ -141,7 +141,17 @@ public partial class hyperliquid : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "post", new Dictionary<string, object>() {
-                        { "info", 1 },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                            { "byType", new Dictionary<string, object>() {
+                                { "l2Book", 2 },
+                                { "allMids", 2 },
+                                { "clearinghouseState", 2 },
+                                { "orderStatus", 2 },
+                                { "spotClearinghouseState", 2 },
+                                { "exchangeStatus", 2 },
+                            } },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -408,7 +418,8 @@ public partial class hyperliquid : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
-            object extraData = this.safeDict(second, i, new Dictionary<string, object>() {});
+            object index = this.safeInteger(market, "index");
+            object extraData = this.safeDict(second, index, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
@@ -764,6 +775,116 @@ public partial class hyperliquid : Exchange
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchFundingRates
+        * @description retrieves data on all swap markets for hyperliquid
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of objects representing market data
+        */
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "type", "metaAndAssetCtxs" },
+        };
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        //     [
+        //         {
+        //             "universe": [
+        //                 {
+        //                     "maxLeverage": 50,
+        //                     "name": "SOL",
+        //                     "onlyIsolated": false,
+        //                     "szDecimals": 2
+        //                 }
+        //             ]
+        //         },
+        //         [
+        //             {
+        //                 "dayNtlVlm": "9450588.2273",
+        //                 "funding": "0.0000198",
+        //                 "impactPxs": [
+        //                     "108.04",
+        //                     "108.06"
+        //                 ],
+        //                 "markPx": "108.04",
+        //                 "midPx": "108.05",
+        //                 "openInterest": "10764.48",
+        //                 "oraclePx": "107.99",
+        //                 "premium": "0.00055561",
+        //                 "prevDayPx": "111.81"
+        //             }
+        //         ]
+        //     ]
+        //
+        //
+        object meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        object universe = this.safeList(meta, "universe", new List<object>() {});
+        object assetCtxs = this.safeList(response, 1, new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
+        {
+            object data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
+            ((IList<object>)result).Add(data);
+        }
+        object funding_rates = this.parseFundingRates(result);
+        return this.filterByArray(funding_rates, "symbol", symbols);
+    }
+
+    public override object parseFundingRate(object info, object market = null)
+    {
+        //
+        //     {
+        //         "maxLeverage": "50",
+        //         "name": "ETH",
+        //         "onlyIsolated": false,
+        //         "szDecimals": "4",
+        //         "dayNtlVlm": "1709813.11535",
+        //         "funding": "0.00004807",
+        //         "impactPxs": [
+        //             "2369.3",
+        //             "2369.6"
+        //         ],
+        //         "markPx": "2369.6",
+        //         "midPx": "2369.45",
+        //         "openInterest": "1815.4712",
+        //         "oraclePx": "2367.3",
+        //         "premium": "0.00090821",
+        //         "prevDayPx": "2381.5"
+        //     }
+        //
+        object bs = this.safeString(info, "name");
+        object marketId = this.coinToMarketId(bs);
+        object symbol = this.safeSymbol(marketId, market);
+        object funding = this.safeNumber(info, "funding");
+        object markPx = this.safeNumber(info, "markPx");
+        object oraclePx = this.safeNumber(info, "oraclePx");
+        object fundingTimestamp = multiply(multiply(multiply((add((Math.Floor(Double.Parse((divide(divide(divide(this.milliseconds(), 60), 60), 1000)).ToString()))), 1)), 60), 60), 1000);
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", symbol },
+            { "markPrice", markPx },
+            { "indexPrice", oraclePx },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", funding },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", "1h" },
+        };
+    }
+
     public override object parseTicker(object ticker, object market = null)
     {
         //
@@ -835,7 +956,7 @@ public partial class hyperliquid : Exchange
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
                 { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "base") : getValue(market, "id") },
-                { "interval", timeframe },
+                { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
                 { "startTime", since },
                 { "endTime", until },
             } },
@@ -3337,6 +3458,21 @@ public partial class hyperliquid : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
+    {
+        config ??= new Dictionary<string, object>();
+        if (isTrue(isTrue((inOp(config, "byType"))) && isTrue((inOp(parameters, "type")))))
+        {
+            object type = getValue(parameters, "type");
+            object byType = getValue(config, "byType");
+            if (isTrue(inOp(byType, type)))
+            {
+                return getValue(byType, type);
+            }
+        }
+        return this.safeValue(config, "cost", 1);
     }
 
     public virtual object parseCreateOrderArgs(object symbol, object type, object side, object amount, object price = null, object parameters = null)

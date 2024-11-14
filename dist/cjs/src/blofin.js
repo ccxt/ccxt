@@ -153,7 +153,7 @@ class blofin extends blofin$1 {
             },
             'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/255a7b29-341f-4d20-8342-fbfae4932807',
+                'logo': 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },

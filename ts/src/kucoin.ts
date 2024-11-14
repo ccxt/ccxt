@@ -3452,7 +3452,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name kucoin#withdraw
@@ -3628,7 +3628,7 @@ export default class kucoin extends Exchange {
             'internal': internal,
             'fee': fee,
             'updated': updated,
-        };
+        } as Transaction;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -4432,8 +4432,8 @@ export default class kucoin extends Exchange {
          * @description fetch the interest owed by the user for borrowing currency for margin trading
          * @see https://docs.kucoin.com/#get-repay-record
          * @see https://docs.kucoin.com/#query-isolated-margin-account-info
-         * @param {string} code unified currency code
-         * @param {string} symbol unified market symbol, required for isolated margin
+         * @param {string} [code] unified currency code
+         * @param {string} [symbol] unified market symbol, required for isolated margin
          * @param {int} [since] the earliest time in ms to fetch borrrow interest for
          * @param {int} [limit] the maximum number of structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4442,16 +4442,22 @@ export default class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params);
-        if (marginMode === undefined) {
-            marginMode = 'cross'; // cross as default marginMode
-        }
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBorrowInterest', params, 'cross');
         const request: Dict = {};
-        let response = undefined;
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code);
-            request['quoteCurrency'] = currency['id'];
+            currency = this.currency (code);
+            if (marginMode === 'isolated') {
+                request['balanceCurrency'] = currency['id'];
+            } else {
+                request['quoteCurrency'] = currency['id'];
+            }
         }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let response = undefined;
         if (marginMode === 'isolated') {
             response = await this.privateGetIsolatedAccounts (this.extend (request, params));
         } else {
@@ -4523,7 +4529,9 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const assets = (marginMode === 'isolated') ? this.safeList (data, 'assets', []) : this.safeList (data, 'accounts', []);
-        return this.parseBorrowInterests (assets, undefined);
+        const interest = this.parseBorrowInterests (assets, market);
+        const filteredByCurrency = this.filterByCurrencySinceLimit (interest, code, since, limit);
+        return this.filterBySymbolSinceLimit (filteredByCurrency, symbol, since, limit);
     }
 
     parseBorrowInterest (info: Dict, market: Market = undefined): BorrowInterest {

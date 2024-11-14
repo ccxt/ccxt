@@ -1,6 +1,7 @@
 'use strict';
 
 var alpaca$1 = require('./abstract/alpaca.js');
+var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
@@ -23,7 +24,7 @@ class alpaca extends alpaca$1 {
             'hostname': 'alpaca.markets',
             'pro': true,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
+                'logo': 'https://github.com/user-attachments/assets/e9476df8-a450-4c3e-ab9a-1a7794219e1b',
                 'www': 'https://alpaca.markets',
                 'api': {
                     'broker': 'https://broker-api.{hostname}',
@@ -50,14 +51,15 @@ class alpaca extends alpaca$1 {
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createOrder': true,
+                'editOrder': true,
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': false,
-                'fetchDeposits': false,
-                'fetchDepositsWithdrawals': false,
+                'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -89,12 +91,12 @@ class alpaca extends alpaca$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'api': {
                 'broker': {},
@@ -119,14 +121,18 @@ class alpaca extends alpaca$1 {
                             'v2/assets/{symbol_or_asset_id}',
                             'v2/corporate_actions/announcements/{id}',
                             'v2/corporate_actions/announcements',
+                            'v2/wallets',
+                            'v2/wallets/transfers',
                         ],
                         'post': [
                             'v2/orders',
                             'v2/watchlists',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
+                            'v2/wallets/transfers',
                         ],
                         'put': [
+                            'v2/orders/{order_id}',
                             'v2/watchlists/{watchlist_id}',
                             'v2/watchlists:by_name',
                         ],
@@ -812,6 +818,15 @@ class alpaca extends alpaca$1 {
         }
         return this.filterByArray(results, 'symbol', symbols);
     }
+    generateClientOrderId(params) {
+        const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
+        const uuid = this.uuid();
+        const parts = uuid.split('-');
+        const random_id = parts.join('');
+        const defaultClientId = this.implodeParams(clientOrderIdprefix, { 'id': random_id });
+        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
+        return clientOrderId;
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -854,13 +869,7 @@ class alpaca extends alpaca$1 {
         const defaultTIF = this.safeString(this.options, 'defaultTimeInForce');
         request['time_in_force'] = this.safeString(params, 'timeInForce', defaultTIF);
         params = this.omit(params, ['timeInForce', 'triggerPrice']);
-        const clientOrderIdprefix = this.safeString(this.options, 'clientOrderId');
-        const uuid = this.uuid();
-        const parts = uuid.split('-');
-        const random_id = parts.join('');
-        const defaultClientId = this.implodeParams(clientOrderIdprefix, { 'id': random_id });
-        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
-        request['client_order_id'] = clientOrderId;
+        request['client_order_id'] = this.generateClientOrderId(params);
         params = this.omit(params, ['clientOrderId']);
         const order = await this.traderPrivatePostV2Orders(this.extend(request, params));
         //
@@ -1079,6 +1088,53 @@ class alpaca extends alpaca$1 {
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#editOrder
+         * @description edit a trade order
+         * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+         * @param {string} id order id
+         * @param {string} [symbol] unified symbol of the market to create an order in
+         * @param {string} [type] 'market', 'limit' or 'stop_limit'
+         * @param {string} [side] 'buy' or 'sell'
+         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.triggerPrice] the price to trigger a stop order
+         * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+         * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets();
+        const request = {
+            'order_id': id,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        if (amount !== undefined) {
+            request['qty'] = this.amountToPrecision(symbol, amount);
+        }
+        const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price']);
+        if (triggerPrice !== undefined) {
+            request['stop_price'] = this.priceToPrecision(symbol, triggerPrice);
+            params = this.omit(params, 'triggerPrice');
+        }
+        if (price !== undefined) {
+            request['limit_price'] = this.priceToPrecision(symbol, price);
+        }
+        let timeInForce = undefined;
+        [timeInForce, params] = this.handleOptionAndParams2(params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        if (timeInForce !== undefined) {
+            request['time_in_force'] = timeInForce;
+        }
+        request['client_order_id'] = this.generateClientOrderId(params);
+        params = this.omit(params, ['clientOrderId']);
+        const response = await this.traderPrivatePatchV2OrdersOrderId(this.extend(request, params));
+        return this.parseOrder(response, market);
+    }
     parseOrder(order, market = undefined) {
         //
         //    {
@@ -1292,6 +1348,241 @@ class alpaca extends alpaca$1 {
             'cost': undefined,
             'fee': undefined,
         }, market);
+    }
+    async fetchDepositAddress(code, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+         * @param {string} code unified currency code
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'asset': currency['id'],
+        };
+        const response = await this.traderPrivateGetV2Wallets(this.extend(request, params));
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        return this.parseDepositAddress(response, currency);
+    }
+    parseDepositAddress(depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
+        //         "address": "bc1q2fpskfnwem3uq9z8660e4z6pfv7aqfamysk75r",
+        //         "created_at": "2024-11-03T07:30:05.609976344Z"
+        //     }
+        //
+        let parsedCurrency = undefined;
+        if (currency !== undefined) {
+            parsedCurrency = currency['id'];
+        }
+        return {
+            'info': depositAddress,
+            'currency': parsedCurrency,
+            'network': undefined,
+            'address': this.safeString(depositAddress, 'address'),
+            'tag': undefined,
+        };
+    }
+    async withdraw(code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#withdraw
+         * @description make a withdrawal
+         * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag a memo for the transaction
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        this.checkAddress(address);
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        if (tag) {
+            address = address + ':' + tag;
+        }
+        const request = {
+            'asset': currency['id'],
+            'address': address,
+            'amount': this.numberToString(amount),
+        };
+        const response = await this.traderPrivatePostV2WalletsTransfers(this.extend(request, params));
+        //
+        //     {
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
+        //     }
+        //
+        return this.parseTransaction(response, currency);
+    }
+    async fetchTransactionsHelper(type, code, since, limit, params) {
+        await this.loadMarkets();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+        }
+        const response = await this.traderPrivateGetV2WalletsTransfers(params);
+        //
+        //     {
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
+        //     }
+        //
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const direction = this.safeString(entry, 'direction');
+            if (direction === type) {
+                results.push(entry);
+            }
+            else if (type === 'BOTH') {
+                results.push(entry);
+            }
+        }
+        return this.parseTransactions(results, currency, since, limit, params);
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('BOTH', code, since, limit, params);
+    }
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposit structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('INCOMING', code, since, limit, params);
+    }
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name alpaca#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+         * @param {string} [code] unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        return await this.fetchTransactionsHelper('OUTGOING', code, since, limit, params);
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+        //         "tx_hash": null,
+        //         "direction": "OUTGOING",
+        //         "amount": "20",
+        //         "usd_value": "19.99856",
+        //         "chain": "ETH",
+        //         "asset": "USDT",
+        //         "from_address": "0x123930E4dCA196E070d39B60c644C8Aae02f23",
+        //         "to_address": "0x1232c0925196e4dcf05945f67f690153190fbaab",
+        //         "status": "PROCESSING",
+        //         "created_at": "2024-11-07T02:39:01.775495Z",
+        //         "network_fee": "4",
+        //         "fees": "0.1"
+        //     }
+        //
+        const datetime = this.safeString(transaction, 'created_at');
+        const currencyId = this.safeString(transaction, 'asset');
+        const code = this.safeCurrencyCode(currencyId, currency);
+        const fees = this.safeString(transaction, 'fees');
+        const networkFee = this.safeString(transaction, 'network_fee');
+        const totalFee = Precise["default"].stringAdd(fees, networkFee);
+        const fee = {
+            'cost': this.parseNumber(totalFee),
+            'currency': code,
+        };
+        return {
+            'info': transaction,
+            'id': this.safeString(transaction, 'id'),
+            'txid': this.safeString(transaction, 'tx_hash'),
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
+            'network': this.safeString(transaction, 'chain'),
+            'address': this.safeString(transaction, 'to_address'),
+            'addressTo': this.safeString(transaction, 'to_address'),
+            'addressFrom': this.safeString(transaction, 'from_address'),
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.parseTransactionType(this.safeString(transaction, 'direction')),
+            'amount': this.safeNumber(transaction, 'amount'),
+            'currency': code,
+            'status': this.parseTransactionStatus(this.safeString(transaction, 'status')),
+            'updated': undefined,
+            'fee': fee,
+            'comment': undefined,
+            'internal': undefined,
+        };
+    }
+    parseTransactionStatus(status) {
+        const statuses = {
+            'PROCESSING': 'pending',
+            'FAILED': 'failed',
+            'COMPLETE': 'ok',
+        };
+        return this.safeString(statuses, status, status);
+    }
+    parseTransactionType(type) {
+        const types = {
+            'INCOMING': 'deposit',
+            'OUTGOING': 'withdrawal',
+        };
+        return this.safeString(types, type, type);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let endpoint = '/' + this.implodeParams(path, params);

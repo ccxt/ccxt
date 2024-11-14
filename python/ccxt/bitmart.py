@@ -127,7 +127,7 @@ class bitmart(Exchange, ImplicitAPI):
             },
             'hostname': 'bitmart.com',  # bitmart.info, bitmart.news for Hong Kong users
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
+                'logo': 'https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14',
                 'api': {
                     'spot': 'https://api-cloud.{hostname}',
                     'swap': 'https://api-cloud-v2.{hostname}',  # bitmart.info for Hong Kong users
@@ -723,7 +723,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.safe_integer(data, 'server_time')
 
     def fetch_status(self, params={}):
@@ -732,7 +732,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
-        options = self.safe_value(self.options, 'fetchStatus', {})
+        options = self.safe_dict(self.options, 'fetchStatus', {})
         defaultType = self.safe_string(self.options, 'defaultType')
         type = self.safe_string(options, 'type', defaultType)
         type = self.safe_string(params, 'type', type)
@@ -763,12 +763,12 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        services = self.safe_value(data, 'service', [])
+        data = self.safe_dict(response, 'data', {})
+        services = self.safe_list(data, 'service', [])
         servicesByType = self.index_by(services, 'service_type')
         if type == 'swap':
             type = 'contract'
-        service = self.safe_value(servicesByType, type)
+        service = self.safe_string(servicesByType, type)
         status = None
         eta = None
         if service is not None:
@@ -814,8 +814,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        symbols = self.safe_value(data, 'symbols', [])
+        data = self.safe_dict(response, 'data', {})
+        symbols = self.safe_list(data, 'symbols', [])
         result = []
         for i in range(0, len(symbols)):
             market = symbols[i]
@@ -923,8 +923,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        symbols = self.safe_value(data, 'symbols', [])
+        data = self.safe_dict(response, 'data', {})
+        symbols = self.safe_list(data, 'symbols', [])
         result = []
         for i in range(0, len(symbols)):
             market = symbols[i]
@@ -1026,16 +1026,16 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        currencies = self.safe_value(data, 'currencies', [])
+        data = self.safe_dict(response, 'data', {})
+        currencies = self.safe_list(data, 'currencies', [])
         result: dict = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'name')
-            withdrawEnabled = self.safe_value(currency, 'withdraw_enabled')
-            depositEnabled = self.safe_value(currency, 'deposit_enabled')
+            withdrawEnabled = self.safe_bool(currency, 'withdraw_enabled')
+            depositEnabled = self.safe_bool(currency, 'deposit_enabled')
             active = withdrawEnabled and depositEnabled
             result[code] = {
                 'id': id,
@@ -1386,7 +1386,7 @@ class bitmart(Exchange, ImplicitAPI):
         else:
             data = self.safe_dict(response, 'data', {})
             tickers = self.safe_list(data, 'symbols', [])
-            ticker = self.safe_value(tickers, 0, {})
+            ticker = self.safe_dict(tickers, 0, {})
         return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -1403,7 +1403,7 @@ class bitmart(Exchange, ImplicitAPI):
         type = None
         market = None
         if symbols is not None:
-            symbol = self.safe_value(symbols, 0)
+            symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         response = None
@@ -1563,7 +1563,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer_2(data, 'ts', 'timestamp')
         return self.parse_order_book(data, market['symbol'], timestamp)
 
@@ -1891,7 +1891,7 @@ class bitmart(Exchange, ImplicitAPI):
             marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
             if marginMode == 'isolated':
                 request['orderMode'] = 'iso_margin'
-            options = self.safe_value(self.options, 'fetchMyTrades', {})
+            options = self.safe_dict(self.options, 'fetchMyTrades', {})
             defaultLimit = self.safe_integer(options, 'limit', 200)
             if limit is None:
                 limit = defaultLimit
@@ -1985,22 +1985,22 @@ class bitmart(Exchange, ImplicitAPI):
         return self.parse_trades(data, None, since, limit)
 
     def custom_parse_balance(self, response, marketType) -> Balances:
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         wallet = None
         if marketType == 'swap':
-            wallet = self.safe_value(response, 'data', [])
+            wallet = self.safe_list(response, 'data', [])
         elif marketType == 'margin':
-            wallet = self.safe_value(data, 'symbols', [])
+            wallet = self.safe_list(data, 'symbols', [])
         else:
-            wallet = self.safe_value(data, 'wallet', [])
+            wallet = self.safe_list(data, 'wallet', [])
         result = {'info': response}
         if marketType == 'margin':
             for i in range(0, len(wallet)):
                 entry = wallet[i]
                 marketId = self.safe_string(entry, 'symbol')
                 symbol = self.safe_symbol(marketId, None, '_')
-                base = self.safe_value(entry, 'base', {})
-                quote = self.safe_value(entry, 'quote', {})
+                base = self.safe_dict(entry, 'base', {})
+                quote = self.safe_dict(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult: dict = {}
@@ -2202,7 +2202,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -2361,7 +2361,7 @@ class bitmart(Exchange, ImplicitAPI):
                 '4': 'closed',  # Completed
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -2451,7 +2451,7 @@ class bitmart(Exchange, ImplicitAPI):
         # swap
         # {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         order = self.parse_order(data, market)
         order['type'] = type
         order['side'] = side
@@ -2739,7 +2739,7 @@ class bitmart(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.privatePostSpotV3CancelOrder(self.extend(request, params))
         else:
-            stop = self.safe_value_2(params, 'stop', 'trigger')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             params = self.omit(params, ['stop', 'trigger'])
             if not stop:
                 response = self.privatePostContractPrivateCancelOrder(self.extend(request, params))
@@ -2935,7 +2935,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -2982,7 +2982,7 @@ class bitmart(Exchange, ImplicitAPI):
                 request['endTime'] = until
             response = self.privatePostSpotV4QueryOpenOrders(self.extend(request, params))
         elif type == 'swap':
-            isStop = self.safe_value_2(params, 'stop', 'trigger')
+            isStop = self.safe_bool_2(params, 'stop', 'trigger')
             params = self.omit(params, ['stop', 'trigger'])
             if isStop:
                 response = self.privateGetContractPrivateCurrentPlanOrder(self.extend(request, params))
@@ -3223,7 +3223,7 @@ class bitmart(Exchange, ImplicitAPI):
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
             defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_value(self.options, 'networks', {})
+            networks = self.safe_dict(self.options, 'networks', {})
             networkInner = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             networkInner = self.safe_string(networks, networkInner, networkInner)  # handle ERC20>ETH alias
             if networkInner is not None:
@@ -3277,7 +3277,7 @@ class bitmart(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'address_memo'),
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -3302,7 +3302,7 @@ class bitmart(Exchange, ImplicitAPI):
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
             defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_value(self.options, 'networks', {})
+            networks = self.safe_dict(self.options, 'networks', {})
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
@@ -3319,7 +3319,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         transaction = self.parse_transaction(data, currency)
         return self.extend(transaction, {
             'code': code,
@@ -3343,7 +3343,7 @@ class bitmart(Exchange, ImplicitAPI):
         if code == 'USDT':
             defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
             defaultNetwork = self.safe_string_upper(defaultNetworks, code)
-            networks = self.safe_value(self.options, 'networks', {})
+            networks = self.safe_dict(self.options, 'networks', {})
             network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
             network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
             if network is not None:
@@ -3375,7 +3375,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         records = self.safe_list(data, 'records', [])
         return self.parse_transactions(records, currency, since, limit)
 
@@ -3414,7 +3414,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         record = self.safe_dict(data, 'record', {})
         return self.parse_transaction(record)
 
@@ -3464,7 +3464,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         record = self.safe_dict(data, 'record', {})
         return self.parse_transaction(record)
 
@@ -3591,7 +3591,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         transaction = self.parse_margin_loan(data, currency)
         return self.extend(transaction, {
             'amount': amount,
@@ -3627,7 +3627,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         transaction = self.parse_margin_loan(data, currency)
         return self.extend(transaction, {
             'amount': amount,
@@ -3704,9 +3704,9 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        symbols = self.safe_value(data, 'symbols', [])
-        borrowRate = self.safe_value(symbols, 0)
+        data = self.safe_dict(response, 'data', {})
+        symbols = self.safe_list(data, 'symbols', [])
+        borrowRate = self.safe_dict(symbols, 0, [])
         return self.parse_isolated_borrow_rate(borrowRate, market)
 
     def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
@@ -3735,8 +3735,8 @@ class bitmart(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(info, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        baseData = self.safe_value(info, 'base', {})
-        quoteData = self.safe_value(info, 'quote', {})
+        baseData = self.safe_dict(info, 'base', {})
+        quoteData = self.safe_dict(info, 'quote', {})
         baseId = self.safe_string(baseData, 'currency')
         quoteId = self.safe_string(quoteData, 'currency')
         return {
@@ -3792,8 +3792,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        symbols = self.safe_value(data, 'symbols', [])
+        data = self.safe_dict(response, 'data', {})
+        symbols = self.safe_list(data, 'symbols', [])
         return self.parse_isolated_borrow_rates(symbols)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
@@ -3861,7 +3861,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'status': self.parse_transfer_status(self.safe_string_2(response, 'code', 'message')),
         })
@@ -3979,7 +3979,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         records = self.safe_list(data, 'records', [])
         return self.parse_transfers(records, currency, since, limit)
 
@@ -4027,8 +4027,8 @@ class bitmart(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'records', [])
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'records', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -4168,7 +4168,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
@@ -4247,7 +4247,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0, {})
         return self.parse_position(first, market)
 
@@ -4301,7 +4301,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         #     }
         #
-        positions = self.safe_value(response, 'data', [])
+        positions = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
@@ -4421,7 +4421,7 @@ class bitmart(Exchange, ImplicitAPI):
         #         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             entry = data[i]

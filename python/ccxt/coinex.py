@@ -535,6 +535,7 @@ class coinex(Exchange, ImplicitAPI):
                     '3008': RequestTimeout,  # Service busy, please try again later.
                     '3109': InsufficientFunds,  # {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder,  # The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3600': OrderNotFound,  # {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder,  # The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError,  # Order cancellation prohibited during the Call Auction period.
                     '3612': InvalidOrder,  # The est. ask price is lower than the current bottom ask price. Please reduce the amount.
@@ -2513,10 +2514,13 @@ class coinex(Exchange, ImplicitAPI):
         stop = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         response = None
+        requestIds = []
+        for i in range(0, len(ids)):
+            requestIds.append(int(ids[i]))
         if stop:
-            request['stop_ids'] = ids
+            request['stop_ids'] = requestIds
         else:
-            request['order_ids'] = ids
+            request['order_ids'] = requestIds
         if market['spot']:
             if stop:
                 response = self.v2PrivatePostSpotCancelBatchStopOrder(self.extend(request, params))
@@ -4057,6 +4061,7 @@ class coinex(Exchange, ImplicitAPI):
             maxNotional = self.safe_number(tier, 'amount')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market, None, 'swap'),
                 'currency': market['base'] if market['linear'] else market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4424,7 +4429,7 @@ class coinex(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
@@ -4672,7 +4677,7 @@ class coinex(Exchange, ImplicitAPI):
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        accountsByType = self.safe_dict(self.options, 'accountsById', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         request: dict = {

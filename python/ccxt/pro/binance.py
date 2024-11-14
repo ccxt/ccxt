@@ -1359,7 +1359,7 @@ class binance(ccxt.async_support.binance):
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
@@ -1819,7 +1819,7 @@ class binance(ccxt.async_support.binance):
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             firstMarket = self.market(symbols[0])
-        defaultMarket = 'swap' if (isMarkPrice) else 'spot'
+        defaultMarket = 'swap' if (isMarkPrice) else None
         marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
@@ -3410,11 +3410,6 @@ class binance(ccxt.async_support.binance):
         if not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             messageHash = '::' + ','.join(symbols)
-        marketTypeObject: dict = {}
-        if market is not None:
-            marketTypeObject['type'] = market['type']
-            marketTypeObject['subType'] = market['subType']
-        await self.authenticate(self.extend(marketTypeObject, params))
         type = None
         type, params = self.handle_market_type_and_params('watchPositions', market, params)
         if type == 'spot' or type == 'margin':
@@ -3425,6 +3420,10 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        marketTypeObject: dict = {}
+        marketTypeObject['type'] = type
+        marketTypeObject['subType'] = subType
+        await self.authenticate(self.extend(marketTypeObject, params))
         messageHash = type + ':positions' + messageHash
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchPositions', 'papi', 'portfolioMargin', False)

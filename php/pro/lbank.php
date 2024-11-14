@@ -835,10 +835,14 @@ class lbank extends \ccxt\async\lbank {
             //  array( ping => 'a13a939c-5f25-4e06-9981-93cb3b890707', action => 'ping' )
             //
             $pingId = $this->safe_string($message, 'ping');
-            Async\await($client->send (array(
-                'action' => 'pong',
-                'pong' => $pingId,
-            )));
+            try {
+                Async\await($client->send (array(
+                    'action' => 'pong',
+                    'pong' => $pingId,
+                )));
+            } catch (Exception $e) {
+                $this->on_error($client, $e);
+            }
         }) ();
     }
 

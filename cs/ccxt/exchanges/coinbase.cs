@@ -66,6 +66,7 @@ public partial class coinbase : Exchange
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -767,9 +768,19 @@ public partial class coinbase : Exchange
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.currencyType] "fiat" or "crypto"
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        object currencyType = null;
+        var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
+        currencyType = ((IList<object>)currencyTypeparametersVariable)[0];
+        parameters = ((IList<object>)currencyTypeparametersVariable)[1];
+        if (isTrue(isEqual(currencyType, "crypto")))
+        {
+            object results = await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters);
+            return this.filterByArray(results, "type", "withdrawal", false);
+        }
         return await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdWithdrawals", code, since, limit, parameters);
     }
 
@@ -784,10 +795,39 @@ public partial class coinbase : Exchange
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.currencyType] "fiat" or "crypto"
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        object currencyType = null;
+        var currencyTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "currencyType");
+        currencyType = ((IList<object>)currencyTypeparametersVariable)[0];
+        parameters = ((IList<object>)currencyTypeparametersVariable)[1];
+        if (isTrue(isEqual(currencyType, "crypto")))
+        {
+            object results = await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters);
+            return this.filterByArray(results, "type", "deposit", false);
+        }
         return await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdDeposits", code, since, limit, parameters);
+    }
+
+    public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbase#fetchDepositsWithdrawals
+        * @description fetch history of deposits and withdrawals
+        * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+        * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object results = await this.fetchTransactionsWithMethod("v2PrivateGetAccountsAccountIdTransactions", code, since, limit, parameters);
+        return this.filterByArray(results, "type", new List<object>() {"deposit", "withdrawal"}, false);
     }
 
     public virtual object parseTransactionStatus(object status)
@@ -916,19 +956,64 @@ public partial class coinbase : Exchange
         //         "hide_native_amount": false
         //     }
         //
+        //
+        // crypto deposit & withdrawal (using `/transactions` endpoint)
+        //    {
+        //        "amount": {
+        //            "amount": "0.00014200", (negative for withdrawal)
+        //            "currency": "BTC"
+        //        },
+        //        "created_at": "2024-03-29T15:48:30Z",
+        //        "id": "0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "idem": "092a979b-017e-4403-940a-2ca57811f442", // field present only in case of withdrawal
+        //        "native_amount": {
+        //            "amount": "9.85", (negative for withdrawal)
+        //            "currency": "USD"
+        //        },
+        //        "network": {
+        //            "status": "pending", // if status is `off_blockchain` then no more other fields are present in this object
+        //            "hash": "5jYuvrNsvX2DZoMnzGYzVpYxJLfYu4GSK3xetG1H5LHrSovsuFCFYdFMwNRoiht3s6fBk92MM8QLLnz65xuEFTrE",
+        //            "network_name": "solana",
+        //            "transaction_fee": {
+        //                "amount": "0.000100000",
+        //                "currency": "SOL"
+        //            }
+        //        },
+        //        "resource": "transaction",
+        //        "resource_path": "/v2/accounts/dc504b1c-248e-5b68-a3b0-b991f7fa84e6/transactions/0031a605-241d-514d-a97b-d4b99f3225d3",
+        //        "status": "completed",
+        //        "type": "send",
+        //        "from": { // in some cases, field might be present for deposit
+        //            "id": "7fd10cd7-b091-5cee-ba41-c29e49a7cccf",
+        //            "name": "Coinbase",
+        //            "resource": "user"
+        //        },
+        //        "to": { // field only present for withdrawal
+        //            "address": "5HA12BNthAvBwNYARYf9y5MqqCpB4qhCNFCs1Qw48ACE",
+        //            "resource": "address"
+        //        },
+        //        "description": "C3 - One Time BTC Credit . Reference Case # 123.", //  in some cases, field might be present for deposit
+        //    }
+        //
         object transactionType = this.safeString(transaction, "type");
         object amountAndCurrencyObject = null;
         object feeObject = null;
+        object network = this.safeDict(transaction, "network", new Dictionary<string, object>() {});
         if (isTrue(isEqual(transactionType, "send")))
         {
-            object network = this.safeDict(transaction, "network", new Dictionary<string, object>() {});
-            amountAndCurrencyObject = this.safeDict(network, "transaction_amount", new Dictionary<string, object>() {});
+            amountAndCurrencyObject = this.safeDict(network, "transaction_amount");
             feeObject = this.safeDict(network, "transaction_fee", new Dictionary<string, object>() {});
         } else
         {
-            amountAndCurrencyObject = this.safeDict(transaction, "subtotal", new Dictionary<string, object>() {});
+            amountAndCurrencyObject = this.safeDict(transaction, "subtotal");
             feeObject = this.safeDict(transaction, "fee", new Dictionary<string, object>() {});
         }
+        if (isTrue(isEqual(amountAndCurrencyObject, null)))
+        {
+            amountAndCurrencyObject = this.safeDict(transaction, "amount");
+        }
+        object amountString = this.safeString(amountAndCurrencyObject, "amount");
+        object amountStringAbs = Precise.stringAbs(amountString);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if (isTrue(isEqual(status, null)))
         {
@@ -939,23 +1024,36 @@ public partial class coinbase : Exchange
         object currencyId = this.safeString(amountAndCurrencyObject, "currency");
         object feeCurrencyId = this.safeString(feeObject, "currency");
         object datetime = this.safeString(transaction, "created_at");
-        object toObject = this.safeDict(transaction, "to", new Dictionary<string, object>() {});
-        object toAddress = this.safeString(toObject, "address");
+        object resource = this.safeString(transaction, "resource");
+        object type = resource;
+        if (!isTrue(this.inArray(type, new List<object>() {"deposit", "withdrawal"})))
+        {
+            if (isTrue(Precise.stringGt(amountString, "0")))
+            {
+                type = "deposit";
+            } else if (isTrue(Precise.stringLt(amountString, "0")))
+            {
+                type = "withdrawal";
+            }
+        }
+        object toObject = this.safeDict(transaction, "to");
+        object addressTo = this.safeString(toObject, "address");
+        object networkId = this.safeString(network, "network_name");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
-            { "txid", id },
+            { "txid", this.safeString(network, "hash", id) },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", null },
-            { "address", toAddress },
-            { "addressTo", toAddress },
+            { "network", this.networkIdToCode(networkId) },
+            { "address", addressTo },
+            { "addressTo", addressTo },
             { "addressFrom", null },
             { "tag", null },
             { "tagTo", null },
             { "tagFrom", null },
-            { "type", this.safeString(transaction, "resource") },
-            { "amount", this.safeNumber(amountAndCurrencyObject, "amount") },
+            { "type", type },
+            { "amount", this.parseNumber(amountStringAbs) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "status", status },
             { "updated", this.parse8601(this.safeString(transaction, "updated_at")) },

@@ -503,6 +503,7 @@ public partial class coinex : Exchange
                     { "3008", typeof(RequestTimeout) },
                     { "3109", typeof(InsufficientFunds) },
                     { "3127", typeof(InvalidOrder) },
+                    { "3600", typeof(OrderNotFound) },
                     { "3606", typeof(InvalidOrder) },
                     { "3610", typeof(ExchangeError) },
                     { "3612", typeof(InvalidOrder) },
@@ -2352,12 +2353,17 @@ public partial class coinex : Exchange
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
+        object requestIds = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
+        }
         if (isTrue(stop))
         {
-            ((IDictionary<string,object>)request)["stop_ids"] = ids;
+            ((IDictionary<string,object>)request)["stop_ids"] = requestIds;
         } else
         {
-            ((IDictionary<string,object>)request)["order_ids"] = ids;
+            ((IDictionary<string,object>)request)["order_ids"] = requestIds;
         }
         if (isTrue(getValue(market, "spot")))
         {
@@ -3381,6 +3387,7 @@ public partial class coinex : Exchange
             object maxNotional = this.safeNumber(tier, "amount");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "swap") },
                 { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
@@ -4111,7 +4118,7 @@ public partial class coinex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
-        object accountsByType = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {

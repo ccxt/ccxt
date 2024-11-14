@@ -157,7 +157,7 @@ class bybit extends bybit$1 {
                     'public': 'https://api-testnet.{hostname}',
                     'private': 'https://api-testnet.{hostname}',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
@@ -393,21 +393,6 @@ class bybit extends bybit$1 {
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
-                        // Legacy option USDC
-                        'option/usdc/openapi/private/v1/place-order': 2.5,
-                        'option/usdc/openapi/private/v1/replace-order': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'option/usdc/openapi/private/v1/query-active-orders': 2.5,
-                        'option/usdc/openapi/private/v1/query-order-history': 2.5,
-                        'option/usdc/openapi/private/v1/execution-list': 2.5,
-                        'option/usdc/openapi/private/v1/query-position': 2.5,
-                        // Legacy perpetual swap USDC
-                        'perpetual/usdc/openapi/private/v1/place-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/replace-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/leverage/save': 2.5,
                         // spot
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/cancel-order': 2.5,
@@ -2492,6 +2477,13 @@ class bybit extends bybit$1 {
         const fundingTimestamp = this.safeInteger(ticker, 'nextFundingTime');
         const markPrice = this.safeNumber(ticker, 'markPrice');
         const indexPrice = this.safeNumber(ticker, 'indexPrice');
+        const info = this.safeDict(this.safeMarket(marketId, market, undefined, 'swap'), 'info');
+        const fundingInterval = this.safeInteger(info, 'fundingInterval');
+        let intervalString = undefined;
+        if (fundingInterval !== undefined) {
+            const interval = this.parseToInt(fundingInterval / 60);
+            intervalString = interval.toString() + 'h';
+        }
         return {
             'info': ticker,
             'symbol': symbol,
@@ -2510,7 +2502,7 @@ class bybit extends bybit$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': intervalString,
         };
     }
     async fetchFundingRates(symbols = undefined, params = {}) {
@@ -2583,6 +2575,10 @@ class bybit extends bybit$1 {
         //
         const data = this.safeDict(response, 'result', {});
         const tickerList = this.safeList(data, 'list', []);
+        const timestamp = this.safeInteger(response, 'time');
+        for (let i = 0; i < tickerList.length; i++) {
+            tickerList[i]['timestamp'] = timestamp; // will be removed inside the parser
+        }
         const result = this.parseFundingRates(tickerList);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -3668,12 +3664,8 @@ class bybit extends bybit$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (isUsdcSettled && !isUnifiedAccount) {
-            return await this.createUsdcOrder(symbol, type, side, amount, price, params);
-        }
+        const parts = await this.isUnifiedEnabled();
+        const enableUnifiedAccount = parts[1];
         const trailingAmount = this.safeString2(params, 'trailingAmount', 'trailingStop');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params, enableUnifiedAccount);
@@ -4034,190 +4026,6 @@ class bybit extends bybit$1 {
         //
         return this.parseOrders(data);
     }
-    async createUsdcOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        if (type === 'market') {
-            throw new errors.NotSupported(this.id + ' createOrder does not allow market orders for ' + symbol + ' markets');
-        }
-        const lowerCaseType = type.toLowerCase();
-        if ((price === undefined) && (lowerCaseType === 'limit')) {
-            throw new errors.ArgumentsRequired(this.id + ' createOrder requires a price argument for limit orders');
-        }
-        const request = {
-            'symbol': market['id'],
-            'side': this.capitalize(side),
-            'orderType': this.capitalize(lowerCaseType),
-            'timeInForce': 'GoodTillCancel',
-            'orderQty': this.getAmount(symbol, amount),
-            // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
-            // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
-            // 'reduceOnly': false, // reduce only, required for linear orders
-            // when creating a closing order, bybit recommends a True value for
-            //  closeOnTrigger to avoid failing due to insufficient available margin
-            // 'closeOnTrigger': false, required for linear orders
-            // 'orderLinkId': 'string', // unique client order id, max 36 characters
-            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
-            // 'trigger_by': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'orderFilter': 'Order' or 'StopOrder'
-            // 'mmp': false // market maker protection
-        };
-        const isMarket = lowerCaseType === 'market';
-        const isLimit = lowerCaseType === 'limit';
-        if (isLimit !== undefined) {
-            request['orderPrice'] = this.getPrice(symbol, this.numberToString(price));
-        }
-        const exchangeSpecificParam = this.safeString(params, 'time_in_force');
-        const timeInForce = this.safeStringLower(params, 'timeInForce');
-        const postOnly = this.isPostOnly(isMarket, exchangeSpecificParam === 'PostOnly', params);
-        if (postOnly) {
-            request['time_in_force'] = 'PostOnly';
-        }
-        else if (timeInForce === 'gtc') {
-            request['time_in_force'] = 'GoodTillCancel';
-        }
-        else if (timeInForce === 'fok') {
-            request['time_in_force'] = 'FillOrKill';
-        }
-        else if (timeInForce === 'ioc') {
-            request['time_in_force'] = 'ImmediateOrCancel';
-        }
-        if (market['swap']) {
-            const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-            const stopLossTriggerPrice = this.safeValue(params, 'stopLossPrice', triggerPrice);
-            const takeProfitTriggerPrice = this.safeValue(params, 'takeProfitPrice');
-            const stopLoss = this.safeValue(params, 'stopLoss');
-            const takeProfit = this.safeValue(params, 'takeProfit');
-            const isStopLossTriggerOrder = stopLossTriggerPrice !== undefined;
-            const isTakeProfitTriggerOrder = takeProfitTriggerPrice !== undefined;
-            const isStopLoss = stopLoss !== undefined;
-            const isTakeProfit = takeProfit !== undefined;
-            const isStopOrder = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-            if (isStopOrder) {
-                request['orderFilter'] = 'StopOrder';
-                request['trigger_by'] = 'LastPrice';
-                const stopPx = isStopLossTriggerOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-                const preciseStopPrice = this.getPrice(symbol, stopPx);
-                request['triggerPrice'] = preciseStopPrice;
-                const delta = this.numberToString(market['precision']['price']);
-                request['basePrice'] = isStopLossTriggerOrder ? Precise["default"].stringSub(preciseStopPrice, delta) : Precise["default"].stringAdd(preciseStopPrice, delta);
-            }
-            else if (isStopLoss || isTakeProfit) {
-                if (isStopLoss) {
-                    const slTriggerPrice = this.safeValue2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    request['stopLoss'] = this.getPrice(symbol, slTriggerPrice);
-                }
-                if (isTakeProfit) {
-                    const tpTriggerPrice = this.safeValue2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    request['takeProfit'] = this.getPrice(symbol, tpTriggerPrice);
-                }
-            }
-            else {
-                request['orderFilter'] = 'Order';
-            }
-        }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['orderLinkId'] = clientOrderId;
-        }
-        else if (market['option']) {
-            // mandatory field for options
-            request['orderLinkId'] = this.uuid16();
-        }
-        params = this.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId']);
-        let response = undefined;
-        if (market['option']) {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
-        }
-        else {
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, params));
-        }
-        //
-        //     {
-        //         "retCode":0,
-        //         "retMsg":"",
-        //         "result":{
-        //            "orderId":"34450a59-325e-4296-8af0-63c7c524ae33",
-        //            "orderLinkId":"",
-        //            "mmp":false,
-        //            "symbol":"BTCPERP",
-        //            "orderType":"Limit",
-        //            "side":"Buy",
-        //            "orderQty":"0.00100000",
-        //            "orderPrice":"20000.00",
-        //            "iv":"0",
-        //            "timeInForce":"GoodTillCancel",
-        //            "orderStatus":"Created",
-        //            "createdAt":"1652261746007873",
-        //            "basePrice":"0.00",
-        //            "triggerPrice":"0.00",
-        //            "takeProfit":"0.00",
-        //            "stopLoss":"0.00",
-        //            "slTriggerBy":"UNKNOWN",
-        //            "tpTriggerBy":"UNKNOWN"
-        //     }
-        //
-        const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
-    }
-    async editUsdcOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        if (amount !== undefined) {
-            request['orderQty'] = this.getAmount(symbol, amount);
-        }
-        if (price !== undefined) {
-            request['orderPrice'] = this.getPrice(symbol, price);
-        }
-        let response = undefined;
-        if (market['option']) {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, params));
-        }
-        else {
-            const isStop = this.safeBool2(params, 'stop', 'trigger', false);
-            const triggerPrice = this.safeValue2(params, 'stopPrice', 'triggerPrice');
-            const stopLossPrice = this.safeValue(params, 'stopLossPrice');
-            const isStopLossOrder = stopLossPrice !== undefined;
-            const takeProfitPrice = this.safeValue(params, 'takeProfitPrice');
-            const isTakeProfitOrder = takeProfitPrice !== undefined;
-            const isStopOrder = isStopLossOrder || isTakeProfitOrder || isStop;
-            if (isStopOrder) {
-                request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
-                if (triggerPrice !== undefined) {
-                    request['triggerPrice'] = this.getPrice(symbol, triggerPrice);
-                }
-                if (stopLossPrice !== undefined) {
-                    request['stopLoss'] = this.getPrice(symbol, stopLossPrice);
-                }
-                if (takeProfitPrice !== undefined) {
-                    request['takeProfit'] = this.getPrice(symbol, takeProfitPrice);
-                }
-            }
-            params = this.omit(params, ['stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, params));
-        }
-        //
-        //    {
-        //        "retCode": 0,
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "outRequestId": "",
-        //            "symbol": "BTC-13MAY22-40000-C",
-        //            "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        //            "orderLinkId": "AAAAA41133"
-        //        },
-        //        "retExtMap": {}
-        //   }
-        //
-        const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
-    }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const market = this.market(symbol);
         const request = {
@@ -4320,15 +4128,8 @@ class bybit extends bybit$1 {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        const market = this.market(symbol);
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
-        }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (isUsdcSettled && !isUnifiedAccount) {
-            return await this.editUsdcOrder(id, symbol, type, side, amount, price, params);
         }
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const response = await this.privatePostV5OrderAmend(this.extend(request, params));
@@ -4350,46 +4151,6 @@ class bybit extends bybit$1 {
             'id': this.safeString(result, 'orderId'),
         });
     }
-    async cancelUsdcOrder(id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelUsdcOrder() requires a symbol argument');
-        }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-            // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
-            // 'orderId': id,
-        };
-        const isStop = this.safeBool2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
-        if (id !== undefined) { // The user can also use argument params["order_link_id"]
-            request['orderId'] = id;
-        }
-        let response = undefined;
-        if (market['option']) {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(this.extend(request, params));
-        }
-        else {
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(this.extend(request, params));
-        }
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "outRequestId": "",
-        //             "symbol": "BTC-13MAY22-40000-C",
-        //             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        //             "orderLinkId": ""
-        //         },
-        //         "retExtMap": {}
-        //     }
-        //
-        const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
-    }
     cancelOrderRequest(id, symbol = undefined, params = {}) {
         const market = this.market(symbol);
         const request = {
@@ -4401,9 +4162,9 @@ class bybit extends bybit$1 {
         };
         if (market['spot']) {
             // only works for spot market
-            const isStop = this.safeBool2(params, 'stop', 'trigger', false);
+            const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
             params = this.omit(params, ['stop', 'trigger']);
-            request['orderFilter'] = isStop ? 'StopOrder' : 'Order';
+            request['orderFilter'] = isTrigger ? 'StopOrder' : 'Order';
         }
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
@@ -4431,7 +4192,8 @@ class bybit extends bybit$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+         * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -4440,12 +4202,6 @@ class bybit extends bybit$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (isUsdcSettled && !isUnifiedAccount) {
-            return await this.cancelUsdcOrder(id, symbol, params);
-        }
         const requestExtended = this.cancelOrderRequest(id, symbol, params);
         const response = await this.privatePostV5OrderCancel(requestExtended);
         //
@@ -4669,53 +4425,6 @@ class bybit extends bybit$1 {
         const row = this.safeList(result, 'list', []);
         return this.parseOrders(row, undefined);
     }
-    async cancelAllUsdcOrders(symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelAllUsdcOrders() requires a symbol argument');
-        }
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        let response = undefined;
-        if (market['option']) {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelAll(this.extend(request, params));
-        }
-        else {
-            const isStop = this.safeBool2(params, 'stop', 'trigger', false);
-            if (isStop) {
-                request['orderFilter'] = 'StopOrder';
-            }
-            else {
-                request['orderFilter'] = 'Order';
-            }
-            params = this.omit(params, ['stop', 'trigger']);
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelAll(this.extend(request, params));
-        }
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "retExtMap": {},
-        //         "result": [
-        //             {
-        //                 "outRequestId": "cancelAll-290119-1652176443114-0",
-        //                 "symbol": "BTC-13MAY22-40000-C",
-        //                 "orderId": "fa6cd740-56ed-477d-9385-90ccbfee49ca",
-        //                 "orderLinkId": "",
-        //                 "errorCode": 0,
-        //                 "errorDesc": ""
-        //             }
-        //         ]
-        //     }
-        //
-        const result = this.safeValue(response, 'result', []);
-        if (!Array.isArray(result)) {
-            return response;
-        }
-        return this.parseOrders(result, market);
-    }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
@@ -4724,7 +4433,8 @@ class bybit extends bybit$1 {
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -4738,10 +4448,6 @@ class bybit extends bybit$1 {
         const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled && !isUnifiedAccount) {
-                return await this.cancelAllUsdcOrders(symbol, params);
-            }
             request['symbol'] = market['id'];
         }
         let type = undefined;
@@ -4757,9 +4463,9 @@ class bybit extends bybit$1 {
                 request['settleCoin'] = this.safeString(params, 'settleCoin', defaultSettle);
             }
         }
-        const isStop = this.safeBool2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         const response = await this.privatePostV5OrderCancelAll(this.extend(request, params));
@@ -4797,93 +4503,6 @@ class bybit extends bybit$1 {
             return response;
         }
         return this.parseOrders(orders, market);
-    }
-    async fetchUsdcOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        const request = {
-        // 'category': '', // Type. PERPETUAL, OPTION
-        // 'symbol': '', // Contract name
-        // 'baseCoin': '', // Base currency
-        // 'orderId': '', // Order ID
-        // 'orderLinkId': '', // Custom ID used for cross-platform strategy remarks; a max. of 32 characters
-        // 'orderStatus': '', // Order status
-        // 'orderFilter': '', // refer to Order Filter
-        // 'direction': '', // prev: prev page, next: next page.
-        // 'limit': 0, // Limit for data size per page, max size is 50. Default as showing 20 pieces of data per page
-        // 'cursor': '', // API pass-through
-        };
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchOrders', market, params);
-        if (type === 'swap') {
-            request['category'] = 'PERPETUAL';
-        }
-        else {
-            request['category'] = 'OPTION';
-        }
-        const isStop = this.safeBool2(params, 'stop', 'trigger', false);
-        params = this.omit(params, ['stop', 'trigger']);
-        if (isStop) {
-            request['orderFilter'] = 'StopOrder';
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory(this.extend(request, params));
-        //
-        //     {
-        //         "result": {
-        //         "cursor": "640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675%2C640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675",
-        //             "resultTotalSize": 1,
-        //             "dataList": [
-        //             {
-        //                 "symbol": "ETHPERP",
-        //                 "orderType": "Limit",
-        //                 "orderLinkId": "",
-        //                 "orderId": "c04ad17d-ca85-45d1-859e-561e7236f6db",
-        //                 "cancelType": "UNKNOWN",
-        //                 "stopOrderType": "UNKNOWN",
-        //                 "orderStatus": "Filled",
-        //                 "updateTimeStamp": "1666178097006",
-        //                 "takeProfit": "0.0000",
-        //                 "cumExecValue": "12.9825",
-        //                 "createdAt": "1666178096996",
-        //                 "blockTradeId": "",
-        //                 "orderPnl": "",
-        //                 "price": "1300.0",
-        //                 "tpTriggerBy": "UNKNOWN",
-        //                 "timeInForce": "GoodTillCancel",
-        //                 "updatedAt": "1666178097006",
-        //                 "basePrice": "",
-        //                 "realisedPnl": "0.0000",
-        //                 "side": "Buy",
-        //                 "triggerPrice": "0.0",
-        //                 "cumExecFee": "0.0078",
-        //                 "leavesQty": "0.000",
-        //                 "cashFlow": "",
-        //                 "slTriggerBy": "UNKNOWN",
-        //                 "iv": "",
-        //                 "closeOnTrigger": "UNKNOWN",
-        //                 "cumExecQty": "0.010",
-        //                 "reduceOnly": 0,
-        //                 "qty": "0.010",
-        //                 "stopLoss": "0.0000",
-        //                 "triggerBy": "UNKNOWN",
-        //                 "orderIM": ""
-        //             }
-        //         ]
-        //         },
-        //         "retCode": 0,
-        //         "retMsg": "Success."
-        //     }
-        //
-        const result = this.safeDict(response, 'result', {});
-        const data = this.safeList(result, 'dataList', []);
-        return this.parseOrders(data, market, since, limit);
     }
     async fetchOrderClassic(id, symbol = undefined, params = {}) {
         /**
@@ -5025,7 +4644,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5049,7 +4669,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5063,28 +4684,21 @@ class bybit extends bybit$1 {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchOrders', market, params);
-        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
-            return await this.fetchUsdcOrders(symbol, since, limit, params);
-        }
         if (type === 'spot') {
             throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isStop = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5162,7 +4776,8 @@ class bybit extends bybit$1 {
          * @param {string} id order id
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching a closed stop order
+         * @param {boolean} [params.trigger] set to true for fetching a closed trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5193,7 +4808,8 @@ class bybit extends bybit$1 {
          * @param {string} id order id
          * @param {string} [symbol] unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching an open stop order
+         * @param {boolean} [params.trigger] set to true for fetching an open trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5227,7 +4843,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching stop orders
+         * @param {boolean} [params.trigger] set to true for fetching trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5241,25 +4858,18 @@ class bybit extends bybit$1 {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
-        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
-            return await this.fetchUsdcOrders(symbol, since, limit, params);
-        }
         request['category'] = type;
-        const isStop = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
         params = this.omit(params, ['trigger', 'stop']);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5338,7 +4948,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching closed stop orders
+         * @param {boolean} [params.trigger] set to true for fetching closed trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5362,7 +4973,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] timestamp in ms of the earliest order, default is undefined
          * @param {int} [limit] max number of orders to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5376,48 +4988,6 @@ class bybit extends bybit$1 {
         };
         return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, params));
     }
-    async fetchUsdcOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchUsdcOpenOrders', market, params);
-        request['category'] = (type === 'swap') ? 'perpetual' : 'option';
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(this.extend(request, params));
-        const result = this.safeDict(response, 'result', {});
-        const orders = this.safeList(result, 'dataList', []);
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "resultTotalSize": 1,
-        //             "cursor": "id%3D1662019818569%23df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        //             "dataList": [
-        //                 {
-        //                     "orderId": "df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        //                     "orderLinkId": "",
-        //                     "symbol": "BTC-2SEP22-18000-C",
-        //                     "orderStatus": "New",
-        //                     "orderPrice": "500",
-        //                     "side": "Buy",
-        //                     "remainingQty": "0.1",
-        //                     "orderType": "Limit",
-        //                     "qty": "0.1",
-        //                     "iv": "0.0000",
-        //                     "cancelType": "",
-        //                     "updateTimestamp": "1662019818579"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        return this.parseOrders(orders, market, since, limit);
-    }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5428,7 +4998,8 @@ class bybit extends bybit$1 {
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open orders structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] set to true for fetching open stop orders
+         * @param {boolean} [params.trigger] set to true for fetching open trigger orders
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option', 'spot']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5443,14 +5014,10 @@ class bybit extends bybit$1 {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchOpenOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50);
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
         }
         let type = undefined;
@@ -5461,16 +5028,12 @@ class bybit extends bybit$1 {
                 const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
                 const settleCoin = this.safeString(params, 'settleCoin', defaultSettle);
                 request['settleCoin'] = settleCoin;
-                isUsdcSettled = (settleCoin === 'USDC');
             }
         }
-        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
-            return await this.fetchUsdcOpenOrders(symbol, since, limit, params);
-        }
         request['category'] = type;
-        const isStop = this.safeBool2(params, 'stop', 'trigger', false);
+        const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
         params = this.omit(params, ['stop', 'trigger']);
-        if (isStop) {
+        if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
         }
         if (limit !== undefined) {
@@ -5553,51 +5116,6 @@ class bybit extends bybit$1 {
         params = this.omit(params, ['clientOrderId', 'orderLinkId']);
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, params));
     }
-    async fetchMyUsdcTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = undefined;
-        const request = {};
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
-            request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
-        }
-        else {
-            request['category'] = 'PERPETUAL';
-        }
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1ExecutionList(this.extend(request, params));
-        //
-        //     {
-        //       "result": {
-        //         "cursor": "29%3A1%2C28%3A1",
-        //         "resultTotalSize": 2,
-        //         "dataList": [
-        //           {
-        //             "symbol": "ETHPERP",
-        //             "orderLinkId": "",
-        //             "side": "Sell",
-        //             "orderId": "d83f8b4d-2f60-4e04-a64a-a3f207989dc6",
-        //             "execFee": "0.0210",
-        //             "feeRate": "0.000600",
-        //             "blockTradeId": "",
-        //             "tradeTime": "1669196423581",
-        //             "execPrice": "1161.45",
-        //             "lastLiquidityInd": "TAKER",
-        //             "execValue": "34.8435",
-        //             "execType": "Trade",
-        //             "execQty": "0.030",
-        //             "tradeId": "d9aa8590-9e6a-575e-a1be-d6261e6ed2e5"
-        //           }, ...
-        //         ]
-        //       },
-        //       "retCode": 0,
-        //       "retMsg": "Success."
-        //     }
-        //
-        const result = this.safeDict(response, 'result', {});
-        const dataList = this.safeList(result, 'dataList', []);
-        return this.parseTrades(dataList, market, since, limit);
-    }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5619,23 +5137,16 @@ class bybit extends bybit$1 {
         if (paginate) {
             return await this.fetchPaginatedCallCursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 100);
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let request = {
             'execType': 'Trade',
         };
         let market = undefined;
-        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
             request['symbol'] = market['id'];
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchMyTrades', market, params);
-        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
-            return await this.fetchMyUsdcTrades(symbol, since, limit, params);
-        }
         request['category'] = type;
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -6401,20 +5912,11 @@ class bybit extends bybit$1 {
         const request = {
             'symbol': market['id'],
         };
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
         let response = undefined;
         let type = undefined;
         [type, params] = this.getBybitType('fetchPosition', market, params);
-        if ((type === 'option' || isUsdcSettled) && !isUnifiedAccount) {
-            request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(this.extend(request, params));
-        }
-        else {
-            request['category'] = type;
-            response = await this.privateGetV5PositionList(this.extend(request, params));
-        }
+        request['category'] = type;
+        response = await this.privateGetV5PositionList(this.extend(request, params));
         //
         //     {
         //         "retCode": 0,
@@ -6464,81 +5966,6 @@ class bybit extends bybit$1 {
         position['datetime'] = this.iso8601(timestamp);
         return position;
     }
-    async fetchUsdcPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
-        const request = {};
-        let market = undefined;
-        if (Array.isArray(symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new errors.ArgumentsRequired(this.id + ' fetchUsdcPositions() takes an array with exactly one symbol');
-            }
-            const symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
-        }
-        else if (symbols !== undefined) {
-            market = this.market(symbols);
-            request['symbol'] = market['id'];
-        }
-        let type = undefined;
-        [type, params] = this.getBybitType('fetchUsdcPositions', market, params);
-        request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
-        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(this.extend(request, params));
-        //
-        //     {
-        //         "result": {
-        //             "cursor": "BTC-31DEC21-24000-P%3A1640834421431%2CBTC-31DEC21-24000-P%3A1640834421431",
-        //             "resultTotalSize": 1,
-        //             "dataList": [
-        //                 {
-        //                 "symbol": "BTC-31DEC21-24000-P",
-        //                 "leverage": "",
-        //                 "occClosingFee": "",
-        //                 "liqPrice": "",
-        //                 "positionValue": "",
-        //                 "takeProfit": "",
-        //                 "riskId": "",
-        //                 "trailingStop": "",
-        //                 "unrealisedPnl": "",
-        //                 "createdAt": "1640834421431",
-        //                 "markPrice": "0.00",
-        //                 "cumRealisedPnl": "",
-        //                 "positionMM": "359.5271",
-        //                 "positionIM": "467.0633",
-        //                 "updatedAt": "1640834421431",
-        //                 "tpSLMode": "",
-        //                 "side": "Sell",
-        //                 "bustPrice": "",
-        //                 "deleverageIndicator": 0,
-        //                 "entryPrice": "1.4",
-        //                 "size": "-0.100",
-        //                 "sessionRPL": "",
-        //                 "positionStatus": "",
-        //                 "sessionUPL": "",
-        //                 "stopLoss": "",
-        //                 "orderMargin": "",
-        //                 "sessionAvgPrice": "1.5"
-        //                 }
-        //             ]
-        //         },
-        //         "retCode": 0,
-        //         "retMsg": "Success."
-        //     }
-        //
-        const result = this.safeDict(response, 'result', {});
-        const positions = this.safeList(result, 'dataList', []);
-        const results = [];
-        for (let i = 0; i < positions.length; i++) {
-            let rawPosition = positions[i];
-            if (('data' in rawPosition) && ('is_valid' in rawPosition)) {
-                // futures only
-                rawPosition = this.safeDict(rawPosition, 'data');
-            }
-            results.push(this.parsePosition(rawPosition, market));
-        }
-        return this.filterByArrayPositions(results, 'symbol', symbols, false);
-    }
     async fetchPositions(symbols = undefined, params = {}) {
         /**
          * @method
@@ -6569,16 +5996,12 @@ class bybit extends bybit$1 {
             symbol = symbols;
             symbols = [this.symbol(symbol)];
         }
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request = {};
         let market = undefined;
-        let isUsdcSettled = false;
         if (symbol !== undefined) {
             market = this.market(symbol);
             symbol = market['symbol'];
             request['symbol'] = market['id'];
-            isUsdcSettled = market['settle'] === 'USDC';
         }
         let type = undefined;
         [type, params] = this.getBybitType('fetchPositions', market, params);
@@ -6589,7 +6012,6 @@ class bybit extends bybit$1 {
                     const defaultSettle = this.safeString(this.options, 'defaultSettle', 'USDT');
                     const settleCoin = this.safeString(params, 'settleCoin', defaultSettle);
                     request['settleCoin'] = settleCoin;
-                    isUsdcSettled = (settleCoin === 'USDC');
                 }
             }
             else {
@@ -6598,9 +6020,6 @@ class bybit extends bybit$1 {
                     request['category'] = 'inverse';
                 }
             }
-        }
-        if (((type === 'option') || isUsdcSettled) && !isUnifiedAccount) {
-            return await this.fetchUsdcPositions(symbols, params);
         }
         params = this.omit(params, ['type']);
         request['category'] = type;
@@ -7046,9 +6465,6 @@ class bybit extends bybit$1 {
         const market = this.market(symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const isUsdcSettled = market['settle'] === 'USDC';
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         const leverageString = this.numberToString(leverage);
@@ -7057,25 +6473,18 @@ class bybit extends bybit$1 {
             'buyLeverage': leverageString,
             'sellLeverage': leverageString,
         };
-        let response = undefined;
-        if (isUsdcSettled && !isUnifiedAccount) {
-            request['leverage'] = leverageString;
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, params));
+        request['buyLeverage'] = leverageString;
+        request['sellLeverage'] = leverageString;
+        if (market['linear']) {
+            request['category'] = 'linear';
+        }
+        else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         else {
-            request['buyLeverage'] = leverageString;
-            request['sellLeverage'] = leverageString;
-            if (market['linear']) {
-                request['category'] = 'linear';
-            }
-            else if (market['inverse']) {
-                request['category'] = 'inverse';
-            }
-            else {
-                throw new errors.NotSupported(this.id + ' setLeverage() only support linear and inverse market');
-            }
-            response = await this.privatePostV5PositionSetLeverage(this.extend(request, params));
+            throw new errors.NotSupported(this.id + ' setLeverage() only support linear and inverse market');
         }
+        const response = await this.privatePostV5PositionSetLeverage(this.extend(request, params));
         return response;
     }
     async setPositionMode(hedged, symbol = undefined, params = {}) {
@@ -8537,8 +7946,8 @@ class bybit extends bybit$1 {
         /**
          * @method
          * @name bybit#fetchLeverageTiers
-         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @description retrieve information on the maximum leverage, for different trade sizes
+         * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
@@ -8616,6 +8025,7 @@ class bybit extends bybit$1 {
             }
             tiers.push({
                 'tier': this.safeInteger(tier, 'id'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': this.safeNumber(tier, 'riskLimitValue'),

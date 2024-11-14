@@ -149,7 +149,7 @@ public partial class bybit : Exchange
                     { "public", "https://api-testnet.{hostname}" },
                     { "private", "https://api-testnet.{hostname}" },
                 } },
-                { "logo", "https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api.{hostname}" },
                     { "futures", "https://api.{hostname}" },
@@ -357,19 +357,6 @@ public partial class bybit : Exchange
                         { "v5/broker/asset/query-sub-member-deposit-record", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "option/usdc/openapi/private/v1/place-order", 2.5 },
-                        { "option/usdc/openapi/private/v1/replace-order", 2.5 },
-                        { "option/usdc/openapi/private/v1/cancel-order", 2.5 },
-                        { "option/usdc/openapi/private/v1/cancel-all", 2.5 },
-                        { "option/usdc/openapi/private/v1/query-active-orders", 2.5 },
-                        { "option/usdc/openapi/private/v1/query-order-history", 2.5 },
-                        { "option/usdc/openapi/private/v1/execution-list", 2.5 },
-                        { "option/usdc/openapi/private/v1/query-position", 2.5 },
-                        { "perpetual/usdc/openapi/private/v1/place-order", 2.5 },
-                        { "perpetual/usdc/openapi/private/v1/replace-order", 2.5 },
-                        { "perpetual/usdc/openapi/private/v1/cancel-order", 2.5 },
-                        { "perpetual/usdc/openapi/private/v1/cancel-all", 2.5 },
-                        { "perpetual/usdc/openapi/private/v1/position/leverage/save", 2.5 },
                         { "spot/v3/private/order", 2.5 },
                         { "spot/v3/private/cancel-order", 2.5 },
                         { "spot/v3/private/cancel-orders", 2.5 },
@@ -2555,6 +2542,14 @@ public partial class bybit : Exchange
         object fundingTimestamp = this.safeInteger(ticker, "nextFundingTime");
         object markPrice = this.safeNumber(ticker, "markPrice");
         object indexPrice = this.safeNumber(ticker, "indexPrice");
+        object info = this.safeDict(this.safeMarket(marketId, market, null, "swap"), "info");
+        object fundingInterval = this.safeInteger(info, "fundingInterval");
+        object intervalString = null;
+        if (isTrue(!isEqual(fundingInterval, null)))
+        {
+            object interval = this.parseToInt(divide(fundingInterval, 60));
+            intervalString = add(((object)interval).ToString(), "h");
+        }
         return new Dictionary<string, object>() {
             { "info", ticker },
             { "symbol", symbol },
@@ -2573,7 +2568,7 @@ public partial class bybit : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
@@ -2656,6 +2651,11 @@ public partial class bybit : Exchange
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object tickerList = this.safeList(data, "list", new List<object>() {});
+        object timestamp = this.safeInteger(response, "time");
+        for (object i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
+        {
+            ((IDictionary<string,object>)getValue(tickerList, i))["timestamp"] = timestamp; // will be removed inside the parser
+        }
         object result = this.parseFundingRates(tickerList);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -3835,15 +3835,8 @@ public partial class bybit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
-        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.createUsdcOrder(symbol, type, side, amount, price, parameters);
-        }
+        object parts = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(parts, 1);
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "trailingStop");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
@@ -4235,200 +4228,6 @@ public partial class bybit : Exchange
         return this.parseOrders(data);
     }
 
-    public async virtual Task<object> createUsdcOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        if (isTrue(isEqual(type, "market")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " createOrder does not allow market orders for "), symbol), " markets")) ;
-        }
-        object lowerCaseType = ((string)type).ToLower();
-        if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(lowerCaseType, "limit")))))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
-        }
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "side", this.capitalize(side) },
-            { "orderType", this.capitalize(lowerCaseType) },
-            { "timeInForce", "GoodTillCancel" },
-            { "orderQty", this.getAmount(symbol, amount) },
-        };
-        object isMarket = isEqual(lowerCaseType, "market");
-        object isLimit = isEqual(lowerCaseType, "limit");
-        if (isTrue(!isEqual(isLimit, null)))
-        {
-            ((IDictionary<string,object>)request)["orderPrice"] = this.getPrice(symbol, this.numberToString(price));
-        }
-        object exchangeSpecificParam = this.safeString(parameters, "time_in_force");
-        object timeInForce = this.safeStringLower(parameters, "timeInForce");
-        object postOnly = this.isPostOnly(isMarket, isEqual(exchangeSpecificParam, "PostOnly"), parameters);
-        if (isTrue(postOnly))
-        {
-            ((IDictionary<string,object>)request)["time_in_force"] = "PostOnly";
-        } else if (isTrue(isEqual(timeInForce, "gtc")))
-        {
-            ((IDictionary<string,object>)request)["time_in_force"] = "GoodTillCancel";
-        } else if (isTrue(isEqual(timeInForce, "fok")))
-        {
-            ((IDictionary<string,object>)request)["time_in_force"] = "FillOrKill";
-        } else if (isTrue(isEqual(timeInForce, "ioc")))
-        {
-            ((IDictionary<string,object>)request)["time_in_force"] = "ImmediateOrCancel";
-        }
-        if (isTrue(getValue(market, "swap")))
-        {
-            object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
-            object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
-            object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
-            object stopLoss = this.safeValue(parameters, "stopLoss");
-            object takeProfit = this.safeValue(parameters, "takeProfit");
-            object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-            object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-            object isStopLoss = !isEqual(stopLoss, null);
-            object isTakeProfit = !isEqual(takeProfit, null);
-            object isStopOrder = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
-            if (isTrue(isStopOrder))
-            {
-                ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
-                ((IDictionary<string,object>)request)["trigger_by"] = "LastPrice";
-                object stopPx = ((bool) isTrue(isStopLossTriggerOrder)) ? stopLossTriggerPrice : takeProfitTriggerPrice;
-                object preciseStopPrice = this.getPrice(symbol, stopPx);
-                ((IDictionary<string,object>)request)["triggerPrice"] = preciseStopPrice;
-                object delta = this.numberToString(getValue(getValue(market, "precision"), "price"));
-                ((IDictionary<string,object>)request)["basePrice"] = ((bool) isTrue(isStopLossTriggerOrder)) ? Precise.stringSub(preciseStopPrice, delta) : Precise.stringAdd(preciseStopPrice, delta);
-            } else if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
-            {
-                if (isTrue(isStopLoss))
-                {
-                    object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                    ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, slTriggerPrice);
-                }
-                if (isTrue(isTakeProfit))
-                {
-                    object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, tpTriggerPrice);
-                }
-            } else
-            {
-                ((IDictionary<string,object>)request)["orderFilter"] = "Order";
-            }
-        }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
-        } else if (isTrue(getValue(market, "option")))
-        {
-            // mandatory field for options
-            ((IDictionary<string,object>)request)["orderLinkId"] = this.uuid16();
-        }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "postOnly", "clientOrderId"});
-        object response = null;
-        if (isTrue(getValue(market, "option")))
-        {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, parameters));
-        } else
-        {
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(this.extend(request, parameters));
-        }
-        //
-        //     {
-        //         "retCode":0,
-        //         "retMsg":"",
-        //         "result":{
-        //            "orderId":"34450a59-325e-4296-8af0-63c7c524ae33",
-        //            "orderLinkId":"",
-        //            "mmp":false,
-        //            "symbol":"BTCPERP",
-        //            "orderType":"Limit",
-        //            "side":"Buy",
-        //            "orderQty":"0.00100000",
-        //            "orderPrice":"20000.00",
-        //            "iv":"0",
-        //            "timeInForce":"GoodTillCancel",
-        //            "orderStatus":"Created",
-        //            "createdAt":"1652261746007873",
-        //            "basePrice":"0.00",
-        //            "triggerPrice":"0.00",
-        //            "takeProfit":"0.00",
-        //            "stopLoss":"0.00",
-        //            "slTriggerBy":"UNKNOWN",
-        //            "tpTriggerBy":"UNKNOWN"
-        //     }
-        //
-        object order = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
-    }
-
-    public async virtual Task<object> editUsdcOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-            { "orderId", id },
-        };
-        if (isTrue(!isEqual(amount, null)))
-        {
-            ((IDictionary<string,object>)request)["orderQty"] = this.getAmount(symbol, amount);
-        }
-        if (isTrue(!isEqual(price, null)))
-        {
-            ((IDictionary<string,object>)request)["orderPrice"] = this.getPrice(symbol, price);
-        }
-        object response = null;
-        if (isTrue(getValue(market, "option")))
-        {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, parameters));
-        } else
-        {
-            object isStop = this.safeBool2(parameters, "stop", "trigger", false);
-            object triggerPrice = this.safeValue2(parameters, "stopPrice", "triggerPrice");
-            object stopLossPrice = this.safeValue(parameters, "stopLossPrice");
-            object isStopLossOrder = !isEqual(stopLossPrice, null);
-            object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-            object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-            object isStopOrder = isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)) || isTrue(isStop);
-            if (isTrue(isStopOrder))
-            {
-                ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isStop)) ? "StopOrder" : "Order";
-                if (isTrue(!isEqual(triggerPrice, null)))
-                {
-                    ((IDictionary<string,object>)request)["triggerPrice"] = this.getPrice(symbol, triggerPrice);
-                }
-                if (isTrue(!isEqual(stopLossPrice, null)))
-                {
-                    ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossPrice);
-                }
-                if (isTrue(!isEqual(takeProfitPrice, null)))
-                {
-                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitPrice);
-                }
-            }
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"});
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(this.extend(request, parameters));
-        }
-        //
-        //    {
-        //        "retCode": 0,
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "outRequestId": "",
-        //            "symbol": "BTC-13MAY22-40000-C",
-        //            "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        //            "orderLinkId": "AAAAA41133"
-        //        },
-        //        "retExtMap": {}
-        //   }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
-    }
-
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4536,19 +4335,9 @@ public partial class bybit : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
-        }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
-        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.editUsdcOrder(id, symbol, type, side, amount, price, parameters);
         }
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
@@ -4571,50 +4360,6 @@ public partial class bybit : Exchange
         });
     }
 
-    public async virtual Task<object> cancelUsdcOrder(object id, object symbol = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelUsdcOrder() requires a symbol argument")) ;
-        }
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        object isStop = this.safeBool2(parameters, "stop", "trigger", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(!isEqual(id, null)))
-        {
-            ((IDictionary<string,object>)request)["orderId"] = id;
-        }
-        object response = null;
-        if (isTrue(getValue(market, "option")))
-        {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(this.extend(request, parameters));
-        } else
-        {
-            ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isStop)) ? "StopOrder" : "Order";
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(this.extend(request, parameters));
-        }
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "outRequestId": "",
-        //             "symbol": "BTC-13MAY22-40000-C",
-        //             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        //             "orderLinkId": ""
-        //         },
-        //         "retExtMap": {}
-        //     }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
-    }
-
     public virtual object cancelOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -4625,9 +4370,9 @@ public partial class bybit : Exchange
         if (isTrue(getValue(market, "spot")))
         {
             // only works for spot market
-            object isStop = this.safeBool2(parameters, "stop", "trigger", false);
+            object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isStop)) ? "StopOrder" : "Order";
+            ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue(isTrigger)) ? "StopOrder" : "Order";
         }
         if (isTrue(!isEqual(id, null)))
         {
@@ -4659,7 +4404,8 @@ public partial class bybit : Exchange
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] *spot only* whether the order is a stop order
+        * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -4670,15 +4416,6 @@ public partial class bybit : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
-        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.cancelUsdcOrder(id, symbol, parameters);
-        }
         object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
         object response = await this.privatePostV5OrderCancel(requestExtended);
         //
@@ -4928,60 +4665,6 @@ public partial class bybit : Exchange
         return this.parseOrders(row, null);
     }
 
-    public async virtual Task<object> cancelAllUsdcOrders(object symbol = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelAllUsdcOrders() requires a symbol argument")) ;
-        }
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        object response = null;
-        if (isTrue(getValue(market, "option")))
-        {
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1CancelAll(this.extend(request, parameters));
-        } else
-        {
-            object isStop = this.safeBool2(parameters, "stop", "trigger", false);
-            if (isTrue(isStop))
-            {
-                ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
-            } else
-            {
-                ((IDictionary<string,object>)request)["orderFilter"] = "Order";
-            }
-            parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1CancelAll(this.extend(request, parameters));
-        }
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "retExtMap": {},
-        //         "result": [
-        //             {
-        //                 "outRequestId": "cancelAll-290119-1652176443114-0",
-        //                 "symbol": "BTC-13MAY22-40000-C",
-        //                 "orderId": "fa6cd740-56ed-477d-9385-90ccbfee49ca",
-        //                 "orderLinkId": "",
-        //                 "errorCode": 0,
-        //                 "errorDesc": ""
-        //             }
-        //         ]
-        //     }
-        //
-        object result = this.safeValue(response, "result", new List<object>() {});
-        if (!isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            return response;
-        }
-        return this.parseOrders(result, market);
-    }
-
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         /**
@@ -4991,7 +4674,8 @@ public partial class bybit : Exchange
         * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] true if stop order
+        * @param {boolean} [params.trigger] true if trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5009,11 +4693,6 @@ public partial class bybit : Exchange
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
-            if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
-            {
-                return await this.cancelAllUsdcOrders(symbol, parameters);
-            }
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
@@ -5034,9 +4713,9 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["settleCoin"] = this.safeString(parameters, "settleCoin", defaultSettle);
             }
         }
-        object isStop = this.safeBool2(parameters, "stop", "trigger", false);
+        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
@@ -5076,91 +4755,6 @@ public partial class bybit : Exchange
             return response;
         }
         return this.parseOrders(orders, market);
-    }
-
-    public async virtual Task<object> fetchUsdcOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = null;
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isEqual(type, "swap")))
-        {
-            ((IDictionary<string,object>)request)["category"] = "PERPETUAL";
-        } else
-        {
-            ((IDictionary<string,object>)request)["category"] = "OPTION";
-        }
-        object isStop = this.safeBool2(parameters, "stop", "trigger", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(isStop))
-        {
-            ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
-        }
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = limit;
-        }
-        object response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory(this.extend(request, parameters));
-        //
-        //     {
-        //         "result": {
-        //         "cursor": "640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675%2C640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675",
-        //             "resultTotalSize": 1,
-        //             "dataList": [
-        //             {
-        //                 "symbol": "ETHPERP",
-        //                 "orderType": "Limit",
-        //                 "orderLinkId": "",
-        //                 "orderId": "c04ad17d-ca85-45d1-859e-561e7236f6db",
-        //                 "cancelType": "UNKNOWN",
-        //                 "stopOrderType": "UNKNOWN",
-        //                 "orderStatus": "Filled",
-        //                 "updateTimeStamp": "1666178097006",
-        //                 "takeProfit": "0.0000",
-        //                 "cumExecValue": "12.9825",
-        //                 "createdAt": "1666178096996",
-        //                 "blockTradeId": "",
-        //                 "orderPnl": "",
-        //                 "price": "1300.0",
-        //                 "tpTriggerBy": "UNKNOWN",
-        //                 "timeInForce": "GoodTillCancel",
-        //                 "updatedAt": "1666178097006",
-        //                 "basePrice": "",
-        //                 "realisedPnl": "0.0000",
-        //                 "side": "Buy",
-        //                 "triggerPrice": "0.0",
-        //                 "cumExecFee": "0.0078",
-        //                 "leavesQty": "0.000",
-        //                 "cashFlow": "",
-        //                 "slTriggerBy": "UNKNOWN",
-        //                 "iv": "",
-        //                 "closeOnTrigger": "UNKNOWN",
-        //                 "cumExecQty": "0.010",
-        //                 "reduceOnly": 0,
-        //                 "qty": "0.010",
-        //                 "stopLoss": "0.0000",
-        //                 "triggerBy": "UNKNOWN",
-        //                 "orderIM": ""
-        //             }
-        //         ]
-        //         },
-        //         "retCode": 0,
-        //         "retMsg": "Success."
-        //     }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeList(result, "dataList", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
     }
 
     public async virtual Task<object> fetchOrderClassic(object id, object symbol = null, object parameters = null)
@@ -5327,7 +4921,8 @@ public partial class bybit : Exchange
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] true if stop order
+         * @param {boolean} [params.trigger] true if trigger order
+         * @param {boolean} [params.stop] alias for trigger
          * @param {string} [params.type] market type, ['swap', 'option']
          * @param {string} [params.subType] market subType, ['linear', 'inverse']
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5354,7 +4949,8 @@ public partial class bybit : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] true if stop order
+        * @param {boolean} [params.trigger] true if trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5372,35 +4968,25 @@ public partial class bybit : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object isUsdcSettled = false;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.fetchUsdcOrders(symbol, since, limit, parameters);
-        }
         if (isTrue(isEqual(type, "spot")))
         {
             throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported for spot markets")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isStop = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
@@ -5484,7 +5070,8 @@ public partial class bybit : Exchange
         * @param {string} id order id
         * @param {string} [symbol] unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for fetching a closed stop order
+        * @param {boolean} [params.trigger] set to true for fetching a closed trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5520,7 +5107,8 @@ public partial class bybit : Exchange
         * @param {string} id order id
         * @param {string} [symbol] unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for fetching an open stop order
+        * @param {boolean} [params.trigger] set to true for fetching an open trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5559,7 +5147,8 @@ public partial class bybit : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for fetching stop orders
+        * @param {boolean} [params.trigger] set to true for fetching trigger orders
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5577,31 +5166,21 @@ public partial class bybit : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object isUsdcSettled = false;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchCanceledAndClosedOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.fetchUsdcOrders(symbol, since, limit, parameters);
-        }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isStop = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
+        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
@@ -5686,7 +5265,8 @@ public partial class bybit : Exchange
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for fetching closed stop orders
+        * @param {boolean} [params.trigger] set to true for fetching closed trigger orders
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5713,7 +5293,8 @@ public partial class bybit : Exchange
         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
         * @param {int} [limit] max number of orders to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] true if stop order
+        * @param {boolean} [params.trigger] true if trigger order
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
@@ -5729,54 +5310,6 @@ public partial class bybit : Exchange
         return await this.fetchCanceledAndClosedOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchUsdcOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        object market = null;
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchUsdcOpenOrders", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        ((IDictionary<string,object>)request)["category"] = ((bool) isTrue((isEqual(type, "swap")))) ? "perpetual" : "option";
-        object response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(this.extend(request, parameters));
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object orders = this.safeList(result, "dataList", new List<object>() {});
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "resultTotalSize": 1,
-        //             "cursor": "id%3D1662019818569%23df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        //             "dataList": [
-        //                 {
-        //                     "orderId": "df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        //                     "orderLinkId": "",
-        //                     "symbol": "BTC-2SEP22-18000-C",
-        //                     "orderStatus": "New",
-        //                     "orderPrice": "500",
-        //                     "side": "Buy",
-        //                     "remainingQty": "0.1",
-        //                     "orderType": "Limit",
-        //                     "qty": "0.1",
-        //                     "iv": "0.0000",
-        //                     "cancelType": "",
-        //                     "updateTimestamp": "1662019818579"
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        return this.parseOrders(orders, market, since, limit);
-    }
-
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -5788,7 +5321,8 @@ public partial class bybit : Exchange
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open orders structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] set to true for fetching open stop orders
+        * @param {boolean} [params.trigger] set to true for fetching open trigger orders
+        * @param {boolean} [params.stop] alias for trigger
         * @param {string} [params.type] market type, ['swap', 'option', 'spot']
         * @param {string} [params.subType] market subType, ['linear', 'inverse']
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
@@ -5807,17 +5341,11 @@ public partial class bybit : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
         }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object isUsdcSettled = false;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
@@ -5832,17 +5360,12 @@ public partial class bybit : Exchange
                 object defaultSettle = this.safeString(this.options, "defaultSettle", "USDT");
                 object settleCoin = this.safeString(parameters, "settleCoin", defaultSettle);
                 ((IDictionary<string,object>)request)["settleCoin"] = settleCoin;
-                isUsdcSettled = (isEqual(settleCoin, "USDC"));
             }
         }
-        if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.fetchUsdcOpenOrders(symbol, since, limit, parameters);
-        }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isStop = this.safeBool2(parameters, "stop", "trigger", false);
+        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
         }
@@ -5932,55 +5455,6 @@ public partial class bybit : Exchange
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
-    public async virtual Task<object> fetchMyUsdcTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = null;
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
-        {
-            market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            ((IDictionary<string,object>)request)["category"] = ((bool) isTrue(getValue(market, "option"))) ? "OPTION" : "PERPETUAL";
-        } else
-        {
-            ((IDictionary<string,object>)request)["category"] = "PERPETUAL";
-        }
-        object response = await this.privatePostOptionUsdcOpenapiPrivateV1ExecutionList(this.extend(request, parameters));
-        //
-        //     {
-        //       "result": {
-        //         "cursor": "29%3A1%2C28%3A1",
-        //         "resultTotalSize": 2,
-        //         "dataList": [
-        //           {
-        //             "symbol": "ETHPERP",
-        //             "orderLinkId": "",
-        //             "side": "Sell",
-        //             "orderId": "d83f8b4d-2f60-4e04-a64a-a3f207989dc6",
-        //             "execFee": "0.0210",
-        //             "feeRate": "0.000600",
-        //             "blockTradeId": "",
-        //             "tradeTime": "1669196423581",
-        //             "execPrice": "1161.45",
-        //             "lastLiquidityInd": "TAKER",
-        //             "execValue": "34.8435",
-        //             "execType": "Trade",
-        //             "execQty": "0.030",
-        //             "tradeId": "d9aa8590-9e6a-575e-a1be-d6261e6ed2e5"
-        //           }, ...
-        //         ]
-        //       },
-        //       "retCode": 0,
-        //       "retMsg": "Success."
-        //     }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object dataList = this.safeList(result, "dataList", new List<object>() {});
-        return this.parseTrades(dataList, market, since, limit);
-    }
-
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -6007,29 +5481,19 @@ public partial class bybit : Exchange
         {
             return await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 100);
         }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object request = new Dictionary<string, object>() {
             { "execType", "Trade" },
         };
         object market = null;
-        object isUsdcSettled = false;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.fetchMyUsdcTrades(symbol, since, limit, parameters);
-        }
         ((IDictionary<string,object>)request)["category"] = type;
         if (isTrue(!isEqual(limit, null)))
         {
@@ -6844,25 +6308,13 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
         object response = null;
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchPosition", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue((isTrue(isEqual(type, "option")) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            ((IDictionary<string,object>)request)["category"] = ((bool) isTrue((isEqual(type, "option")))) ? "OPTION" : "PERPETUAL";
-            response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(this.extend(request, parameters));
-        } else
-        {
-            ((IDictionary<string,object>)request)["category"] = type;
-            response = await this.privateGetV5PositionList(this.extend(request, parameters));
-        }
+        ((IDictionary<string,object>)request)["category"] = type;
+        response = await this.privateGetV5PositionList(this.extend(request, parameters));
         //
         //     {
         //         "retCode": 0,
@@ -6913,90 +6365,6 @@ public partial class bybit : Exchange
         return position;
     }
 
-    public async virtual Task<object> fetchUsdcPositions(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        object market = null;
-        if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-        {
-            object length = getArrayLength(symbols);
-            if (isTrue(!isEqual(length, 1)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " fetchUsdcPositions() takes an array with exactly one symbol")) ;
-            }
-            object symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        } else if (isTrue(!isEqual(symbols, null)))
-        {
-            market = this.market(symbols);
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-        }
-        object type = null;
-        var typeparametersVariable = this.getBybitType("fetchUsdcPositions", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        ((IDictionary<string,object>)request)["category"] = ((bool) isTrue((isEqual(type, "option")))) ? "OPTION" : "PERPETUAL";
-        object response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(this.extend(request, parameters));
-        //
-        //     {
-        //         "result": {
-        //             "cursor": "BTC-31DEC21-24000-P%3A1640834421431%2CBTC-31DEC21-24000-P%3A1640834421431",
-        //             "resultTotalSize": 1,
-        //             "dataList": [
-        //                 {
-        //                 "symbol": "BTC-31DEC21-24000-P",
-        //                 "leverage": "",
-        //                 "occClosingFee": "",
-        //                 "liqPrice": "",
-        //                 "positionValue": "",
-        //                 "takeProfit": "",
-        //                 "riskId": "",
-        //                 "trailingStop": "",
-        //                 "unrealisedPnl": "",
-        //                 "createdAt": "1640834421431",
-        //                 "markPrice": "0.00",
-        //                 "cumRealisedPnl": "",
-        //                 "positionMM": "359.5271",
-        //                 "positionIM": "467.0633",
-        //                 "updatedAt": "1640834421431",
-        //                 "tpSLMode": "",
-        //                 "side": "Sell",
-        //                 "bustPrice": "",
-        //                 "deleverageIndicator": 0,
-        //                 "entryPrice": "1.4",
-        //                 "size": "-0.100",
-        //                 "sessionRPL": "",
-        //                 "positionStatus": "",
-        //                 "sessionUPL": "",
-        //                 "stopLoss": "",
-        //                 "orderMargin": "",
-        //                 "sessionAvgPrice": "1.5"
-        //                 }
-        //             ]
-        //         },
-        //         "retCode": 0,
-        //         "retMsg": "Success."
-        //     }
-        //
-        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object positions = this.safeList(result, "dataList", new List<object>() {});
-        object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
-        {
-            object rawPosition = getValue(positions, i);
-            if (isTrue(isTrue((inOp(rawPosition, "data"))) && isTrue((inOp(rawPosition, "is_valid")))))
-            {
-                // futures only
-                rawPosition = this.safeDict(rawPosition, "data");
-            }
-            ((IList<object>)results).Add(this.parsePosition(rawPosition, market));
-        }
-        return this.filterByArrayPositions(results, "symbol", symbols, false);
-    }
-
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         /**
@@ -7031,19 +6399,13 @@ public partial class bybit : Exchange
             symbol = symbols;
             symbols = new List<object> {this.symbol(symbol)};
         }
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object isUsdcSettled = false;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
-            isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
         }
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchPositions", market, parameters);
@@ -7059,7 +6421,6 @@ public partial class bybit : Exchange
                     object defaultSettle = this.safeString(this.options, "defaultSettle", "USDT");
                     object settleCoin = this.safeString(parameters, "settleCoin", defaultSettle);
                     ((IDictionary<string,object>)request)["settleCoin"] = settleCoin;
-                    isUsdcSettled = (isEqual(settleCoin, "USDC"));
                 }
             } else
             {
@@ -7069,10 +6430,6 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)request)["category"] = "inverse";
                 }
             }
-        }
-        if (isTrue(isTrue((isTrue((isEqual(type, "option"))) || isTrue(isUsdcSettled))) && !isTrue(isUnifiedAccount)))
-        {
-            return await this.fetchUsdcPositions(symbols, parameters);
         }
         parameters = this.omit(parameters, new List<object>() {"type"});
         ((IDictionary<string,object>)request)["category"] = type;
@@ -7558,11 +6915,6 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
-        var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
-        var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
-        object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object isUsdcSettled = isEqual(getValue(market, "settle"), "USDC");
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         object leverageString = this.numberToString(leverage);
@@ -7571,27 +6923,19 @@ public partial class bybit : Exchange
             { "buyLeverage", leverageString },
             { "sellLeverage", leverageString },
         };
-        object response = null;
-        if (isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedAccount)))
+        ((IDictionary<string,object>)request)["buyLeverage"] = leverageString;
+        ((IDictionary<string,object>)request)["sellLeverage"] = leverageString;
+        if (isTrue(getValue(market, "linear")))
         {
-            ((IDictionary<string,object>)request)["leverage"] = leverageString;
-            response = await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["category"] = "linear";
+        } else if (isTrue(getValue(market, "inverse")))
+        {
+            ((IDictionary<string,object>)request)["category"] = "inverse";
         } else
         {
-            ((IDictionary<string,object>)request)["buyLeverage"] = leverageString;
-            ((IDictionary<string,object>)request)["sellLeverage"] = leverageString;
-            if (isTrue(getValue(market, "linear")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "linear";
-            } else if (isTrue(getValue(market, "inverse")))
-            {
-                ((IDictionary<string,object>)request)["category"] = "inverse";
-            } else
-            {
-                throw new NotSupported ((string)add(this.id, " setLeverage() only support linear and inverse market")) ;
-            }
-            response = await this.privatePostV5PositionSetLeverage(this.extend(request, parameters));
+            throw new NotSupported ((string)add(this.id, " setLeverage() only support linear and inverse market")) ;
         }
+        object response = await this.privatePostV5PositionSetLeverage(this.extend(request, parameters));
         return response;
     }
 
@@ -9223,8 +8567,8 @@ public partial class bybit : Exchange
         /**
         * @method
         * @name bybit#fetchLeverageTiers
-        * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
         * @description retrieve information on the maximum leverage, for different trade sizes
+        * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
@@ -9316,6 +8660,7 @@ public partial class bybit : Exchange
             }
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger(tier, "id") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", minNotional },
                 { "maxNotional", this.safeNumber(tier, "riskLimitValue") },

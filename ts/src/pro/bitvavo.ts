@@ -807,7 +807,8 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.buildMessageHash (action, request);
         this.checkMessageHashDoesNotExist (messageHash);
         const url = this.urls['api']['ws'];
-        return await this.watch (url, messageHash, request, messageHash);
+        const randomSubHash = this.randNumber (5).toString () + ':' + messageHash;
+        return await this.watch (url, messageHash, request, randomSubHash);
     }
 
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {

@@ -76,6 +76,7 @@ class hashkey extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -1916,7 +1917,7 @@ class hashkey extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://hashkeyglobal-apidoc.readme.io/reference/withdraw
@@ -3973,8 +3974,8 @@ class hashkey extends Exchange {
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -4066,14 +4067,15 @@ class hashkey extends Exchange {
         //     }
         //
         $riskLimits = $this->safe_list($info, 'riskLimits', array());
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($riskLimits); $i++) {
             $tier = $riskLimits[$i];
             $initialMarginRate = $this->safe_string($tier, 'initialMargin');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => null,
                 'maxNotional' => $this->safe_number($tier, 'quantity'),

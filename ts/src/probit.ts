@@ -1412,7 +1412,7 @@ export default class probit extends Exchange {
         return this.parseDepositAddresses (data, codes);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name probit#withdraw
@@ -1624,7 +1624,7 @@ export default class probit extends Exchange {
             'comment': undefined,
             'fee': fee,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {

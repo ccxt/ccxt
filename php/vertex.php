@@ -2844,7 +2844,7 @@ class vertex extends Exchange {
         return $this->safe_dict($response, 'data', array());
     }
 
-    public function withdraw(string $code, $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
@@ -2853,7 +2853,7 @@ class vertex extends Exchange {
          * @param {string} $address the $address to $withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transaction-structure $transaction structure~
          */
         $this->check_required_credentials();
         $this->load_markets();
@@ -2882,13 +2882,60 @@ class vertex extends Exchange {
         );
         $response = $this->v1GatewayPostExecute ($this->extend($request, $params));
         //
-        // {
-        //     "status" => "success",
-        //     "signature" => {signature},
-        //     "request_type" => "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status" => "success",
+        //         "signature" => {signature},
+        //         "request_type" => "execute_withdraw_collateral"
+        //     }
         //
-        return $response;
+        $transaction = $this->parse_transaction($response, $currency);
+        return $this->extend($transaction, array(
+            'amount' => $amount,
+            'address' => $address,
+        ));
+    }
+
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
+        //
+        //     {
+        //         "status" => "success",
+        //         "signature" => {signature},
+        //         "request_type" => "execute_withdraw_collateral"
+        //     }
+        //
+        $code = null;
+        if ($currency !== null) {
+            $code = $currency['code'];
+        }
+        return array(
+            'info' => $transaction,
+            'id' => null,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'type' => 'withdrawal',
+            'amount' => null,
+            'currency' => $code,
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
+            'updated' => null,
+            'network' => null,
+            'comment' => null,
+            'internal' => null,
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status(?string $status) {
+        $statuses = array(
+            'success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function handle_public_address(string $methodName, array $params) {

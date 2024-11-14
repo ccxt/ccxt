@@ -866,7 +866,8 @@ public partial class bitvavo : ccxt.bitvavo
         object messageHash = this.buildMessageHash(action, request);
         this.checkMessageHashDoesNotExist(messageHash);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        return await this.watch(url, messageHash, request, messageHash);
+        object randomSubHash = add(add(((object)this.randNumber(5)).ToString(), ":"), messageHash);
+        return await this.watch(url, messageHash, request, randomSubHash);
     }
 
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)

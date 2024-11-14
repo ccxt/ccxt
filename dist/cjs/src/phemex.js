@@ -4383,7 +4383,8 @@ class phemex extends phemex$1 {
         //         ]
         //     },
         //
-        market = this.safeMarket(undefined, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const riskLimits = (market['info']['riskLimits']);
         const tiers = [];
         let minNotional = 0;
@@ -4392,6 +4393,7 @@ class phemex extends phemex$1 {
             const maxNotional = this.safeInteger(tier, 'limit');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,

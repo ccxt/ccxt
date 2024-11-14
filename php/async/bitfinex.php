@@ -92,7 +92,7 @@ class bitfinex extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9',
                 'api' => array(
                     'v2' => 'https://api-pub.bitfinex.com', // https://github.com/ccxt/ccxt/issues/5109
                     'public' => 'https://api.bitfinex.com',
@@ -424,7 +424,7 @@ class bitfinex extends Exchange {
             //     }
             // }
             //
-            $fees = $this->safe_value($response, 'withdraw');
+            $fees = $this->safe_dict($response, 'withdraw', array());
             $ids = is_array($fees) ? array_keys($fees) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
@@ -534,7 +534,7 @@ class bitfinex extends Exchange {
             //     }
             //
             $result = array();
-            $fiat = $this->safe_value($this->options, 'fiat', array());
+            $fiat = $this->safe_dict($this->options, 'fiat', array());
             $makerFee = $this->safe_number($response, 'maker_fee');
             $takerFee = $this->safe_number($response, 'taker_fee');
             $makerFee2Fiat = $this->safe_number($response, 'maker_fee_2fiat');
@@ -631,7 +631,7 @@ class bitfinex extends Exchange {
                     'settleId' => null,
                     'type' => $type,
                     'spot' => ($type === 'spot'),
-                    'margin' => $this->safe_value($market, 'margin'),
+                    'margin' => $this->safe_bool($market, 'margin'),
                     'swap' => ($type === 'swap'),
                     'future' => false,
                     'option' => false,
@@ -704,7 +704,7 @@ class bitfinex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $requestedType = $this->safe_string($params, 'type', 'exchange');
             $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
             if ($accountType === null) {
@@ -769,7 +769,7 @@ class bitfinex extends Exchange {
             // transferring between derivatives wallet and regular wallet is not documented in their API
             // however we support it in CCXT (from just looking at web inspector)
             Async\await($this->load_markets());
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             $currency = $this->currency($code);
@@ -1261,8 +1261,8 @@ class bitfinex extends Exchange {
         //     }
         //
         $side = $this->safe_string($order, 'side');
-        $open = $this->safe_value($order, 'is_live');
-        $canceled = $this->safe_value($order, 'is_cancelled');
+        $open = $this->safe_bool($order, 'is_live');
+        $canceled = $this->safe_bool($order, 'is_cancelled');
         $status = null;
         if ($open) {
             $status = 'open';
@@ -1640,7 +1640,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1677,7 +1677,7 @@ class bitfinex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->safe_value($responses, 0, array());
+            $response = $this->safe_dict($responses, 0, array());
             $id = $this->safe_integer($response, 'withdrawal_id');
             $message = $this->safe_string($response, 'message');
             $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
@@ -1775,7 +1775,7 @@ class bitfinex extends Exchange {
         } else {
             // json $response with error, i.e:
             // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
-            $responseObject = $this->safe_value($response, 0, array());
+            $responseObject = $this->safe_dict($response, 0, array());
             $status = $this->safe_string($responseObject, 'status', '');
             if ($status === 'error') {
                 $throwError = true;

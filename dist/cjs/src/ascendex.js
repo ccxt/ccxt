@@ -113,7 +113,7 @@ class ascendex extends ascendex$1 {
             },
             'version': 'v2',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1',
                 'api': {
                     'rest': 'https://ascendex.com',
                 },
@@ -3053,14 +3053,15 @@ class ascendex extends ascendex$1 {
         //    }
         //
         const marginRequirements = this.safeList(info, 'marginRequirements', []);
-        const id = this.safeString(info, 'symbol');
-        market = this.safeMarket(id, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const tiers = [];
         for (let i = 0; i < marginRequirements.length; i++) {
             const tier = marginRequirements[i];
             const initialMarginRate = this.safeString(tier, 'initialMarginRate');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber(tier, 'positionNotionalLowerBound'),
                 'maxNotional': this.safeNumber(tier, 'positionNotionalUpperBound'),

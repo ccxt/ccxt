@@ -81,7 +81,7 @@ public partial class htx : Exchange
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
                 { "fetchMarginAdjustmentHistory", false },
-                { "fetchMarketLeverageTiers", true },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", false },
@@ -8487,104 +8487,38 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeList(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseLeverageTiers(data, symbols, "contract_code");
     }
 
-    public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
+    public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        /**
-        * @method
-        * @name htx#fetchMarketLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        object currencyId = this.safeString(info, "trade_partition");
+        object marketId = this.safeString(info, "contract_code");
+        object tiers = new List<object>() {};
+        object brackets = this.safeList(info, "list", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
-            object market = this.market(symbol);
-            if (!isTrue(getValue(market, "contract")))
+            object item = getValue(brackets, i);
+            object leverage = this.safeString(item, "lever_rate");
+            object ladders = this.safeList(item, "ladders", new List<object>() {});
+            for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
             {
-                throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() symbol supports contract markets only")) ;
-            }
-            ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-        }
-        object response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(this.extend(request, parameters));
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "MANA",
-        //                "contract_code": "MANA-USDT",
-        //                "margin_mode": "isolated",
-        //                "trade_partition": "USDT",
-        //                "list": [
-        //                    {
-        //                        "lever_rate": 75,
-        //                        "ladders": [
-        //                            {
-        //                                "ladder": 0,
-        //                                "min_size": 0,
-        //                                "max_size": 999,
-        //                                "adjust_factor": 0.7
-        //                            },
-        //                            ...
-        //                        ]
-        //                    }
-        //                    ...
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        object data = this.safeValue(response, "data");
-        object tiers = this.parseLeverageTiers(data, new List<object>() {symbol}, "contract_code");
-        return this.safeValue(tiers, symbol);
-    }
-
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object item = getValue(response, i);
-            object list = this.safeValue(item, "list", new List<object>() {});
-            object tiers = new List<object>() {};
-            object currency = this.safeString(item, "trade_partition");
-            object id = this.safeString(item, marketIdKey);
-            object symbol = this.safeSymbol(id);
-            if (isTrue(this.inArray(symbol, symbols)))
-            {
-                for (object j = 0; isLessThan(j, getArrayLength(list)); postFixIncrement(ref j))
-                {
-                    object obj = getValue(list, j);
-                    object leverage = this.safeString(obj, "lever_rate");
-                    object ladders = this.safeValue(obj, "ladders", new List<object>() {});
-                    for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
-                    {
-                        object bracket = getValue(ladders, k);
-                        object adjustFactor = this.safeString(bracket, "adjust_factor");
-                        ((IList<object>)tiers).Add(new Dictionary<string, object>() {
-                            { "tier", this.safeInteger(bracket, "ladder") },
-                            { "currency", this.safeCurrencyCode(currency) },
-                            { "minNotional", this.safeNumber(bracket, "min_size") },
-                            { "maxNotional", this.safeNumber(bracket, "max_size") },
-                            { "maintenanceMarginRate", this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) },
-                            { "maxLeverage", this.parseNumber(leverage) },
-                            { "info", bracket },
-                        });
-                    }
-                }
-                ((IDictionary<string,object>)result)[(string)symbol] = tiers;
+                object bracket = getValue(ladders, k);
+                object adjustFactor = this.safeString(bracket, "adjust_factor");
+                ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                    { "tier", this.safeInteger(bracket, "ladder") },
+                    { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+                    { "currency", this.safeCurrencyCode(currencyId) },
+                    { "minNotional", this.safeNumber(bracket, "min_size") },
+                    { "maxNotional", this.safeNumber(bracket, "max_size") },
+                    { "maintenanceMarginRate", this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) },
+                    { "maxLeverage", this.parseNumber(leverage) },
+                    { "info", bracket },
+                });
             }
         }
-        return result;
+        return tiers;
     }
 
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)

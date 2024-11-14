@@ -169,7 +169,7 @@ class gate(Exchange, ImplicitAPI):
                 'fetchSettlementHistory': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
-                'fetchTime': False,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
@@ -922,25 +922,44 @@ class gate(Exchange, ImplicitAPI):
         """
         unifiedAccount = self.safe_bool(self.options, 'unifiedAccount')
         if unifiedAccount is None:
-            response = self.privateAccountGetDetail(params)
-            #
-            #     {
-            #         "user_id": 10406147,
-            #         "ip_whitelist": [],
-            #         "currency_pairs": [],
-            #         "key": {
-            #             "mode": 1
-            #         },
-            #         "tier": 0,
-            #         "tier_expire_time": "0001-01-01T00:00:00Z",
-            #         "copy_trading_role": 0
-            #     }
-            #
-            result = self.safe_dict(response, 'key', {})
-            self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+            try:
+                #
+                #     {
+                #         "user_id": 10406147,
+                #         "ip_whitelist": [],
+                #         "currency_pairs": [],
+                #         "key": {
+                #             "mode": 1
+                #         },
+                #         "tier": 0,
+                #         "tier_expire_time": "0001-01-01T00:00:00Z",
+                #         "copy_trading_role": 0
+                #     }
+                #
+                response = self.privateAccountGetDetail(params)
+                result = self.safe_dict(response, 'key', {})
+                self.options['unifiedAccount'] = self.safe_integer(result, 'mode') == 2
+            except Exception as e:
+                # if the request fails, the unifiedAccount is disabled
+                self.options['unifiedAccount'] = False
 
     def upgrade_unified_trade_account(self, params={}):
         return self.privateUnifiedPutUnifiedMode(params)
+
+    def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
+        response = self.publicSpotGetTime(params)
+        #
+        #     {
+        #         "server_time": 1731447921098
+        #     }
+        #
+        return self.safe_integer(response, 'server_time')
 
     def create_expired_option_market(self, symbol: str):
         # support expired option contracts
@@ -3523,7 +3542,7 @@ class gate(Exchange, ImplicitAPI):
         response = self.privateWalletGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.gate.io/docs/developers/apiv4/en/#withdraw
@@ -5696,7 +5715,8 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_market_leverage_tiers(response, market)
 
-    def parse_emulated_leverage_tiers(self, info, market=None):
+    def parse_emulated_leverage_tiers(self, info, market=None) -> List[LeverageTier]:
+        marketId = self.safe_string(info, 'name')
         maintenanceMarginUnit = self.safe_string(info, 'maintenance_rate')  # '0.005',
         leverageMax = self.safe_string(info, 'leverage_max')  # '100',
         riskLimitStep = self.safe_string(info, 'risk_limit_step')  # '1000000',
@@ -5710,6 +5730,7 @@ class gate(Exchange, ImplicitAPI):
             cap = Precise.string_add(floor, riskLimitStep)
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskLimitStep)),
+                'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': self.safe_string(market, 'settle'),
                 'minNotional': self.parse_number(floor),
                 'maxNotional': self.parse_number(cap),
@@ -5743,6 +5764,7 @@ class gate(Exchange, ImplicitAPI):
             maxNotional = self.safe_number(item, 'risk_limit')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': market['symbol'],
                 'currency': market['base'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,

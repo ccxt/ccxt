@@ -864,6 +864,8 @@ public partial class deribit : Exchange
                 {
                     type = "spot";
                 }
+                object inverse = null;
+                object linear = null;
                 if (isTrue(isSpot))
                 {
                     symbol = add(add(bs, "/"), quote);
@@ -881,6 +883,8 @@ public partial class deribit : Exchange
                             symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                         }
                     }
+                    inverse = (!isEqual(quote, settle));
+                    linear = (isEqual(settle, quote));
                 }
                 object parsedMarketValue = this.safeValue(parsedMarkets, symbol);
                 if (isTrue(parsedMarketValue))
@@ -907,8 +911,8 @@ public partial class deribit : Exchange
                     { "option", option },
                     { "active", this.safeValue(market, "is_active") },
                     { "contract", !isTrue(isSpot) },
-                    { "linear", (isEqual(settle, quote)) },
-                    { "inverse", (!isEqual(settle, quote)) },
+                    { "linear", linear },
+                    { "inverse", inverse },
                     { "taker", this.safeNumber(market, "taker_commission") },
                     { "maker", this.safeNumber(market, "maker_commission") },
                     { "contractSize", this.safeNumber(market, "contract_size") },
@@ -1838,7 +1842,7 @@ public partial class deribit : Exchange
         object filledString = this.safeString(order, "filled_amount");
         object amount = this.safeString(order, "amount");
         object cost = Precise.stringMul(filledString, averageString);
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(this.safeBool(market, "inverse")))
         {
             if (isTrue(!isEqual(averageString, "0")))
             {

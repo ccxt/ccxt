@@ -2307,7 +2307,7 @@ class okcoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
         make a withdrawal

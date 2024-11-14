@@ -618,6 +618,15 @@
                 "url": "https://api.coinbase.com/api/v3/brokerage/accounts?limit=250",
                 "input": []
             }
+        ],
+        "fetchDepositsWithdrawals": [{
+            "description": "spot",
+            "method": "fetchDepositsWithdrawals",
+            "url": "https://api.coinbase.com/v2/accounts/myAccount/transactions",
+            "input": [
+              "USDT"
+            ]
+          }
         ]
     }
 }

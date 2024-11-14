@@ -93,7 +93,7 @@ class bitbank extends Exchange {
             ),
             'hostname' => 'bitbank.cc',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/37808081-b87f2d9c-2e59-11e8-894d-c1900b7584fe.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348',
                 'api' => array(
                     'public' => 'https://public.{hostname}',
                     'private' => 'https://api.{hostname}',
@@ -865,7 +865,7 @@ class bitbank extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

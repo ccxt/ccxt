@@ -4187,6 +4187,7 @@ class mexc(Exchange, ImplicitAPI):
         #        "isHidden": False
         #    }
         #
+        marketId = self.safe_string(info, 'symbol')
         maintenanceMarginRate = self.safe_string(info, 'maintenanceMarginRate')
         initialMarginRate = self.safe_string(info, 'initialMarginRate')
         maxVol = self.safe_string(info, 'maxVol')
@@ -4200,6 +4201,7 @@ class mexc(Exchange, ImplicitAPI):
             return [
                 {
                     'tier': 0,
+                    'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                     'currency': self.safe_currency_code(quoteId),
                     'minNotional': None,
                     'maxNotional': None,
@@ -4212,6 +4214,7 @@ class mexc(Exchange, ImplicitAPI):
             cap = Precise.string_add(floor, riskIncrVol)
             tiers.append({
                 'tier': self.parse_number(Precise.string_div(cap, riskIncrVol)),
+                'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': self.safe_currency_code(quoteId),
                 'minNotional': self.parse_number(floor),
                 'maxNotional': self.parse_number(cap),
@@ -4976,7 +4979,7 @@ class mexc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new

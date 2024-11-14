@@ -2450,7 +2450,7 @@ export default class okcoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name okcoin#withdraw
@@ -2784,7 +2784,7 @@ export default class okcoin extends Exchange {
                 'currency': code,
                 'cost': feeCost,
             },
-        };
+        } as Transaction;
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

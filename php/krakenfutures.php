@@ -2365,8 +2365,8 @@ class krakenfutures extends Exchange {
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -2461,8 +2461,8 @@ class krakenfutures extends Exchange {
         //    }
         //
         $marginLevels = $this->safe_value($info, 'marginLevels');
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
@@ -2475,6 +2475,7 @@ class krakenfutures extends Exchange {
             }
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'notionalFloor' => $notionalFloor,
                 'notionalCap' => null,

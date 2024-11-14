@@ -99,7 +99,7 @@ public partial class bitmart : Exchange
             } },
             { "hostname", "bitmart.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/0623e9c4-f50e-48c9-82bd-65c3908c3a14" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api-cloud.{hostname}" },
                     { "swap", "https://api-cloud-v2.{hostname}" },
@@ -609,7 +609,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeInteger(data, "server_time");
     }
 
@@ -623,7 +623,7 @@ public partial class bitmart : Exchange
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object options = this.safeValue(this.options, "fetchStatus", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchStatus", new Dictionary<string, object>() {});
         object defaultType = this.safeString(this.options, "defaultType");
         object type = this.safeString(options, "type", defaultType);
         type = this.safeString(parameters, "type", type);
@@ -654,14 +654,14 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object services = this.safeValue(data, "service", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object services = this.safeList(data, "service", new List<object>() {});
         object servicesByType = this.indexBy(services, "service_type");
         if (isTrue(isEqual(type, "swap")))
         {
             type = "contract";
         }
-        object service = this.safeValue(servicesByType, type);
+        object service = this.safeString(servicesByType, type);
         object status = null;
         object eta = null;
         if (isTrue(!isEqual(service, null)))
@@ -715,8 +715,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -829,8 +829,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -946,8 +946,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object currencies = this.safeValue(data, "currencies", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object currencies = this.safeList(data, "currencies", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
@@ -955,8 +955,8 @@ public partial class bitmart : Exchange
             object id = this.safeString(currency, "id");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            object withdrawEnabled = this.safeValue(currency, "withdraw_enabled");
-            object depositEnabled = this.safeValue(currency, "deposit_enabled");
+            object withdrawEnabled = this.safeBool(currency, "withdraw_enabled");
+            object depositEnabled = this.safeBool(currency, "deposit_enabled");
             object active = isTrue(withdrawEnabled) && isTrue(depositEnabled);
             ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
                 { "id", id },
@@ -1289,7 +1289,7 @@ public partial class bitmart : Exchange
         {
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             tickers = this.safeList(data, "symbols", new List<object>() {});
-            ticker = this.safeValue(tickers, 0, new Dictionary<string, object>() {});
+            ticker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         }
         return this.parseTicker(ticker, market);
     }
@@ -1313,7 +1313,7 @@ public partial class bitmart : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbol = this.safeValue(symbols, 0);
+            object symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
         }
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -1438,7 +1438,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074664097ac6ba5258c47305d.72.16952643834721135"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger2(data, "ts", "timestamp");
         return this.parseOrderBook(data, getValue(market, "symbol"), timestamp);
     }
@@ -1821,7 +1821,7 @@ public partial class bitmart : Exchange
             {
                 ((IDictionary<string,object>)request)["orderMode"] = "iso_margin";
             }
-            object options = this.safeValue(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
+            object options = this.safeDict(this.options, "fetchMyTrades", new Dictionary<string, object>() {});
             object defaultLimit = this.safeInteger(options, "limit", 200);
             if (isTrue(isEqual(limit, null)))
             {
@@ -1937,17 +1937,17 @@ public partial class bitmart : Exchange
 
     public virtual object customParseBalance(object response, object marketType)
     {
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object wallet = null;
         if (isTrue(isEqual(marketType, "swap")))
         {
-            wallet = this.safeValue(response, "data", new List<object>() {});
+            wallet = this.safeList(response, "data", new List<object>() {});
         } else if (isTrue(isEqual(marketType, "margin")))
         {
-            wallet = this.safeValue(data, "symbols", new List<object>() {});
+            wallet = this.safeList(data, "symbols", new List<object>() {});
         } else
         {
-            wallet = this.safeValue(data, "wallet", new List<object>() {});
+            wallet = this.safeList(data, "wallet", new List<object>() {});
         }
         object result = new Dictionary<string, object>() {
             { "info", response },
@@ -1959,8 +1959,8 @@ public partial class bitmart : Exchange
                 object entry = getValue(wallet, i);
                 object marketId = this.safeString(entry, "symbol");
                 object symbol = this.safeSymbol(marketId, null, "_");
-                object bs = this.safeValue(entry, "base", new Dictionary<string, object>() {});
-                object quote = this.safeValue(entry, "quote", new Dictionary<string, object>() {});
+                object bs = this.safeDict(entry, "base", new Dictionary<string, object>() {});
+                object quote = this.safeDict(entry, "quote", new Dictionary<string, object>() {});
                 object baseCode = this.safeCurrencyCode(this.safeString(bs, "currency"));
                 object quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"));
                 object subResult = new Dictionary<string, object>() {};
@@ -2193,7 +2193,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTradingFee(data);
     }
 
@@ -2366,7 +2366,7 @@ public partial class bitmart : Exchange
                 { "4", "closed" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        object statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -2478,7 +2478,7 @@ public partial class bitmart : Exchange
         // swap
         // {"code":1000,"message":"Ok","data":{"order_id":231116359426639,"price":"market price"},"trace":"7f9c94e10f9d4513bc08a7bfc2a5559a.62.16996369620521911"}
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
         ((IDictionary<string,object>)order)["side"] = side;
@@ -2879,7 +2879,7 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV3CancelOrder(this.extend(request, parameters));
         } else
         {
-            object stop = this.safeValue2(parameters, "stop", "trigger");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (!isTrue(stop))
             {
@@ -3144,7 +3144,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3212,7 +3212,7 @@ public partial class bitmart : Exchange
             response = await this.privatePostSpotV4QueryOpenOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "swap")))
         {
-            object isStop = this.safeValue2(parameters, "stop", "trigger");
+            object isStop = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             if (isTrue(isStop))
             {
@@ -3520,7 +3520,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object networkInner = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             networkInner = this.safeString(networks, networkInner, networkInner); // handle ERC20>ETH alias
             if (isTrue(!isEqual(networkInner, null)))
@@ -3619,7 +3619,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
@@ -3639,7 +3639,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseTransaction(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "code", code },
@@ -3671,7 +3671,7 @@ public partial class bitmart : Exchange
         {
             object defaultNetworks = this.safeValue(this.options, "defaultNetworks");
             object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-            object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+            object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object network = this.safeStringUpper(parameters, "network", defaultNetwork); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ERC20>ETH alias
             if (isTrue(!isEqual(network, null)))
@@ -3706,7 +3706,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
     }
@@ -3750,7 +3750,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
@@ -3810,7 +3810,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object record = this.safeDict(data, "record", new Dictionary<string, object>() {});
         return this.parseTransaction(record);
     }
@@ -3956,7 +3956,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
@@ -3997,7 +3997,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(data, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
@@ -4081,9 +4081,9 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
-        object borrowRate = this.safeValue(symbols, 0);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
+        object borrowRate = this.safeDict(symbols, 0, new List<object>() {});
         return this.parseIsolatedBorrowRate(borrowRate, market);
     }
 
@@ -4114,8 +4114,8 @@ public partial class bitmart : Exchange
         //
         object marketId = this.safeString(info, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object baseData = this.safeValue(info, "base", new Dictionary<string, object>() {});
-        object quoteData = this.safeValue(info, "quote", new Dictionary<string, object>() {});
+        object baseData = this.safeDict(info, "base", new Dictionary<string, object>() {});
+        object quoteData = this.safeDict(info, "quote", new Dictionary<string, object>() {});
         object baseId = this.safeString(baseData, "currency");
         object quoteId = this.safeString(quoteData, "currency");
         return new Dictionary<string, object>() {
@@ -4176,8 +4176,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object symbols = this.safeValue(data, "symbols", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object symbols = this.safeList(data, "symbols", new List<object>() {});
         return this.parseIsolatedBorrowRates(symbols);
     }
 
@@ -4263,7 +4263,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {
             { "status", this.parseTransferStatus(this.safeString2(response, "code", "message")) },
         });
@@ -4404,7 +4404,7 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object records = this.safeList(data, "records", new List<object>() {});
         return this.parseTransfers(records, currency, since, limit);
     }
@@ -4463,8 +4463,8 @@ public partial class bitmart : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "records", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "records", new List<object>() {});
         object interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -4633,7 +4633,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074654097ac7ba5257c47305d.54.16951844206655589"
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseFundingRate(data, market);
     }
 
@@ -4719,7 +4719,7 @@ public partial class bitmart : Exchange
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parsePosition(first, market);
     }
@@ -4782,7 +4782,7 @@ public partial class bitmart : Exchange
         //         "trace":"4cad855074664097ac5ba5257c47305d.67.16963925142065945"
         //     }
         //
-        object positions = this.safeValue(response, "data", new List<object>() {});
+        object positions = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
@@ -4919,7 +4919,7 @@ public partial class bitmart : Exchange
         //         "trace": "4cad855074664097ac6ba4257c47305d.71.16965658195443021"
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {

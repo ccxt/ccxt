@@ -105,7 +105,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'logo': 'https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9',
                 'api': {
                     'v2': 'https://api-pub.bitfinex.com',  # https://github.com/ccxt/ccxt/issues/5109
                     'public': 'https://api.bitfinex.com',
@@ -435,7 +435,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        fees = self.safe_value(response, 'withdraw')
+        fees = self.safe_dict(response, 'withdraw', {})
         ids = list(fees.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -536,7 +536,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        fiat = self.safe_value(self.options, 'fiat', {})
+        fiat = self.safe_dict(self.options, 'fiat', {})
         makerFee = self.safe_number(response, 'maker_fee')
         takerFee = self.safe_number(response, 'taker_fee')
         makerFee2Fiat = self.safe_number(response, 'maker_fee_2fiat')
@@ -625,7 +625,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': type,
                 'spot': (type == 'spot'),
-                'margin': self.safe_value(market, 'margin'),
+                'margin': self.safe_bool(market, 'margin'),
                 'swap': (type == 'swap'),
                 'future': False,
                 'option': False,
@@ -692,7 +692,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
@@ -750,7 +750,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
         await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         currency = self.currency(code)
@@ -1191,8 +1191,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         #
         side = self.safe_string(order, 'side')
-        open = self.safe_value(order, 'is_live')
-        canceled = self.safe_value(order, 'is_cancelled')
+        open = self.safe_bool(order, 'is_live')
+        canceled = self.safe_bool(order, 'is_cancelled')
         status = None
         if open:
             status = 'open'
@@ -1529,7 +1529,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal
@@ -1564,7 +1564,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        response = self.safe_value(responses, 0, {})
+        response = self.safe_dict(responses, 0, {})
         id = self.safe_integer(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
@@ -1647,7 +1647,7 @@ class bitfinex(Exchange, ImplicitAPI):
         else:
             # json response with error, i.e:
             # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            responseObject = self.safe_value(response, 0, {})
+            responseObject = self.safe_dict(response, 0, {})
             status = self.safe_string(responseObject, 'status', '')
             if status == 'error':
                 throwError = True

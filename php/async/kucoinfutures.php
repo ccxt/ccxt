@@ -2928,8 +2928,10 @@ class kucoinfutures extends kucoin {
         $tiers = array();
         for ($i = 0; $i < count($info); $i++) {
             $tier = $info[$i];
+            $marketId = $this->safe_string($tier, 'symbol');
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'level'),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $market['base'],
                 'minNotional' => $this->safe_number($tier, 'minRiskLimit'),
                 'maxNotional' => $this->safe_number($tier, 'maxRiskLimit'),

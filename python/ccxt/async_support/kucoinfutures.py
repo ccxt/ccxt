@@ -2744,8 +2744,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
         tiers = []
         for i in range(0, len(info)):
             tier = info[i]
+            marketId = self.safe_string(tier, 'symbol')
             tiers.append({
                 'tier': self.safe_number(tier, 'level'),
+                'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': market['base'],
                 'minNotional': self.safe_number(tier, 'minRiskLimit'),
                 'maxNotional': self.safe_number(tier, 'maxRiskLimit'),

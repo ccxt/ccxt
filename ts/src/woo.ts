@@ -2320,7 +2320,7 @@ export default class woo extends Exchange {
             'internal': undefined,
             'fee': fee,
             'network': undefined,
-        };
+        } as Transaction;
     }
 
     parseTransactionStatus (status: Str) {
@@ -2482,7 +2482,7 @@ export default class woo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name woo#withdraw

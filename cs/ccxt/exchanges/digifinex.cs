@@ -4118,8 +4118,8 @@ public partial class digifinex : Exchange
         /**
         * @method
         * @name digifinex#fetchMarketLeverageTiers
-        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4198,9 +4198,10 @@ public partial class digifinex : Exchange
         {
             object tier = getValue(brackets, i);
             object marketId = this.safeString(info, "instrument_id");
-            market = this.safeMarket(marketId);
+            market = this.safeMarket(marketId, market);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "swap") },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", null },
                 { "maxNotional", this.safeNumber(tier, "max_limit") },

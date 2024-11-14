@@ -115,7 +115,7 @@ class binance extends Exchange {
                 'fetchLongShortRatio' => false,
                 'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
-                'fetchMarginMode' => 'emulated',
+                'fetchMarginMode' => true,
                 'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -195,7 +195,7 @@ class binance extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
@@ -400,6 +400,12 @@ class binance extends Exchange {
                         'eth-staking/wbeth/history/wrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/history/unwrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/history/wbethRewardsHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/history/stakingHistory' => 15,
+                        'sol-staking/sol/history/redemptionHistory' => 15,
+                        'sol-staking/sol/history/bnsolRewardsHistory' => 15,
+                        'sol-staking/sol/history/rateHistory' => 15,
+                        'sol-staking/account' => 15,
+                        'sol-staking/sol/quota' => 15,
                         // mining endpoints
                         'mining/pub/algoList' => 0.1,
                         'mining/pub/coinList' => 0.1,
@@ -611,6 +617,8 @@ class binance extends Exchange {
                         'eth-staking/eth/stake' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/redeem' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/wrap' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/stake' => 15,
+                        'sol-staking/sol/redeem' => 15,
                         // mining endpoints
                         'mining/hash-transfer/config' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                         'mining/hash-transfer/config/cancel' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
@@ -645,6 +653,7 @@ class binance extends Exchange {
                         'simple-earn/locked/redeem' => 0.1,
                         'simple-earn/flexible/setAutoSubscribe' => 15,
                         'simple-earn/locked/setAutoSubscribe' => 15,
+                        'simple-earn/locked/setRedeemOption' => 5,
                         // convert
                         'dci/product/subscribe' => 0.1,
                         'dci/product/auto_compound/edit' => 0.1,
@@ -957,6 +966,9 @@ class binance extends Exchange {
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
                         'order' => 1,
+                        'block/order/orders' => 5,
+                        'block/order/execute' => 5,
+                        'block/user-trades' => 5,
                     ),
                     'post' => array(
                         'order' => 1,
@@ -966,9 +978,12 @@ class binance extends Exchange {
                         'mmpReset' => 1,
                         'countdownCancelAll' => 1,
                         'countdownCancelAllHeartBeat' => 10,
+                        'block/order/create' => 5,
+                        'block/order/execute' => 5,
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                     'delete' => array(
                         'order' => 1,
@@ -976,6 +991,7 @@ class binance extends Exchange {
                         'allOpenOrders' => 1,
                         'allOpenOrdersByUnderlying' => 1,
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                 ),
                 'public' => array(
@@ -8968,7 +8984,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -10215,6 +10231,7 @@ class binance extends Exchange {
             $bracket = $brackets[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),
@@ -12954,7 +12971,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-             * @param {string} symbol unified symbol of the $market the order was made in
+             * @param {string[]} [$symbols] a list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
@@ -13039,6 +13056,48 @@ class binance extends Exchange {
                 $assets = $response;
             }
             return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
+        }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a specific $symbol
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $request = array(
+                    'symbol' => $market['id'],
+                );
+                $response = Async\await($this->fapiPrivateGetSymbolConfig ($this->extend($request, $params)));
+                //
+                // array(
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "marginType" => "CROSSED",
+                //         "isAutoAddMargin" => "false",
+                //         "leverage" => 21,
+                //         "maxNotionalValue" => "1000000",
+                //     }
+                // )
+                //
+            } elseif ($subType === 'inverse') {
+                $fetchMarginModesResponse = Async\await($this->fetch_margin_modes(array( $symbol ), $params));
+                return $fetchMarginModesResponse[$symbol];
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginMode () supports linear and inverse subTypes only');
+            }
+            return $this->parse_margin_mode($response[0], $market);
         }) ();
     }
 

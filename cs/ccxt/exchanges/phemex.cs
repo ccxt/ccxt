@@ -4636,7 +4636,8 @@ public partial class phemex : Exchange
         //         ]
         //     },
         //
-        market = this.safeMarket(null, market);
+        object marketId = this.safeString(info, "symbol");
+        market = this.safeMarket(marketId, market);
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         object tiers = new List<object>() {};
         object minNotional = 0;
@@ -4646,6 +4647,7 @@ public partial class phemex : Exchange
             object maxNotional = this.safeInteger(tier, "limit");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
