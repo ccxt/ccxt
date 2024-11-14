@@ -101,7 +101,8 @@
     "prefer-exponentiation-operator": "off",
     "jsdoc/check-tag-names": ["error", {
       "definedTags": ["method"]
-    }]
+    }],
+    "jsdoc/require-param-description": "off"
   },
   "settings": {
     "import/resolver": {
