@@ -13054,18 +13054,18 @@ export default class binance extends Exchange {
         return this.parseMarginModes (assets, symbols, 'symbol', 'swap');
     }
 
+    /**
+     * @method
+     * @name binance#fetchMarginMode
+     * @description fetches the margin mode of a specific symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        /**
-         * @method
-         * @name binance#fetchMarginMode
-         * @description fetches the margin mode of a specific symbol
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let subType = undefined;
