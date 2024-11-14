@@ -147,7 +147,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @method
      * @description Connects to a websocket channel
      * @param {string} name name of the channel
-     * @param {string[]} symbols CCXT market symbols
+     * @param {string} messageHash unique identifier for the message
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
@@ -460,12 +460,9 @@ export default class krakenfutures extends krakenfuturesRest {
 
     /**
      * @method
-     * @name krakenfutures#watchOrders
-     * @description watches information on multiple orders made by the user
+     * @name krakenfutures#watchBalance
+     * @description watches information on the user's account balance
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-     * @param {string} symbol not used by krakenfutures watchBalance
-     * @param {int} [since] not used by krakenfutures watchBalance
-     * @param {int} [limit] not used by krakenfutures watchBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.account] can be either 'futures' or 'flex_futures'
      * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}

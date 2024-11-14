@@ -559,8 +559,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
      * @method
      * @name kucoinfutures#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param symbols
+     * @param {string[]} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -611,8 +610,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
      * @method
      * @name kucoinfutures#unWatchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param symbols
+     * @param {string[]} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */

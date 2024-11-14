@@ -560,10 +560,10 @@ export default class coincatch extends coincatchRest {
     /**
      * @method
      * @name coincatch#unWatchOrderBook
-     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param params
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */

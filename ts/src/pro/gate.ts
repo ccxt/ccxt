@@ -742,8 +742,7 @@ export default class gate extends gateRest {
      * @method
      * @name gate#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -775,8 +774,7 @@ export default class gate extends gateRest {
      * @method
      * @name gate#unWatchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -1432,8 +1430,7 @@ export default class gate extends gateRest {
      * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
      * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
      * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
-     * @param {string} symbol unified CCXT market symbol
-     * @param symbols
+     * @param {string[]} symbols unified CCXT market symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the gate api endpoint

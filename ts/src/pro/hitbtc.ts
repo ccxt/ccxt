@@ -333,8 +333,7 @@ export default class hitbtc extends hitbtcRest {
      * @method
      * @name hitbtc#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param symbols
+     * @param {string[]} [symbols]
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} params.method 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch' (default), or 'ticker/{speed}/price/batch''
      * @param {string} params.speed '1s' (default), or '3s'

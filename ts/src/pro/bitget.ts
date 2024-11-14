@@ -138,12 +138,12 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
-     * @param params
      * @name bitget#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
@@ -437,13 +437,13 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
-     * @param timeframe
-     * @param params
      * @name bitget#unWatchOHLCV
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+     * @param {string} timeframe
+     * @param params
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
@@ -556,11 +556,11 @@ export default class bitget extends bitgetRest {
     /**
      * @method
      * @name bitget#unWatchOrderBook
-     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param params
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -811,12 +811,12 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
-     * @param params
      * @name bitget#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
      * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {

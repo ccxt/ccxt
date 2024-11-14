@@ -3537,8 +3537,7 @@ export default class deribit extends Exchange {
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://docs.deribit.com/#public-get_book_summary_by_currency
-     * @param {string} currency base currency to fetch an option chain for
-     * @param code
+     * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
      */

@@ -1719,10 +1719,10 @@ export default class poloniexfutures extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-     * @param {string} side buy or sell
-     * @param {string} type  limit, market, limit_stop or market_stop
-     * @param {int} endAt end time (milisecond)
+     * @param {string} [params.orderIdFills] filles for a specific order (other parameters can be ignored if specified)
+     * @param {string} [params.side] buy or sell
+     * @param {string} [params.type]  limit, market, limit_stop or market_stop
+     * @param {int} [params.endAt] end time (milisecond)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
