@@ -6992,8 +6992,10 @@ class okx extends okx$1 {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
+            const marketId = this.safeString(tier, 'instId');
             tiers.push({
                 'tier': this.safeInteger(tier, 'tier'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber(tier, 'minSz'),
                 'maxNotional': this.safeNumber(tier, 'maxSz'),

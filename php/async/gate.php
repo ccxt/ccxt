@@ -160,7 +160,7 @@ class gate extends Exchange {
                 'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchTime' => false,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
@@ -916,22 +916,27 @@ class gate extends Exchange {
              */
             $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
             if ($unifiedAccount === null) {
-                $response = Async\await($this->privateAccountGetDetail ($params));
-                //
-                //     {
-                //         "user_id" => 10406147,
-                //         "ip_whitelist" => array(),
-                //         "currency_pairs" => array(),
-                //         "key" => array(
-                //             "mode" => 1
-                //         ),
-                //         "tier" => 0,
-                //         "tier_expire_time" => "0001-01-01T00:00:00Z",
-                //         "copy_trading_role" => 0
-                //     }
-                //
-                $result = $this->safe_dict($response, 'key', array());
-                $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                try {
+                    //
+                    //     {
+                    //         "user_id" => 10406147,
+                    //         "ip_whitelist" => array(),
+                    //         "currency_pairs" => array(),
+                    //         "key" => array(
+                    //             "mode" => 1
+                    //         ),
+                    //         "tier" => 0,
+                    //         "tier_expire_time" => "0001-01-01T00:00:00Z",
+                    //         "copy_trading_role" => 0
+                    //     }
+                    //
+                    $response = Async\await($this->privateAccountGetDetail ($params));
+                    $result = $this->safe_dict($response, 'key', array());
+                    $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+                } catch (Exception $e) {
+                    // if the request fails, the $unifiedAccount is disabled
+                    $this->options['unifiedAccount'] = false;
+                }
             }
         }) ();
     }
@@ -939,6 +944,24 @@ class gate extends Exchange {
     public function upgrade_unified_trade_account($params = array ()) {
         return Async\async(function () use ($params) {
             return Async\await($this->privateUnifiedPutUnifiedMode ($params));
+        }) ();
+    }
+
+    public function fetch_time($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicSpotGetTime ($params));
+            //
+            //     {
+            //         "server_time" => 1731447921098
+            //     }
+            //
+            return $this->safe_integer($response, 'server_time');
         }) ();
     }
 
@@ -3737,7 +3760,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -6120,7 +6143,8 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function parse_emulated_leverage_tiers($info, $market = null) {
+    public function parse_emulated_leverage_tiers($info, $market = null): array {
+        $marketId = $this->safe_string($info, 'name');
         $maintenanceMarginUnit = $this->safe_string($info, 'maintenance_rate'); // '0.005',
         $leverageMax = $this->safe_string($info, 'leverage_max'); // '100',
         $riskLimitStep = $this->safe_string($info, 'risk_limit_step'); // '1000000',
@@ -6134,6 +6158,7 @@ class gate extends Exchange {
             $cap = Precise::string_add($floor, $riskLimitStep);
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskLimitStep)),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_string($market, 'settle'),
                 'minNotional' => $this->parse_number($floor),
                 'maxNotional' => $this->parse_number($cap),
@@ -6170,6 +6195,7 @@ class gate extends Exchange {
             $maxNotional = $this->safe_number($item, 'risk_limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $market['symbol'],
                 'currency' => $market['base'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,

@@ -1972,7 +1972,7 @@ class binance extends binance$1 {
         if (symbolsDefined) {
             firstMarket = this.market(symbols[0]);
         }
-        const defaultMarket = (isMarkPrice) ? 'swap' : 'spot';
+        const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
         [marketType, params] = this.handleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams(methodName, firstMarket, params);
@@ -3714,12 +3714,6 @@ class binance extends binance$1 {
             market = this.getMarketFromSymbols(symbols);
             messageHash = '::' + symbols.join(',');
         }
-        const marketTypeObject = {};
-        if (market !== undefined) {
-            marketTypeObject['type'] = market['type'];
-            marketTypeObject['subType'] = market['subType'];
-        }
-        await this.authenticate(this.extend(marketTypeObject, params));
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
         if (type === 'spot' || type === 'margin') {
@@ -3733,6 +3727,10 @@ class binance extends binance$1 {
         else if (this.isInverse(type, subType)) {
             type = 'delivery';
         }
+        const marketTypeObject = {};
+        marketTypeObject['type'] = type;
+        marketTypeObject['subType'] = subType;
+        await this.authenticate(this.extend(marketTypeObject, params));
         messageHash = type + ':positions' + messageHash;
         let isPortfolioMargin = undefined;
         [isPortfolioMargin, params] = this.handleOptionAndParams2(params, 'watchPositions', 'papi', 'portfolioMargin', false);

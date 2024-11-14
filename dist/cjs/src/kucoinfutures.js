@@ -2900,8 +2900,10 @@ class kucoinfutures extends kucoinfutures$1 {
         const tiers = [];
         for (let i = 0; i < info.length; i++) {
             const tier = info[i];
+            const marketId = this.safeString(tier, 'symbol');
             tiers.push({
                 'tier': this.safeNumber(tier, 'level'),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': market['base'],
                 'minNotional': this.safeNumber(tier, 'minRiskLimit'),
                 'maxNotional': this.safeNumber(tier, 'maxRiskLimit'),

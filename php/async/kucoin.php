@@ -3456,7 +3456,7 @@ class kucoin extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -4432,29 +4432,35 @@ class kucoin extends Exchange {
     public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
-             * fetch the interest owed by the user for borrowing $currency for margin trading
+             * fetch the $interest owed by the user for borrowing $currency for margin trading
              * @see https://docs.kucoin.com/#get-repay-record
              * @see https://docs.kucoin.com/#query-isolated-margin-account-info
-             * @param {string} $code unified $currency $code
-             * @param {string} $symbol unified market $symbol, required for isolated margin
-             * @param {int} [$since] the earliest time in ms to fetch borrrow interest for
+             * @param {string} [$code] unified $currency $code
+             * @param {string} [$symbol] unified $market $symbol, required for isolated margin
+             * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
              * @param {int} [$limit] the maximum number of structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' default is 'cross'
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-interest-structure borrow interest structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
              */
             Async\await($this->load_markets());
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
-            if ($marginMode === null) {
-                $marginMode = 'cross'; // cross $marginMode
-            }
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
             $request = array();
-            $response = null;
+            $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['quoteCurrency'] = $currency['id'];
+                if ($marginMode === 'isolated') {
+                    $request['balanceCurrency'] = $currency['id'];
+                } else {
+                    $request['quoteCurrency'] = $currency['id'];
+                }
             }
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $response = null;
             if ($marginMode === 'isolated') {
                 $response = Async\await($this->privateGetIsolatedAccounts ($this->extend($request, $params)));
             } else {
@@ -4526,7 +4532,9 @@ class kucoin extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
             $assets = ($marginMode === 'isolated') ? $this->safe_list($data, 'assets', array()) : $this->safe_list($data, 'accounts', array());
-            return $this->parse_borrow_interests($assets, null);
+            $interest = $this->parse_borrow_interests($assets, $market);
+            $filteredByCurrency = $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+            return $this->filter_by_symbol_since_limit($filteredByCurrency, $symbol, $since, $limit);
         }) ();
     }
 

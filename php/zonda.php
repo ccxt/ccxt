@@ -1724,7 +1724,7 @@ class zonda extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * @see https://docs.zondacrypto.exchange/reference/crypto-withdrawal-1
          * make a withdrawal

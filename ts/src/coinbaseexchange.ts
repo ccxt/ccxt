@@ -1385,7 +1385,7 @@ export default class coinbaseexchange extends Exchange {
         return await this.privateGetPaymentMethods (params);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name coinbaseexchange#withdraw
@@ -1796,7 +1796,7 @@ export default class coinbaseexchange extends Exchange {
             'comment': undefined,
             'internal': false,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async createDepositAddress (code: string, params = {}) {

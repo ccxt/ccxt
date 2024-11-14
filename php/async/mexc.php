@@ -4490,6 +4490,7 @@ class mexc extends Exchange {
         //        "isHidden" => false
         //    }
         //
+        $marketId = $this->safe_string($info, 'symbol');
         $maintenanceMarginRate = $this->safe_string($info, 'maintenanceMarginRate');
         $initialMarginRate = $this->safe_string($info, 'initialMarginRate');
         $maxVol = $this->safe_string($info, 'maxVol');
@@ -4503,6 +4504,7 @@ class mexc extends Exchange {
             return array(
                 array(
                     'tier' => 0,
+                    'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                     'currency' => $this->safe_currency_code($quoteId),
                     'minNotional' => null,
                     'maxNotional' => null,
@@ -4516,6 +4518,7 @@ class mexc extends Exchange {
             $cap = Precise::string_add($floor, $riskIncrVol);
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskIncrVol)),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_currency_code($quoteId),
                 'minNotional' => $this->parse_number($floor),
                 'maxNotional' => $this->parse_number($cap),
@@ -5353,7 +5356,7 @@ class mexc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

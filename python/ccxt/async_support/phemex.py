@@ -4080,7 +4080,8 @@ class phemex(Exchange, ImplicitAPI):
         #         ]
         #     },
         #
-        market = self.safe_market(None, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         riskLimits = (market['info']['riskLimits'])
         tiers = []
         minNotional = 0
@@ -4089,6 +4090,7 @@ class phemex(Exchange, ImplicitAPI):
             maxNotional = self.safe_integer(tier, 'limit')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4431,7 +4433,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://phemex-docs.github.io/#create-withdraw-request

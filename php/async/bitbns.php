@@ -70,7 +70,7 @@ class bitbns extends Exchange {
             ),
             'hostname' => 'bitbns.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9',
                 'api' => array(
                     'www' => 'https://{hostname}',
                     'v1' => 'https://api.{hostname}/api/trade/v1',
@@ -227,11 +227,11 @@ class bitbns extends Exchange {
                 $quoteId = $this->safe_string($market, 'quote');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $marketPrecision = $this->safe_value($market, 'precision', array());
-                $marketLimits = $this->safe_value($market, 'limits', array());
-                $amountLimits = $this->safe_value($marketLimits, 'amount', array());
-                $priceLimits = $this->safe_value($marketLimits, 'price', array());
-                $costLimits = $this->safe_value($marketLimits, 'cost', array());
+                $marketPrecision = $this->safe_dict($market, 'precision', array());
+                $marketLimits = $this->safe_dict($market, 'limits', array());
+                $amountLimits = $this->safe_dict($marketLimits, 'amount', array());
+                $priceLimits = $this->safe_dict($marketLimits, 'price', array());
+                $costLimits = $this->safe_dict($marketLimits, 'cost', array());
                 $usdt = ($quoteId === 'USDT');
                 // INR markets don't need a _INR prefix
                 $uppercaseId = $usdt ? ($baseId . '_' . $quoteId) : $baseId;
@@ -442,7 +442,7 @@ class bitbns extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $keys = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
@@ -669,7 +669,7 @@ class bitbns extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $request = array(
                 'entry_id' => $id,
@@ -704,7 +704,7 @@ class bitbns extends Exchange {
                 'symbol' => $market['id'],
                 'entry_id' => $id,
             );
-            $trigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
             if ($trigger) {
                 throw new BadRequest($this->id . ' fetchOrder cannot fetch stop orders');
             }
@@ -734,7 +734,7 @@ class bitbns extends Exchange {
             //         "code":200
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($data, 0);
             return $this->parse_order($first, $market);
         }) ();
@@ -758,7 +758,7 @@ class bitbns extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
             $quoteSide = ($market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
             $request = array(
@@ -1065,7 +1065,7 @@ class bitbns extends Exchange {
                 '6' => 'ok', // Completed
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = $this->safe_dict($statusesByType, $type, array());
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1161,7 +1161,7 @@ class bitbns extends Exchange {
             //         "error":null
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $address = $this->safe_string($data, 'token');
             $tag = $this->safe_string($data, 'tag');
             $this->check_address($address);

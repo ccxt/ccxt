@@ -78,7 +78,7 @@ export default class bithumb extends Exchange {
             },
             'hostname': 'bithumb.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c9e0eefb-4777-46b9-8f09-9d7f7c4af82d',
                 'api': {
                     'public': 'https://api.{hostname}/public',
                     'private': 'https://api.{hostname}',
@@ -1046,7 +1046,7 @@ export default class bithumb extends Exchange {
         return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bithumb#withdraw
@@ -1111,7 +1111,7 @@ export default class bithumb extends Exchange {
             'internal': undefined,
             'fee': undefined,
             'info': transaction,
-        };
+        } as Transaction;
     }
 
     fixCommaNumber (numberStr) {

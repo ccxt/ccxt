@@ -124,7 +124,7 @@ class ascendex(Exchange, ImplicitAPI):
             },
             'version': 'v2',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1',
                 'api': {
                     'rest': 'https://ascendex.com',
                 },
@@ -2893,14 +2893,15 @@ class ascendex(Exchange, ImplicitAPI):
         #    }
         #
         marginRequirements = self.safe_list(info, 'marginRequirements', [])
-        id = self.safe_string(info, 'symbol')
-        market = self.safe_market(id, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(marginRequirements)):
             tier = marginRequirements[i]
             initialMarginRate = self.safe_string(tier, 'initialMarginRate')
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': market['quote'],
                 'minNotional': self.safe_number(tier, 'positionNotionalLowerBound'),
                 'maxNotional': self.safe_number(tier, 'positionNotionalUpperBound'),

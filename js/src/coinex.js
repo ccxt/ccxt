@@ -525,6 +525,7 @@ export default class coinex extends Exchange {
                     '3008': RequestTimeout,
                     '3109': InsufficientFunds,
                     '3127': InvalidOrder,
+                    '3600': OrderNotFound,
                     '3606': InvalidOrder,
                     '3610': ExchangeError,
                     '3612': InvalidOrder,
@@ -2633,11 +2634,15 @@ export default class coinex extends Exchange {
         const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
+        const requestIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            requestIds.push(parseInt(ids[i]));
+        }
         if (stop) {
-            request['stop_ids'] = ids;
+            request['stop_ids'] = requestIds;
         }
         else {
-            request['order_ids'] = ids;
+            request['order_ids'] = requestIds;
         }
         if (market['spot']) {
             if (stop) {
@@ -4304,6 +4309,7 @@ export default class coinex extends Exchange {
             const maxNotional = this.safeNumber(tier, 'amount');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'swap'),
                 'currency': market['linear'] ? market['base'] : market['quote'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4961,7 +4967,7 @@ export default class coinex extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const amountToPrecision = this.currencyToPrecision(code, amount);
-        const accountsByType = this.safeDict(this.options, 'accountsById', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         const request = {

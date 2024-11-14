@@ -70,7 +70,7 @@ public partial class oxfun : Exchange
                 { "fetchLedger", false },
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", true },
-                { "fetchMarketLeverageTiers", false },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMyTrades", true },
@@ -1361,6 +1361,7 @@ public partial class oxfun : Exchange
             object tier = getValue(listOfTiers, j);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(tier, "tier") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", this.safeNumber(tier, "positionFloor") },
                 { "maxNotional", this.safeNumber(tier, "positionCap") },

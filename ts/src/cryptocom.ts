@@ -1663,7 +1663,7 @@ export default class cryptocom extends Exchange {
         return [ address, tag ];
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name cryptocom#withdraw
@@ -2289,7 +2289,7 @@ export default class cryptocom extends Exchange {
             'internal': undefined,
             'comment': this.safeString (transaction, 'client_wid'),
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     customHandleMarginModeAndParams (methodName, params = {}) {

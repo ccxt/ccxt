@@ -214,6 +214,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder,
                     '140434': BadRequest,
                     '40005': AuthenticationError,
                     '40009': InvalidNonce,

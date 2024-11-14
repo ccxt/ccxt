@@ -76,8 +76,10 @@ public partial class mexc : ccxt.mexc
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -86,7 +88,18 @@ public partial class mexc : ccxt.mexc
         object messageHash = add("ticker:", getValue(market, "symbol"));
         if (isTrue(getValue(market, "spot")))
         {
-            object channel = add("spot@public.bookTicker.v3.api@", getValue(market, "id"));
+            object miniTicker = false;
+            var miniTickerparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "miniTicker");
+            miniTicker = ((IList<object>)miniTickerparametersVariable)[0];
+            parameters = ((IList<object>)miniTickerparametersVariable)[1];
+            object channel = null;
+            if (isTrue(miniTicker))
+            {
+                channel = add(add("spot@public.miniTicker.v3.api@", getValue(market, "id")), "@UTC+8");
+            } else
+            {
+                channel = add("spot@public.bookTicker.v3.api@", getValue(market, "id"));
+            }
             return await this.watchSpotPublic(channel, messageHash, parameters);
         } else
         {
@@ -101,6 +114,38 @@ public partial class mexc : ccxt.mexc
     public virtual void handleTicker(WebSocketClient client, object message)
     {
         //
+        // swap
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "lastPrice": 76376.2,
+        //             "riseFallRate": -0.0006,
+        //             "fairPrice": 76374.4,
+        //             "indexPrice": 76385.8,
+        //             "volume24": 962062810,
+        //             "amount24": 7344207079.96768,
+        //             "maxBidPrice": 84024.3,
+        //             "minAskPrice": 68747.2,
+        //             "lower24Price": 75620.2,
+        //             "high24Price": 77210,
+        //             "timestamp": 1731137509138,
+        //             "bid1": 76376.2,
+        //             "ask1": 76376.3,
+        //             "holdVol": 95479623,
+        //             "riseFallValue": -46.5,
+        //             "fundingRate": 0.0001,
+        //             "zone": "UTC+8",
+        //             "riseFallRates": [ -0.0006, 0.1008, 0.2262, 0.2628, 0.2439, 1.0564 ],
+        //             "riseFallRatesOfTimezone": [ 0.0065, -0.0013, -0.0006 ]
+        //         },
+        //         "channel": "push.ticker",
+        //         "ts": 1731137509138
+        //     }
+        //
+        // spot
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -113,8 +158,30 @@ public partial class mexc : ccxt.mexc
         //        "t": 1678643605721
         //    }
         //
+        // spot miniTicker
+        //
+        //     {
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
+        //     }
+        //
         this.handleBidAsk(client as WebSocketClient, message);
-        object rawTicker = this.safeValue2(message, "d", "data");
+        object rawTicker = this.safeDict2(message, "d", "data");
         object marketId = this.safeString2(message, "s", "symbol");
         object timestamp = this.safeInteger(message, "t");
         object market = this.safeMarket(marketId);
@@ -142,27 +209,63 @@ public partial class mexc : ccxt.mexc
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.miniTicker] set to true for using the miniTicker endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, null, false);
+        symbols = this.marketSymbols(symbols, null);
         object messageHashes = new List<object>() {};
-        object marketIds = this.marketIds(symbols);
-        object firstMarket = this.market(getValue(symbols, 0));
-        object isSpot = getValue(firstMarket, "spot");
+        object firstSymbol = this.safeString(symbols, 0);
+        object market = null;
+        if (isTrue(!isEqual(firstSymbol, null)))
+        {
+            market = this.market(firstSymbol);
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object isSpot = (isEqual(type, "spot"));
         object url = ((bool) isTrue((isSpot))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "spot") : getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
         object request = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
         {
+            object miniTicker = false;
+            var miniTickerparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "miniTicker");
+            miniTicker = ((IList<object>)miniTickerparametersVariable)[0];
+            parameters = ((IList<object>)miniTickerparametersVariable)[1];
             object topics = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            if (!isTrue(miniTicker))
             {
-                object marketId = getValue(marketIds, i);
-                ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
-                ((IList<object>)topics).Add(add("spot@public.bookTicker.v3.api@", marketId));
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, "watchTickers required symbols argument for the bookTicker channel")) ;
+                }
+                object marketIds = this.marketIds(symbols);
+                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                {
+                    object marketId = getValue(marketIds, i);
+                    ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+                    object channel = add("spot@public.bookTicker.v3.api@", marketId);
+                    ((IList<object>)topics).Add(channel);
+                }
+            } else
+            {
+                ((IList<object>)topics).Add("spot@public.miniTickers.v3.api@UTC+8");
+                if (isTrue(isEqual(symbols, null)))
+                {
+                    ((IList<object>)messageHashes).Add("spot:ticker");
+                } else
+                {
+                    for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                    {
+                        ((IList<object>)messageHashes).Add(add("ticker:", getValue(symbols, i)));
+                    }
+                }
             }
             ((IDictionary<string,object>)request)["method"] = "SUBSCRIPTION";
             ((IDictionary<string,object>)request)["params"] = topics;
@@ -185,6 +288,8 @@ public partial class mexc : ccxt.mexc
     public virtual void handleTickers(WebSocketClient client, object message)
     {
         //
+        // swap
+        //
         //     {
         //       "channel": "push.tickers",
         //       "data": [
@@ -206,16 +311,68 @@ public partial class mexc : ccxt.mexc
         //       "ts": 1725872514111
         //     }
         //
-        object data = this.safeList(message, "data");
-        object topic = "ticker";
+        // spot
+        //
+        //    {
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
+        //    }
+        //
+        // spot miniTicker
+        //
+        //     {
+        //         "d": {
+        //             "s": "BTCUSDT",
+        //             "p": "76522",
+        //             "r": "0.0012",
+        //             "tr": "0.0012",
+        //             "h": "77196.3",
+        //             "l": "75630.77",
+        //             "v": "584664223.92",
+        //             "q": "7666.720258",
+        //             "lastRT": "-1",
+        //             "MT": "0",
+        //             "NV": "--",
+        //             "t": "1731135533126"
+        //         },
+        //         "c": "spot@public.miniTicker.v3.api@BTCUSDT@UTC+8",
+        //         "t": 1731135533126,
+        //         "s": "BTCUSDT"
+        //     }
+        //
+        object data = this.safeList2(message, "data", "d");
+        object channel = this.safeString(message, "c", "");
+        object marketId = this.safeString(message, "s");
+        object market = this.safeMarket(marketId);
+        object channelStartsWithSpot = ((string)channel).StartsWith(((string)"spot"));
+        object marketIdIsUndefined = isEqual(marketId, null);
+        object isSpot = ((bool) isTrue(marketIdIsUndefined)) ? channelStartsWithSpot : getValue(market, "spot");
+        object spotPrefix = "spot:";
+        object messageHashPrefix = ((bool) isTrue(isSpot)) ? spotPrefix : "";
+        object topic = add(messageHashPrefix, "ticker");
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(data, i));
+            object entry = getValue(data, i);
+            object ticker = null;
+            if (isTrue(isSpot))
+            {
+                ticker = this.parseWsTicker(entry, market);
+            } else
+            {
+                ticker = this.parseTicker(entry);
+            }
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
             ((IList<object>)result).Add(ticker);
-            object messageHash = add(add(topic, ":"), symbol);
+            object messageHash = add("ticker:", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
@@ -225,21 +382,44 @@ public partial class mexc : ccxt.mexc
     {
         //
         // spot
-        //    {
-        //        "A": "4.70432",
-        //        "B": "6.714863",
-        //        "a": "20744.54",
-        //        "b": "20744.17"
-        //    }
         //
+        //     {
+        //         "A": "4.70432",
+        //         "B": "6.714863",
+        //         "a": "20744.54",
+        //         "b": "20744.17"
+        //     }
+        //
+        // spot miniTicker
+        //
+        //     {
+        //         "s": "BTCUSDT",
+        //         "p": "76522",
+        //         "r": "0.0012",
+        //         "tr": "0.0012",
+        //         "h": "77196.3",
+        //         "l": "75630.77",
+        //         "v": "584664223.92",
+        //         "q": "7666.720258",
+        //         "lastRT": "-1",
+        //         "MT": "0",
+        //         "NV": "--",
+        //         "t": "1731135533126"
+        //     }
+        //
+        object marketId = this.safeString(ticker, "s");
+        object timestamp = this.safeInteger(ticker, "t");
+        object price = this.safeString(ticker, "p");
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", this.safeSymbol(null, market) },
-            { "timestamp", null },
-            { "datetime", null },
+            { "info", ticker },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "open", null },
-            { "high", null },
-            { "low", null },
-            { "close", null },
+            { "high", this.safeNumber(ticker, "h") },
+            { "low", this.safeNumber(ticker, "l") },
+            { "close", price },
+            { "last", price },
             { "bid", this.safeNumber(ticker, "b") },
             { "bidVolume", this.safeNumber(ticker, "B") },
             { "ask", this.safeNumber(ticker, "a") },
@@ -247,11 +427,10 @@ public partial class mexc : ccxt.mexc
             { "vwap", null },
             { "previousClose", null },
             { "change", null },
-            { "percentage", null },
+            { "percentage", this.safeNumber(ticker, "tr") },
             { "average", null },
-            { "baseVolume", null },
-            { "quoteVolume", null },
-            { "info", ticker },
+            { "baseVolume", this.safeNumber(ticker, "v") },
+            { "quoteVolume", this.safeNumber(ticker, "q") },
         }, market);
     }
 
@@ -1484,6 +1663,8 @@ public partial class mexc : ccxt.mexc
             { "public.kline.v3.api", this.handleOHLCV },
             { "push.kline", this.handleOHLCV },
             { "public.bookTicker.v3.api", this.handleTicker },
+            { "public.miniTicker.v3.api", this.handleTicker },
+            { "public.miniTickers.v3.api", this.handleTickers },
             { "push.ticker", this.handleTicker },
             { "push.tickers", this.handleTickers },
             { "public.increase.depth.v3.api", this.handleOrderBook },

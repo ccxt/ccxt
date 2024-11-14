@@ -86,7 +86,7 @@ public partial class bitstamp : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d5480572-1fee-43cb-b900-d38c522d0024" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitstamp.net/api" },
                     { "private", "https://www.bitstamp.net/api" },

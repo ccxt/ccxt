@@ -726,7 +726,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         messageHash = self.build_message_hash(action, request)
         self.check_message_hash_does_not_exist(messageHash)
         url = self.urls['api']['ws']
-        return await self.watch(url, messageHash, request, messageHash)
+        randomSubHash = str(self.rand_number(5)) + ':' + messageHash
+        return await self.watch(url, messageHash, request, randomSubHash)
 
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

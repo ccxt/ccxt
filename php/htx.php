@@ -85,7 +85,7 @@ class htx extends Exchange {
                 'fetchLeverageTiers' => true,
                 'fetchLiquidations' => true,
                 'fetchMarginAdjustmentHistory' => false,
-                'fetchMarketLeverageTiers' => true,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyLiquidations' => false,
@@ -6450,7 +6450,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
          * make a withdrawal
@@ -8073,93 +8073,35 @@ class htx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_leverage_tiers($data, $symbols, 'contract_code');
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
-        /**
-         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-$tiers-structure leverage $tiers structure~
-         */
-        $this->load_markets();
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            if (!$market['contract']) {
-                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() $symbol supports contract markets only');
-            }
-            $request['contract_code'] = $market['id'];
-        }
-        $response = $this->contractPublicGetLinearSwapApiV1SwapAdjustfactor ($this->extend($request, $params));
-        //
-        //    {
-        //        "status" => "ok",
-        //        "data" => array(
-        //            {
-        //                "symbol" => "MANA",
-        //                "contract_code" => "MANA-USDT",
-        //                "margin_mode" => "isolated",
-        //                "trade_partition" => "USDT",
-        //                "list" => array(
-        //                    array(
-        //                        "lever_rate" => 75,
-        //                        "ladders" => array(
-        //                            array(
-        //                                "ladder" => 0,
-        //                                "min_size" => 0,
-        //                                "max_size" => 999,
-        //                                "adjust_factor" => 0.7
-        //                            ),
-        //                            ...
-        //                        )
-        //                    }
-        //                    ...
-        //                )
-        //            ),
-        //            ...
-        //        )
-        //    }
-        //
-        $data = $this->safe_value($response, 'data');
-        $tiers = $this->parse_leverage_tiers($data, array( $symbol ), 'contract_code');
-        return $this->safe_value($tiers, $symbol);
-    }
-
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null) {
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $item = $response[$i];
-            $list = $this->safe_value($item, 'list', array());
-            $tiers = array();
-            $currency = $this->safe_string($item, 'trade_partition');
-            $id = $this->safe_string($item, $marketIdKey);
-            $symbol = $this->safe_symbol($id);
-            if ($this->in_array($symbol, $symbols)) {
-                for ($j = 0; $j < count($list); $j++) {
-                    $obj = $list[$j];
-                    $leverage = $this->safe_string($obj, 'lever_rate');
-                    $ladders = $this->safe_value($obj, 'ladders', array());
-                    for ($k = 0; $k < count($ladders); $k++) {
-                        $bracket = $ladders[$k];
-                        $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
-                        $tiers[] = array(
-                            'tier' => $this->safe_integer($bracket, 'ladder'),
-                            'currency' => $this->safe_currency_code($currency),
-                            'minNotional' => $this->safe_number($bracket, 'min_size'),
-                            'maxNotional' => $this->safe_number($bracket, 'max_size'),
-                            'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
-                            'maxLeverage' => $this->parse_number($leverage),
-                            'info' => $bracket,
-                        );
-                    }
-                }
-                $result[$symbol] = $tiers;
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+        $currencyId = $this->safe_string($info, 'trade_partition');
+        $marketId = $this->safe_string($info, 'contract_code');
+        $tiers = array();
+        $brackets = $this->safe_list($info, 'list', array());
+        for ($i = 0; $i < count($brackets); $i++) {
+            $item = $brackets[$i];
+            $leverage = $this->safe_string($item, 'lever_rate');
+            $ladders = $this->safe_list($item, 'ladders', array());
+            for ($k = 0; $k < count($ladders); $k++) {
+                $bracket = $ladders[$k];
+                $adjustFactor = $this->safe_string($bracket, 'adjust_factor');
+                $tiers[] = array(
+                    'tier' => $this->safe_integer($bracket, 'ladder'),
+                    'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+                    'currency' => $this->safe_currency_code($currencyId),
+                    'minNotional' => $this->safe_number($bracket, 'min_size'),
+                    'maxNotional' => $this->safe_number($bracket, 'max_size'),
+                    'maintenanceMarginRate' => $this->parse_number(Precise::string_div($adjustFactor, $leverage)),
+                    'maxLeverage' => $this->parse_number($leverage),
+                    'info' => $bracket,
+                );
             }
         }
-        return $result;
+        return $tiers;
     }
 
     public function fetch_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()) {

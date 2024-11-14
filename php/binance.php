@@ -182,7 +182,7 @@ class binance extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b',
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
@@ -387,6 +387,12 @@ class binance extends Exchange {
                         'eth-staking/wbeth/history/wrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/history/unwrapHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/history/wbethRewardsHistory' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/history/stakingHistory' => 15,
+                        'sol-staking/sol/history/redemptionHistory' => 15,
+                        'sol-staking/sol/history/bnsolRewardsHistory' => 15,
+                        'sol-staking/sol/history/rateHistory' => 15,
+                        'sol-staking/account' => 15,
+                        'sol-staking/sol/quota' => 15,
                         // mining endpoints
                         'mining/pub/algoList' => 0.1,
                         'mining/pub/coinList' => 0.1,
@@ -598,6 +604,8 @@ class binance extends Exchange {
                         'eth-staking/eth/stake' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/eth/redeem' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
                         'eth-staking/wbeth/wrap' => 15, // Weight(IP) => 150 => cost = 0.1 * 150 = 15
+                        'sol-staking/sol/stake' => 15,
+                        'sol-staking/sol/redeem' => 15,
                         // mining endpoints
                         'mining/hash-transfer/config' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
                         'mining/hash-transfer/config/cancel' => 0.5, // Weight(IP) => 5 => cost = 0.1 * 5 = 0.5
@@ -632,6 +640,7 @@ class binance extends Exchange {
                         'simple-earn/locked/redeem' => 0.1,
                         'simple-earn/flexible/setAutoSubscribe' => 15,
                         'simple-earn/locked/setAutoSubscribe' => 15,
+                        'simple-earn/locked/setRedeemOption' => 5,
                         // convert
                         'dci/product/subscribe' => 0.1,
                         'dci/product/auto_compound/edit' => 0.1,
@@ -944,6 +953,9 @@ class binance extends Exchange {
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
                         'order' => 1,
+                        'block/order/orders' => 5,
+                        'block/order/execute' => 5,
+                        'block/user-trades' => 5,
                     ),
                     'post' => array(
                         'order' => 1,
@@ -953,9 +965,12 @@ class binance extends Exchange {
                         'mmpReset' => 1,
                         'countdownCancelAll' => 1,
                         'countdownCancelAllHeartBeat' => 10,
+                        'block/order/create' => 5,
+                        'block/order/execute' => 5,
                     ),
                     'put' => array(
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                     'delete' => array(
                         'order' => 1,
@@ -963,6 +978,7 @@ class binance extends Exchange {
                         'allOpenOrders' => 1,
                         'allOpenOrdersByUnderlying' => 1,
                         'listenKey' => 1,
+                        'block/order/create' => 5,
                     ),
                 ),
                 'public' => array(
@@ -8871,7 +8887,7 @@ class binance extends Exchange {
         return $result;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://developers.binance.com/docs/wallet/capital/withdraw
@@ -10100,6 +10116,7 @@ class binance extends Exchange {
             $bracket = $brackets[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($bracket, 'bracket'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'minNotional' => $this->safe_number_2($bracket, 'notionalFloor', 'qtyFloor'),
                 'maxNotional' => $this->safe_number_2($bracket, 'notionalCap', 'qtyCap'),

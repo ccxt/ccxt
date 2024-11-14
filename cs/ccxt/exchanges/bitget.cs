@@ -77,7 +77,7 @@ public partial class bitget : Exchange
                 { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", true },
                 { "fetchIsolatedBorrowRate", true },
                 { "fetchIsolatedBorrowRates", false },
@@ -153,7 +153,7 @@ public partial class bitget : Exchange
             } },
             { "hostname", "bitget.com" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://api.{hostname}" },
                     { "mix", "https://api.{hostname}" },
@@ -2131,8 +2131,10 @@ public partial class bitget : Exchange
             object maxNotional = this.safeNumberN(item, new List<object>() {"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount"});
             object marginCurrency = this.safeString2(item, "coin", "baseCoin");
             object currencyId = ((bool) isTrue((!isEqual(marginCurrency, null)))) ? marginCurrency : getValue(market, "base");
+            object marketId = this.safeString(item, "symbol");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeInteger2(item, "level", "tier") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", this.safeCurrencyCode(currencyId) },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
@@ -7332,6 +7334,78 @@ public partial class bitget : Exchange
         return this.parseFundingRate(getValue(data, 0), market);
     }
 
+    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#fetchFundingRates
+        * @description fetch the current funding rates for all markets
+        * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        * @param {string[]} [symbols] list of unified market symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+        * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbol = this.safeValue(symbols, 0);
+            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (isTrue(sandboxMode))
+            {
+                object sandboxSymbol = this.convertSymbolForSandbox(symbol);
+                market = this.market(sandboxSymbol);
+            } else
+            {
+                market = this.market(symbol);
+            }
+        }
+        object request = new Dictionary<string, object>() {};
+        object productType = null;
+        var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+        productType = ((IList<object>)productTypeparametersVariable)[0];
+        parameters = ((IList<object>)productTypeparametersVariable)[1];
+        ((IDictionary<string,object>)request)["productType"] = productType;
+        object response = await this.publicMixGetV2MixMarketTickers(this.extend(request, parameters));
+        // {
+        //     "code": "00000",
+        //     "msg": "success",
+        //     "requestTime": 1700533773477,
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSD",
+        //             "lastPr": "29904.5",
+        //             "askPr": "29904.5",
+        //             "bidPr": "29903.5",
+        //             "bidSz": "0.5091",
+        //             "askSz": "2.2694",
+        //             "high24h": "0",
+        //             "low24h": "0",
+        //             "ts": "1695794271400",
+        //             "change24h": "0",
+        //             "baseVolume": "0",
+        //             "quoteVolume": "0",
+        //             "usdtVolume": "0",
+        //             "openUtc": "0",
+        //             "changeUtc24h": "0",
+        //             "indexPrice": "29132.353333",
+        //             "fundingRate": "-0.0007",
+        //             "holdingAmount": "125.6844",
+        //             "deliveryStartTime": null,
+        //             "deliveryTime": null,
+        //             "deliveryStatus": "delivery_normal",
+        //             "open24h": "0",
+        //             "markPrice": "12345"
+        //         },
+        //     ]
+        // }
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseFundingRates(data, market);
+    }
+
     public override object parseFundingRate(object contract, object market = null)
     {
         //
@@ -7349,11 +7423,39 @@ public partial class bitget : Exchange
         //         "nextFundingTime": "1727942400000",
         //         "ratePeriod": "8"
         //     }
-        //
+        // fetchFundingRates
+        //     {
+        //         "symbol": "BTCUSD",
+        //         "lastPr": "29904.5",
+        //         "askPr": "29904.5",
+        //         "bidPr": "29903.5",
+        //         "bidSz": "0.5091",
+        //         "askSz": "2.2694",
+        //         "high24h": "0",
+        //         "low24h": "0",
+        //         "ts": "1695794271400",
+        //         "change24h": "0",
+        //         "baseVolume": "0",
+        //         "quoteVolume": "0",
+        //         "usdtVolume": "0",
+        //         "openUtc": "0",
+        //         "changeUtc24h": "0",
+        //         "indexPrice": "29132.353333",
+        //         "fundingRate": "-0.0007",
+        //         "holdingAmount": "125.6844",
+        //         "deliveryStartTime": null,
+        //         "deliveryTime": null,
+        //         "deliveryStatus": "delivery_normal",
+        //         "open24h": "0",
+        //         "markPrice": "12345"
+        //     }
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
         object fundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         object interval = this.safeString(contract, "ratePeriod");
+        object timestamp = this.safeInteger(contract, "ts");
+        object markPrice = this.safeNumber(contract, "markPrice");
+        object indexPrice = this.safeNumber(contract, "indexPrice");
         object intervalString = null;
         if (isTrue(!isEqual(interval, null)))
         {
@@ -7362,12 +7464,12 @@ public partial class bitget : Exchange
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
-            { "markPrice", null },
-            { "indexPrice", null },
+            { "markPrice", markPrice },
+            { "indexPrice", indexPrice },
             { "interestRate", null },
             { "estimatedSettlePrice", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "fundingRate", this.safeNumber(contract, "fundingRate") },
             { "fundingTimestamp", fundingTimestamp },
             { "fundingDatetime", this.iso8601(fundingTimestamp) },

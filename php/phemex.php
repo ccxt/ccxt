@@ -4296,7 +4296,8 @@ class phemex extends Exchange {
         //         )
         //     ),
         //
-        $market = $this->safe_market(null, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $riskLimits = ($market['info']['riskLimits']);
         $tiers = array();
         $minNotional = 0;
@@ -4305,6 +4306,7 @@ class phemex extends Exchange {
             $maxNotional = $this->safe_integer($tier, 'limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
@@ -4685,7 +4687,7 @@ class phemex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://phemex-docs.github.io/#create-withdraw-$request

@@ -1424,7 +1424,7 @@ export default class upbit extends Exchange {
                 'currency': code,
                 'cost': this.safeNumber (transaction, 'fee'),
             },
-        };
+        } as Transaction;
     }
 
     parseOrderStatus (status: Str) {
@@ -1940,7 +1940,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name upbit#withdraw

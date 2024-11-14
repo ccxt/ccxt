@@ -4359,7 +4359,8 @@ class phemex extends Exchange {
         //         )
         //     ),
         //
-        $market = $this->safe_market(null, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $riskLimits = ($market['info']['riskLimits']);
         $tiers = array();
         $minNotional = 0;
@@ -4368,6 +4369,7 @@ class phemex extends Exchange {
             $maxNotional = $this->safe_integer($tier, 'limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
@@ -4756,7 +4758,7 @@ class phemex extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

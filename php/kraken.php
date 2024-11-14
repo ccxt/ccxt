@@ -1478,7 +1478,7 @@ class kraken extends Exchange {
         //     {
         //         "error" => array(),
         //         "result" => {
-        //             "descr" => array( order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //             "descr" => array( order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ), // see more examples in "parseOrder"
         //             "txid" => array( 'OEKVV2-IH52O-TPL6GZ' )
         //         }
         //     }
@@ -1546,9 +1546,10 @@ class kraken extends Exchange {
 
     public function parse_order_type($status) {
         $statuses = array(
+            // we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit' => 'market',
-            'stop-loss-limit' => 'limit',
             'stop-loss' => 'market',
+            'stop-loss-limit' => 'limit',
             'take-profit-limit' => 'limit',
             'trailing-stop-limit' => 'limit',
         );
@@ -1557,29 +1558,18 @@ class kraken extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
-        // createOrder for regular orders
+        // createOrder
         //
         //     {
-        //         "descr" => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
+        //         "descr" => array(
+        //            "order" => "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
+        //                     "buy 0.12345678 ETHUSDT @ $market" // $market $order
+        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop $order
+        //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
+        //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
+        //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
+        //         ),
         //         "txid" => array( 'OEKVV2-IH52O-TPL6GZ' )
-        //     }
-        //     {
-        //         "txid" => array( "TX_ID_HERE" ),
-        //         "descr" => array( "order":"buy 0.12345678 ETHEUR @ $market" ),
-        //     }
-        //
-        //
-        // createOrder for stop orders
-        //
-        //     {
-        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
-        //         "descr":array("order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212")
-        //     }
-        //
-        //
-        //     {
-        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
-        //         "descr":array("order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage")
         //     }
         //
         // editOrder
@@ -1659,26 +1649,32 @@ class kraken extends Exchange {
             $orderDescription = $this->safe_string($order, 'descr');
         }
         $side = null;
-        $type = null;
+        $rawType = null;
         $marketId = null;
         $price = null;
         $amount = null;
-        $stopPrice = null;
+        $triggerPrice = null;
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
             $amount = $this->safe_string($parts, 1);
             $marketId = $this->safe_string($parts, 2);
-            $type = $this->safe_string($parts, 4);
-            if ($type === 'stop') {
-                $stopPrice = $this->safe_string($parts, 6);
+            $part4 = $this->safe_string($parts, 4);
+            $part5 = $this->safe_string($parts, 5);
+            if ($part4 === 'limit' || $part4 === 'market') {
+                $rawType = $part4; // eg, limit, $market
+            } else {
+                $rawType = $part4 . ' ' . $part5; // eg. stop loss, take profit, trailing stop
+            }
+            if ($rawType === 'stop loss' || $rawType === 'take profit') {
+                $triggerPrice = $this->safe_string($parts, 6);
                 $price = $this->safe_string($parts, 9);
-            } elseif ($type === 'limit') {
+            } elseif ($rawType === 'limit') {
                 $price = $this->safe_string($parts, 5);
             }
         }
         $side = $this->safe_string($description, 'type', $side);
-        $type = $this->safe_string($description, 'ordertype', $type);
+        $rawType = $this->safe_string($description, 'ordertype', $rawType); // orderType has dash, e.g. trailing-stop
         $marketId = $this->safe_string($description, 'pair', $marketId);
         $foundMarket = $this->find_market_by_altname_or_id($marketId);
         $symbol = null;
@@ -1695,7 +1691,7 @@ class kraken extends Exchange {
         // kraken truncates the $cost in the api response so we will ignore it and calculate it from $average & $filled
         // $cost = $this->safe_string($order, 'cost');
         $price = $this->safe_string($description, 'price', $price);
-        // when $type = trailling stop returns $price = '+50.0000%'
+        // when type = trailling stop returns $price = '+50.0000%'
         if (($price !== null) && str_ends_with($price, '%')) {
             $price = null; // this is not the $price we want
         }
@@ -1740,15 +1736,29 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $stopPrice));
+        // in #24192 PR, this field is not something consistent/actual
+        // $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $triggerPrice));
         $stopLossPrice = null;
         $takeProfitPrice = null;
-        if (str_starts_with($type, 'take-profit')) {
+        // the dashed strings are not provided from fields (eg. fetch $order)
+        // while spaced strings from "order" sentence (when other fields not available)
+        if (str_starts_with($rawType, 'take-profit')) {
             $takeProfitPrice = $this->safe_string($description, 'price');
             $price = $this->omit_zero($this->safe_string($description, 'price2'));
-        } elseif (str_starts_with($type, 'stop-loss')) {
+        } elseif (str_starts_with($rawType, 'stop-loss')) {
             $stopLossPrice = $this->safe_string($description, 'price');
             $price = $this->omit_zero($this->safe_string($description, 'price2'));
+        } elseif ($rawType === 'take profit') {
+            $takeProfitPrice = $triggerPrice;
+        } elseif ($rawType === 'stop loss') {
+            $stopLossPrice = $triggerPrice;
+        }
+        $finalType = $this->parse_order_type($rawType);
+        // unlike from endpoints which provide eg => "take-profit-limit"
+        // for "space-delimited" orders we dont have market/limit suffixes, their format is
+        // eg => `stop loss > limit 123`, so we need to parse them manually
+        if ($this->in_array($finalType, array( 'stop loss', 'take profit' ))) {
+            $finalType = ($price === null) ? 'market' : 'limit';
         }
         return $this->safe_order(array(
             'id' => $id,
@@ -1759,13 +1769,13 @@ class kraken extends Exchange {
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $this->parse_order_type($type),
+            'type' => $finalType,
             'timeInForce' => null,
             'postOnly' => $isPostOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
-            'triggerPrice' => $stopPrice,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'stopLossPrice' => $stopLossPrice,
             'cost' => null,
@@ -2855,7 +2865,7 @@ class kraken extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds

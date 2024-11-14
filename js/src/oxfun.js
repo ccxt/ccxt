@@ -80,7 +80,7 @@ export default class oxfun extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -1318,6 +1318,7 @@ export default class oxfun extends Exchange {
             const tier = listOfTiers[j];
             tiers.push({
                 'tier': this.safeNumber(tier, 'tier'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber(tier, 'positionFloor'),
                 'maxNotional': this.safeNumber(tier, 'positionCap'),

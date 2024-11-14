@@ -739,6 +739,17 @@
                 ],
                 "output": "{\"symbol\":\"BTCUSDT\",\"order_id\":\"3000023150003503\",\"price_type\":1,\"executive_price\":\"71000\",\"type\":\"limit\",\"trigger_price\":\"70500\"}"
             }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "isolated fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api-cloud.bitmart.com/spot/v1/margin/isolated/borrow_record?symbol=BTC_USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ]
+            }
         ]
     }
 }

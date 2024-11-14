@@ -3626,7 +3626,7 @@ export default class phemex extends Exchange {
             'comment': undefined,
             'internal': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -4359,7 +4359,8 @@ export default class phemex extends Exchange {
         //         ]
         //     },
         //
-        market = this.safeMarket (undefined, market);
+        const marketId = this.safeString (info, 'symbol');
+        market = this.safeMarket (marketId, market);
         const riskLimits = (market['info']['riskLimits']);
         const tiers = [];
         let minNotional = 0;
@@ -4368,6 +4369,7 @@ export default class phemex extends Exchange {
             const maxNotional = this.safeInteger (tier, 'limit');
             tiers.push ({
                 'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4377,7 +4379,7 @@ export default class phemex extends Exchange {
             });
             minNotional = maxNotional;
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -4756,7 +4758,7 @@ export default class phemex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name phemex#withdraw

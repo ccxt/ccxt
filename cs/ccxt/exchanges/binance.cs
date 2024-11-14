@@ -177,7 +177,7 @@ public partial class binance : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/e9419b93-ccb0-46aa-9bff-c883f096274b" },
                 { "test", new Dictionary<string, object>() {
                     { "dapiPublic", "https://testnet.binancefuture.com/dapi/v1" },
                     { "dapiPrivate", "https://testnet.binancefuture.com/dapi/v1" },
@@ -375,6 +375,12 @@ public partial class binance : Exchange
                         { "eth-staking/wbeth/history/wrapHistory", 15 },
                         { "eth-staking/wbeth/history/unwrapHistory", 15 },
                         { "eth-staking/eth/history/wbethRewardsHistory", 15 },
+                        { "sol-staking/sol/history/stakingHistory", 15 },
+                        { "sol-staking/sol/history/redemptionHistory", 15 },
+                        { "sol-staking/sol/history/bnsolRewardsHistory", 15 },
+                        { "sol-staking/sol/history/rateHistory", 15 },
+                        { "sol-staking/account", 15 },
+                        { "sol-staking/sol/quota", 15 },
                         { "mining/pub/algoList", 0.1 },
                         { "mining/pub/coinList", 0.1 },
                         { "mining/worker/detail", 0.5 },
@@ -567,6 +573,8 @@ public partial class binance : Exchange
                         { "eth-staking/eth/stake", 15 },
                         { "eth-staking/eth/redeem", 15 },
                         { "eth-staking/wbeth/wrap", 15 },
+                        { "sol-staking/sol/stake", 15 },
+                        { "sol-staking/sol/redeem", 15 },
                         { "mining/hash-transfer/config", 0.5 },
                         { "mining/hash-transfer/config/cancel", 0.5 },
                         { "portfolio/repay", 20.001 },
@@ -599,6 +607,7 @@ public partial class binance : Exchange
                         { "simple-earn/locked/redeem", 0.1 },
                         { "simple-earn/flexible/setAutoSubscribe", 15 },
                         { "simple-earn/locked/setAutoSubscribe", 15 },
+                        { "simple-earn/locked/setRedeemOption", 5 },
                         { "dci/product/subscribe", 0.1 },
                         { "dci/product/auto_compound/edit", 0.1 },
                     } },
@@ -987,6 +996,9 @@ public partial class binance : Exchange
                         { "mmp", 1 },
                         { "countdownCancelAll", 1 },
                         { "order", 1 },
+                        { "block/order/orders", 5 },
+                        { "block/order/execute", 5 },
+                        { "block/user-trades", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -996,9 +1008,12 @@ public partial class binance : Exchange
                         { "mmpReset", 1 },
                         { "countdownCancelAll", 1 },
                         { "countdownCancelAllHeartBeat", 10 },
+                        { "block/order/create", 5 },
+                        { "block/order/execute", 5 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", 1 },
+                        { "block/order/create", 5 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -1006,6 +1021,7 @@ public partial class binance : Exchange
                         { "allOpenOrders", 1 },
                         { "allOpenOrdersByUnderlying", 1 },
                         { "listenKey", 1 },
+                        { "block/order/create", 5 },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
@@ -10740,6 +10756,7 @@ public partial class binance : Exchange
             object bracket = getValue(brackets, j);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(bracket, "bracket") },
+                { "symbol", this.safeSymbol(marketId, market) },
                 { "currency", getValue(market, "quote") },
                 { "minNotional", this.safeNumber2(bracket, "notionalFloor", "qtyFloor") },
                 { "maxNotional", this.safeNumber2(bracket, "notionalCap", "qtyCap") },

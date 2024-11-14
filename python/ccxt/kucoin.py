@@ -3257,7 +3257,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
@@ -4158,8 +4158,8 @@ class kucoin(Exchange, ImplicitAPI):
         fetch the interest owed by the user for borrowing currency for margin trading
         :see: https://docs.kucoin.com/#get-repay-record
         :see: https://docs.kucoin.com/#query-isolated-margin-account-info
-        :param str code: unified currency code
-        :param str symbol: unified market symbol, required for isolated margin
+        :param str [code]: unified currency code
+        :param str [symbol]: unified market symbol, required for isolated margin
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4168,14 +4168,19 @@ class kucoin(Exchange, ImplicitAPI):
         """
         self.load_markets()
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
-        if marginMode is None:
-            marginMode = 'cross'  # cross marginMode
+        marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params, 'cross')
         request: dict = {}
-        response = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
-            request['quoteCurrency'] = currency['id']
+            if marginMode == 'isolated':
+                request['balanceCurrency'] = currency['id']
+            else:
+                request['quoteCurrency'] = currency['id']
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = None
         if marginMode == 'isolated':
             response = self.privateGetIsolatedAccounts(self.extend(request, params))
         else:
@@ -4246,7 +4251,9 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         assets = self.safe_list(data, 'assets', []) if (marginMode == 'isolated') else self.safe_list(data, 'accounts', [])
-        return self.parse_borrow_interests(assets, None)
+        interest = self.parse_borrow_interests(assets, market)
+        filteredByCurrency = self.filter_by_currency_since_limit(interest, code, since, limit)
+        return self.filter_by_symbol_since_limit(filteredByCurrency, symbol, since, limit)
 
     def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #

@@ -4556,8 +4556,8 @@ public partial class kucoin : Exchange
         * @description fetch the interest owed by the user for borrowing currency for margin trading
         * @see https://docs.kucoin.com/#get-repay-record
         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
-        * @param {string} code unified currency code
-        * @param {string} symbol unified market symbol, required for isolated margin
+        * @param {string} [code] unified currency code
+        * @param {string} [symbol] unified market symbol, required for isolated margin
         * @param {int} [since] the earliest time in ms to fetch borrrow interest for
         * @param {int} [limit] the maximum number of structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4567,20 +4567,28 @@ public partial class kucoin : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        if (isTrue(isEqual(marginMode, null)))
-        {
-            marginMode = "cross"; // cross as default marginMode
-        }
         object request = new Dictionary<string, object>() {};
-        object response = null;
+        object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
-            object currency = this.currency(code);
-            ((IDictionary<string,object>)request)["quoteCurrency"] = getValue(currency, "id");
+            currency = this.currency(code);
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                ((IDictionary<string,object>)request)["balanceCurrency"] = getValue(currency, "id");
+            } else
+            {
+                ((IDictionary<string,object>)request)["quoteCurrency"] = getValue(currency, "id");
+            }
         }
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object response = null;
         if (isTrue(isEqual(marginMode, "isolated")))
         {
             response = await this.privateGetIsolatedAccounts(this.extend(request, parameters));
@@ -4654,7 +4662,9 @@ public partial class kucoin : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object assets = ((bool) isTrue((isEqual(marginMode, "isolated")))) ? this.safeList(data, "assets", new List<object>() {}) : this.safeList(data, "accounts", new List<object>() {});
-        return this.parseBorrowInterests(assets, null);
+        object interest = this.parseBorrowInterests(assets, market);
+        object filteredByCurrency = this.filterByCurrencySinceLimit(interest, code, since, limit);
+        return this.filterBySymbolSinceLimit(filteredByCurrency, symbol, since, limit);
     }
 
     public override object parseBorrowInterest(object info, object market = null)

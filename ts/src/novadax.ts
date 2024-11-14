@@ -1224,7 +1224,7 @@ export default class novadax extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name novadax#withdraw
@@ -1473,7 +1473,7 @@ export default class novadax extends Exchange {
                 'cost': undefined,
                 'rate': undefined,
             },
-        };
+        } as Transaction;
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

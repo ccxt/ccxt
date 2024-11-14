@@ -3003,13 +3003,63 @@ public partial class vertex : Exchange
         };
         object response = await this.v1GatewayPostExecute(this.extend(request, parameters));
         //
-        // {
-        //     "status": "success",
-        //     "signature": {signature},
-        //     "request_type": "execute_withdraw_collateral"
-        // }
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
         //
-        return response;
+        object transaction = this.parseTransaction(response, currency);
+        return this.extend(transaction, new Dictionary<string, object>() {
+            { "amount", amount },
+            { "address", address },
+        });
+    }
+
+    public override object parseTransaction(object transaction, object currency = null)
+    {
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": {signature},
+        //         "request_type": "execute_withdraw_collateral"
+        //     }
+        //
+        object code = null;
+        if (isTrue(!isEqual(currency, null)))
+        {
+            code = getValue(currency, "code");
+        }
+        return new Dictionary<string, object>() {
+            { "info", transaction },
+            { "id", null },
+            { "txid", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "addressFrom", null },
+            { "address", null },
+            { "addressTo", null },
+            { "tagFrom", null },
+            { "tag", null },
+            { "tagTo", null },
+            { "type", "withdrawal" },
+            { "amount", null },
+            { "currency", code },
+            { "status", this.parseTransactionStatus(this.safeString(transaction, "status")) },
+            { "updated", null },
+            { "network", null },
+            { "comment", null },
+            { "internal", null },
+            { "fee", null },
+        };
+    }
+
+    public virtual object parseTransactionStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "success", "ok" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     public virtual object handlePublicAddress(object methodName, object parameters)

@@ -3075,8 +3075,10 @@ public partial class kucoinfutures : kucoin
         for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = getValue(info, i);
+            object marketId = this.safeString(tier, "symbol");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.safeNumber(tier, "level") },
+                { "symbol", this.safeSymbol(marketId, market, null, "contract") },
                 { "currency", getValue(market, "base") },
                 { "minNotional", this.safeNumber(tier, "minRiskLimit") },
                 { "maxNotional", this.safeNumber(tier, "maxRiskLimit") },

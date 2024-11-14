@@ -8,7 +8,7 @@ from ccxt.abstract.bitget import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, LedgerEntry, Leverage, LeverageTier, Liquidation, LongShortRatio, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -106,7 +106,7 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchFundingIntervals': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': True,
                 'fetchIsolatedBorrowRates': False,
@@ -182,7 +182,7 @@ class bitget(Exchange, ImplicitAPI):
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
+                'logo': 'https://github.com/user-attachments/assets/fbaa10cc-a277-441d-a5b7-997dd9a87658',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -2073,8 +2073,10 @@ class bitget(Exchange, ImplicitAPI):
             maxNotional = self.safe_number_n(item, ['endUnit', 'maxBorrowableAmount', 'baseMaxBorrowableAmount'])
             marginCurrency = self.safe_string_2(item, 'coin', 'baseCoin')
             currencyId = marginCurrency if (marginCurrency is not None) else market['base']
+            marketId = self.safe_string(item, 'symbol')
             tiers.append({
                 'tier': self.safe_integer_2(item, 'level', 'tier'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': self.safe_currency_code(currencyId),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -2143,7 +2145,7 @@ class bitget(Exchange, ImplicitAPI):
         rawTransactions = self.safe_list(response, 'data', [])
         return self.parse_transactions(rawTransactions, currency, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://www.bitget.com/api-doc/spot/account/Wallet-Withdrawal
@@ -6351,6 +6353,66 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_funding_rate(data[0], market)
 
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetch the current funding rates for all markets
+        :see: https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        """
+        await self.load_markets()
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+            if sandboxMode:
+                sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
+                market = self.market(sandboxSymbol)
+            else:
+                market = self.market(symbol)
+        request: dict = {}
+        productType = None
+        productType, params = self.handle_product_type_and_params(market, params)
+        request['productType'] = productType
+        response = await self.publicMixGetV2MixMarketTickers(self.extend(request, params))
+        # {
+        #     "code": "00000",
+        #     "msg": "success",
+        #     "requestTime": 1700533773477,
+        #     "data": [
+        #         {
+        #             "symbol": "BTCUSD",
+        #             "lastPr": "29904.5",
+        #             "askPr": "29904.5",
+        #             "bidPr": "29903.5",
+        #             "bidSz": "0.5091",
+        #             "askSz": "2.2694",
+        #             "high24h": "0",
+        #             "low24h": "0",
+        #             "ts": "1695794271400",
+        #             "change24h": "0",
+        #             "baseVolume": "0",
+        #             "quoteVolume": "0",
+        #             "usdtVolume": "0",
+        #             "openUtc": "0",
+        #             "changeUtc24h": "0",
+        #             "indexPrice": "29132.353333",
+        #             "fundingRate": "-0.0007",
+        #             "holdingAmount": "125.6844",
+        #             "deliveryStartTime": null,
+        #             "deliveryTime": null,
+        #             "deliveryStatus": "delivery_normal",
+        #             "open24h": "0",
+        #             "markPrice": "12345"
+        #         },
+        #     ]
+        # }
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rates(data, market)
+
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         # fetchFundingRate
@@ -6367,23 +6429,51 @@ class bitget(Exchange, ImplicitAPI):
         #         "nextFundingTime": "1727942400000",
         #         "ratePeriod": "8"
         #     }
-        #
+        # fetchFundingRates
+        #     {
+        #         "symbol": "BTCUSD",
+        #         "lastPr": "29904.5",
+        #         "askPr": "29904.5",
+        #         "bidPr": "29903.5",
+        #         "bidSz": "0.5091",
+        #         "askSz": "2.2694",
+        #         "high24h": "0",
+        #         "low24h": "0",
+        #         "ts": "1695794271400",
+        #         "change24h": "0",
+        #         "baseVolume": "0",
+        #         "quoteVolume": "0",
+        #         "usdtVolume": "0",
+        #         "openUtc": "0",
+        #         "changeUtc24h": "0",
+        #         "indexPrice": "29132.353333",
+        #         "fundingRate": "-0.0007",
+        #         "holdingAmount": "125.6844",
+        #         "deliveryStartTime": null,
+        #         "deliveryTime": null,
+        #         "deliveryStatus": "delivery_normal",
+        #         "open24h": "0",
+        #         "markPrice": "12345"
+        #     }
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, 'swap')
         fundingTimestamp = self.safe_integer(contract, 'nextFundingTime')
         interval = self.safe_string(contract, 'ratePeriod')
+        timestamp = self.safe_integer(contract, 'ts')
+        markPrice = self.safe_number(contract, 'markPrice')
+        indexPrice = self.safe_number(contract, 'indexPrice')
         intervalString = None
         if interval is not None:
             intervalString = interval + 'h'
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': None,
-            'indexPrice': None,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'fundingRate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': self.iso8601(fundingTimestamp),

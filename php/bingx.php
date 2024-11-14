@@ -2792,25 +2792,19 @@ class bingx extends Exchange {
          * create a list of trade $orders
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
-        $symbol = null;
+        $marketIds = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
             $marketId = $this->safe_string($rawOrder, 'symbol');
-            if ($symbol === null) {
-                $symbol = $marketId;
-            } else {
-                if ($symbol !== $marketId) {
-                    throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
-                }
-            }
             $type = $this->safe_string($rawOrder, 'type');
+            $marketIds[] = $marketId;
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
@@ -2818,10 +2812,15 @@ class bingx extends Exchange {
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams);
             $ordersRequests[] = $orderRequest;
         }
-        $market = $this->market($symbol);
+        $symbols = $this->market_symbols($marketIds, null, false, true, true);
+        $symbolsLength = count($symbols);
+        $market = $this->market($symbols[0]);
         $request = array();
         $response = null;
         if ($market['swap']) {
+            if ($symbolsLength > 5) {
+                throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
+            }
             $request['batchOrders'] = $this->json($ordersRequests);
             $response = $this->swapV2PrivatePostTradeBatchOrders ($request);
         } else {
@@ -2877,6 +2876,13 @@ class bingx extends Exchange {
         //         }
         //     }
         //
+        if (gettype($response) === 'string') {
+            // broken api engine : order-ids are too long numbers ($i->e. 1742930526912864656)
+            // and JSON.parse can not handle them in JS, so we have to use .parseJson
+            // however, when order has an attached SL/TP, their value types need extra parsing
+            $response = $this->fix_stringified_json_members($response);
+            $response = $this->parse_json($response);
+        }
         $data = $this->safe_dict($response, 'data', array());
         $result = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($result, $market);
@@ -4488,37 +4494,21 @@ class bingx extends Exchange {
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
-        //     {
-        //         "coinId" => "799",
-        //         "coin" => "USDT",
-        //         "network" => "BEP20",
-        //         "address" => "6a7eda2817462dabb6493277a2cfe0f5c3f2550b",
-        //         "tag" => ''
-        //     }
+        // {
+        //     "coinId":"4",
+        //     "coin":"USDT",
+        //     "network":"OMNI",
+        //     "address":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN",
+        //     "addressWithPrefix":"1HXyx8HVQRY7Nhqz63nwnRB7SpS9xQPzLN"
+        // }
         //
-        $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'tag');
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
-        // the exchange API returns deposit addresses without the leading '0x' prefix
-        // however, the exchange API does require the 0x prefix to withdraw
-        // so we append the prefix before returning the $address to the user
-        // that is only if the underlying contract $address has the 0x prefix
-        $networkCode = $this->safe_string($depositAddress, 'network');
-        if ($networkCode !== null) {
-            if (is_array($currency['networks']) && array_key_exists($networkCode, $currency['networks'])) {
-                $network = $currency['networks'][$networkCode];
-                $contractAddress = $this->safe_string($network['info'], 'contractAddress');
-                if ($contractAddress !== null) {
-                    if ($contractAddress[0] === '0' && $contractAddress[1] === 'x') {
-                        if ($address[0] !== '0' || $address[1] !== 'x') {
-                            $address = '0x' . $address;
-                        }
-                    }
-                }
-            }
-        }
+        $address = $this->safe_string($depositAddress, 'addressWithPrefix');
+        $networkdId = $this->safe_string($depositAddress, 'network');
+        $networkCode = $this->network_id_to_code($networkdId, $code);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
@@ -5220,7 +5210,7 @@ class bingx extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw

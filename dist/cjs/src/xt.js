@@ -1970,6 +1970,17 @@ class xt extends xt$1 {
         //         "b": true
         //     }
         //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // spot: watchMyTrades
         //
         //    {
@@ -1980,17 +1991,6 @@ class xt extends xt$1 {
         //        "p": "30000",                   // trade price
         //        "q": "3",                       // qty quantity
         //        "v": "90000"                    // volume trade amount
-        //    }
-        //
-        // spot: watchTrades
-        //
-        //    {
-        //        s: 'btc_usdt',
-        //        i: '228825383103928709',
-        //        t: 1684258222702,
-        //        p: '27003.65',
-        //        q: '0.000796',
-        //        b: true
         //    }
         //
         // swap and future: fetchTrades
@@ -2072,22 +2072,34 @@ class xt extends xt$1 {
             marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket(marketId, market, '_', marketType);
-        const bidOrAsk = this.safeString(trade, 'm');
-        let side = this.safeStringLower(trade, 'orderSide');
-        if (bidOrAsk !== undefined) {
-            side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+        let side = undefined;
+        let takerOrMaker = undefined;
+        const isBuyerMaker = this.safeBool(trade, 'b');
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // public trades always taker
         }
-        const buyerMaker = this.safeValue(trade, 'b');
-        if (buyerMaker !== undefined) {
-            side = 'buy';
-        }
-        let takerOrMaker = this.safeStringLower(trade, 'takerMaker');
-        if (buyerMaker !== undefined) {
-            takerOrMaker = buyerMaker ? 'maker' : 'taker';
-        }
-        const isMaker = this.safeBool(trade, 'isMaker');
-        if (isMaker !== undefined) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+        else {
+            const takerMaker = this.safeStringLower(trade, 'takerMaker');
+            if (takerMaker !== undefined) {
+                takerOrMaker = takerMaker;
+            }
+            else {
+                const isMaker = this.safeBool(trade, 'isMaker');
+                if (isMaker !== undefined) {
+                    takerOrMaker = isMaker ? 'maker' : 'taker';
+                }
+            }
+            const orderSide = this.safeStringLower(trade, 'orderSide');
+            if (orderSide !== undefined) {
+                side = orderSide;
+            }
+            else {
+                const bidOrAsk = this.safeString(trade, 'm');
+                if (bidOrAsk !== undefined) {
+                    side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
+                }
+            }
         }
         const timestamp = this.safeIntegerN(trade, ['t', 'time', 'timestamp']);
         const quantity = this.safeString2(trade, 'q', 'quantity');
@@ -4062,8 +4074,8 @@ class xt extends xt$1 {
         /**
          * @method
          * @name xt#fetchLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @description retrieve information on the maximum leverage for different trade sizes
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
          * @param {string} [symbols] a list of unified market symbols
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4145,8 +4157,8 @@ class xt extends xt$1 {
         /**
          * @method
          * @name xt#fetchMarketLeverageTiers
-         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @description retrieve information on the maximum leverage for different trade sizes of a single market
+         * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the xt api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4216,6 +4228,7 @@ class xt extends xt$1 {
             market = this.safeMarket(marketId, market, '_', 'contract');
             tiers.push({
                 'tier': this.safeInteger(tier, 'bracket'),
+                'symbol': this.safeSymbol(marketId, market, '_', 'contract'),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber(brackets[i - 1], 'maxNominalValue', 0),
                 'maxNotional': this.safeNumber(tier, 'maxNominalValue'),
