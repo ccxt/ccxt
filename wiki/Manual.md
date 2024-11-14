@@ -2528,7 +2528,7 @@ UNDER CONSTRUCTION
 
 Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named `has['fetchOHLCV']` indicates whether the exchange supports candlestick data series or not.
 
-To fetch OHLCV candles (bars) frome exchange, ccxt has `fetchOHLCV` method, which is declared in the following way:
+To fetch OHLCV candles/bars from an exchange, ccxt has the `fetchOHLCV` method, which is declared in the following way:
 
 ```javascript
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
@@ -2582,7 +2582,7 @@ If `since` is not specified the `fetchOHLCV` method will return the time range a
 
 ### Get raw OHLCV response
 
-Currently, ccxt uses structure where it does not include raw info from `fetchOHLCV` response. However, users might be able to override the response with some custom codes, like:
+Currently, the structure CCXT uses does not include the raw response from the exchange. However, users might be able to override the return value by doing:
 
 <!-- tabs:start -->
 #### **Javascript**
@@ -2608,7 +2608,7 @@ async def test():
         res = prase_ohlcv_original(ohlcv, market)
         res.append(ohlcv)
         return res
-    ex.parse_ohlcv = prase_ohlcv_custom 
+    ex.parse_ohlcv = prase_ohlcv_custom
     result = await ex.fetch_ohlcv('BTC/USDT', '1m')
     print (result[0])
 
