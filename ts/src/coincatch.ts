@@ -1883,8 +1883,8 @@ export default class coincatch extends Exchange {
      * @description fetch the deposit address for a currency associated with this account
      * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
      * @param {string} code unified currency code
-     * @param {string} [params.network] network for fetch deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {

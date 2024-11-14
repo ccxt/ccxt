@@ -261,11 +261,11 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
-     * @param params
      * @name coinctach#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
      * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
@@ -459,12 +459,12 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
-     * @param timeframe
-     * @param params
      * @name coincatch#unWatchOHLCV
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+     * @param timeframe
+     * @param params
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
@@ -583,7 +583,6 @@ export default class coincatch extends coincatchRest {
      * @name coincatch#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
-     * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -727,7 +726,6 @@ export default class coincatch extends coincatchRest {
      * @name coincatch#watchTrades
      * @description watches information on multiple trades made in a market
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
-     * @param {string} symbol unified market symbol of the market trades were made in
      * @param symbols
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -766,11 +764,11 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
-     * @param params
      * @name coincatch#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {

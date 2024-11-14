@@ -139,7 +139,7 @@ export default class poloniex extends poloniexRest {
      * @description Connects to a websocket channel
      * @param {string} name name of the channel
      * @param {boolean} isPrivate true for the authenticated url, false for the public url
-     * @param {string[]|undefined} symbols CCXT market symbols
+     * @param {string[]} [symbols] CCXT market symbols
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */

@@ -1203,12 +1203,12 @@ export default class cryptocom extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name cryptocom#createOrders
      * @description create a list of trade orders
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -2981,7 +2981,6 @@ export default class cryptocom extends Exchange {
      * @description closes open positions for a market
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
-     * @param {string} [marginMode] not used by cryptocom.closePositions
      * @param {string} [side] not used by cryptocom.closePositions
      * @param {object} [params] extra parameters specific to the okx api endpoint
      *

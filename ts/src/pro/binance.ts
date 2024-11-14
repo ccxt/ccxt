@@ -450,7 +450,6 @@ export default class binance extends binanceRest {
      * @description watch the private liquidations of a trading pair
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
-     * @param {string} symbol unified CCXT market symbol
      * @param symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve

@@ -578,8 +578,7 @@ export default class blofin extends Exchange {
      * @name blofin#fetchMarkPrice
      * @description fetches mark price for the market
      * @see https://docs.blofin.com/index.html#get-mark-price
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param symbol
+     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1354,11 +1353,11 @@ export default class blofin extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name blofin#createOrders
      * @description create a list of trade orders
      * @see https://blofin.com/docs#place-multiple-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {

@@ -1122,6 +1122,7 @@ export default class bybit extends Exchange {
      * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
      * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+     * @returns {any}
      */
     async isUnifiedEnabled (params = {}) {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -1207,11 +1208,12 @@ export default class bybit extends Exchange {
     }
 
     /**
-     * @param params
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
      * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
      * @description upgrades the account to unified trade account *warning* this is irreversible
+     * @param params
+     * @returns {any}
      */
     async upgradeUnifiedTradeAccount (params = {}) {
         return await this.privatePostV5AccountUpgradeToUta (params);
@@ -3909,11 +3911,11 @@ export default class bybit extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name bybit#createOrders
      * @description create a list of trade orders
      * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {

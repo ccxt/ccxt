@@ -1448,11 +1448,11 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {

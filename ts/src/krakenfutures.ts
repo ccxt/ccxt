@@ -1043,14 +1043,15 @@ export default class krakenfutures extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of contracts
      * @param {float} [price] limit order price
+     * @param params
      * @param {bool} [params.reduceOnly] set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
      * @param {bool} [params.postOnly] set as true if you wish to make a postOnly order, default is false
      * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
-     * @param params
      * @param {float} [params.triggerPrice] the price that a stop order is triggered at
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @param {string} [params.triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();

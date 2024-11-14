@@ -2507,8 +2507,7 @@ export default class hitbtc extends Exchange {
      * @description fetches margin mode of the user
      * @see https://api.hitbtc.com/#get-margin-position-parameters
      * @see https://api.hitbtc.com/#get-futures-position-parameters
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param symbols
+     * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */

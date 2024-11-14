@@ -4106,13 +4106,13 @@ export default class gate extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name gate#createOrders
      * @description create a list of trade orders
      * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
      * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
      * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -6229,7 +6229,6 @@ export default class gate extends Exchange {
      * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
-     * @param {string} symbol unified market symbol, required for isolated margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
@@ -6327,7 +6326,6 @@ export default class gate extends Exchange {
      * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
-     * @param {string} symbol unified market symbol, required for isolated margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
      * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
@@ -7788,8 +7786,7 @@ export default class gate extends Exchange {
      * @name gate#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
-     * @param {string} currency base currency to fetch an option chain for
-     * @param code
+     * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @param {int} [params.expiration] unix timestamp of the expiration time
@@ -7925,9 +7922,9 @@ export default class gate extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch positions for
      *
      * EXCHANGE SPECIFIC PARAMETERS
-     * @param {int} offset list offset, starting from 0
-     * @param {string} side long or short
-     * @param {string} pnl query profit or loss
+     * @param {int} [params.offset] list offset, starting from 0
+     * @param {string} [params.side] long or short
+     * @param {string} [params.pnl] query profit or loss
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
