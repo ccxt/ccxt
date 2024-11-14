@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ellipx.js';
-import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, ArgumentsRequired } from './base/errors.js';
+import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, ArgumentsRequired, NotSupported } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface } from '../ccxt.js';
+import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { numberToBytesBE, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
@@ -105,7 +105,7 @@ export default class ellipx extends Exchange {
                 'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
@@ -270,8 +270,8 @@ export default class ellipx extends Exchange {
             const query = this.urlencode (params);
             const bodyHash = this.hash (this.encode (body), sha256);
             // Create sign string components
-            const bodyHashBytes = hexToBytes(bodyHash);
-            const nulByte = numberToBytesBE(0n, 1);
+            const bodyHashBytes = hexToBytes (bodyHash);
+            const nulByte = numberToBytesBE (BigInt (0), 1);
             const components = [
                 this.encode (method),
                 nulByte,
@@ -1274,6 +1274,194 @@ export default class ellipx extends Exchange {
             'percentage': true, // fees are expressed in percentages
             'tierBased': true,  // fees can vary based on volume tiers
         };
+    }
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+        /**
+         * Make a withdrawal request
+         * @param {string} code Currency code
+         * @param {number} amount Amount to withdraw
+         * @param {string} address Destination wallet address
+         * @param {string|undefined} tag Additional tag/memo for currencies that require it
+         * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         * Example:
+         * const result = await exchange.withdraw("DOGE", 10, "your_supported_wallet_address", undefined, { 'Crypto_Chain__': 'chain-kjfvwn-l2xn-eclc-ul5d-mb6fu5hm', "Unit__": "unit-yxtm7o-5g4r-h3ja-6n6y-2hlqyxji")
+         */
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const networks = this.safeValue (currency, 'networks');
+        const currencyChainId = this.safeString (networks, 'id');
+        const currencyTokenInfo = this.safeString (networks['info'], 'Crypto_Token__');
+        if (networks === undefined) {
+            throw new NotSupported (this.id + ' withdraw() for ' + code + ' is not supported');
+        }
+        const chainsResponse = await this.privateGetUnitCurrency ({ 'currency': currency['code'] }); // fetch Unit__ params for currency
+        const chainsData = this.safeValue (chainsResponse, 'data', []);
+        if (chainsData.length === 0) {
+            throw new ExchangeError (this.id + ' withdraw() failed to fetch Unit__ for currency ' + code);
+        }
+        let tokenId = undefined;
+        const chainNetworkName = this.safeString (chainsData, 'Crypto_Token__');
+        if (chainNetworkName === currencyTokenInfo) {
+            tokenId = this.safeString (chainsData, 'Crypto_Token__');
+        }
+        if (tokenId === undefined) {
+            throw new ExchangeError (this.id + ' withdraw() currencyId ' + currencyChainId + ' not found for currency ' + code);
+        }
+        const unit = this.safeString (chainsData, 'Unit__');
+        // check params again and omit params
+        const unitParams = this.safeString (params, 'Unit__');
+        this.omit (params, 'Unit__');
+        const currencyChainIdParams = this.safeString (params, 'Crypto_Chain__');
+        this.omit (params, 'Crypto_Chain__');
+        if (unit !== unitParams) {
+            throw new ExchangeError (this.id + ' withdraw() Unit__ ' + unit + ' does not match ' + unitParams);
+        }
+        if (currencyChainId !== currencyChainIdParams) {
+            throw new ExchangeError (this.id + ' withdraw() currencyChainId ' + currencyChainId + ' does not match ' + currencyChainIdParams);
+        }
+        const amountString = amount.toString ();
+        const request = {
+            'Unit__': unit,
+            'amount': amountString,
+            'address': address,
+            'Crypto_Chain__': networks['id'],
+        };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
+        const response = await this.privatePostCryptoDisbursementWithdraw (this.extend (request, params));
+        // {
+        //     Crypto_Disbursement__: "crdsb-4pw3kg-ipn5-amvb-da4n-6xncy4r4",
+        //     Crypto_Token__: "crtok-dnehz4-wbgv-bunf-iyd3-m7gtsz2q",
+        //     Crypto_Chain__: "chain-kjfvwn-l2xn-eclc-ul5d-mb6fu5hm",
+        //     User__: "usr-5oint6-ozpr-alfp-2wxi-zgbm4osy",
+        //     Value: {
+        //       v: "1000000000",
+        //       e: "8",
+        //       f: "10",
+        //     },
+        //     Value_USD: "4.08723",
+        //     Address: "D6z62LUwyNBi3QbPkzW8C4m7VDAgu9wb2Z",
+        //     Status: "pending",
+        //     Transaction: null,
+        //     Requested: {
+        //       unix: "1731570982",
+        //       us: "203569",
+        //       iso: "2024-11-14 07:56:22.203569",
+        //       tz: "UTC",
+        //       full: "1731570982203569",
+        //       unixms: "1731570982203",
+        //     },
+        //     Scheduled: null,
+        //     Processed: null,
+        //     Amount: {
+        //       value: "10.00000000",
+        //       value_int: "1000000000",
+        //       value_disp: "10.00000000",
+        //       value_xint: {
+        //         v: "1000000000",
+        //         e: "8",
+        //         f: "10",
+        //       },
+        //       display: "10.00000000DOGE",
+        //       display_short: "10.00000000DOGE",
+        //       currency: "DOGE",
+        //       unit: "DOGE",
+        //       has_vat: false,
+        //       tax_profile: null,
+        //       raw: {
+        //         value: "10.00000000",
+        //         value_int: "1000000000",
+        //         value_disp: "10.00000000",
+        //         value_xint: {
+        //           v: "1000000000",
+        //           e: "8",
+        //           f: "10",
+        //         },
+        //         display: "10.00000000DOGE",
+        //         display_short: "10.00000000DOGE",
+        //         currency: "DOGE",
+        //         unit: "DOGE",
+        //         has_vat: false,
+        //         tax_profile: null,
+        //       },
+        //       tax: {
+        //         value: "10.00000000",
+        //         value_int: "1000000000",
+        //         value_disp: "10.00000000",
+        //         value_xint: {
+        //           v: "1000000000",
+        //           e: "8",
+        //           f: "10",
+        //         },
+        //         display: "10.00000000DOGE",
+        //         display_short: "10.00000000DOGE",
+        //         currency: "DOGE",
+        //         unit: "DOGE",
+        //         has_vat: true,
+        //         tax_profile: null,
+        //       },
+        //       tax_only: {
+        //         value: "0.000",
+        //         value_int: "0",
+        //         value_disp: "0",
+        //         value_xint: {
+        //           v: "0",
+        //           e: "3",
+        //           f: "0",
+        //         },
+        //         display: "¥0",
+        //         display_short: "¥0",
+        //         currency: "JPY",
+        //         unit: "JPY",
+        //         has_vat: false,
+        //         tax_profile: null,
+        //       },
+        //       tax_rate: "0",
+        //     },
+        //   }
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (data['Requested'], 'unixms');
+        const withdrawId = this.safeString (data, 'Crypto_Disbursement__');
+        return {
+            'info': response,
+            'id': withdrawId,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': this.safeString (data, 'Crypto_Chain__'),
+            'address': this.safeString (data, 'Address'),
+            'addressTo': this.safeString (data, 'Address'),
+            'addressFrom': undefined,
+            'tag': tag,
+            'tagTo': tag,
+            'tagFrom': undefined,
+            'type': 'withdrawal',
+            'amount': this.safeNumber (data['Amount'], 'value'),
+            'currency': code,
+            'status': this.parseTransactionStatus (this.safeString (data, 'Status')),
+            'updated': this.safeTimestamp (data['Processed'], 'unix', undefined),
+            'internal': false,
+            'comment': undefined,
+            'fee': {
+                'currency': code,
+                'cost': undefined,  // Fee information not provided in response
+                'rate': undefined,
+            },
+        } as Transaction;
+    }
+
+    parseTransactionStatus (status: string): string {
+        const statuses = {
+            'pending': 'pending',
+            'completed': 'ok',
+            'failed': 'failed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOrderStatus (status) {
