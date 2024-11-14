@@ -4870,10 +4870,12 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#setMargin
          * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Adjust%20Isolated%20Margin
          * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
          * @param {object} [params] parameters specific to the bingx api endpoint
+         * @param {string} [params.positionSide] *inverse swap only* position direction, LONG or SHORT
          * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
          */
         const type = this.safeInteger (params, 'type'); // 1 increase margin 2 decrease margin
@@ -4887,18 +4889,30 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'amount': this.amountToPrecision (market['symbol'], amount),
             'type': type,
         };
-        const response = await this.swapV2PrivatePostTradePositionMargin (this.extend (request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "amount": 1,
-        //        "type": 1
-        //    }
-        //
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setMargin', market, params);
+        let response = undefined;
+        if (subType === 'inverse') {
+            const positionSide = this.safeString (params, 'positionSide');
+            if (positionSide === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMargin() requires a positionSide parameter either LONG or SHORT');
+            }
+            request['amount'] = amount;
+            response = await this.cswapV1PrivatePostTradePositionMargin (this.extend (request, params));
+        } else {
+            request['amount'] = this.amountToPrecision (market['symbol'], amount);
+            response = await this.swapV2PrivatePostTradePositionMargin (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "amount": 1,
+            //        "type": 1
+            //    }
+            //
+        }
         return this.parseMarginModification (response, market);
     }
 
