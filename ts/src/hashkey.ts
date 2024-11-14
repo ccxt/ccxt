@@ -2980,11 +2980,11 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#cancelOrders
      * @description cancel multiple orders
-     * @param params
      * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
      * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol (not used by hashkey)
+     * @param params
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */

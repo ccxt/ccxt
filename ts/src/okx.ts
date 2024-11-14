@@ -7873,8 +7873,7 @@ export default class okx extends Exchange {
      * @name okx#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-     * @param {string} currency base currency to fetch an option chain for
-     * @param code
+     * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}

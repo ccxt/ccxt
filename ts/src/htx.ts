@@ -8577,9 +8577,9 @@ export default class htx extends Exchange {
      * @name htx#repayIsolatedMargin
      * @description repay borrowed margin and interest
      * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+     * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
-     * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
      */

@@ -4799,7 +4799,7 @@ export default class coincatch extends Exchange {
      * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string}  [parmas.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
+     * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}) {

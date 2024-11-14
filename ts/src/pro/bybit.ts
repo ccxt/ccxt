@@ -737,8 +737,6 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -886,10 +884,10 @@ export default class bybit extends bybitRest {
     /**
      * @method
      * @name bybit#unWatchOrderBookForSymbols
-     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param params
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -924,11 +922,10 @@ export default class bybit extends bybitRest {
     /**
      * @method
      * @name bybit#unWatchOrderBook
-     * @param symbol
-     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-     * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param {string} symbol symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -1076,11 +1073,11 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
-     * @param params
      * @name bybit#unWatchTradesForSymbols
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTradesForSymbols (symbols: Strings, params = {}): Promise<any> {
@@ -1104,11 +1101,11 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
-     * @param params
      * @name bybit#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
      * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param params
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {

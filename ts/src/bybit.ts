@@ -1210,10 +1210,10 @@ export default class bybit extends Exchange {
     /**
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
-     * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
      * @description upgrades the account to unified trade account *warning* this is irreversible
+     * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
      * @param params
-     * @returns {any}
+     * @returns {any} nothing
      */
     async upgradeUnifiedTradeAccount (params = {}) {
         return await this.privatePostV5AccountUpgradeToUta (params);
@@ -5565,9 +5565,9 @@ export default class bybit extends Exchange {
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
@@ -8223,8 +8223,7 @@ export default class bybit extends Exchange {
      * @name bybit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-     * @param {string} currency base currency to fetch an option chain for
-     * @param code
+     * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
      */
@@ -8339,8 +8338,7 @@ export default class bybit extends Exchange {
      * @name bybit#fetchPositionsHistory
      * @description fetches historical positions
      * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
-     * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
-     * @param symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
      * @param {object} params extra parameters specific to the exchange api endpoint

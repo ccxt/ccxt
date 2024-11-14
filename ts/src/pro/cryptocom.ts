@@ -326,8 +326,6 @@ export default class cryptocom extends cryptocomRest {
      * @description get the list of most recent trades for a particular symbol
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
      * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -340,8 +338,7 @@ export default class cryptocom extends cryptocomRest {
      * @name cryptocom#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param symbols
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
