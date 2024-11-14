@@ -2631,11 +2631,15 @@ class coinex extends coinex$1 {
         const stop = this.safeBool2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         let response = undefined;
+        const requestIds = [];
+        for (let i = 0; i < ids.length; i++) {
+            requestIds.push(parseInt(ids[i]));
+        }
         if (stop) {
-            request['stop_ids'] = ids;
+            request['stop_ids'] = requestIds;
         }
         else {
-            request['order_ids'] = ids;
+            request['order_ids'] = requestIds;
         }
         if (market['spot']) {
             if (stop) {

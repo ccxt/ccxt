@@ -1613,8 +1613,8 @@ public partial class coincatch : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchBalance";
-        object marketType = "spot";
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, null, parameters, marketType);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;

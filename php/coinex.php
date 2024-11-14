@@ -2590,10 +2590,14 @@ class coinex extends Exchange {
         $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
+        $requestIds = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $requestIds[] = intval($ids[$i]);
+        }
         if ($stop) {
-            $request['stop_ids'] = $ids;
+            $request['stop_ids'] = $requestIds;
         } else {
-            $request['order_ids'] = $ids;
+            $request['order_ids'] = $requestIds;
         }
         if ($market['spot']) {
             if ($stop) {
