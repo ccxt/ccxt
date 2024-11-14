@@ -115,7 +115,7 @@ class binance extends Exchange {
                 'fetchLongShortRatio' => false,
                 'fetchLongShortRatioHistory' => true,
                 'fetchMarginAdjustmentHistory' => true,
-                'fetchMarginMode' => 'emulated',
+                'fetchMarginMode' => true,
                 'fetchMarginModes' => true,
                 'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
@@ -12971,7 +12971,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-             * @param {string} symbol unified symbol of the $market the order was made in
+             * @param {string[]} [$symbols] a list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
@@ -13056,6 +13056,48 @@ class binance extends Exchange {
                 $assets = $response;
             }
             return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
+        }) ();
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the margin mode of a specific $symbol
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] "linear" or "inverse"
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $request = array(
+                    'symbol' => $market['id'],
+                );
+                $response = Async\await($this->fapiPrivateGetSymbolConfig ($this->extend($request, $params)));
+                //
+                // array(
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "marginType" => "CROSSED",
+                //         "isAutoAddMargin" => "false",
+                //         "leverage" => 21,
+                //         "maxNotionalValue" => "1000000",
+                //     }
+                // )
+                //
+            } elseif ($subType === 'inverse') {
+                $fetchMarginModesResponse = Async\await($this->fetch_margin_modes(array( $symbol ), $params));
+                return $fetchMarginModesResponse[$symbol];
+            } else {
+                throw new BadRequest($this->id . ' fetchMarginMode () supports linear and inverse subTypes only');
+            }
+            return $this->parse_margin_mode($response[0], $market);
         }) ();
     }
 

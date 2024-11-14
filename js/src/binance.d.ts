@@ -307,6 +307,7 @@ export default class binance extends Exchange {
         hedged: boolean;
     }>;
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
+    fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     parseMarginMode(marginMode: Dict, market?: any): MarginMode;
     fetchOption(symbol: string, params?: {}): Promise<Option>;
     parseOption(chain: Dict, currency?: Currency, market?: Market): Option;
