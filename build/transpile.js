@@ -1424,6 +1424,7 @@ class Transpiler {
             if (line.match(isOutsideJSDoc)) {
                 const jsDocIden = '        ';
                 let jsdoc = jsDocIden + line.trim();
+                const jsDocLines = [jsdoc];
                 while (!jsdoc.match(/\*\//)) {
                     i++;
                     const lineTrimmed = methodSplit[i].trim();
@@ -1431,18 +1432,21 @@ class Transpiler {
                     //     jsdoc += '\n' + jsDocIden + lineTrimmed;
                     // } else {
                         jsdoc += '\n' + jsDocIden + lineTrimmed;
+                        jsDocLines.push(jsDocIden + lineTrimmed);
                     // }
                 }
                 newLines.push(methodSplit[i+1]);
                 i++;
-                newLines.push(jsdoc);
+                // newLines.push(jsdoc);
+                for (let j = 0; j < jsDocLines.length; j++) {
+                    newLines.push(jsDocLines[j]);
+                }
             } else {
                 newLines.push(line);
             }
         }
         const res = newLines.join('\n');
         // write this to a tmp file
-        fs.writeFileSync('tmp.js', res);
         return res;
     }
 
@@ -1463,6 +1467,10 @@ class Transpiler {
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
+
+            if (signature.indexOf('async fetchCurrencies') > -1) {
+                fs.writeFileSync('tmp.js', part);
+            }
 
             // Typescript types trim from signature
             // will be improved in the future
