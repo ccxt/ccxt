@@ -100,6 +100,7 @@ export default class independentreserve extends Exchange {
                         'GetValidMarketOrderTypes',
                         'GetValidOrderTypes',
                         'GetValidTransactionTypes',
+                        'GetPrimaryCurrencyConfig',
                         'GetMarketSummary',
                         'GetOrderBook',
                         'GetAllOrders',
@@ -107,6 +108,8 @@ export default class independentreserve extends Exchange {
                         'GetRecentTrades',
                         'GetFxRates',
                         'GetOrderMinimumVolumes',
+                        'GetDepositFees',
+                        'GetFiatWithdrawalFees',
                         'GetCryptoWithdrawalFees',
                     ],
                 },
@@ -122,11 +125,16 @@ export default class independentreserve extends Exchange {
                         'GetDigitalCurrencyDepositAddress',
                         'GetDigitalCurrencyDepositAddresses',
                         'GetTrades',
+                        'GetTradesByOrder',
                         'GetBrokerageFees',
                         'GetDigitalCurrencyWithdrawal',
+                        'GetFiatWithdrawal',
+                        'GetDepositLimits',
+                        'GetWithdrawalLimits',
                         'PlaceLimitOrder',
                         'PlaceMarketOrder',
                         'CancelOrder',
+                        'CancelOrders',
                         'SynchDigitalCurrencyDepositAddressWithBlockchain',
                         'RequestFiatWithdrawal',
                         'WithdrawFiatCurrency',
@@ -154,6 +162,9 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchMarkets
          * @description retrieves data on all markets for independentreserve
+         * @see https://www.independentreserve.com/features/api#GetValidPrimaryCurrencyCodes
+         * @see https://www.independentreserve.com/features/api#GetValidSecondaryCurrencyCodes
+         * @see https://www.independentreserve.com/features/api#GetGetOrderMinimumVolumes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -253,6 +264,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://www.independentreserve.com/features/api#GetAccounts
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -266,6 +278,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://www.independentreserve.com/features/api#GetOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -335,6 +348,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://www.independentreserve.com/features/api#GetMarketSummary
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -495,6 +509,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://www.independentreserve.com/features/api#GetOrderDetails
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -515,6 +530,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://www.independentreserve.com/features/api#GetOpenOrders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -544,6 +560,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://www.independentreserve.com/features/api#GetClosedOrders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -573,6 +590,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://www.independentreserve.com/features/api#GetTrades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -642,6 +660,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://www.independentreserve.com/features/api#GetRecentTrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -664,6 +683,7 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://www.independentreserve.com/features/api#GetBrokerageFees
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -711,6 +731,8 @@ export default class independentreserve extends Exchange {
          * @method
          * @name independentreserve#createOrder
          * @description create a trade order
+         * @see https://www.independentreserve.com/features/api#PlaceLimitOrder
+         * @see https://www.independentreserve.com/features/api#PlaceMarketOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
