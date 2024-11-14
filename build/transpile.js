@@ -1428,16 +1428,13 @@ class Transpiler {
                 while (!jsdoc.match(/\*\//)) {
                     i++;
                     const lineTrimmed = methodSplit[i].trim();
-                    // if (lineTrimmed == "*/") {
-                    //     jsdoc += '\n' + jsDocIden + lineTrimmed;
-                    // } else {
-                        jsdoc += '\n' + jsDocIden + lineTrimmed;
-                        jsDocLines.push(jsDocIden + lineTrimmed);
-                    // }
+
+                    jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    jsDocLines.push(jsDocIden + lineTrimmed);
                 }
                 newLines.push(methodSplit[i+1]);
                 i++;
-                // newLines.push(jsdoc);
+
                 for (let j = 0; j < jsDocLines.length; j++) {
                     newLines.push(jsDocLines[j]);
                 }
@@ -1466,10 +1463,6 @@ class Transpiler {
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
-
-            if (signature.indexOf('async fetchCurrencies') > -1) {
-                fs.writeFileSync('tmp.js', part);
-            }
 
             // Typescript types trim from signature
             // will be improved in the future
