@@ -2634,11 +2634,18 @@ export default class kraken extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest transaction entry
          * @param {int} [params.end] timestamp in seconds of the latest transaction entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
         await this.loadMarkets ();
+        let paginate = false;
         const request: Dict = {};
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            params['cursor'] = true;
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'next_cursor', 'cursor', undefined, 100);
+        }
         if (code !== undefined) {
             const currency = this.currency (code);
             request['asset'] = currency['id'];
@@ -2652,6 +2659,9 @@ export default class kraken extends Exchange {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
             request['end'] = Precise.stringAdd (untilDivided, '1');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.privatePostDepositStatus (this.extend (request, params));
         //
@@ -2667,7 +2677,46 @@ export default class kraken extends Exchange {
         //                       "time":  1529223212,
         //                     "status": "Success"                                                       } ] }
         //
-        return this.parseTransactionsByType ('deposit', response['result'], code, since, limit);
+        // or with cursor
+        // {
+        //    "error":[
+        //    ],
+        //    "result":{
+        //       "deposits":[
+        //          {
+        //             "method":"Tether USD (TRC20)",
+        //             "aclass":"currency",
+        //             "asset":"USDT",
+        //             "refid":"FTXFCRK-kck3gEHyTZQ64lDF0H9RNM",
+        //             "txid":"bc104a2cc4a54b29c298474adc22529a5e7bbf353f062e939997aebde5c3f100",
+        //             "info":"TKRxCKea88ZvHeGsXEY33CqNQHPCqcNw4N",
+        //             "amount":"9.34332000",
+        //             "fee":"0.00000000",
+        //             "time":1718724525,
+        //             "status":"Success"
+        //          }
+        //       ],
+        //       "next_cursor":"HgAAAAAAAABGVFhGQ1JLLWtjazNnRUh5VFpRNjRsREYwSDlSTk0BCAAAAAAAAABjdXJyZW5jeQABAQAAAAEAAAAAAAAAAQAAAAAAAAEAAAAAAAAA"
+        //     }
+        //
+        const resultDict = this.safeDict (response, 'result');
+        let entries = undefined;
+        if (resultDict === undefined) {
+            entries = this.safeList (response, 'result', []);
+        } else {
+            const nextCursor = this.safeString (resultDict, 'next_cursor');
+            entries = this.safeList (response['result'], 'deposits', []);
+            const entriesLength = entries.length;
+            if (entriesLength > 0) {
+                const first = entries[0];
+                first['next_cursor'] = nextCursor;
+                entries[0] = first;
+                const last = entries[entriesLength - 1];
+                last['next_cursor'] = nextCursor;
+                entries[entriesLength - 1] = last;
+            }
+        }
+        return this.parseTransactionsByType ('deposit', entries, code, since, limit);
     }
 
     async fetchTime (params = {}) {
