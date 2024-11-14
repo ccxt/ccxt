@@ -110,7 +110,7 @@ export default class binance extends Exchange {
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': true,
                 'fetchMarginAdjustmentHistory': true,
-                'fetchMarginMode': 'emulated',
+                'fetchMarginMode': true,
                 'fetchMarginModes': true,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
@@ -12964,7 +12964,7 @@ export default class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
@@ -13051,6 +13051,48 @@ export default class binance extends Exchange {
         return this.parseMarginModes (assets, symbols, 'symbol', 'swap');
     }
 
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        /**
+         * @method
+         * @name binance#fetchMarginMode
+         * @description fetches the margin mode of a specific symbol
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] "linear" or "inverse"
+         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        let response = undefined;
+        if (subType === 'linear') {
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            response = await this.fapiPrivateGetSymbolConfig (this.extend (request, params));
+            //
+            // [
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "marginType": "CROSSED",
+            //         "isAutoAddMargin": "false",
+            //         "leverage": 21,
+            //         "maxNotionalValue": "1000000",
+            //     }
+            // ]
+            //
+        } else if (subType === 'inverse') {
+            const fetchMarginModesResponse = await this.fetchMarginModes ([ symbol ], params);
+            return fetchMarginModesResponse[symbol];
+        } else {
+            throw new BadRequest (this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
+        }
+        return this.parseMarginMode (response[0], market);
+    }
+
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -13067,7 +13109,7 @@ export default class binance extends Exchange {
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': reMarginMode,
-        };
+        } as MarginMode;
     }
 
     async fetchOption (symbol: string, params = {}): Promise<Option> {
