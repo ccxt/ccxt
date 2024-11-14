@@ -1656,6 +1656,16 @@
                 ]
             }
         ],
+        "fetchPositionsForSymbol": [
+            {
+                "description": "Fetch Positions For Symbol",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1708520302938&recvWindow=10000&signature=3254a777d7a7196c8387c1c6a277c3e242e28ca379dfe0d9f0f0567e19dadfab",
+                "input": [
+                    "XRP/USDT:USDT"
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "Transfer from cross to spot",
