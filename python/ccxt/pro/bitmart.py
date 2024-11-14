@@ -679,6 +679,8 @@ class bitmart(ccxt.async_support.bitmart):
         :see: https://developer-pro.bitmart.com/en/futures/#private-position-channel
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

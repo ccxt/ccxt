@@ -152,6 +152,12 @@ public partial class krakenfutures
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.reduceOnly</term>
     /// <description>
     /// bool : set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
@@ -195,7 +201,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>undefined</term> undefined.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -208,6 +214,12 @@ public partial class krakenfutures
     /// <remarks>
     /// See <see href="https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

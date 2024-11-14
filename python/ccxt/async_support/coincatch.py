@@ -1804,8 +1804,8 @@ class coincatch(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :see: https://coincatch.github.io/github.io/en/spot/#get-coin-address
         :param str code: unified currency code
-        :param str [params.network]: network for fetch deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: network for fetch deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         await self.load_markets()
@@ -4444,7 +4444,7 @@ class coincatch(Exchange, ImplicitAPI):
         :see: https://coincatch.github.io/github.io/en/mix/#get-symbol-position
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         * @param {str}  [parmas.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
+         * @param {str}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         methodName = 'fetchPosition'

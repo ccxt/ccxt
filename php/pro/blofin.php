@@ -519,7 +519,7 @@ class blofin extends \ccxt\async\blofin {
             /**
              * watches information on multiple $orders made by the user across multiple $symbols
              * @see https://docs.blofin.com/index.html#ws-order-channel
-             * @param {string} symbol unified market symbol of the market $orders were made in
+             * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -575,6 +575,8 @@ class blofin extends \ccxt\async\blofin {
              * @see https://docs.blofin.com/index.html#ws-positions-channel
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

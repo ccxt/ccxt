@@ -1592,6 +1592,7 @@ class exmo extends Exchange {
             /**
              * *spot only* fetches information on an $order made by the user
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  // spot
+             * @param {string} $id $order $id
              * @param {string} $symbol not used by exmo fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~

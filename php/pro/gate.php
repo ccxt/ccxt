@@ -178,6 +178,7 @@ class gate extends \ccxt\async\gate {
              * create a list of trade $orders
              * @see https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -340,6 +341,7 @@ class gate extends \ccxt\async\gate {
             /**
              * @see https://www.gate.io/docs/developers/futures/ws/en/#order-list
              * fetches information on multiple $orders made by the user by $status
+             * @param $status
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} [$since] the earliest time in ms to fetch $orders for
              * @param {int|null} [$limit] the maximum number of order structures to retrieve
@@ -747,7 +749,7 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -779,7 +781,7 @@ class gate extends \ccxt\async\gate {
         return Async\async(function () use ($symbols, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -1155,6 +1157,8 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.io/docs/developers/options/ws/en/#$positions-$channel
              * watch all open $positions
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -1433,7 +1437,7 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
              * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
              * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-$channel
-             * @param {string} symbol unified CCXT $market symbol
+             * @param {string[]} $symbols unified CCXT $market $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the gate api endpoint

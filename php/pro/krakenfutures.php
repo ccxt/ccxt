@@ -153,7 +153,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
-             * @param {string[]} symbols CCXT market symbols
+             * @param {string} $messageHash unique identifier for the message
              * @param {array} [$params] extra parameters specific to the krakenfutures api
              * @return {array} data from the websocket stream
              */
@@ -193,7 +193,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-$ticker
-             * @param {string} symbol unified symbol of the market to fetch the $ticker for
+             * @param {string[]} $symbols unified $symbols of the markets to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */
@@ -284,6 +284,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
@@ -464,11 +466,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * watches information on multiple orders made by the user
+             * watches information on the user's $account balance
              * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-             * @param {string} symbol not used by krakenfutures watchBalance
-             * @param {int} [since] not used by krakenfutures watchBalance
-             * @param {int} [limit] not used by krakenfutures watchBalance
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
              * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/#/?id=balance-structure)

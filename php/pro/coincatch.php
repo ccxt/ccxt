@@ -286,6 +286,7 @@ class coincatch extends \ccxt\async\coincatch {
              * unsubscribe from the ticker channel
              * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
              * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -483,6 +484,8 @@ class coincatch extends \ccxt\async\coincatch {
              * unsubscribe from the ohlcv $channel
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
              * @param {string} $symbol unified $symbol of the market to unwatch the ohlcv for
+             * @param $timeframe
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
@@ -581,6 +584,7 @@ class coincatch extends \ccxt\async\coincatch {
              * unsubscribe from the orderbook $channel
              * @see https://coincatch.github.io/github.io/en/spot/#depth-$channel
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
@@ -600,7 +604,7 @@ class coincatch extends \ccxt\async\coincatch {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @see https://coincatch.github.io/github.io/en/spot/#depth-$channel
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
@@ -745,7 +749,7 @@ class coincatch extends \ccxt\async\coincatch {
             /**
              * watches information on multiple $trades made in a $market
              * @see https://coincatch.github.io/github.io/en/spot/#$trades-channel
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+             * @param $symbols
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -787,6 +791,7 @@ class coincatch extends \ccxt\async\coincatch {
              * unsubscribe from the trades channel
              * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
              * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -1205,6 +1210,8 @@ class coincatch extends \ccxt\async\coincatch {
              * watch all open positions
              * @see https://coincatch.github.io/github.io/en/mix/#positions-channel
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

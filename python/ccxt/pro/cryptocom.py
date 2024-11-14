@@ -299,8 +299,6 @@ class cryptocom(ccxt.async_support.cryptocom):
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -310,7 +308,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -335,7 +333,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         get the list of most recent trades for a particular symbol
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-        :param str symbol: unified symbol of the market to fetch trades for
+         * @param symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -782,6 +780,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         watch all open positions
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

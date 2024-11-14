@@ -1755,6 +1755,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.deribit.com/#private-get_order_state
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2896,6 +2897,8 @@ class deribit(Exchange, ImplicitAPI):
         fetch the current funding rate
         :see: https://docs.deribit.com/#public-get_funding_rate_history
         :param str symbol: unified market symbol
+         * @param since
+         * @param limit
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.end_timestamp]: fetch funding rate ending at self timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3315,7 +3318,7 @@ class deribit(Exchange, ImplicitAPI):
         """
         fetches data for an underlying asset that is commonly found in an option chain
         :see: https://docs.deribit.com/#public-get_book_summary_by_currency
-        :param str currency: base currency to fetch an option chain for
+        :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
         """

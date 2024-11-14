@@ -1241,6 +1241,7 @@ class kucoin extends Exchange {
     public function load_migration_status(bool $force = false) {
         return Async\async(function () use ($force) {
             /**
+             * @param $force
              * loads the migration status for the account (hf or not)
              * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
              */
@@ -2635,7 +2636,6 @@ class kucoin extends Exchange {
              * @param {bool} [$params->stop] *invalid for isolated margin* true if cancelling all $stop orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
              * @param {string} [$params->orderIds] *$stop orders only* Comma seperated order IDs
-             * @param {bool} [$params->stop] True if cancelling a $stop order
              * @param {bool} [$params->hf] false, // true for $hf order
              * @return Response from the exchange
              */
@@ -2685,7 +2685,6 @@ class kucoin extends Exchange {
              * @param {int} [$limit] max number of $orders to return
              * @param {array} [$params] exchange specific $params
              * @param {int} [$params->until] end time in ms
-             * @param {bool} [$params->stop] true if fetching $stop $orders
              * @param {string} [$params->side] buy or sell
              * @param {string} [$params->type] $limit, $market, limit_stop or market_stop
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2844,7 +2843,6 @@ class kucoin extends Exchange {
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {int} [$params->currentPage] *stop orders only* current page
              * @param {string} [$params->orderIds] *stop orders only* comma seperated order ID list
-             * @param {bool} [$params->stop] True if fetching a stop order
              * @param {bool} [$params->hf] false, // true for hf order
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -4962,6 +4960,7 @@ class kucoin extends Exchange {
             /**
              * set the level of $leverage for a $market
              * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-$leverage-multiplier
+             * @param $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange

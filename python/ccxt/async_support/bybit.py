@@ -1123,9 +1123,11 @@ class bybit(Exchange, ImplicitAPI):
 
     async def is_unified_enabled(self, params={}):
         """
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :see: https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
         :see: https://bybit-exchange.github.io/docs/v5/account/account-info
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
@@ -1208,8 +1210,10 @@ class bybit(Exchange, ImplicitAPI):
 
     async def upgrade_unified_trade_account(self, params={}):
         """
-        :see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
         upgrades the account to unified trade account *warning* self is irreversible
+        :see: https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: nothing
         """
         return await self.privatePostV5AccountUpgradeToUta(params)
 
@@ -3697,6 +3701,7 @@ class bybit(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://bybit-exchange.github.io/docs/v5/order/batch-place
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5191,9 +5196,9 @@ class bybit(Exchange, ImplicitAPI):
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         await self.load_markets()
@@ -7641,7 +7646,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetches data for an underlying asset that is commonly found in an option chain
         :see: https://bybit-exchange.github.io/docs/v5/market/tickers
-        :param str currency: base currency to fetch an option chain for
+        :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
         """
@@ -7752,7 +7757,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetches historical positions
         :see: https://bybit-exchange.github.io/docs/v5/position/close-pnl
-        :param str [symbol]: unified market symbols, symbols must have the same subType(must all be linear or all be inverse)
+        :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch, default=50, max=100
         :param dict params: extra parameters specific to the exchange api endpoint

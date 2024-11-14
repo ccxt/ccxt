@@ -611,7 +611,7 @@ public partial class phemex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.method</term>
+    /// <term>params.method</term>
     /// <description>
     /// string : *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
     /// </description>

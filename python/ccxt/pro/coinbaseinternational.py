@@ -131,7 +131,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         subscribes to a websocket channel using watchMultiple
         :see: https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
         :param str name: the name of the channel
-        :param string|str[] [symbol]: unified market symbol
+        :param string|str[] [symbols]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
@@ -576,7 +576,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-        :param str symbol: unified symbol of the market to fetch the order book for
+        :param str[] symbols:
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols

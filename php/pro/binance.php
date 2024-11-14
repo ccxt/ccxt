@@ -227,7 +227,7 @@ class binance extends \ccxt\async\binance {
              * watch the public liquidations of a trading pair
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-$market-streams/All-Market-Liquidation-Order-Streams
-             * @param {string} symbol unified CCXT $market symbol
+             * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
@@ -448,7 +448,7 @@ class binance extends \ccxt\async\binance {
              * watch the private liquidations of a trading pair
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
-             * @param {string} $symbol unified CCXT $market $symbol
+             * @param $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
@@ -3288,6 +3288,7 @@ class binance extends \ccxt\async\binance {
              * fetches information on an order made by the user
              * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -3743,6 +3744,8 @@ class binance extends \ccxt\async\binance {
             /**
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}

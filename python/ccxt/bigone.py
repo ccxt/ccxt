@@ -1361,8 +1361,8 @@ class bigone(Exchange, ImplicitAPI):
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param str operator: *stop order only* GTE or LTE(default)
-        :param str client_order_id: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+        :param str [params.operator]: *stop order only* GTE or LTE(default)
+        :param str [params.client_order_id]: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()

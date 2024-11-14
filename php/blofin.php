@@ -566,7 +566,7 @@ class blofin extends Exchange {
         /**
          * fetches mark price for the $market
          * @see https://docs.blofin.com/index.html#get-mark-price
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1207,7 +1207,7 @@ class blofin extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
          * @param {float} [$params->stopLossPrice] stop loss trigger $price (will use privatePostTradeOrderTpsl)
          * @param {float} [$params->takeProfitPrice] take profit trigger $price (will use privatePostTradeOrderTpsl)
-         * @param {string} [param.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+         * @param {string} [$params->positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
@@ -1327,6 +1327,7 @@ class blofin extends Exchange {
          * create a list of trade $orders
          * @see https://blofin.com/docs#place-multiple-$orders
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();

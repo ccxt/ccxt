@@ -1004,6 +1004,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: number of contracts
         :param float [price]: limit order price
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: set if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is False
         :param bool [params.postOnly]: set if you wish to make a postOnly order, default is False
         :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
@@ -1011,6 +1012,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.triggerSignal]: for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1056,6 +1058,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()

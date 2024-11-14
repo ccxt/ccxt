@@ -1853,8 +1853,8 @@ class coincatch extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
          * @param {string} $code unified $currency $code
-         * @param {string} [$params->network] network for fetch deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->network] network for fetch deposit address
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
          */
         $this->load_markets();
@@ -4701,7 +4701,7 @@ class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/mix/#get-$symbol-$position
          * @param {string} $symbol unified market $symbol of the market the $position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string}  [parmas.side] 'long' or 'short' *for non-hedged $position mode only* (default 'long')
+         * @param {string}  [$params->side] 'long' or 'short' *for non-hedged $position mode only* (default 'long')
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
          */
         $methodName = 'fetchPosition';

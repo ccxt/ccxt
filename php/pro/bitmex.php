@@ -384,7 +384,7 @@ class bitmex extends \ccxt\async\bitmex {
             /**
              * watch the public liquidations of a trading pair
              * @see https://www.bitmex.com/app/wsAPI#Liquidation
-             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
@@ -744,6 +744,8 @@ class bitmex extends \ccxt\async\bitmex {
              * watch all open positions
              * @see https://www.bitmex.com/app/wsAPI#Subscriptions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

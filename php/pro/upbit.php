@@ -112,7 +112,7 @@ class upbit extends \ccxt\async\upbit {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://global-docs.upbit.com/reference/websocket-ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */

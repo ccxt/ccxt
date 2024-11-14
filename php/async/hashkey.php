@@ -1963,10 +1963,10 @@ class hashkey extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] network for withdraw
              * @param {string} [$params->clientOrderId] client order id
              * @param {string} [$params->platform] the $platform to withdraw to (hashkey, HashKey HK)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
@@ -2982,6 +2982,7 @@ class hashkey extends Exchange {
              * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-$order-by-$order-id
              * @param {string[]} $ids $order $ids
              * @param {string} [$symbol] unified $market $symbol (not used by hashkey)
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
              */

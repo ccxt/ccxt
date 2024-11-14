@@ -459,6 +459,7 @@ class luno extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+         * @param {string} $id order $id
          * @param {string} $symbol not used by luno fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

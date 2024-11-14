@@ -1399,8 +1399,8 @@ class probit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transactions for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param int [params.until]: the latest time in ms to fetch transactions for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch transactions for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.load_markets()

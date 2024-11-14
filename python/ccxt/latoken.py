@@ -1184,6 +1184,7 @@ class latoken(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
         :see: https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
+        :param str id: order id
         :param str [symbol]: not used by latoken fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if fetching a trigger order

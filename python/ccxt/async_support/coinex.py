@@ -3126,6 +3126,7 @@ class coinex(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://docs.coinex.com/api/v2/spot/order/http/get-order-status
         :see: https://docs.coinex.com/api/v2/futures/order/http/get-order-status
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -3212,9 +3213,11 @@ class coinex(Exchange, ImplicitAPI):
         :see: https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
         :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
         :see: https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+         * @param status
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: set to True for fetching trigger orders
         :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -3535,6 +3538,7 @@ class coinex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: set to True for fetching trigger orders
         :param str [params.marginMode]: 'cross' or 'isolated' for fetching spot margin orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

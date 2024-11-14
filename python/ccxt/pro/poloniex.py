@@ -141,8 +141,9 @@ class poloniex(ccxt.async_support.poloniex):
          * @ignore
         Connects to a websocket channel
         :param str name: name of the channel
+        :param str messageHash: unique identifier for the message
         :param boolean isPrivate: True for the authenticated url, False for the public url
-        :param str[]|None symbols: CCXT market symbols
+        :param str[] [symbols]: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
@@ -170,7 +171,6 @@ class poloniex(ccxt.async_support.poloniex):
          * @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param str[]|None symbols: CCXT market symbols
         :param dict [params]: extra parameters specific to the poloniex api
         :returns dict: data from the websocket stream
         """
@@ -346,7 +346,7 @@ class poloniex(ccxt.async_support.poloniex):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """

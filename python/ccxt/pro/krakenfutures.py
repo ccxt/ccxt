@@ -140,7 +140,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
          * @ignore
         Connects to a websocket channel
         :param str name: name of the channel
-        :param str[] symbols: CCXT market symbols
+        :param str messageHash: unique identifier for the message
         :param dict [params]: extra parameters specific to the krakenfutures api
         :returns dict: data from the websocket stream
         """
@@ -174,7 +174,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :see: https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str[] symbols: unified symbols of the markets to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -247,6 +247,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -406,11 +408,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        watches information on multiple orders made by the user
+        watches information on the user's account balance
         :see: https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
-        :param str symbol: not used by krakenfutures watchBalance
-        :param int [since]: not used by krakenfutures watchBalance
-        :param int [limit]: not used by krakenfutures watchBalance
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.account]: can be either 'futures' or 'flex_futures'
         :returns dict} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure:

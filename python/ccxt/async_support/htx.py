@@ -3037,6 +3037,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
         :param str type: 'spot', 'swap' or 'future
         :param str [marginMode]: 'cross' or 'isolated'
+         * @param symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -3532,6 +3533,7 @@ class htx(Exchange, ImplicitAPI):
         :see: https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
         :see: https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
         :see: https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -8019,9 +8021,9 @@ class htx(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
         :see: https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
+        :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
         """

@@ -941,6 +941,7 @@ class lykke extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://lykkecity.github.io/Trading-API/#get-order-by-$id
+             * @param {string} $id order $id
              * @param {string} $symbol not used by lykke fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

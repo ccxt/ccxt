@@ -1969,6 +1969,7 @@ class okcoin extends Exchange {
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-$order-details
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-$order-list
              * fetches information on an $order made by the user
+             * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~

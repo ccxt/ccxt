@@ -2120,13 +2120,13 @@ class mexc(Exchange, ImplicitAPI):
          * @ignore
         create a trade order
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
-        :param str symbol: unified symbol of the market to create an order in
+        :param str market: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param str [marginMode]: only 'isolated' is supported for spot-margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2175,13 +2175,13 @@ class mexc(Exchange, ImplicitAPI):
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
-        :param str symbol: unified symbol of the market to create an order in
+        :param str market: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param str [marginMode]: only 'isolated' is supported for spot-margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
         :param bool [params.reduceOnly]: indicates if self order is to reduce the size of a position
@@ -2354,6 +2354,7 @@ class mexc(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
         :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
@@ -5328,11 +5329,11 @@ class mexc(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: not used by mexc fetchPositionsHistory
         :param int [limit]: the maximum amount of candles to fetch, default=1000
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param int type: position type，1: long, 2: short
-        :param int page_num: current page number, default is 1
+        :param int [params.type]: position type，1: long, 2: short
+        :param int [params.page_num]: current page number, default is 1
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()

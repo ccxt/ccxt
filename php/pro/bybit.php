@@ -441,7 +441,7 @@ class bybit extends \ccxt\async\bybit {
              * unWatches a price ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -744,8 +744,6 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
@@ -896,6 +894,7 @@ class bybit extends \ccxt\async\bybit {
              * unsubscribe from the orderbook $channel
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
              * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
@@ -932,7 +931,8 @@ class bybit extends \ccxt\async\bybit {
             /**
              * unsubscribe from the orderbook channel
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-             * @param {string[]} symbols unified $symbol of the market to unwatch the trades for
+             * @param {string} $symbol symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
@@ -1084,6 +1084,7 @@ class bybit extends \ccxt\async\bybit {
              * unsubscribe from the trades channel
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
              * @param {string[]} $symbols unified $symbol of the $market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -1111,6 +1112,7 @@ class bybit extends \ccxt\async\bybit {
              * unsubscribe from the trades channel
              * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
              * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -1410,6 +1412,8 @@ class bybit extends \ccxt\async\bybit {
              * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

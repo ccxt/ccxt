@@ -590,6 +590,8 @@ class vertex extends \ccxt\async\vertex {
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}

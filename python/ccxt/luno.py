@@ -449,6 +449,7 @@ class luno(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+        :param str id: order id
         :param str symbol: not used by luno fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

@@ -1373,6 +1373,7 @@ class woofipro(Exchange, ImplicitAPI):
         *contract only* create a list of trade orders
         :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -2314,6 +2315,7 @@ class woofipro(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
         :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+         * @param leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
@@ -2444,7 +2446,6 @@ class woofipro(Exchange, ImplicitAPI):
         :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()

@@ -899,6 +899,7 @@ class timex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
+        :param str id: order id
         :param str symbol: not used by timex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

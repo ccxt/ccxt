@@ -60,7 +60,8 @@ class coinbase(ccxt.async_support.coinbase):
         subscribes to a websocket channel
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
         :param str name: the name of the channel
-        :param string|str[] [symbol]: unified market symbol
+        :param boolean isPrivate: whether the channel is private or not
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
@@ -96,6 +97,7 @@ class coinbase(ccxt.async_support.coinbase):
         subscribes to a websocket channel
         :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
         :param str name: the name of the channel
+        :param boolean isPrivate: whether the channel is private or not
         :param str[] [symbols]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel

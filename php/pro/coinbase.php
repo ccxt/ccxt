@@ -61,7 +61,8 @@ class coinbase extends \ccxt\async\coinbase {
              * subscribes to a websocket channel
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
              * @param {string} $name the $name of the channel
-             * @param {string|string[]} [$symbol] unified $market $symbol
+             * @param {boolean} $isPrivate whether the channel is private or not
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
@@ -102,6 +103,7 @@ class coinbase extends \ccxt\async\coinbase {
              * subscribes to a websocket channel
              * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#$subscribe
              * @param {string} $name the $name of the channel
+             * @param {boolean} $isPrivate whether the channel is private or not
              * @param {string[]} [$symbols] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
