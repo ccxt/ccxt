@@ -9,7 +9,6 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { numberToBytesBE, hexToBytes } from './static_dependencies/noble-curves/abstract/utils.js';
 import { eddsa } from './base/functions/crypto.js';
 // ---------------------------------------------------------------------------
 
@@ -270,8 +269,8 @@ export default class ellipx extends Exchange {
             const query = this.urlencode (params);
             const bodyHash = this.hash (this.encode (body), sha256);
             // Create sign string components
-            const bodyHashBytes = hexToBytes (bodyHash);
-            const nulByte = numberToBytesBE (BigInt (0), 1);
+            const bodyHashBytes = this.base16ToBinary (bodyHash);
+            const nulByte = this.numberToBE (0, 1);
             const components = [
                 this.encode (method),
                 nulByte,
