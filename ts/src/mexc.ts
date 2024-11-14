@@ -2493,7 +2493,7 @@ export default class mexc extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
      * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading

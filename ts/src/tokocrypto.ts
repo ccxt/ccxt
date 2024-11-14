@@ -1783,7 +1783,7 @@ export default class tokocrypto extends Exchange {
      * @name tokocrypto#fetchOrder
      * @see https://www.tokocrypto.com/apidocs/#all-orders-signed
      * @description fetches information on an order made by the user
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

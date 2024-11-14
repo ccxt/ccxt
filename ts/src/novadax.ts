@@ -880,7 +880,7 @@ export default class novadax extends Exchange {
      * @name novadax#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://doc.novadax.com/en-US/#get-order-details
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol not used by novadax fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

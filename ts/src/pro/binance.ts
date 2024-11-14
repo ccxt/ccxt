@@ -3279,7 +3279,7 @@ export default class binance extends binanceRest {
      * @description fetches information on an order made by the user
      * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

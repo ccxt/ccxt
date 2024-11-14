@@ -2005,7 +2005,7 @@ export default class kraken extends Exchange {
      * @name kraken#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol not used by kraken fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -1043,7 +1043,7 @@ export default class coinmate extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-orderid/post
      * @see https://coinmate.docs.apiary.io/#reference/order/get-order-by-clientorderid/post
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

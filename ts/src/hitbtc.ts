@@ -1880,7 +1880,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#spot-orders-history
      * @see https://api.hitbtc.com/#futures-orders-history
      * @see https://api.hitbtc.com/#margin-orders-history
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported

@@ -1249,7 +1249,7 @@ export default class latoken extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/getOrderById
      * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/getStopOrderById
-     * @param id
+     * @param {string} id order id
      * @param {string} [symbol] not used by latoken fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if fetching a trigger order

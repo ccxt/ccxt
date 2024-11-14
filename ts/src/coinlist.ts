@@ -1581,7 +1581,7 @@ export default class coinlist extends Exchange {
      * @name coinlist#editOrder
      * @description create a trade order
      * @see https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
      * @param {string} side 'buy' or 'sell'

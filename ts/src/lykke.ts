@@ -941,7 +941,7 @@ export default class lykke extends Exchange {
      * @name lykke#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://lykkecity.github.io/Trading-API/#get-order-by-id
-     * @param id
+     * @param {string} id order id
      * @param {string} symbol not used by lykke fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
