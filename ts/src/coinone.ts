@@ -6,7 +6,7 @@ import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound,
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -20,8 +20,7 @@ export default class coinone extends Exchange {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': [ 'KR' ], // Korea
-            // 'enableRateLimit': false,
-            'rateLimit': 667,
+            'rateLimit': 50,
             'version': 'v2',
             'pro': false,
             'has': {
@@ -48,7 +47,9 @@ export default class coinone extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
+                'fetchDepositAddress': false,
                 'fetchDepositAddresses': true,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -193,10 +194,10 @@ export default class coinone extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
-                '104': OrderNotFound, // {"errorCode":"104","errorMsg":"Order id is not exist","result":"error"}
-                '108': BadSymbol, // {"errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error"}
-                '107': BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
+                '104': OrderNotFound,
+                '107': BadRequest,
+                '108': BadSymbol,
+                '405': OnMaintenance,
             },
             'commonCurrencies': {
                 'SOC': 'Soda Coin',
@@ -759,7 +760,7 @@ export default class coinone extends Exchange {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1081,7 +1082,7 @@ export default class coinone extends Exchange {
         return this.safeOrder (response);
     }
 
-    async fetchDepositAddresses (codes: Strings = undefined, params = {}) {
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
         /**
          * @method
          * @name coinone#fetchDepositAddresses
@@ -1122,11 +1123,12 @@ export default class coinone extends Exchange {
             let depositAddress = this.safeValue (result, code);
             if (depositAddress === undefined) {
                 depositAddress = {
+                    'info': value,
                     'currency': code,
+                    'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                    'info': value,
-                };
+                } as DepositAddress;
             }
             const address = this.safeString (depositAddress, 'address', value);
             this.checkAddress (address);
@@ -1138,7 +1140,7 @@ export default class coinone extends Exchange {
             }
             result[code] = depositAddress;
         }
-        return result;
+        return result as DepositAddress[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1181,21 +1183,17 @@ export default class coinone extends Exchange {
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return undefined;
+            return undefined; // fallback to default error handler
         }
-        if ('result' in response) {
-            const result = response['result'];
-            if (result !== 'success') {
-                //
-                //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                //
-                const errorCode = this.safeString (response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
-                throw new ExchangeError (feedback);
-            }
-        } else {
-            throw new ExchangeError (this.id + ' ' + body);
+        //
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
+        //
+        const errorCode = this.safeString (response, 'error_code');
+        if (errorCode !== undefined && errorCode !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions, errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
         }
         return undefined;
     }

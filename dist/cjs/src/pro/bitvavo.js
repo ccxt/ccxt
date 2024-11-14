@@ -17,6 +17,8 @@ class bitvavo extends bitvavo$1 {
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTicker': true,
+                'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOHLCV': true,
                 'watchOrders': true,
                 'watchMyTrades': true,
@@ -77,16 +79,55 @@ class bitvavo extends bitvavo$1 {
         const message = this.extend(request, params);
         return await this.watch(url, messageHash, message, messageHash);
     }
+    async watchPublicMultiple(methodName, channelName, symbols, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const messageHashes = [methodName];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            args.push(market['id']);
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': channelName,
+                    'markets': args,
+                },
+            ],
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+    }
     async watchTicker(symbol, params = {}) {
         /**
          * @method
          * @name bitvavo#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         return await this.watchPublic('ticker24h', symbol, params);
+    }
+    async watchTickers(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const channel = 'ticker24h';
+        const tickers = await this.watchPublicMultiple(channel, channel, symbols, params);
+        return this.filterByArray(tickers, 'symbol', symbols);
     }
     handleTicker(client, message) {
         //
@@ -110,8 +151,10 @@ class bitvavo extends bitvavo$1 {
         //         ]
         //     }
         //
+        this.handleBidAsk(client, message);
         const event = this.safeString(message, 'event');
         const tickers = this.safeValue(message, 'data', []);
+        const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
             const marketId = this.safeString(data, 'market');
@@ -120,9 +163,57 @@ class bitvavo extends bitvavo$1 {
             const ticker = this.parseTicker(data, market);
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
+            result.push(ticker);
             client.resolve(ticker, messageHash);
         }
-        return message;
+        client.resolve(result, event);
+    }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const channel = 'ticker24h';
+        const tickers = await this.watchPublicMultiple('bidask', channel, symbols, params);
+        return this.filterByArray(tickers, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        const event = 'bidask';
+        const tickers = this.safeValue(message, 'data', []);
+        const result = [];
+        for (let i = 0; i < tickers.length; i++) {
+            const data = tickers[i];
+            const ticker = this.parseWsBidAsk(data);
+            const symbol = ticker['symbol'];
+            this.bidsasks[symbol] = ticker;
+            result.push(ticker);
+            const messageHash = event + ':' + symbol;
+            client.resolve(ticker, messageHash);
+        }
+        client.resolve(result, event);
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'market');
+        market = this.safeMarket(marketId, undefined, '-');
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeNumber(ticker, 'ask'),
+            'askVolume': this.safeNumber(ticker, 'askSize'),
+            'bid': this.safeNumber(ticker, 'bid'),
+            'bidVolume': this.safeNumber(ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
@@ -500,7 +591,7 @@ class bitvavo extends bitvavo$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
@@ -538,7 +629,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -569,7 +660,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -639,6 +730,7 @@ class bitvavo extends bitvavo$1 {
          * @name bitvavo#fetchOrderWs
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -681,7 +773,8 @@ class bitvavo extends bitvavo$1 {
         const messageHash = this.buildMessageHash(action, request);
         this.checkMessageHashDoesNotExist(messageHash);
         const url = this.urls['api']['ws'];
-        return await this.watch(url, messageHash, request, messageHash);
+        const randomSubHash = this.randNumber(5).toString() + ':' + messageHash;
+        return await this.watch(url, messageHash, request, randomSubHash);
     }
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

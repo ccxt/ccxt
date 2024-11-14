@@ -45,6 +45,8 @@ class wavesexchange extends wavesexchange$1 {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': undefined,
+                'fetchDepositAddressesByNetwork': undefined,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -122,7 +124,13 @@ class wavesexchange extends wavesexchange$1 {
                     'forward': 'https://wx.network/api/v1/forward/matcher',
                     'market': 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 },
-                'doc': 'https://docs.wx.network',
+                'doc': [
+                    'https://docs.wx.network',
+                    'https://docs.waves.tech',
+                    'https://api.wavesplatform.com/v0/docs/',
+                    'https://nodes.wavesnodes.com/api-docs/index.html',
+                    'https://matcher.waves.exchange/api-docs/index.html',
+                ],
                 'www': 'https://wx.network',
             },
             'api': {
@@ -596,6 +604,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -743,6 +752,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#signIn
          * @description sign in, must be called prior to using other authenticated methods
+         * @see https://docs.wx.network/en/api/auth/oauth2-token
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns response from exchange
          */
@@ -856,6 +866,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -899,7 +910,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -940,6 +951,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://api.wavesplatform.com/v0/docs/#/candles/getCandles
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1143,12 +1155,11 @@ class wavesexchange extends wavesexchange$1 {
                 const responseInner = await this.nodeGetAddressesPublicKeyPublicKey(this.extend(request, request));
                 const addressInner = this.safeString(response, 'address');
                 return {
-                    'address': addressInner,
-                    'code': code,
+                    'info': responseInner,
                     'currency': code,
                     'network': network,
+                    'address': addressInner,
                     'tag': undefined,
-                    'info': responseInner,
                 };
             }
             else {
@@ -1189,12 +1200,11 @@ class wavesexchange extends wavesexchange$1 {
         const addresses = this.safeValue(response, 'deposit_addresses');
         const address = this.safeString(addresses, 0);
         return {
-            'address': address,
-            'code': code,
-            'currency': code,
-            'tag': undefined,
-            'network': unifiedNetwork,
             'info': response,
+            'currency': code,
+            'network': unifiedNetwork,
+            'address': address,
+            'tag': undefined,
         };
     }
     async getMatcherPublicKey() {
@@ -1276,11 +1286,12 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#createOrder
          * @description create a trade order
+         * @see https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a stop order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1299,7 +1310,8 @@ class wavesexchange extends wavesexchange$1 {
             throw new errors.InvalidOrder(this.id + ' createOrder() requires a price argument for ' + type + ' orders to determine the max price for buy and the min price for sell');
         }
         const timestamp = this.milliseconds();
-        const defaultExpiryDelta = this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000);
+        let defaultExpiryDelta = undefined;
+        [defaultExpiryDelta, params] = this.handleOptionAndParams(params, 'createOrder', 'defaultExpiry', this.safeInteger(this.options, 'createOrderDefaultExpiry', 2419200000));
         const expiration = this.sum(timestamp, defaultExpiryDelta);
         const matcherFees = await this.getFeesForAsset(symbol, side, amount, price);
         // {
@@ -1447,12 +1459,12 @@ class wavesexchange extends wavesexchange$1 {
         //     }
         //
         if (isMarketOrder) {
-            const response = await this.matcherPostMatcherOrderbookMarket(body);
+            const response = await this.matcherPostMatcherOrderbookMarket(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
         else {
-            const response = await this.matcherPostMatcherOrderbook(body);
+            const response = await this.matcherPostMatcherOrderbook(this.extend(body, params));
             const value = this.safeDict(response, 'message');
             return this.parseOrder(value, market);
         }
@@ -1510,6 +1522,7 @@ class wavesexchange extends wavesexchange$1 {
          * @method
          * @name wavesexchange#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

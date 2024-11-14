@@ -33,6 +33,8 @@ public partial class bit2c : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -68,7 +70,7 @@ public partial class bit2c : Exchange
                 { "ws", false },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766119-3593220e-5ece-11e7-8b3a-5a041f6bcc3f.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://bit2c.co.il" },
                 } },
@@ -426,7 +428,7 @@ public partial class bit2c : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -510,6 +512,7 @@ public partial class bit2c : Exchange
         * @name bit2c#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://bit2c.co.il/home/api#getoid
+        * @param {string} id the order id
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -910,11 +913,11 @@ public partial class bit2c : Exchange
         this.checkAddress(address);
         object code = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
             { "network", null },
             { "address", address },
             { "tag", null },
-            { "info", depositAddress },
         };
     }
 

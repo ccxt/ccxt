@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_trade.php';
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
@@ -28,7 +28,7 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                 $now = $exchange->milliseconds();
                 continue;
             }
-            assert(gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
+            assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
             $now = $exchange->milliseconds();
             $symbol = null;
             for ($i = 0; $i < count($response); $i++) {

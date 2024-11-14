@@ -40,6 +40,12 @@ public partial class latoken : Exchange
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFees", false },
+                { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
+                { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchMarginMode", false },
@@ -200,7 +206,7 @@ public partial class latoken : Exchange
                     { "request expired or bad", typeof(InvalidNonce) },
                     { "For input string", typeof(BadRequest) },
                     { "Unable to resolve currency by tag", typeof(BadSymbol) },
-                    { "Can\'t find currency with tag", typeof(BadSymbol) },
+                    { "Can't find currency with tag", typeof(BadSymbol) },
                     { "Unable to place order because pair is in inactive state", typeof(BadSymbol) },
                     { "API keys are not available for", typeof(AccountSuspended) },
                 } },
@@ -1356,7 +1362,7 @@ public partial class latoken : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         *
@@ -1498,7 +1504,9 @@ public partial class latoken : Exchange
         //         "status":"SUCCESS"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
@@ -1625,6 +1633,7 @@ public partial class latoken : Exchange
         object statuses = new Dictionary<string, object>() {
             { "TRANSACTION_STATUS_CONFIRMED", "ok" },
             { "TRANSACTION_STATUS_EXECUTED", "ok" },
+            { "TRANSACTION_STATUS_CHECKING", "pending" },
             { "TRANSACTION_STATUS_CANCELLED", "canceled" },
         };
         return this.safeString(statuses, status, status);

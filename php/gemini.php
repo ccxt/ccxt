@@ -44,6 +44,7 @@ class gemini extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -182,6 +183,7 @@ class gemini extends Exchange {
                         'v1/account/create' => 1,
                         'v1/account/list' => 1,
                         'v1/heartbeat' => 1,
+                        'v1/roles' => 1,
                     ),
                 ),
             ),
@@ -837,8 +839,9 @@ class gemini extends Exchange {
     }
 
     public function fetch_ticker_v1_and_v2(string $symbol, $params = array ()) {
-        $tickerA = $this->fetch_ticker_v1($symbol, $params);
-        $tickerB = $this->fetch_ticker_v2($symbol, $params);
+        $tickerPromiseA = $this->fetch_ticker_v1($symbol, $params);
+        $tickerPromiseB = $this->fetch_ticker_v2($symbol, $params);
+        list($tickerA, $tickerB) = array( $tickerPromiseA, $tickerPromiseB );
         return $this->deep_extend($tickerA, array(
             'open' => $tickerB['open'],
             'high' => $tickerB['high'],
@@ -1434,7 +1437,7 @@ class gemini extends Exchange {
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1589,7 +1592,7 @@ class gemini extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://docs.gemini.com/rest-api/#withdraw-crypto-funds
@@ -1755,7 +1758,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * @see https://docs.gemini.com/rest-api/#get-deposit-addresses
          * fetch the deposit address for a currency associated with this account
@@ -1772,7 +1775,7 @@ class gemini extends Exchange {
         return $this->safe_value($networkGroup, $code);
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
          * @see https://docs.gemini.com/rest-api/#get-deposit-addresses

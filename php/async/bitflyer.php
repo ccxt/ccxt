@@ -37,6 +37,9 @@ class bitflyer extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
                 'fetchDeposits' => true,
+                'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -57,7 +60,7 @@ class bitflyer extends Exchange {
                 'withdraw' => true,
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb',
                 'api' => array(
                     'rest' => 'https://api.{hostname}',
                 ),
@@ -76,6 +79,7 @@ class bitflyer extends Exchange {
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ),
                 ),
                 'private' => array(
@@ -565,7 +569,7 @@ class bitflyer extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -605,7 +609,13 @@ class bitflyer extends Exchange {
                 'product_code' => $this->market_id($symbol),
                 'child_order_acceptance_id' => $id,
             );
-            return Async\await($this->privatePostCancelchildorder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelchildorder ($this->extend($request, $params)));
+            //
+            //    200 OK.
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -737,6 +747,7 @@ class bitflyer extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -833,7 +844,7 @@ class bitflyer extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1043,6 +1054,62 @@ class bitflyer extends Exchange {
         );
     }
 
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://lightning.bitflyer.com/docs#funding-rate
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_code' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetfundingrate ($this->extend($request, $params)));
+            //
+            //    {
+            //        "current_funding_rate" => -0.003750000000
+            //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+            //    }
+            //
+            return $this->parse_funding_rate($response, $market);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, ?array $market = null): array {
+        //
+        //    {
+        //        "current_funding_rate" => -0.003750000000
+        //        "next_funding_rate_settledate" => "2024-04-15T13:00:00"
+        //    }
+        //
+        $nextFundingDatetime = $this->safe_string($contract, 'next_funding_rate_settledate');
+        $nextFundingTimestamp = $this->parse8601($nextFundingDatetime);
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => null,
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 'current_funding_rate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => null,
+        );
+    }
+
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
@@ -1083,10 +1150,10 @@ class bitflyer extends Exchange {
         $feedback = $this->id . ' ' . $body;
         // i.e. array("status":-2,"error_message":"Under maintenance","data":null)
         $errorMessage = $this->safe_string($response, 'error_message');
-        $statusCode = $this->safe_number($response, 'status');
+        $statusCode = $this->safe_integer($response, 'status');
         if ($errorMessage !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

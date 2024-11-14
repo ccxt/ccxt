@@ -80,7 +80,7 @@ public partial class btcturk : Exchange
                 { "1y", "1 y" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.btcturk.com/api/v2" },
                     { "private", "https://api.btcturk.com/api/v1" },
@@ -668,9 +668,10 @@ public partial class btcturk : Exchange
         return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
-    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    public override object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null, object tail = null)
     {
         timeframe ??= "1m";
+        tail ??= false;
         object results = new List<object>() {};
         object timestamp = this.safeValue(ohlcvs, "t");
         object high = this.safeValue(ohlcvs, "h");
@@ -691,7 +692,7 @@ public partial class btcturk : Exchange
             ((IList<object>)results).Add(this.parseOHLCV(ohlcv, market));
         }
         object sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -705,7 +706,7 @@ public partial class btcturk : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

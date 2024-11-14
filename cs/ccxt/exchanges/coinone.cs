@@ -11,7 +11,7 @@ public partial class coinone : Exchange
             { "id", "coinone" },
             { "name", "CoinOne" },
             { "countries", new List<object>() {"KR"} },
-            { "rateLimit", 667 },
+            { "rateLimit", 50 },
             { "version", "v2" },
             { "pro", false },
             { "has", new Dictionary<string, object>() {
@@ -38,7 +38,9 @@ public partial class coinone : Exchange
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
+                { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", true },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -115,10 +117,10 @@ public partial class coinone : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "405", typeof(OnMaintenance) },
                 { "104", typeof(OrderNotFound) },
-                { "108", typeof(BadSymbol) },
                 { "107", typeof(BadRequest) },
+                { "108", typeof(BadSymbol) },
+                { "405", typeof(OnMaintenance) },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "SOC", "Soda Coin" },
@@ -706,7 +708,7 @@ public partial class coinone : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1025,14 +1027,14 @@ public partial class coinone : Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {\'price\': 12345, \'qty\': 1.2345, \'is_ask\': 0} in the params argument of cancelOrder.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
         }
         object price = this.safeNumber(parameters, "price");
         object qty = this.safeNumber(parameters, "qty");
         object isAsk = this.safeInteger(parameters, "is_ask");
         if (isTrue(isTrue(isTrue((isEqual(price, null))) || isTrue((isEqual(qty, null)))) || isTrue((isEqual(isAsk, null)))))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires {\'price\': 12345, \'qty\': 1.2345, \'is_ask\': 0} in the params argument.")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;
         }
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1098,10 +1100,11 @@ public partial class coinone : Exchange
             if (isTrue(isEqual(depositAddress, null)))
             {
                 depositAddress = new Dictionary<string, object>() {
+                    { "info", value },
                     { "currency", code },
+                    { "network", null },
                     { "address", null },
                     { "tag", null },
-                    { "info", value },
                 };
             }
             object address = this.safeString(depositAddress, "address", value);
@@ -1175,24 +1178,18 @@ public partial class coinone : Exchange
     {
         if (isTrue(isEqual(response, null)))
         {
-            return null;
+            return null;  // fallback to default error handler
         }
-        if (isTrue(inOp(response, "result")))
+        //
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
+        //
+        object errorCode = this.safeString(response, "error_code");
+        if (isTrue(isTrue(!isEqual(errorCode, null)) && isTrue(!isEqual(errorCode, "0"))))
         {
-            object result = getValue(response, "result");
-            if (isTrue(!isEqual(result, "success")))
-            {
-                //
-                //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                //
-                object errorCode = this.safeString(response, "errorCode");
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-        } else
-        {
-            throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

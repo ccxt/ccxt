@@ -11,7 +11,7 @@ public partial class exmo : Exchange
             { "id", "exmo" },
             { "name", "EXMO" },
             { "countries", new List<object>() {"LT"} },
-            { "rateLimit", 350 },
+            { "rateLimit", 100 },
             { "version", "v1.1" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -35,6 +35,8 @@ public partial class exmo : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -146,6 +148,7 @@ public partial class exmo : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "140333", typeof(InvalidOrder) },
                     { "140434", typeof(BadRequest) },
                     { "40005", typeof(AuthenticationError) },
                     { "40009", typeof(InvalidNonce) },
@@ -1430,7 +1433,7 @@ public partial class exmo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
         * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
@@ -2089,7 +2092,7 @@ public partial class exmo : Exchange
         * @param {string} type not used by exmo editOrder
         * @param {string} side not used by exmo editOrder
         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
         * @param {string} params.marginMode must be set to isolated
@@ -2167,11 +2170,11 @@ public partial class exmo : Exchange
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

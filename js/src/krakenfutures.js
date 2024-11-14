@@ -84,6 +84,7 @@ export default class krakenfutures extends Exchange {
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts': 'https://demo-futures.kraken.com/api/charts/',
+                    'history': 'https://demo-futures.kraken.com/api/history/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -615,6 +616,8 @@ export default class krakenfutures extends Exchange {
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'indexPrice'),
             'info': ticker,
         });
     }
@@ -1769,17 +1772,19 @@ export default class krakenfutures extends Exchange {
                 }
                 // Final order (after placement / editing / execution / canceling)
                 const orderTrigger = this.safeValue(item, 'orderTrigger');
-                details = this.safeValue2(item, 'new', 'order', orderTrigger);
-                if (details !== undefined) {
-                    isPrior = false;
-                    fixed = true;
-                }
-                else if (!fixed) {
-                    const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
-                    details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
-                    price = this.safeString(orderPriorExecution, 'limitPrice');
+                if (details === undefined) {
+                    details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
-                        isPrior = true;
+                        isPrior = false;
+                        fixed = true;
+                    }
+                    else if (!fixed) {
+                        const orderPriorExecution = this.safeValue(item, 'orderPriorExecution');
+                        details = this.safeValue2(item, 'orderPriorExecution', 'orderPriorEdit');
+                        price = this.safeString(orderPriorExecution, 'limitPrice');
+                        if (details !== undefined) {
+                            isPrior = true;
+                        }
                     }
                 }
             }
@@ -2162,8 +2167,8 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2171,7 +2176,7 @@ export default class krakenfutures extends Exchange {
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
         const response = await this.publicGetTickers(params);
-        const tickers = this.safeValue(response, 'tickers');
+        const tickers = this.safeList(response, 'tickers', []);
         const fundingRates = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
@@ -2241,6 +2246,7 @@ export default class krakenfutures extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2395,8 +2401,8 @@ export default class krakenfutures extends Exchange {
         /**
          * @method
          * @name krakenfutures#fetchLeverageTiers
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
@@ -2491,8 +2497,8 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const marginLevels = this.safeValue(info, 'marginLevels');
-        const id = this.safeString(info, 'symbol');
-        market = this.safeMarket(id, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const tiers = [];
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
@@ -2505,6 +2511,7 @@ export default class krakenfutures extends Exchange {
             }
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['quote'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': undefined,

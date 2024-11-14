@@ -20,6 +20,7 @@ class coincheck(ccxt.async_support.coincheck):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': False,
                 'watchTickers': False,
@@ -111,7 +112,7 @@ class coincheck(ccxt.async_support.coincheck):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -157,7 +158,7 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     [
         #         "1663318663",  # transaction timestamp(unix time)

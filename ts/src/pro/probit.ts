@@ -17,6 +17,7 @@ export default class probit extends probitRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -46,8 +47,6 @@ export default class probit extends probitRest {
                 },
             },
             'streaming': {
-            },
-            'exceptions': {
             },
         });
     }
@@ -235,6 +234,7 @@ export default class probit extends probitRest {
          * @method
          * @name probit#watchMyTrades
          * @description get the list of trades associated with the user
+         * @see https://docs-en.probit.com/reference/trade_history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -513,8 +513,14 @@ export default class probit extends probitRest {
         const code = this.safeString (message, 'errorCode');
         const errMessage = this.safeString (message, 'message', '');
         const details = this.safeValue (message, 'details');
-        // todo - throw properly here
-        throw new ExchangeError (this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details));
+        const feedback = this.id + ' ' + code + ' ' + errMessage + ' ' + this.json (details);
+        if ('exact' in this.exceptions) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
+        if ('broad' in this.exceptions) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errMessage, feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 
     handleAuthenticate (client: Client, message) {

@@ -7,6 +7,8 @@ using Nethereum.ABI.ABIDeserialisation;
 using Nethereum.ABI.EIP712;
 using Nethereum.Signer.EIP712;
 using System.Linq;
+using System.Text;
+using System.Numerics;
 
 public partial class Exchange
 {
@@ -131,7 +133,7 @@ public partial class Exchange
         // fill in domain types
         var domainTypesDescription = new List<MemberDescription> { };
         var domainValuesArray = new List<MemberValue> { };
-        var eip721Domain = new List<object[]>{};
+        var eip721Domain = new List<object[]> { };
         eip721Domain.Add(new object[]{
                 "name",
                 "string"
@@ -152,12 +154,14 @@ public partial class Exchange
                 "salt",
                 "bytes32"
         });
-        foreach (var d in eip721Domain) {
+        foreach (var d in eip721Domain)
+        {
             var key = d[0] as string;
             var type = d[1] as string;
             for (var i = 0; i < domain.Count; i++)
             {
-                if (String.Equals(key, domain.Keys.ElementAt(i))) {
+                if (String.Equals(key, domain.Keys.ElementAt(i)))
+                {
                     var value = domainValues[i];
                     var memberDescription = new MemberDescription();
                     memberDescription.Name = key;
@@ -204,7 +208,46 @@ public partial class Exchange
             var value = messageData.Values.ElementAt(i); // 1
             var member = new MemberValue();
             member.TypeName = type;
-            member.Value = value;
+            if (type == "bytes32" && value is string)
+            {
+                var hexString = value as string;
+                if (hexString.StartsWith("0x"))
+                {
+                    hexString = hexString.Substring(2);
+                }
+
+                // Convert the hex string to a byte array
+                byte[] byteArray = Enumerable.Range(0, hexString.Length)
+                                             .Where(x => x % 2 == 0)
+                                             .Select(x => Convert.ToByte(hexString.Substring(x, 2), 16))
+                                             .ToArray();
+                member.Value = byteArray;
+            }
+            else if (type == "bytes32[]")
+            {
+                var hexStrings = value as IList<object>;
+                var byteArray = new List<byte[]> { };
+                foreach (var hex2 in hexStrings)
+                {
+                    var hex = hex2 as string;
+                    if (hex.StartsWith("0x"))
+                    {
+                        hex = hex.Substring(2);
+                    }
+
+                    // Convert the hex string to a byte array
+                    var byteArrayElem = Enumerable.Range(0, hex.Length)
+                                                 .Where(x => x % 2 == 0)
+                                                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                                                 .ToArray();
+                    byteArray.Add(byteArrayElem);
+                }
+                member.Value = byteArray.ToArray();
+            }
+            else
+            {
+                member.Value = value;
+            }
             messageValues.Add(member);
         }
         typeRaw.Message = messageValues.ToArray();

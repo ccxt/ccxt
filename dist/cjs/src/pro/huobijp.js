@@ -15,6 +15,7 @@ class huobijp extends huobijp$1 {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': true,
             },

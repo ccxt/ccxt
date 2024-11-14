@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bitfinex extends Exchange {
@@ -41,10 +42,16 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,  // Endpoint 'lendbook/{currency}' is related to interest rates on spot margin lending
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -85,7 +92,7 @@ class bitfinex extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'logo' => 'https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9',
                 'api' => array(
                     'v2' => 'https://api-pub.bitfinex.com', // https://github.com/ccxt/ccxt/issues/5109
                     'public' => 'https://api.bitfinex.com',
@@ -417,7 +424,7 @@ class bitfinex extends Exchange {
             //     }
             // }
             //
-            $fees = $this->safe_value($response, 'withdraw');
+            $fees = $this->safe_dict($response, 'withdraw', array());
             $ids = is_array($fees) ? array_keys($fees) : array();
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
@@ -527,7 +534,7 @@ class bitfinex extends Exchange {
             //     }
             //
             $result = array();
-            $fiat = $this->safe_value($this->options, 'fiat', array());
+            $fiat = $this->safe_dict($this->options, 'fiat', array());
             $makerFee = $this->safe_number($response, 'maker_fee');
             $takerFee = $this->safe_number($response, 'taker_fee');
             $makerFee2Fiat = $this->safe_number($response, 'maker_fee_2fiat');
@@ -568,11 +575,11 @@ class bitfinex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $ids = Async\await($this->publicGetSymbols ());
+            $idsPromise = $this->publicGetSymbols ();
             //
             //     array( "btcusd", "ltcusd", "ltcbtc" )
             //
-            $details = Async\await($this->publicGetSymbolsDetails ());
+            $detailsPromise = $this->publicGetSymbolsDetails ();
             //
             //     array(
             //         array(
@@ -587,6 +594,7 @@ class bitfinex extends Exchange {
             //         ),
             //     )
             //
+            list($ids, $details) = Async\await(Promise\all(array( $idsPromise, $detailsPromise )));
             $result = array();
             for ($i = 0; $i < count($details); $i++) {
                 $market = $details[$i];
@@ -623,7 +631,7 @@ class bitfinex extends Exchange {
                     'settleId' => null,
                     'type' => $type,
                     'spot' => ($type === 'spot'),
-                    'margin' => $this->safe_value($market, 'margin'),
+                    'margin' => $this->safe_bool($market, 'margin'),
                     'swap' => ($type === 'swap'),
                     'future' => false,
                     'option' => false,
@@ -696,7 +704,7 @@ class bitfinex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $requestedType = $this->safe_string($params, 'type', 'exchange');
             $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
             if ($accountType === null) {
@@ -761,7 +769,7 @@ class bitfinex extends Exchange {
             // transferring between derivatives wallet and regular wallet is not documented in their API
             // however we support it in CCXT (from just looking at web inspector)
             Async\await($this->load_markets());
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             $currency = $this->currency($code);
@@ -863,7 +871,7 @@ class bitfinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
              */
@@ -872,7 +880,7 @@ class bitfinex extends Exchange {
             $response = Async\await($this->publicGetTickers ($params));
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $ticker = $this->parse_ticker(array( 'result' => $response[$i] ));
+                $ticker = $this->parse_ticker($response[$i]);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -1100,7 +1108,7 @@ class bitfinex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1176,7 +1184,33 @@ class bitfinex extends Exchange {
             $request = array(
                 'order_id' => intval($id),
             );
-            return Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //        $id => '161236928925',
+            //        cid => '1720172026812',
+            //        cid_date => '2024-07-05',
+            //        gid => null,
+            //        $symbol => 'adaust',
+            //        exchange => 'bitfinex',
+            //        price => '0.33',
+            //        avg_execution_price => '0.0',
+            //        side => 'buy',
+            //        type => 'exchange limit',
+            //        timestamp => '1720172026.813',
+            //        is_live => true,
+            //        is_cancelled => false,
+            //        is_hidden => false,
+            //        oco_order => null,
+            //        was_forced => false,
+            //        original_amount => '10.0',
+            //        remaining_amount => '10.0',
+            //        executed_amount => '0.0',
+            //        src => 'api',
+            //        meta => array()
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1185,11 +1219,19 @@ class bitfinex extends Exchange {
             /**
              * cancel all open orders
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {string} $symbol not used by bitfinex cancelAllOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} response from exchange
+             * @return {array} $response from exchange
              */
-            return Async\await($this->privatePostOrderCancelAll ($params));
+            $response = Async\await($this->privatePostOrderCancelAll ($params));
+            //
+            //    array( result => 'Submitting 1 order cancellations.' )
+            //
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -1219,8 +1261,8 @@ class bitfinex extends Exchange {
         //     }
         //
         $side = $this->safe_string($order, 'side');
-        $open = $this->safe_value($order, 'is_live');
-        $canceled = $this->safe_value($order, 'is_cancelled');
+        $open = $this->safe_bool($order, 'is_live');
+        $canceled = $this->safe_bool($order, 'is_cancelled');
         $status = null;
         if ($open) {
             $status = 'open';
@@ -1323,6 +1365,7 @@ class bitfinex extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by bitfinex fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1423,7 +1466,7 @@ class bitfinex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a currency associated with this account
@@ -1597,7 +1640,7 @@ class bitfinex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1634,8 +1677,8 @@ class bitfinex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->safe_value($responses, 0, array());
-            $id = $this->safe_number($response, 'withdrawal_id');
+            $response = $this->safe_dict($responses, 0, array());
+            $id = $this->safe_integer($response, 'withdrawal_id');
             $message = $this->safe_string($response, 'message');
             $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
             if ($id === 0) {
@@ -1680,7 +1723,7 @@ class bitfinex extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->microseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1732,7 +1775,7 @@ class bitfinex extends Exchange {
         } else {
             // json $response with error, i.e:
             // [array("status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again.")]
-            $responseObject = $this->safe_value($response, 0, array());
+            $responseObject = $this->safe_dict($response, 0, array());
             $status = $this->safe_string($responseObject, 'status', '');
             if ($status === 'error') {
                 $throwError = true;

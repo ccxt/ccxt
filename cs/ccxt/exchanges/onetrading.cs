@@ -44,6 +44,7 @@ public partial class onetrading : Exchange
                 { "fetchDeposit", false },
                 { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchFundingHistory", false },
@@ -109,8 +110,8 @@ public partial class onetrading : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c" },
                 { "api", new Dictionary<string, object>() {
-                    { "public", "https://api.onetrading.com/public" },
-                    { "private", "https://api.onetrading.com/public" },
+                    { "public", "https://api.onetrading.com/fast" },
+                    { "private", "https://api.onetrading.com/fast" },
                 } },
                 { "www", "https://onetrading.com/" },
                 { "doc", new List<object>() {"https://docs.onetrading.com"} },
@@ -1027,11 +1028,11 @@ public partial class onetrading : Exchange
         object tag = this.safeString(depositAddress, "destination_tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
@@ -1530,7 +1531,7 @@ public partial class onetrading : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1683,6 +1684,7 @@ public partial class onetrading : Exchange
         * @method
         * @name onetrading#fetchOrder
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol not used by onetrading fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

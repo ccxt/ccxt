@@ -282,13 +282,7 @@ public partial class timex : Exchange
         //         },
         //     ]
         //
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            ((IList<object>)result).Add(this.parseCurrency(currency));
-        }
-        return this.indexBy(result, "code");
+        return this.parseCurrencies(response);
     }
 
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -714,7 +708,7 @@ public partial class timex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -855,7 +849,8 @@ public partial class timex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        return this.safeDict(orders, 0);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -900,7 +895,24 @@ public partial class timex : Exchange
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        object changedOrders = this.safeList(response, "changedOrders", new List<object>() {});
+        object unchangedOrders = this.safeList(response, "unchangedOrders", new List<object>() {});
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(changedOrders)); postFixIncrement(ref i))
+        {
+            object newOrder = this.safeDict(getValue(changedOrders, i), "newOrder");
+            ((IList<object>)orders).Add(this.parseOrder(newOrder));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(unchangedOrders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", getValue(unchangedOrders, i) },
+                { "id", getValue(unchangedOrders, i) },
+                { "status", "unchanged" },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1275,7 +1287,7 @@ public partial class timex : Exchange
         };
     }
 
-    public virtual object parseCurrency(object currency)
+    public override object parseCurrency(object currency)
     {
         //
         //     {
@@ -1344,7 +1356,7 @@ public partial class timex : Exchange
                 fee = this.parseNumber(add(fraction, feeString));
             }
         }
-        return new Dictionary<string, object>() {
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", code },
             { "code", code },
             { "info", currency },
@@ -1366,7 +1378,7 @@ public partial class timex : Exchange
                 } },
             } },
             { "networks", new Dictionary<string, object>() {} },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -1633,9 +1645,9 @@ public partial class timex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", null },
-            { "network", null },
         };
     }
 

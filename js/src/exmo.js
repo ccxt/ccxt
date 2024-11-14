@@ -21,7 +21,7 @@ export default class exmo extends Exchange {
             'id': 'exmo',
             'name': 'EXMO',
             'countries': ['LT'],
-            'rateLimit': 350,
+            'rateLimit': 100,
             'version': 'v1.1',
             'has': {
                 'CORS': undefined,
@@ -45,6 +45,8 @@ export default class exmo extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -212,6 +214,7 @@ export default class exmo extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '140333': InvalidOrder,
                     '140434': BadRequest,
                     '40005': AuthenticationError,
                     '40009': InvalidNonce,
@@ -1418,7 +1421,7 @@ export default class exmo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
@@ -2066,7 +2069,7 @@ export default class exmo extends Exchange {
          * @param {string} type not used by exmo editOrder
          * @param {string} side not used by exmo editOrder
          * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] stop price for stop-market and stop-limit orders
          * @param {string} params.marginMode must be set to isolated
@@ -2132,11 +2135,11 @@ export default class exmo extends Exchange {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     getMarketFromTrades(trades) {

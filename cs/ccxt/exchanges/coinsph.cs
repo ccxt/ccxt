@@ -1145,7 +1145,7 @@ public partial class coinsph : Exchange
         * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
@@ -1698,7 +1698,7 @@ public partial class coinsph : Exchange
         object warning = this.safeBool(options, "warning", true);
         if (isTrue(warning))
         {
-            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options[\'withdraw\'][\'warning\'] = false to make a withdrawal to your coins_ph account")) ;
+            throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
         }
         object networkCode = this.safeString(parameters, "network");
         object networkId = this.networkCodeToId(networkCode, code);
@@ -2016,11 +2016,11 @@ public partial class coinsph : Exchange
         object currencyId = this.safeString(depositAddress, "coin");
         object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", parsedCurrency },
+            { "network", null },
             { "address", this.safeString(depositAddress, "address") },
             { "tag", this.safeString(depositAddress, "addressTag") },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 

@@ -22,6 +22,10 @@ class bequant extends \ccxt\pro\hitbtc {
                 'api' => array(
                     'public' => 'https://api.bequant.io/api/3',
                     'private' => 'https://api.bequant.io/api/3',
+                    'ws' => array(
+                        'public' => 'wss://api.bequant.io/api/3/ws/public',
+                        'private' => 'wss://api.bequant.io/api/3/ws/trading',
+                    ),
                 ),
                 'www' => 'https://bequant.io',
                 'doc' => array(

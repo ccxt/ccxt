@@ -39,6 +39,8 @@ public partial class bitstamp : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -84,7 +86,7 @@ public partial class bitstamp : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27786377-8c8ab57e-5fe9-11e7-8ea4-2b05b6bcceec.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d5480572-1fee-43cb-b900-d38c522d0024" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitstamp.net/api" },
                     { "private", "https://www.bitstamp.net/api" },
@@ -380,11 +382,11 @@ public partial class bitstamp : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "taker", this.parseNumber("0.005") },
-                    { "maker", this.parseNumber("0.005") },
+                    { "taker", this.parseNumber("0.004") },
+                    { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0024")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("4000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("2000000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("6000000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("20000000000"), this.parseNumber("0.00005")}, new List<object> {this.parseNumber("20000000001"), this.parseNumber("0")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.005")}, new List<object> {this.parseNumber("20000"), this.parseNumber("0.0025")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0024")}, new List<object> {this.parseNumber("200000"), this.parseNumber("0.0022")}, new List<object> {this.parseNumber("400000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("600000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("2000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("4000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0007")}, new List<object> {this.parseNumber("500000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("2000000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("6000000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("20000000000"), this.parseNumber("0.00005")}, new List<object> {this.parseNumber("20000000001"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1500000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0.0003")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1500000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("50000000"), this.parseNumber("0.0001")}, new List<object> {this.parseNumber("100000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("250000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("1000000000"), this.parseNumber("0")}} },
                     } },
                 } },
                 { "funding", new Dictionary<string, object>() {
@@ -445,7 +447,7 @@ public partial class bitstamp : Exchange
                     { "Please update your profile with your FATCA information, before using API.", typeof(PermissionDenied) },
                     { "Order not found.", typeof(OrderNotFound) },
                     { "Price is more than 20% below market price.", typeof(InvalidOrder) },
-                    { "Bitstamp.net is under scheduled maintenance. We\'ll be back soon.", typeof(OnMaintenance) },
+                    { "Bitstamp.net is under scheduled maintenance. We'll be back soon.", typeof(OnMaintenance) },
                     { "Order could not be placed.", typeof(ExchangeNotAvailable) },
                     { "Invalid offset.", typeof(BadRequest) },
                 } },
@@ -1437,7 +1439,7 @@ public partial class bitstamp : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1601,6 +1603,7 @@ public partial class bitstamp : Exchange
         * @name bitstamp#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2089,9 +2092,9 @@ public partial class bitstamp : Exchange
                 market = this.getMarketFromTrade(item);
             }
             object direction = ((bool) isTrue((isEqual(getValue(parsedTrade, "side"), "buy")))) ? "in" : "out";
-            return new Dictionary<string, object>() {
-                { "id", getValue(parsedTrade, "id") },
+            return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
+                { "id", getValue(parsedTrade, "id") },
                 { "timestamp", getValue(parsedTrade, "timestamp") },
                 { "datetime", getValue(parsedTrade, "datetime") },
                 { "direction", direction },
@@ -2105,7 +2108,7 @@ public partial class bitstamp : Exchange
                 { "after", null },
                 { "status", "ok" },
                 { "fee", getValue(parsedTrade, "fee") },
-            };
+            }, currency);
         } else
         {
             object parsedTransaction = this.parseTransaction(item, currency);
@@ -2121,9 +2124,9 @@ public partial class bitstamp : Exchange
                 object amount = this.safeString(item, getValue(currency, "id"));
                 direction = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "in" : "out";
             }
-            return new Dictionary<string, object>() {
-                { "id", getValue(parsedTransaction, "id") },
+            return this.safeLedgerEntry(new Dictionary<string, object>() {
                 { "info", item },
+                { "id", getValue(parsedTransaction, "id") },
                 { "timestamp", getValue(parsedTransaction, "timestamp") },
                 { "datetime", getValue(parsedTransaction, "datetime") },
                 { "direction", direction },
@@ -2137,7 +2140,7 @@ public partial class bitstamp : Exchange
                 { "after", null },
                 { "status", getValue(parsedTransaction, "status") },
                 { "fee", getValue(parsedTransaction, "fee") },
-            };
+            }, currency);
         }
     }
 
@@ -2146,11 +2149,11 @@ public partial class bitstamp : Exchange
         /**
         * @method
         * @name bitstamp#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2250,11 +2253,11 @@ public partial class bitstamp : Exchange
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Greeks, Int, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -65,6 +65,8 @@ class deribit(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingRate': True,
@@ -841,6 +843,8 @@ class deribit(Exchange, ImplicitAPI):
                     type = 'option'
                 elif isSpot:
                     type = 'spot'
+                inverse = None
+                linear = None
                 if isSpot:
                     symbol = base + '/' + quote
                 elif not isComboMarket:
@@ -852,6 +856,8 @@ class deribit(Exchange, ImplicitAPI):
                             optionType = self.safe_string(market, 'option_type')
                             letter = 'C' if (optionType == 'call') else 'P'
                             symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
+                    inverse = (quote != settle)
+                    linear = (settle == quote)
                 parsedMarketValue = self.safe_value(parsedMarkets, symbol)
                 if parsedMarketValue:
                     continue
@@ -875,8 +881,8 @@ class deribit(Exchange, ImplicitAPI):
                     'option': option,
                     'active': self.safe_value(market, 'is_active'),
                     'contract': not isSpot,
-                    'linear': (settle == quote),
-                    'inverse': (settle != quote),
+                    'linear': linear,
+                    'inverse': inverse,
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
                     'contractSize': self.safe_number(market, 'contract_size'),
@@ -1019,7 +1025,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.deribit.com/#private-get_current_deposit_address
@@ -1054,11 +1060,11 @@ class deribit(Exchange, ImplicitAPI):
         address = self.safe_string(result, 'address')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
         }
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1133,6 +1139,8 @@ class deribit(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': None,
             'quoteVolume': self.safe_string(stats, 'volume'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -1693,7 +1701,7 @@ class deribit(Exchange, ImplicitAPI):
         filledString = self.safe_string(order, 'filled_amount')
         amount = self.safe_string(order, 'amount')
         cost = Precise.string_mul(filledString, averageString)
-        if market['inverse']:
+        if self.safe_bool(market, 'inverse'):
             if averageString != '0':
                 cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
@@ -1798,8 +1806,8 @@ class deribit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much you want to trade in units of the base currency. For inverse perpetual and futures the amount is in the quote currency USD. For options it is in the underlying assets base currency.
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float amount: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.trigger]: the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
@@ -1955,8 +1963,8 @@ class deribit(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market to edit an order in
         :param str [type]: 'market' or 'limit'
         :param str [side]: 'buy' or 'sell'
-        :param float amount: how much you want to trade in units of the base currency, inverse swap and future use the quote currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float amount: how much you want to trade in units of the base currency. For perpetual and inverse futures the amount is in USD units. For options it is in the underlying assets base currency.
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.trailingAmount]: the quote amount to trail away from the current market price
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2022,7 +2030,21 @@ class deribit(Exchange, ImplicitAPI):
             market = self.market(symbol)
             request['instrument_name'] = market['id']
             response = await self.privateGetCancelAllByInstrument(self.extend(request, params))
-        return response
+        #
+        #    {
+        #        jsonrpc: '2.0',
+        #        result: '1',
+        #        usIn: '1720508354127369',
+        #        usOut: '1720508354133603',
+        #        usDiff: '6234',
+        #        testnet: True
+        #    }
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -2604,7 +2626,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.deribit.com/#private-get_transfers
@@ -2750,7 +2772,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.deribit.com/#private-withdraw
@@ -2838,7 +2860,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'result', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    async def fetch_funding_rate(self, symbol: str, params={}):
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
         :see: https://docs.deribit.com/#public-get_funding_rate_value
@@ -2918,7 +2940,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -2958,6 +2980,7 @@ class deribit(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': '8h',
         }
 
     async def fetch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):

@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.upbit import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,6 +51,7 @@ class upbit(Exchange, ImplicitAPI):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -134,6 +135,9 @@ class upbit(Exchange, ImplicitAPI):
                         'orders/chance',
                         'order',
                         'orders',
+                        'orders/closed',
+                        'orders/open',
+                        'orders/uuids',
                         'withdraws',
                         'withdraw',
                         'withdraws/chance',
@@ -997,7 +1001,7 @@ class upbit(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: for market buy orders, the quote quantity that can be used alternative for the amount
         :param str [params.timeInForce]: 'IOC' or 'FOK'
@@ -1392,6 +1396,28 @@ class upbit(Exchange, ImplicitAPI):
         #         ],
         #     }
         #
+        # fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #         "side": "ask",
+        #         "ord_type": "limit",
+        #         "price": "1.5",
+        #         "state": "wait",
+        #         "market": "SGD-XRP",
+        #         "created_at": "2024-06-05T09:37:10Z",
+        #         "volume": "10",
+        #         "remaining_volume": "10",
+        #         "reserved_fee": "0",
+        #         "remaining_fee": "0",
+        #         "paid_fee": "0",
+        #         "locked": "10",
+        #         "executed_volume": "0",
+        #         "executed_funds": "0",
+        #         "trades_count": 0,
+        #         "time_in_force": "ioc"
+        #     }
+        #
         id = self.safe_string(order, 'uuid')
         side = self.safe_string(order, 'side')
         if side == 'bid':
@@ -1453,7 +1479,7 @@ class upbit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
+            'timeInForce': self.safe_string_upper(order, 'time_in_force'),
             'postOnly': None,
             'side': side,
             'price': price,
@@ -1469,77 +1495,149 @@ class upbit(Exchange, ImplicitAPI):
             'trades': trades,
         })
 
-    def fetch_orders_by_state(self, state, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all unfilled currently open orders
+        :see: https://global-docs.upbit.com/reference/open-order
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.state]: default is 'wait', set to 'watch' for stop limit orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetOrdersOpen(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
+        #             "ord_type": "limit",
+        #             "price": "1.5",
+        #             "state": "wait",
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market, since, limit)
+
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetches information on multiple closed orders made by the user
+        :see: https://global-docs.upbit.com/reference/closed-order
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         request: dict = {
-            # 'market': self.market_id(symbol),
-            'state': state,
-            # 'page': 1,
-            # 'order_by': 'asc',
+            'state': 'done',
         }
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['market'] = market['id']
-        response = self.privateGetOrders(self.extend(request, params))
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('end_time', request, params)
+        response = self.privateGetOrdersClosed(self.extend(request, params))
         #
         #     [
         #         {
-        #             "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
-        #             "side": "bid",
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
         #             "ord_type": "limit",
-        #             "price": "17417000.0",
+        #             "price": "1.5",
         #             "state": "done",
-        #             "market": "KRW-BTC",
-        #             "created_at": "2018-04-05T14:09:14+09:00",
-        #             "volume": "1.0",
-        #             "remaining_volume": "0.0",
-        #             "reserved_fee": "26125.5",
-        #             "remaining_fee": "25974.0",
-        #             "paid_fee": "151.5",
-        #             "locked": "17341974.0",
-        #             "executed_volume": "1.0",
-        #             "trades_count":2
-        #         },
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0,
+        #             "time_in_force": "ioc"
+        #         }
         #     ]
         #
         return self.parse_orders(response, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-        fetch all unfilled currently open orders
-        :param str symbol: unified market symbol
-        :param int [since]: the earliest time in ms to fetch open orders for
-        :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        return self.fetch_orders_by_state('wait', symbol, since, limit, params)
-
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
-        fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        return self.fetch_orders_by_state('done', symbol, since, limit, params)
-
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
         fetches information on multiple canceled orders made by the user
+        :see: https://global-docs.upbit.com/reference/closed-order
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest order
         :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        return self.fetch_orders_by_state('cancel', symbol, since, limit, params)
+        self.load_markets()
+        request: dict = {
+            'state': 'cancel',
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['market'] = market['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        request, params = self.handle_until_option('end_time', request, params)
+        response = self.privateGetOrdersClosed(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "uuid": "637fd66-d019-4d77-bee6-8e0cff28edd9",
+        #             "side": "ask",
+        #             "ord_type": "limit",
+        #             "price": "1.5",
+        #             "state": "cancel",
+        #             "market": "SGD-XRP",
+        #             "created_at": "2024-06-05T09:37:10Z",
+        #             "volume": "10",
+        #             "remaining_volume": "10",
+        #             "reserved_fee": "0",
+        #             "remaining_fee": "0",
+        #             "paid_fee": "0",
+        #             "locked": "10",
+        #             "executed_volume": "0",
+        #             "executed_funds": "0",
+        #             "trades_count": 0,
+        #             "time_in_force": "ioc"
+        #         }
+        #     ]
+        #
+        return self.parse_orders(response, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1599,7 +1697,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch deposit addresses for multiple currencies and chain types
@@ -1630,7 +1728,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_addresses(response, codes)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #    {
         #        currency: 'XRP',
@@ -1646,14 +1744,14 @@ class upbit(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'net_type')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(networkId),
-            'info': depositAddress,
         }
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         :see: https://docs.upbit.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
         fetch the deposit address for a currency associated with self account
@@ -1717,7 +1815,7 @@ class upbit(Exchange, ImplicitAPI):
             raise AddressPending(self.id + ' is generating ' + code + ' deposit address, call fetchDepositAddress or createDepositAddress one more time later to retrieve the generated address')
         return self.parse_deposit_address(response)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         :see: https://docs.upbit.com/reference/디지털자산-출금하기
         :see: https://docs.upbit.com/reference/%EC%9B%90%ED%99%94-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0
@@ -1793,11 +1891,8 @@ class upbit(Exchange, ImplicitAPI):
             if (method != 'GET') and (method != 'DELETE'):
                 body = self.json(params)
                 headers['Content-Type'] = 'application/json'
-                if hasQuery:
-                    auth = self.urlencode(query)
-            else:
-                if hasQuery:
-                    auth = self.urlencode(self.keysort(query))
+            if hasQuery:
+                auth = self.rawencode(query)
             if auth is not None:
                 hash = self.hash(self.encode(auth), 'sha512')
                 request['query_hash'] = hash

@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -54,10 +55,16 @@ class bitfinex(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,  # Endpoint 'lendbook/{currency}' is related to interest rates on spot margin lending
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -98,7 +105,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
+                'logo': 'https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9',
                 'api': {
                     'v2': 'https://api-pub.bitfinex.com',  # https://github.com/ccxt/ccxt/issues/5109
                     'public': 'https://api.bitfinex.com',
@@ -428,7 +435,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        fees = self.safe_value(response, 'withdraw')
+        fees = self.safe_dict(response, 'withdraw', {})
         ids = list(fees.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -529,7 +536,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        fiat = self.safe_value(self.options, 'fiat', {})
+        fiat = self.safe_dict(self.options, 'fiat', {})
         makerFee = self.safe_number(response, 'maker_fee')
         takerFee = self.safe_number(response, 'taker_fee')
         makerFee2Fiat = self.safe_number(response, 'maker_fee_2fiat')
@@ -565,11 +572,11 @@ class bitfinex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        ids = await self.publicGetSymbols()
+        idsPromise = self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
         #
-        details = await self.publicGetSymbolsDetails()
+        detailsPromise = self.publicGetSymbolsDetails()
         #
         #     [
         #         {
@@ -584,6 +591,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
+        ids, details = await asyncio.gather(*[idsPromise, detailsPromise])
         result = []
         for i in range(0, len(details)):
             market = details[i]
@@ -617,7 +625,7 @@ class bitfinex(Exchange, ImplicitAPI):
                 'settleId': None,
                 'type': type,
                 'spot': (type == 'spot'),
-                'margin': self.safe_value(market, 'margin'),
+                'margin': self.safe_bool(market, 'margin'),
                 'swap': (type == 'swap'),
                 'future': False,
                 'option': False,
@@ -684,7 +692,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
@@ -742,7 +750,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
         await self.load_markets()
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         currency = self.currency(code)
@@ -832,7 +840,7 @@ class bitfinex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -841,7 +849,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = await self.publicGetTickers(params)
         result: dict = {}
         for i in range(0, len(response)):
-            ticker = self.parse_ticker({'result': response[i]})
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
@@ -1049,7 +1057,7 @@ class bitfinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1111,17 +1119,51 @@ class bitfinex(Exchange, ImplicitAPI):
         request: dict = {
             'order_id': int(id),
         }
-        return await self.privatePostOrderCancel(self.extend(request, params))
+        response = await self.privatePostOrderCancel(self.extend(request, params))
+        #
+        #    {
+        #        id: '161236928925',
+        #        cid: '1720172026812',
+        #        cid_date: '2024-07-05',
+        #        gid: null,
+        #        symbol: 'adaust',
+        #        exchange: 'bitfinex',
+        #        price: '0.33',
+        #        avg_execution_price: '0.0',
+        #        side: 'buy',
+        #        type: 'exchange limit',
+        #        timestamp: '1720172026.813',
+        #        is_live: True,
+        #        is_cancelled: False,
+        #        is_hidden: False,
+        #        oco_order: null,
+        #        was_forced: False,
+        #        original_amount: '10.0',
+        #        remaining_amount: '10.0',
+        #        executed_amount: '0.0',
+        #        src: 'api',
+        #        meta: {}
+        #    }
+        #
+        return self.parse_order(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str symbol: not used by bitfinex cancelAllOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from exchange
         """
-        return await self.privatePostOrderCancelAll(params)
+        response = await self.privatePostOrderCancelAll(params)
+        #
+        #    {result: 'Submitting 1 order cancellations.'}
+        #
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1149,8 +1191,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #     }
         #
         side = self.safe_string(order, 'side')
-        open = self.safe_value(order, 'is_live')
-        canceled = self.safe_value(order, 'is_cancelled')
+        open = self.safe_bool(order, 'is_live')
+        canceled = self.safe_bool(order, 'is_cancelled')
         status = None
         if open:
             status = 'open'
@@ -1238,6 +1280,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1325,7 +1368,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return await self.fetch_deposit_address(code, self.extend(request, params))
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-deposit
@@ -1486,7 +1529,7 @@ class bitfinex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal
@@ -1521,8 +1564,8 @@ class bitfinex(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        response = self.safe_value(responses, 0, {})
-        id = self.safe_number(response, 'withdrawal_id')
+        response = self.safe_dict(responses, 0, {})
+        id = self.safe_integer(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
@@ -1560,7 +1603,7 @@ class bitfinex(Exchange, ImplicitAPI):
         return response
 
     def nonce(self):
-        return self.milliseconds()
+        return self.microseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.implode_params(path, params)
@@ -1604,7 +1647,7 @@ class bitfinex(Exchange, ImplicitAPI):
         else:
             # json response with error, i.e:
             # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            responseObject = self.safe_value(response, 0, {})
+            responseObject = self.safe_dict(response, 0, {})
             status = self.safe_string(responseObject, 'status', '')
             if status == 'error':
                 throwError = True

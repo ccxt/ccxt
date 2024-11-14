@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.lykke import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, DepositAddress, IndexType, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -50,6 +50,8 @@ class lykke(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': True,
                 'fetchFundingHistory': False,
@@ -667,9 +669,9 @@ class lykke(Exchange, ImplicitAPI):
             currencyId = self.safe_string(balance, 'assetId')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_string(balance, 'available')
+            total = self.safe_string(balance, 'available')
             used = self.safe_string(balance, 'reserved')
-            account['free'] = free
+            account['total'] = total
             account['used'] = used
             result[code] = account
         return self.safe_balance(result)
@@ -777,7 +779,7 @@ class lykke(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1072,7 +1074,7 @@ class lykke(Exchange, ImplicitAPI):
         amount = Precise.string_abs(self.safe_string(bidask, amountKey))
         return [self.parse_number(price), self.parse_number(amount)]
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://lykkecity.github.io/Trading-API/#get-deposit-address-for-a-given-asset
@@ -1100,11 +1102,11 @@ class lykke(Exchange, ImplicitAPI):
         tag = self.safe_string(response, 'addressExtension')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': tag,
-            'network': None,
-            'info': response,
         }
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -1205,7 +1207,7 @@ class lykke(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_transactions(payload, currency, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://lykkecity.github.io/Trading-API/#withdrawal

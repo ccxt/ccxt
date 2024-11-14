@@ -81,7 +81,7 @@ public partial class htx : Exchange
                 { "fetchLeverageTiers", true },
                 { "fetchLiquidations", true },
                 { "fetchMarginAdjustmentHistory", false },
-                { "fetchMarketLeverageTiers", true },
+                { "fetchMarketLeverageTiers", "emulated" },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
                 { "fetchMyLiquidations", false },
@@ -169,7 +169,7 @@ public partial class htx : Exchange
                 } },
                 { "www", "https://www.huobi.com" },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223" },
+                    { "url", "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223" },
                     { "discount", 0.15 },
                 } },
                 { "doc", new List<object>() {"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"} },
@@ -1125,19 +1125,33 @@ public partial class htx : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "GET", "Themis" },
-                { "GTC", "Game.com" },
-                { "HIT", "HitChain" },
-                { "PNT", "Penta" },
-                { "SBTC", "Super Bitcoin" },
-                { "SOUL", "Soulsaver" },
-                { "BIFI", "Bitcoin File" },
+                { "NGL", "GFNGL" },
+                { "GET", "THEMIS" },
+                { "GTC", "GAMECOM" },
+                { "HIT", "HITCHAIN" },
+                { "PNT", "PENTA" },
+                { "SBTC", "SUPERBITCOIN" },
+                { "SOUL", "SOULSAVER" },
+                { "BIFI", "BITCOINFILE" },
+                { "FUD", "FTX Users Debt" },
             } },
         });
     }
 
     public async override Task<object> fetchStatus(object parameters = null)
     {
+        /**
+        * @method
+        * @name htx#fetchStatus
+        * @description the latest known information on the availability of the exchange API
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-system-status
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-system-status
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -1373,8 +1387,10 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchTime
+        * @name htx#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
@@ -1429,8 +1445,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchTradingFee
+        * @name htx#fetchTradingFee
         * @description fetch the trading fees for a market
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
@@ -1484,6 +1501,15 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchTradingLimitsById(object id, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name htx#fetchTradingLimitsById
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
+        * @param {string} id market id
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} the limits object of a market structure
+        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "symbol", id },
@@ -1546,8 +1572,12 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchMarkets
+        * @name htx#fetchMarkets
         * @description retrieves data on all markets for huobi
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -1587,6 +1617,20 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchMarketsByTypeAndSubType(object type, object subType, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name htx#fetchMarketsByTypeAndSubType
+        * @description retrieves data on all markets of a certain type and/or subtype
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info
+        * @param {string} [type] 'spot', 'swap' or 'future'
+        * @param {string} [subType] 'linear' or 'inverse'
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} an array of objects representing market data
+        */
         parameters ??= new Dictionary<string, object>();
         object isSpot = (isEqual(type, "spot"));
         object request = new Dictionary<string, object>() {};
@@ -2054,8 +2098,12 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchTicker
+        * @name htx#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-aggregated-ticker
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-data-overview
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-data-overview
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2140,7 +2188,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchTickers
+        * @name htx#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
@@ -2270,7 +2318,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name binance#fetchLastPrices
+        * @name htx#fetchLastPrices
         * @description fetches the last price for multiple markets
         * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003 linear swap & linear future
         * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003 inverse future
@@ -2332,8 +2380,12 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOrderBook
+        * @name htx#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-market-depth
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-depth
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2571,8 +2623,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOrderTrades
+        * @name htx#fetchOrderTrades
         * @description fetch all the trades made from a single order
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
         * @param {string} id order id
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2599,6 +2652,19 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchSpotOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        /**
+        * @ignore
+        * @method
+        * @name htx#fetchOrderTrades
+        * @description fetch all the trades made from a single order
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-match-result-of-an-order
+        * @param {string} id order id
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch trades for
+        * @param {int} [limit] the maximum number of trades to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -2612,7 +2678,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchMyTrades
+        * @name htx#fetchMyTrades
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
@@ -2791,7 +2857,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchTrades
+        * @name htx#fetchTrades
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-most-recent-trades
         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-a-batch-of-trade-records-of-a-contract
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-trade-records-of-a-contract
@@ -2899,7 +2965,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOHLCV
+        * @name htx#fetchOHLCV
         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-klines-candles
         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-kline-data
@@ -3085,8 +3151,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchAccounts
+        * @name htx#fetchAccounts
         * @description fetch all the accounts associated with a profile
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
         */
@@ -3129,6 +3196,16 @@ public partial class htx : Exchange
 
     public async virtual Task<object> fetchAccountIdByType(object type, object marginMode = null, object symbol = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name htx#fetchAccountIdByType
+        * @description fetch all the accounts by a type and marginModeassociated with a profile
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
+        * @param {string} type 'spot', 'swap' or 'future
+        * @param {string} [marginMode] 'cross' or 'isolated'
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+        */
         parameters ??= new Dictionary<string, object>();
         object accounts = await this.loadAccounts();
         object accountId = this.safeValue2(parameters, "accountId", "account-id");
@@ -3172,8 +3249,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchCurrencies
+        * @name htx#fetchCurrencies
         * @description fetches all available currencies on an exchange
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#apiv2-currency-amp-chains
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an associative dictionary of currencies
         */
@@ -3231,6 +3309,7 @@ public partial class htx : Exchange
             object instStatus = this.safeString(entry, "instStatus");
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
+            object minDeposit = null;
             object minWithdraw = null;
             object maxWithdraw = null;
             object deposit = false;
@@ -3243,6 +3322,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
                 ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
                 object networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, "minDepositAmt");
                 minWithdraw = this.safeNumber(chainEntry, "minWithdrawAmt");
                 maxWithdraw = this.safeNumber(chainEntry, "maxWithdrawAmt");
                 object withdrawStatus = this.safeString(chainEntry, "withdrawStatus");
@@ -3264,7 +3344,7 @@ public partial class htx : Exchange
                     { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", minDeposit },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
@@ -3349,7 +3429,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchBalance
+        * @name htx#fetchBalance
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
         * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3711,8 +3791,14 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOrder
+        * @name htx#fetchOrder
         * @description fetches information on an order made by the user
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4040,10 +4126,10 @@ public partial class htx : Exchange
             { "status", "0" },
         };
         object response = null;
-        object stop = this.safeValue(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         object trailing = this.safeBool(parameters, "trailing", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
         if (isTrue(isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)) || isTrue(trailing)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -4300,7 +4386,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOrders
+        * @name htx#fetchOrders
         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
@@ -4347,7 +4433,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchClosedOrders
+        * @name htx#fetchClosedOrders
         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
         * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
@@ -4395,7 +4481,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOpenOrders
+        * @name htx#fetchOpenOrders
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
@@ -4437,7 +4523,7 @@ public partial class htx : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
                 {
                     object account = getValue(this.accounts, i);
-                    if (isTrue(isEqual(getValue(account, "type"), "spot")))
+                    if (isTrue(isEqual(this.safeString(account, "type"), "spot")))
                     {
                         accountId = this.safeString(account, "id");
                         if (isTrue(!isEqual(accountId, null)))
@@ -4465,10 +4551,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -5139,18 +5225,11 @@ public partial class htx : Exchange
         object amount = null;
         if (isTrue(isTrue((!isEqual(type, null))) && isTrue((isGreaterThanOrEqual(getIndexOf(type, "market"), 0)))))
         {
-            // for market orders amount is in quote currency, meaning it is the cost
-            if (isTrue(isEqual(side, "sell")))
-            {
-                cost = this.safeString(order, "field-cash-amount");
-            } else
-            {
-                cost = this.safeString(order, "amount");
-            }
+            cost = this.safeString(order, "field-cash-amount");
         } else
         {
             amount = this.safeString2(order, "volume", "amount");
-            cost = this.safeStringN(order, new List<object>() {"filled-cash-amount", "field-cash-amount", "trade_turnover"}); // same typo
+            cost = this.safeStringN(order, new List<object>() {"filled-cash-amount", "field-cash-amount", "trade_turnover"}); // same typo here
         }
         object filled = this.safeStringN(order, new List<object>() {"filled-amount", "field-amount", "trade_volume"}); // typo in their API, filled amount
         object price = this.safeString2(order, "price", "order_price");
@@ -5273,7 +5352,7 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
@@ -5295,19 +5374,19 @@ public partial class htx : Exchange
         object orderType = ((string)type).Replace((string)"buy-", (string)"");
         orderType = ((string)orderType).Replace((string)"sell-", (string)"");
         object options = this.safeValue(this.options, getValue(market, "type"), new Dictionary<string, object>() {});
-        object stopPrice = this.safeString2(parameters, "stopPrice", "stop-price");
-        if (isTrue(isEqual(stopPrice, null)))
+        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price"});
+        if (isTrue(isEqual(triggerPrice, null)))
         {
             object stopOrderTypes = this.safeValue(options, "stopOrderTypes", new Dictionary<string, object>() {});
             if (isTrue(inOp(stopOrderTypes, orderType)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a stopPrice or a stop-price parameter for a stop order")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a triggerPrice for a stop order")) ;
             }
         } else
         {
             object defaultOperator = ((bool) isTrue((isEqual(side, "sell")))) ? "lte" : "gte";
             object stopOperator = this.safeString(parameters, "operator", defaultOperator);
-            ((IDictionary<string,object>)request)["stop-price"] = this.priceToPrecision(symbol, stopPrice);
+            ((IDictionary<string,object>)request)["stop-price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["operator"] = stopOperator;
             if (isTrue(isTrue((isEqual(orderType, "limit"))) || isTrue((isEqual(orderType, "limit-fok")))))
             {
@@ -5397,7 +5476,7 @@ public partial class htx : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop-price", "clientOrderId", "client-order-id", "operator", "timeInForce"});
         return this.extend(request, parameters);
     }
 
@@ -5412,7 +5491,7 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
@@ -5442,16 +5521,16 @@ public partial class htx : Exchange
         {
             type = "ioc";
         }
-        object triggerPrice = this.safeNumber2(parameters, "stopPrice", "trigger_price");
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
         object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
         object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isStop = !isEqual(triggerPrice, null);
+        object isTrigger = !isEqual(triggerPrice, null);
         object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             object triggerType = this.safeString2(parameters, "triggerType", "trigger_type", "le");
             ((IDictionary<string,object>)request)["trigger_type"] = triggerType;
@@ -5514,7 +5593,7 @@ public partial class htx : Exchange
         object broker = this.safeValue(this.options, "broker", new Dictionary<string, object>() {});
         object brokerId = this.safeString(broker, "id");
         ((IDictionary<string,object>)request)["channel_code"] = brokerId;
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice"});
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice"});
         return this.extend(request, parameters);
     }
 
@@ -5522,7 +5601,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#createOrder
+        * @name htx#createOrder
         * @description create a trade order
         * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
@@ -5537,9 +5616,9 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopPrice] the price a trigger order is triggered at
+        * @param {float} [params.triggerPrice] the price a trigger order is triggered at
         * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
         * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
         * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
@@ -5556,12 +5635,12 @@ public partial class htx : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object triggerPrice = this.safeNumber2(parameters, "stopPrice", "trigger_price");
+        object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "trigger_price"});
         object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
         object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         object trailingPercent = this.safeNumber(parameters, "trailingPercent");
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isStop = !isEqual(triggerPrice, null);
+        object isTrigger = !isEqual(triggerPrice, null);
         object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object response = null;
@@ -5585,7 +5664,7 @@ public partial class htx : Exchange
                 marginMode = ((bool) isTrue((isEqual(marginMode, null)))) ? "cross" : marginMode;
                 if (isTrue(isEqual(marginMode, "isolated")))
                 {
-                    if (isTrue(isStop))
+                    if (isTrue(isTrigger))
                     {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest);
                     } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
@@ -5600,7 +5679,7 @@ public partial class htx : Exchange
                     }
                 } else if (isTrue(isEqual(marginMode, "cross")))
                 {
-                    if (isTrue(isStop))
+                    if (isTrue(isTrigger))
                     {
                         response = await this.contractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest);
                     } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
@@ -5623,7 +5702,7 @@ public partial class htx : Exchange
                 }
                 if (isTrue(getValue(market, "swap")))
                 {
-                    if (isTrue(isStop))
+                    if (isTrue(isTrigger))
                     {
                         response = await this.contractPrivatePostSwapApiV1SwapTriggerOrder(contractRequest);
                     } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
@@ -5638,7 +5717,7 @@ public partial class htx : Exchange
                     }
                 } else if (isTrue(getValue(market, "future")))
                 {
-                    if (isTrue(isStop))
+                    if (isTrue(isTrigger))
                     {
                         response = await this.contractPrivatePostApiV1ContractTriggerOrder(contractRequest);
                     } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
@@ -5878,7 +5957,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#cancelOrder
+        * @name htx#cancelOrder
         * @description cancels an open order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
@@ -5936,10 +6015,10 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6045,7 +6124,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#cancelOrders
+        * @name htx#cancelOrders
         * @description cancel multiple orders
         * @param {string[]} ids order ids
         * @param {string} symbol unified market symbol, default is undefined
@@ -6115,9 +6194,9 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6233,14 +6312,78 @@ public partial class htx : Exchange
         //         "ts": 1604367997451
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data");
+        return this.parseCancelOrders(data);
+    }
+
+    public virtual object parseCancelOrders(object orders)
+    {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        object successes = this.safeString(orders, "successes");
+        object success = null;
+        if (isTrue(!isEqual(successes, null)))
+        {
+            success = ((string)successes).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        } else
+        {
+            success = this.safeList(orders, "success", new List<object>() {});
+        }
+        object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object order = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         /**
         * @method
-        * @name huobi#cancelAllOrders
+        * @name htx#cancelAllOrders
         * @description cancel all open orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6269,6 +6412,20 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
         } else
         {
             if (isTrue(isEqual(symbol, null)))
@@ -6280,10 +6437,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6359,38 +6516,26 @@ public partial class htx : Exchange
             {
                 throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), marketType), " markets")) ;
             }
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return this.parseCancelOrders(data);
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 200,
-        //         "data": {
-        //             "success-count": 2,
-        //             "failed-count": 0,
-        //             "next-id": 5454600
-        //         }
-        //     }
-        //
-        // future and swap
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "errors": [],
-        //             "successes": "1104754904426696704"
-        //         },
-        //         "ts": "1683435723755"
-        //     }
-        //
-        return response;
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
         /**
         * @method
-        * @name huobi#cancelAllOrdersAfter
+        * @name htx#cancelAllOrdersAfter
         * @description dead man's switch, cancel all orders after the given timeout
         * @see https://huobiapi.github.io/docs/spot/v1/en/#dead-man-s-switch
         * @param {number} timeout time in milliseconds, 0 represents cancel the timer
@@ -6448,7 +6593,8 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchDepositAddressesByNetwork
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
+        * @name htx#fetchDepositAddressesByNetwork
         * @description fetch a dictionary of addresses for a currency, indexed by network
         * @param {string} code unified currency code of the currency for the deposit address
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6483,8 +6629,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchDepositAddress
+        * @name htx#fetchDepositAddress
         * @description fetch the deposit address for a currency associated with this account
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         * @param {string} code unified currency code
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -6543,7 +6690,8 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchDeposits
+        * @name htx#fetchDeposits
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
         * @description fetch all deposits made to an account
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -6609,8 +6757,9 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchWithdrawals
+        * @name htx#fetchWithdrawals
         * @description fetch all withdrawals made from an account
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#search-for-existed-withdraws-and-deposits
         * @param {string} code unified currency code
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -6795,7 +6944,8 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#withdraw
+        * @name htx#withdraw
+        * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
         * @description make a withdrawal
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
@@ -6892,7 +7042,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#transfer
+        * @name htx#transfer
         * @description transfer currency internally between wallets on the same account
         * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
@@ -7000,6 +7150,7 @@ public partial class htx : Exchange
         * @method
         * @name htx#fetchIsolatedBorrowRates
         * @description fetch the borrow interest rates of all currencies
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
         */
@@ -7088,7 +7239,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchFundingRateHistory
+        * @name htx#fetchFundingRateHistory
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
         * @description fetches historical funding rate prices
@@ -7193,6 +7344,9 @@ public partial class htx : Exchange
         object nextFundingRate = this.safeNumber(contract, "estimated_rate");
         object fundingTimestamp = this.safeInteger(contract, "funding_time");
         object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object marketId = this.safeString(contract, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
@@ -7213,15 +7367,30 @@ public partial class htx : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         /**
         * @method
-        * @name huobi#fetchFundingRate
+        * @name htx#fetchFundingRate
         * @description fetch the current funding rate
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -7266,11 +7435,13 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchFundingRates
+        * @name htx#fetchFundingRates
         * @description fetch the funding rate for multiple markets
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7319,8 +7490,10 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchBorrowInterest
+        * @name htx#fetchBorrowInterest
         * @description fetch the interest owed by the user for borrowing currency for margin trading
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-cross
+        * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-margin-orders-isolated
         * @param {string} code unified currency code
         * @param {string} symbol unified market symbol when fetch interest in isolated markets
         * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -7439,16 +7612,15 @@ public partial class htx : Exchange
         object symbol = this.safeString(market, "symbol");
         object timestamp = this.safeInteger(info, "accrued-at");
         return new Dictionary<string, object>() {
-            { "account", ((bool) isTrue((isEqual(marginMode, "isolated")))) ? symbol : "cross" },
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", marginMode },
             { "currency", this.safeCurrencyCode(this.safeString(info, "currency")) },
             { "interest", this.safeNumber(info, "interest-amount") },
             { "interestRate", this.safeNumber(info, "interest-rate") },
             { "amountBorrowed", this.safeNumber(info, "loan-amount") },
+            { "marginMode", marginMode },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 
@@ -7652,7 +7824,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchFundingHistory
+        * @name htx#fetchFundingHistory
         * @description fetch the history of funding payments paid and received on this account
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
@@ -7754,8 +7926,12 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#setLeverage
+        * @name htx#setLeverage
         * @description set the level of leverage for a market
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7918,7 +8094,7 @@ public partial class htx : Exchange
             { "entryPrice", entryPrice },
             { "collateral", this.parseNumber(collateral) },
             { "side", side },
-            { "unrealizedProfit", unrealizedProfit },
+            { "unrealizedPnl", unrealizedProfit },
             { "leverage", this.parseNumber(leverage) },
             { "percentage", this.parseNumber(percentage) },
             { "marginMode", marginMode },
@@ -7944,9 +8120,13 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchPositions
+        * @name htx#fetchPositions
         * @description fetch all open positions
-        * @param {string[]|undefined} symbols list of unified market symbols
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
+        * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] 'linear' or 'inverse'
         * @param {string} [params.type] *inverse only* 'future', or 'swap'
@@ -8027,8 +8207,12 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchPosition
+        * @name htx#fetchPosition
         * @description fetch data on a single open contract trade position
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
@@ -8152,48 +8336,45 @@ public partial class htx : Exchange
         //         "transferee": 13496526
         //     }
         //
-        object id = this.safeString(item, "transactId");
         object currencyId = this.safeString(item, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object amount = this.safeNumber(item, "transactAmt");
+        currency = this.safeCurrency(currencyId, currency);
+        object id = this.safeString(item, "transactId");
         object transferType = this.safeString(item, "transferType");
-        object type = this.parseLedgerEntryType(transferType);
-        object direction = this.safeString(item, "direction");
         object timestamp = this.safeInteger(item, "transactTime");
-        object datetime = this.iso8601(timestamp);
         object account = this.safeString(item, "accountId");
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", id },
-            { "direction", direction },
+            { "direction", this.safeString(item, "direction") },
             { "account", account },
             { "referenceId", id },
             { "referenceAccount", account },
-            { "type", type },
+            { "type", this.parseLedgerEntryType(transferType) },
             { "currency", code },
-            { "amount", amount },
+            { "amount", this.safeNumber(item, "transactAmt") },
             { "timestamp", timestamp },
-            { "datetime", datetime },
+            { "datetime", this.iso8601(timestamp) },
             { "before", null },
             { "after", null },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
-        * @name huobi#fetchLedger
+        * @name htx#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-history
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -8268,7 +8449,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchLeverageTiers
+        * @name htx#fetchLeverageTiers
         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8306,111 +8487,45 @@ public partial class htx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeList(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseLeverageTiers(data, symbols, "contract_code");
     }
 
-    public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
+    public override object parseMarketLeverageTiers(object info, object market = null)
     {
-        /**
-        * @method
-        * @name huobi#fetchMarketLeverageTiers
-        * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(symbol, null)))
+        object currencyId = this.safeString(info, "trade_partition");
+        object marketId = this.safeString(info, "contract_code");
+        object tiers = new List<object>() {};
+        object brackets = this.safeList(info, "list", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
-            object market = this.market(symbol);
-            if (!isTrue(getValue(market, "contract")))
+            object item = getValue(brackets, i);
+            object leverage = this.safeString(item, "lever_rate");
+            object ladders = this.safeList(item, "ladders", new List<object>() {});
+            for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
             {
-                throw new BadRequest ((string)add(this.id, " fetchMarketLeverageTiers() symbol supports contract markets only")) ;
-            }
-            ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-        }
-        object response = await this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(this.extend(request, parameters));
-        //
-        //    {
-        //        "status": "ok",
-        //        "data": [
-        //            {
-        //                "symbol": "MANA",
-        //                "contract_code": "MANA-USDT",
-        //                "margin_mode": "isolated",
-        //                "trade_partition": "USDT",
-        //                "list": [
-        //                    {
-        //                        "lever_rate": 75,
-        //                        "ladders": [
-        //                            {
-        //                                "ladder": 0,
-        //                                "min_size": 0,
-        //                                "max_size": 999,
-        //                                "adjust_factor": 0.7
-        //                            },
-        //                            ...
-        //                        ]
-        //                    }
-        //                    ...
-        //                ]
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        object data = this.safeValue(response, "data");
-        object tiers = this.parseLeverageTiers(data, new List<object>() {symbol}, "contract_code");
-        return this.safeValue(tiers, symbol);
-    }
-
-    public override object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
-    {
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object item = getValue(response, i);
-            object list = this.safeValue(item, "list", new List<object>() {});
-            object tiers = new List<object>() {};
-            object currency = this.safeString(item, "trade_partition");
-            object id = this.safeString(item, marketIdKey);
-            object symbol = this.safeSymbol(id);
-            if (isTrue(this.inArray(symbol, symbols)))
-            {
-                for (object j = 0; isLessThan(j, getArrayLength(list)); postFixIncrement(ref j))
-                {
-                    object obj = getValue(list, j);
-                    object leverage = this.safeString(obj, "lever_rate");
-                    object ladders = this.safeValue(obj, "ladders", new List<object>() {});
-                    for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
-                    {
-                        object bracket = getValue(ladders, k);
-                        object adjustFactor = this.safeString(bracket, "adjust_factor");
-                        ((IList<object>)tiers).Add(new Dictionary<string, object>() {
-                            { "tier", this.safeInteger(bracket, "ladder") },
-                            { "currency", this.safeCurrencyCode(currency) },
-                            { "minNotional", this.safeNumber(bracket, "min_size") },
-                            { "maxNotional", this.safeNumber(bracket, "max_size") },
-                            { "maintenanceMarginRate", this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) },
-                            { "maxLeverage", this.parseNumber(leverage) },
-                            { "info", bracket },
-                        });
-                    }
-                }
-                ((IDictionary<string,object>)result)[(string)symbol] = tiers;
+                object bracket = getValue(ladders, k);
+                object adjustFactor = this.safeString(bracket, "adjust_factor");
+                ((IList<object>)tiers).Add(new Dictionary<string, object>() {
+                    { "tier", this.safeInteger(bracket, "ladder") },
+                    { "symbol", this.safeSymbol(marketId, market, null, "swap") },
+                    { "currency", this.safeCurrencyCode(currencyId) },
+                    { "minNotional", this.safeNumber(bracket, "min_size") },
+                    { "maxNotional", this.safeNumber(bracket, "max_size") },
+                    { "maintenanceMarginRate", this.parseNumber(Precise.stringDiv(adjustFactor, leverage)) },
+                    { "maxLeverage", this.parseNumber(leverage) },
+                    { "info", bracket },
+                });
             }
         }
-        return result;
+        return tiers;
     }
 
     public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
-        * @name huobi#fetchOpenInterestHistory
+        * @name htx#fetchOpenInterestHistory
         * @description Retrieves the open interest history of a currency
         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
@@ -8536,7 +8651,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchOpenInterest
+        * @name htx#fetchOpenInterest
         * @description Retrieves the open interest of a currency
         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
@@ -8718,7 +8833,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#borrowIsolatedMargin
+        * @name htx#borrowIsolatedMargin
         * @description create a loan to borrow margin
         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8756,7 +8871,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#borrowCrossMargin
+        * @name htx#borrowCrossMargin
         * @description create a loan to borrow margin
         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-isolated
         * @see https://huobiapi.github.io/docs/spot/v1/en/#request-a-margin-loan-cross
@@ -8791,7 +8906,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#repayIsolatedMargin
+        * @name htx#repayIsolatedMargin
         * @description repay borrowed margin and interest
         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         * @param {string} code unified currency code of the currency to repay
@@ -8834,7 +8949,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#repayCrossMargin
+        * @name htx#repayCrossMargin
         * @description repay borrowed margin and interest
         * @see https://huobiapi.github.io/docs/spot/v1/en/#repay-margin-loan-cross-isolated
         * @param {string} code unified currency code of the currency to repay
@@ -8910,8 +9025,11 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchSettlementHistory
+        * @name htx#fetchSettlementHistory
         * @description Fetches historical settlement records
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
         * @param {string} symbol unified symbol of the market to fetch the settlement history for
         * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
         * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -9025,7 +9143,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchDepositWithdrawFees
+        * @name htx#fetchDepositWithdrawFees
         * @description fetch deposit and withdraw fees
         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
         * @param {string[]|undefined} codes list of unified currency codes
@@ -9249,7 +9367,7 @@ public partial class htx : Exchange
     {
         /**
         * @method
-        * @name huobi#fetchLiquidations
+        * @name htx#fetchLiquidations
         * @description retrieves the public liquidations of a trading pair
         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new

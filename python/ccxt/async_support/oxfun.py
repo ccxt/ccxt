@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.oxfun import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -77,14 +77,14 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposit': False,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -94,7 +94,7 @@ class oxfun(Exchange, ImplicitAPI):
                 'fetchLedger': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -859,6 +859,7 @@ class oxfun(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string(ticker, 'currencyVolume24h'),
             'quoteVolume': None,  # the exchange returns cost in OX
+            'markPrice': self.safe_string(ticker, 'markPrice'),
             'info': ticker,
         }, market)
 
@@ -988,10 +989,10 @@ class oxfun(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'lastUpdatedAt')
         return self.parse_order_book(data, market['symbol'], timestamp)
 
-    async def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
+        fetch the current funding rates for multiple markets
         :see: https://docs.ox.fun/?json#get-v3-funding-estimates
-        fetch the current funding rates
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1021,14 +1022,13 @@ class oxfun(Exchange, ImplicitAPI):
         result = self.parse_funding_rates(data)
         return self.filter_by_array(result, 'symbol', symbols)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None):
+    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
         #
         #     {
         #         "marketCode": "OX-USD-SWAP-LIN",
         #         "fundingAt": "1715515200000",
         #         "estFundingRate": "0.000200000"
-        #     },
-        #
+        #     }
         #
         symbol = self.safe_string(fundingRate, 'marketCode')
         market = self.market(symbol)
@@ -1051,6 +1051,7 @@ class oxfun(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1212,7 +1213,7 @@ class oxfun(Exchange, ImplicitAPI):
             'rate': rate,
         }
 
-    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}):
+    async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for self market
         :see: https://docs.ox.fun/?json#get-v3-leverage-tiers
@@ -1266,7 +1267,7 @@ class oxfun(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'marketCode')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None):
+    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         marketCode: 'SOL-USD-SWAP-LIN',
@@ -1291,6 +1292,7 @@ class oxfun(Exchange, ImplicitAPI):
             tier = listOfTiers[j]
             tiers.append({
                 'tier': self.safe_number(tier, 'tier'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': self.safe_number(tier, 'positionFloor'),
                 'maxNotional': self.safe_number(tier, 'positionCap'),
@@ -1709,7 +1711,7 @@ class oxfun(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://docs.ox.fun/?json#get-v3-deposit-addresses
@@ -1736,18 +1738,18 @@ class oxfun(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         #
         #     {"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}
         #
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': depositAddress,
         }
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1966,10 +1968,10 @@ class oxfun(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.bitflex.com/spot#withdraw
+        :see: https://docs.ox.fun/?json#post-v3-withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2141,7 +2143,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: a unique id for the order
         :param int [params.timestamp]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -2327,7 +2329,7 @@ class oxfun(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: a unique id for the order
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders

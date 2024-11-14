@@ -359,12 +359,7 @@ class timex extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $result[] = $this->parse_currency($currency);
-            }
-            return $this->index_by($result, 'code');
+            return $this->parse_currencies($response);
         }) ();
     }
 
@@ -764,7 +759,7 @@ class timex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
              */
@@ -896,14 +891,15 @@ class timex extends Exchange {
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            return Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            return $this->safe_dict($orders, 0);
         }) ();
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
-             * cancel multiple orders
+             * cancel multiple $orders
              * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
@@ -939,7 +935,22 @@ class timex extends Exchange {
             //         ),
             //         "unchangedOrders" => array( "string" ),
             //     }
-            return $response;
+            //
+            $changedOrders = $this->safe_list($response, 'changedOrders', array());
+            $unchangedOrders = $this->safe_list($response, 'unchangedOrders', array());
+            $orders = array();
+            for ($i = 0; $i < count($changedOrders); $i++) {
+                $newOrder = $this->safe_dict($changedOrders[$i], 'newOrder');
+                $orders[] = $this->parse_order($newOrder);
+            }
+            for ($i = 0; $i < count($unchangedOrders); $i++) {
+                $orders[] = $this->safe_order(array(
+                    'info' => $unchangedOrders[$i],
+                    'id' => $unchangedOrders[$i],
+                    'status' => 'unchanged',
+                ));
+            }
+            return $orders;
         }) ();
     }
 
@@ -1308,7 +1319,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1372,7 +1383,7 @@ class timex extends Exchange {
                 $fee = $this->parse_number($fraction . $feeString);
             }
         }
-        return array(
+        return $this->safe_currency_structure(array(
             'id' => $code,
             'code' => $code,
             'info' => $currency,
@@ -1388,7 +1399,7 @@ class timex extends Exchange {
                 'amount' => array( 'min' => null, 'max' => null ),
             ),
             'networks' => array(),
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1593,7 +1604,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account, does not accept $params["network"]
@@ -1630,7 +1641,7 @@ class timex extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        symbol => 'BTC',
@@ -1649,9 +1660,9 @@ class timex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code($currencyId, $currency),
+            'network' => null,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => null,
-            'network' => null,
         );
     }
 

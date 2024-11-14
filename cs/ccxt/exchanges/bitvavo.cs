@@ -40,6 +40,8 @@ public partial class bitvavo : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
@@ -100,7 +102,7 @@ public partial class bitvavo : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bitvavo.com" },
                     { "private", "https://api.bitvavo.com" },
@@ -244,6 +246,7 @@ public partial class bitvavo : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "BITVAVO-ACCESS-WINDOW", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
@@ -255,11 +258,6 @@ public partial class bitvavo : Exchange
                 { "MIOTA", "IOTA" },
             } },
         });
-    }
-
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        return this.decimalToPrecision(fee, 0, getValue(getValue(this.currencies, code), "precision"), DECIMAL_PLACES);
     }
 
     public override object amountToPrecision(object symbol, object amount)
@@ -443,10 +441,10 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
 
-    public virtual object parseCurrencies(object currencies)
+    public virtual object parseCurrenciesCustom(object currencies)
     {
         //
         //     [
@@ -1087,11 +1085,11 @@ public partial class bitvavo : Exchange
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -1170,6 +1168,11 @@ public partial class bitvavo : Exchange
         {
             ((IDictionary<string,object>)request)["postOnly"] = true;
         }
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["clientOrderId"] = this.uuid22();
+        }
         return this.extend(request, parameters);
     }
 
@@ -1184,7 +1187,7 @@ public partial class bitvavo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1297,7 +1300,7 @@ public partial class bitvavo : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} [amount] how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the bitvavo api endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1392,6 +1395,7 @@ public partial class bitvavo : Exchange
         * @name bitvavo#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

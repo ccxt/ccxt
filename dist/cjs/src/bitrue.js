@@ -52,7 +52,10 @@ class bitrue extends bitrue$1 {
                 'fetchDepositsWithdrawals': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchMarginMode': false,
@@ -92,7 +95,7 @@ class bitrue extends bitrue$1 {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
+                'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
                     'spot': 'https://www.bitrue.com/api',
                     'fapi': 'https://fapi.bitrue.com/fapi',
@@ -324,6 +327,7 @@ class bitrue extends bitrue$1 {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',
                 'hasAlreadyAuthenticatedSuccessfully': false,
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
@@ -335,6 +339,67 @@ class bitrue extends bitrue$1 {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
+                    'AETERNITY': 'Aeternity',
+                    'AION': 'AION',
+                    'ALGO': 'Algorand',
+                    'ASK': 'ASK',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAX C-Chain',
+                    'BCH': 'BCH',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20',
+                    'Bitcoin': 'Bitcoin',
+                    'BRP20': 'BRP20',
+                    'ADA': 'Cardano',
+                    'CASINOCOIN': 'CasinoCoin',
+                    'CASINOCOIN-XRPL': 'CasinoCoin XRPL',
+                    'CONTENTOS': 'Contentos',
+                    'DASH': 'Dash',
+                    'DECOIN': 'Decoin',
+                    'DFI': 'DeFiChain',
+                    'DGB': 'DGB',
+                    'DIVI': 'Divi',
+                    'DOGE': 'dogecoin',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FILECOIN': 'Filecoin',
+                    'FREETON': 'FREETON',
+                    'HBAR': 'HBAR',
+                    'HEDERA': 'Hedera Hashgraph',
+                    'HRC20': 'HRC20',
+                    'ICON': 'ICON',
+                    'ICP': 'ICP',
+                    'IGNIS': 'Ignis',
+                    'INTERNETCOMPUTER': 'Internet Computer',
+                    'IOTA': 'IOTA',
+                    'KAVA': 'KAVA',
+                    'KSM': 'KSM',
+                    'LTC': 'LiteCoin',
+                    'LUNA': 'Luna',
+                    'MATIC': 'MATIC',
+                    'MOBILECOIN': 'Mobile Coin',
+                    'MONACOIN': 'MonaCoin',
+                    'XMR': 'Monero',
+                    'NEM': 'NEM',
+                    'NEP5': 'NEP5',
+                    'OMNI': 'OMNI',
+                    'PAC': 'PAC',
+                    'DOT': 'Polkadot',
+                    'RAVEN': 'Ravencoin',
+                    'SAFEX': 'Safex',
+                    'SOL': 'SOLANA',
+                    'SGB': 'Songbird',
+                    'XML': 'Stellar Lumens',
+                    'XYM': 'Symbol',
+                    'XTZ': 'Tezos',
+                    'theta': 'theta',
+                    'THETA': 'THETA',
+                    'VECHAIN': 'VeChain',
+                    'WANCHAIN': 'Wanchain',
+                    'XINFIN': 'XinFin Network',
+                    'XRP': 'XRP',
+                    'XRPL': 'XRPL',
+                    'ZIL': 'ZIL',
                 },
                 'defaultType': 'spot',
                 'timeframes': {
@@ -452,15 +517,6 @@ class bitrue extends bitrue$1 {
             },
         });
     }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue(this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision(fee, number.TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
-        }
-        else {
-            return this.numberToString(fee);
-        }
-    }
     nonce() {
         return this.milliseconds() - this.options['timeDifference'];
     }
@@ -506,77 +562,6 @@ class bitrue extends bitrue$1 {
         //     }
         //
         return this.safeInteger(response, 'serverTime');
-    }
-    safeNetwork(networkId) {
-        const uppercaseNetworkId = networkId.toUpperCase();
-        const networksById = {
-            'Aeternity': 'Aeternity',
-            'AION': 'AION',
-            'Algorand': 'Algorand',
-            'ASK': 'ASK',
-            'ATOM': 'ATOM',
-            'AVAX C-Chain': 'AVAX C-Chain',
-            'bch': 'bch',
-            'BCH': 'BCH',
-            'BEP2': 'BEP2',
-            'BEP20': 'BEP20',
-            'Bitcoin': 'Bitcoin',
-            'BRP20': 'BRP20',
-            'Cardano': 'ADA',
-            'CasinoCoin': 'CasinoCoin',
-            'CasinoCoin XRPL': 'CasinoCoin XRPL',
-            'Contentos': 'Contentos',
-            'Dash': 'Dash',
-            'Decoin': 'Decoin',
-            'DeFiChain': 'DeFiChain',
-            'DGB': 'DGB',
-            'Divi': 'Divi',
-            'dogecoin': 'DOGE',
-            'EOS': 'EOS',
-            'ERC20': 'ERC20',
-            'ETC': 'ETC',
-            'Filecoin': 'Filecoin',
-            'FREETON': 'FREETON',
-            'HBAR': 'HBAR',
-            'Hedera Hashgraph': 'Hedera Hashgraph',
-            'HRC20': 'HRC20',
-            'ICON': 'ICON',
-            'ICP': 'ICP',
-            'Ignis': 'Ignis',
-            'Internet Computer': 'Internet Computer',
-            'IOTA': 'IOTA',
-            'KAVA': 'KAVA',
-            'KSM': 'KSM',
-            'LiteCoin': 'LiteCoin',
-            'Luna': 'Luna',
-            'MATIC': 'MATIC',
-            'Mobile Coin': 'Mobile Coin',
-            'MonaCoin': 'MonaCoin',
-            'Monero': 'Monero',
-            'NEM': 'NEM',
-            'NEP5': 'NEP5',
-            'OMNI': 'OMNI',
-            'PAC': 'PAC',
-            'Polkadot': 'Polkadot',
-            'Ravencoin': 'Ravencoin',
-            'Safex': 'Safex',
-            'SOLANA': 'SOL',
-            'Songbird': 'Songbird',
-            'Stellar Lumens': 'Stellar Lumens',
-            'Symbol': 'Symbol',
-            'Tezos': 'XTZ',
-            'theta': 'theta',
-            'THETA': 'THETA',
-            'TRC20': 'TRC20',
-            'VeChain': 'VeChain',
-            'VECHAIN': 'VECHAIN',
-            'Wanchain': 'Wanchain',
-            'XinFin Network': 'XinFin Network',
-            'XRP': 'XRP',
-            'XRPL': 'XRPL',
-            'ZIL': 'ZIL',
-        };
-        return this.safeString2(networksById, networkId, uppercaseNetworkId, networkId);
     }
     async fetchCurrencies(params = {}) {
         /**
@@ -634,7 +619,7 @@ class bitrue extends bitrue$1 {
         //     }
         //
         const result = {};
-        const coins = this.safeValue(response, 'coins', []);
+        const coins = this.safeList(response, 'coins', []);
         for (let i = 0; i < coins.length; i++) {
             const currency = coins[i];
             const id = this.safeString(currency, 'coin');
@@ -645,15 +630,15 @@ class bitrue extends bitrue$1 {
             let minWithdrawString = undefined;
             let maxWithdrawString = undefined;
             let minWithdrawFeeString = undefined;
-            const networkDetails = this.safeValue(currency, 'chainDetail', []);
+            const networkDetails = this.safeList(currency, 'chainDetail', []);
             const networks = {};
             for (let j = 0; j < networkDetails.length; j++) {
                 const entry = networkDetails[j];
                 const networkId = this.safeString(entry, 'chain');
                 const network = this.networkIdToCode(networkId, code);
-                const enableDeposit = this.safeValue(entry, 'enableDeposit');
+                const enableDeposit = this.safeBool(entry, 'enableDeposit');
                 deposit = (enableDeposit) ? enableDeposit : deposit;
-                const enableWithdraw = this.safeValue(entry, 'enableWithdraw');
+                const enableWithdraw = this.safeBool(entry, 'enableWithdraw');
                 withdraw = (enableWithdraw) ? enableWithdraw : withdraw;
                 const networkWithdrawFeeString = this.safeString(entry, 'withdrawFee');
                 if (networkWithdrawFeeString !== undefined) {
@@ -848,11 +833,11 @@ class bitrue extends bitrue$1 {
         if (settle !== undefined) {
             symbol += ':' + settle;
         }
-        const filters = this.safeValue(market, 'filters', []);
+        const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
-        const priceFilter = this.safeValue(filtersByType, 'PRICE_FILTER', {});
-        const amountFilter = this.safeValue(filtersByType, 'LOT_SIZE', {});
+        const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
         const defaultAmountPrecision = this.safeString(market, 'quantityPrecision');
         const pricePrecision = this.safeString(priceFilter, 'priceScale', defaultPricePrecision);
@@ -1005,7 +990,7 @@ class bitrue extends bitrue$1 {
         if (type === 'swap') {
             if (subType !== undefined && subType === 'inverse') {
                 response = await this.dapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 // {
                 //         "code":"0",
@@ -1039,7 +1024,7 @@ class bitrue extends bitrue$1 {
             }
             else {
                 response = await this.fapiV2PrivateGetAccount(params);
-                result = this.safeValue(response, 'data', {});
+                result = this.safeDict(response, 'data', {});
                 //
                 //     {
                 //         "code":"0",
@@ -1275,7 +1260,7 @@ class bitrue extends bitrue$1 {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = this.safeValue(response, 0, {});
+            data = this.safeDict(response, 0, {});
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTicker only support spot & swap markets');
@@ -1337,11 +1322,11 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const timeframes = this.safeValue(this.options, 'timeframes', {});
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
         let response = undefined;
         let data = undefined;
         if (market['swap']) {
-            const timeframesFuture = this.safeValue(timeframes, 'future', {});
+            const timeframesFuture = this.safeDict(timeframes, 'future', {});
             const request = {
                 'contractName': market['id'],
                 // 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1359,7 +1344,7 @@ class bitrue extends bitrue$1 {
             data = response;
         }
         else if (market['spot']) {
-            const timeframesSpot = this.safeValue(timeframes, 'spot', {});
+            const timeframesSpot = this.safeDict(timeframes, 'spot', {});
             const request = {
                 'symbol': market['id'],
                 // 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1372,7 +1357,7 @@ class bitrue extends bitrue$1 {
                 request['fromIdx'] = since;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, params));
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchOHLCV only support spot & swap markets');
@@ -1597,7 +1582,7 @@ class bitrue extends bitrue$1 {
         // https://github.com/ccxt/ccxt/issues/13856
         const tickers = {};
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeValue(data, i, {});
+            const ticker = this.safeDict(data, i, {});
             const market = this.market(this.safeValue(ticker, 'symbol'));
             tickers[market['id']] = ticker;
         }
@@ -1660,8 +1645,8 @@ class bitrue extends bitrue$1 {
         const orderId = this.safeString(trade, 'orderId');
         const id = this.safeString2(trade, 'id', 'tradeId');
         let side = undefined;
-        const buyerMaker = this.safeValue(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
-        const isBuyer = this.safeValue(trade, 'isBuyer');
+        const buyerMaker = this.safeBool(trade, 'isBuyerMaker'); // ignore "m" until Bitrue fixes api
+        const isBuyer = this.safeBool(trade, 'isBuyer');
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy';
         }
@@ -1676,7 +1661,7 @@ class bitrue extends bitrue$1 {
             };
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeValue(trade, 'isMaker');
+        const isMaker = this.safeBool(trade, 'isMaker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1841,7 +1826,7 @@ class bitrue extends bitrue$1 {
         const id = this.safeString(order, 'orderId');
         let type = this.safeStringLower(order, 'type');
         const side = this.safeStringLower(order, 'side');
-        const fills = this.safeValue(order, 'fills', []);
+        const fills = this.safeList(order, 'fills', []);
         const clientOrderId = this.safeString(order, 'clientOrderId');
         const timeInForce = this.safeString(order, 'timeInForce');
         const postOnly = (type === 'limit_maker') || (timeInForce === 'GTX') || (type === 'post_only');
@@ -1907,7 +1892,7 @@ class bitrue extends bitrue$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -1988,7 +1973,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2044,6 +2029,7 @@ class bitrue extends bitrue$1 {
          * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
          * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2077,7 +2063,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['orderId'] = id; // spot market id is mandatory
@@ -2221,7 +2207,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2321,7 +2307,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', {});
+            data = this.safeDict(response, 'data', {});
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2379,7 +2365,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else {
             throw new errors.NotSupported(this.id + ' cancelAllOrders only support future markets');
@@ -2434,7 +2420,7 @@ class bitrue extends bitrue$1 {
             else if (market['inverse']) {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, params));
             }
-            data = this.safeValue(response, 'data', []);
+            data = this.safeList(response, 'data', []);
         }
         else if (market['spot']) {
             request['symbol'] = market['id'];
@@ -2634,7 +2620,7 @@ class bitrue extends bitrue$1 {
                 '6': 'canceled',
             },
         };
-        const statuses = this.safeValue(statusesByType, type, {});
+        const statuses = this.safeDict(statusesByType, type, {});
         return this.safeString(statuses, status, status);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -2825,7 +2811,7 @@ class bitrue extends bitrue$1 {
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        const chainDetails = this.safeValue(fee, 'chainDetail', []);
+        const chainDetails = this.safeList(fee, 'chainDetail', []);
         const chainDetailLength = chainDetails.length;
         const result = {
             'info': fee,
@@ -2981,7 +2967,7 @@ class bitrue extends bitrue$1 {
          */
         await this.loadMarkets();
         const currency = this.currency(code);
-        const accountTypes = this.safeValue(this.options, 'accountsByType', {});
+        const accountTypes = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
         const toId = this.safeString(accountTypes, toAccount, toAccount);
         const request = {

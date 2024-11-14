@@ -57,6 +57,8 @@ class hitbtc extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -858,7 +860,8 @@ class hitbtc extends Exchange {
                 for ($j = 0; $j < count($rawNetworks); $j++) {
                     $rawNetwork = $rawNetworks[$j];
                     $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
-                    $network = $this->safe_network($networkId);
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
                     $fee = $this->safe_number($rawNetwork, 'payout_fee');
                     $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
                     $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
@@ -874,10 +877,10 @@ class hitbtc extends Exchange {
                     } elseif (!$payoutEnabledNetwork) {
                         $withdrawEnabled = false;
                     }
-                    $networks[$network] = array(
+                    $networks[$networkCode] = array(
                         'info' => $rawNetwork,
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'fee' => $fee,
                         'active' => $activeNetwork,
                         'deposit' => $payinEnabledNetwork,
@@ -914,14 +917,6 @@ class hitbtc extends Exchange {
             }
             return $result;
         }) ();
-    }
-
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        } else {
-            return strtoupper($networkId);
-        }
     }
 
     public function create_deposit_address(string $code, $params = array ()) {
@@ -962,7 +957,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -996,11 +991,10 @@ class hitbtc extends Exchange {
             $parsedCode = $this->safe_currency_code($currencyId);
             return array(
                 'info' => $response,
-                'address' => $address,
-                'tag' => $tag,
-                'code' => $parsedCode, // kept here for backward-compatibility, but will be removed soon
                 'currency' => $parsedCode,
                 'network' => null,
+                'address' => $address,
+                'tag' => $tag,
             );
         }) ();
     }
@@ -1428,8 +1422,10 @@ class hitbtc extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
+            'CREATED' => 'pending',
             'PENDING' => 'pending',
             'FAILED' => 'failed',
+            'ROLLED_BACK' => 'failed',
             'SUCCESS' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -2285,7 +2281,7 @@ class hitbtc extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
@@ -2683,7 +2679,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2731,14 +2727,14 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches funding rates for multiple markets
              * @see https://api.hitbtc.com/#futures-info
              * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -3164,7 +3160,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -3201,7 +3197,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //     {
         //         "contract_type" => "perpetual",
@@ -3237,6 +3233,7 @@ class hitbtc extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -3563,6 +3560,7 @@ class hitbtc extends Exchange {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'network');
             $networkCode = $this->network_id_to_code($networkId);
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : null;
             $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
             $isDefault = $this->safe_value($networkEntry, 'default');
             $withdrawResult = array(

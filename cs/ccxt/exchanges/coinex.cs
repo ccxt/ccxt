@@ -28,6 +28,8 @@ public partial class coinex : Exchange
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "closeAllPositions", false },
+                { "closePosition", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -48,12 +50,14 @@ public partial class coinex : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
-                { "fetchDepositAddressByNetwork", false },
                 { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", true },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
@@ -439,9 +443,42 @@ public partial class coinex : Exchange
                     { "FUTURES", "swap" },
                 } },
                 { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BTC" },
                     { "BEP20", "BSC" },
-                    { "TRX", "TRC20" },
-                    { "ETH", "ERC20" },
+                    { "TRC20", "TRC20" },
+                    { "ERC20", "ERC20" },
+                    { "BRC20", "BRC20" },
+                    { "SOL", "SOL" },
+                    { "TON", "SOL" },
+                    { "BSV", "BSV" },
+                    { "AVAXC", "AVA_C" },
+                    { "AVAXX", "AVA" },
+                    { "SUI", "SUI" },
+                    { "ACA", "ACA" },
+                    { "CHZ", "CHILIZ" },
+                    { "ADA", "ADA" },
+                    { "ARB", "ARBITRUM" },
+                    { "ARBNOVA", "ARBITRUM_NOVA" },
+                    { "OP", "OPTIMISM" },
+                    { "APT", "APTOS" },
+                    { "ATOM", "ATOM" },
+                    { "FTM", "FTM" },
+                    { "BCH", "BCH" },
+                    { "ASTR", "ASTR" },
+                    { "LTC", "LTC" },
+                    { "MATIC", "MATIC" },
+                    { "CRONOS", "CRONOS" },
+                    { "DASH", "DASH" },
+                    { "DOT", "DOT" },
+                    { "ETC", "ETC" },
+                    { "ETHW", "ETHPOW" },
+                    { "FIL", "FIL" },
+                    { "ZIL", "ZIL" },
+                    { "DOGE", "DOGE" },
+                    { "TIA", "CELESTIA" },
+                    { "SEI", "SEI" },
+                    { "XRP", "XRP" },
+                    { "XMR", "XMR" },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -466,6 +503,7 @@ public partial class coinex : Exchange
                     { "3008", typeof(RequestTimeout) },
                     { "3109", typeof(InsufficientFunds) },
                     { "3127", typeof(InvalidOrder) },
+                    { "3600", typeof(OrderNotFound) },
                     { "3606", typeof(InvalidOrder) },
                     { "3610", typeof(ExchangeError) },
                     { "3612", typeof(InvalidOrder) },
@@ -913,6 +951,8 @@ public partial class coinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", null },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -1178,7 +1218,10 @@ public partial class coinex : Exchange
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         object timestamp = this.safeInteger(trade, "created_at");
@@ -1189,6 +1232,17 @@ public partial class coinex : Exchange
         }
         object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
+        object feeCostString = this.safeString(trade, "fee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "fee_ccy");
+            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCostString },
+                { "currency", feeCurrencyCode },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1198,11 +1252,11 @@ public partial class coinex : Exchange
             { "order", this.safeString(trade, "order_id") },
             { "type", null },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "role") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal_money") },
-            { "fee", null },
+            { "fee", fee },
         }, market);
     }
 
@@ -1696,7 +1750,7 @@ public partial class coinex : Exchange
         //         "stop_id": 117180138153
         //     }
         //
-        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders
+        // Swap createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders, fetchClosedOrders, closePosition
         //
         //     {
         //         "amount": "0.0001",
@@ -2087,7 +2141,7 @@ public partial class coinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] price to trigger stop orders
         * @param {float} [params.stopLossPrice] price to trigger stop loss orders
@@ -2299,12 +2353,17 @@ public partial class coinex : Exchange
         object stop = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
+        object requestIds = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        {
+            ((IList<object>)requestIds).Add(parseInt(getValue(ids, i)));
+        }
         if (isTrue(stop))
         {
-            ((IDictionary<string,object>)request)["stop_ids"] = ids;
+            ((IDictionary<string,object>)request)["stop_ids"] = requestIds;
         } else
         {
-            ((IDictionary<string,object>)request)["order_ids"] = ids;
+            ((IDictionary<string,object>)request)["order_ids"] = requestIds;
         }
         if (isTrue(getValue(market, "spot")))
         {
@@ -2353,7 +2412,7 @@ public partial class coinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price to trigger stop orders
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2818,26 +2877,18 @@ public partial class coinex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        object network = this.safeString2(parameters, "network", "chain");
-        parameters = this.omit(parameters, "network");
-        object networksKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object numOfNetworks = getArrayLength(networksKeys);
-        if (isTrue(isTrue(!isEqual(networks, null)) && isTrue(isGreaterThan(numOfNetworks, 1))))
-        {
-            if (isTrue(isEqual(network, null)))
-            {
-                throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() "), code), " requires a network parameter")) ;
-            }
-            if (!isTrue((inOp(networks, network))))
-            {
-                throw new ExchangeError ((string)add(add(add(add(this.id, " fetchDepositAddress() "), network), " network not supported for "), code)) ;
-            }
-        }
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
-            { "chain", network },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
+        if (isTrue(isEqual(networkCode, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
+        }
+        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
         object response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -2850,35 +2901,7 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object depositAddress = this.parseDepositAddress(data, currency);
-        object options = this.safeDict(this.options, "fetchDepositAddress", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(options, "fillResponseFromRequest", true);
-        if (isTrue(fillResponseFromRequest))
-        {
-            ((IDictionary<string,object>)depositAddress)["network"] = this.safeNetworkCode(network, currency);
-        }
-        return depositAddress;
-    }
-
-    public virtual object safeNetwork(object networkId, object currency = null)
-    {
-        object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object networksCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object networksCodesLength = getArrayLength(networksCodes);
-        if (isTrue(isTrue(isEqual(networkId, null)) && isTrue(isEqual(networksCodesLength, 1))))
-        {
-            return getValue(networks, getValue(networksCodes, 0));
-        }
-        return new Dictionary<string, object>() {
-            { "id", networkId },
-            { "network", ((bool) isTrue((isEqual(networkId, null)))) ? null : ((string)networkId).ToUpper() },
-        };
-    }
-
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object network = this.safeNetwork(networkId, currency);
-        return getValue(network, "network");
+        return this.parseDepositAddress(data, currency);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2905,9 +2928,9 @@ public partial class coinex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(null, currency) },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
         };
     }
 
@@ -3364,6 +3387,7 @@ public partial class coinex : Exchange
             object maxNotional = this.safeNumber(tier, "amount");
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "swap") },
                 { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
                 { "minNotional", minNotional },
                 { "maxNotional", maxNotional },
@@ -3668,10 +3692,25 @@ public partial class coinex : Exchange
         return this.parseFundingRate(first, market);
     }
 
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
+    }
+
     public override object parseFundingRate(object contract, object market = null)
     {
         //
-        // fetchFundingRate, fetchFundingRates
+        // fetchFundingRate, fetchFundingRates, fetchFundingInterval
         //
         //     {
         //         "latest_funding_rate": "0",
@@ -3686,6 +3725,9 @@ public partial class coinex : Exchange
         //
         object currentFundingTimestamp = this.safeInteger(contract, "latest_funding_time");
         object futureFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "latest_funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         object marketId = this.safeString(contract, "market");
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -3705,7 +3747,20 @@ public partial class coinex : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
@@ -3713,7 +3768,7 @@ public partial class coinex : Exchange
         /**
         * @method
         * @name coinex#fetchFundingRates
-        * @description fetch the current funding rates
+        * @description fetch the current funding rates for multiple markets
         * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
         * @param {string[]} symbols unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3781,8 +3836,6 @@ public partial class coinex : Exchange
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);
-        object networkCode = this.safeStringUpper2(parameters, "network", "chain");
-        parameters = this.omit(parameters, "network");
         if (isTrue(tag))
         {
             address = add(add(address, ":"), tag);
@@ -3792,6 +3845,10 @@ public partial class coinex : Exchange
             { "to_address", address },
             { "amount", this.numberToString(amount) },
         };
+        object networkCode = null;
+        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        networkCode = ((IList<object>)networkCodeparametersVariable)[0];
+        parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
             ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
@@ -3832,6 +3889,7 @@ public partial class coinex : Exchange
         object statuses = new Dictionary<string, object>() {
             { "audit", "pending" },
             { "pass", "pending" },
+            { "audit_required", "pending" },
             { "processing", "pending" },
             { "confirming", "pending" },
             { "not_pass", "failed" },
@@ -4060,7 +4118,7 @@ public partial class coinex : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object amountToPrecision = this.currencyToPrecision(code, amount);
-        object accountsByType = this.safeDict(this.options, "accountsById", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object request = new Dictionary<string, object>() {
@@ -4483,17 +4541,15 @@ public partial class coinex : Exchange
         market = this.safeMarket(marketId, market, null, "spot");
         object timestamp = this.safeInteger(info, "expired_at");
         return new Dictionary<string, object>() {
-            { "account", null },
+            { "info", info },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", "isolated" },
-            { "marginType", null },
             { "currency", this.safeCurrencyCode(this.safeString(info, "ccy")) },
             { "interest", this.safeNumber(info, "to_repaied_amount") },
             { "interestRate", this.safeNumber(info, "daily_interest_rate") },
             { "amountBorrowed", this.safeNumber(info, "borrow_amount") },
+            { "marginMode", "isolated" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 
@@ -4890,6 +4946,70 @@ public partial class coinex : Exchange
         object records = this.safeList(response, "data", new List<object>() {});
         object positions = this.parsePositions(records);
         return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+    }
+
+    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinex#closePosition
+        * @description closes an open position for a market
+        * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+        * @param {string} symbol unified CCXT market symbol
+        * @param {string} [side] buy or sell, not used by coinex
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} params.type required by coinex, one of: limit, market, maker_only, ioc or fok, default is *market*
+        * @param {string} [params.price] the price to fulfill the order, ignored in market orders
+        * @param {string} [params.amount] the amount to trade in units of the base currency
+        * @param {string} [params.clientOrderId] the client id of the order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object type = this.safeString(parameters, "type", "market");
+        object request = new Dictionary<string, object>() {
+            { "market", getValue(market, "id") },
+            { "market_type", "FUTURES" },
+            { "type", type },
+        };
+        object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_id"] = clientOrderId;
+        }
+        parameters = this.omit(parameters, "clientOrderId");
+        object response = await this.v2PrivatePostFuturesClosePosition(this.extend(request, parameters));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "amount": "0.0001",
+        //             "client_id": "",
+        //             "created_at": 1729666043969,
+        //             "fee": "0.00335858",
+        //             "fee_ccy": "USDT",
+        //             "filled_amount": "0.0001",
+        //             "filled_value": "6.717179",
+        //             "last_filled_amount": "0.0001",
+        //             "last_filled_price": "67171.79",
+        //             "maker_fee_rate": "0",
+        //             "market": "BTCUSDT",
+        //             "market_type": "FUTURES",
+        //             "order_id": 155477479761,
+        //             "price": "0",
+        //             "realized_pnl": "-0.001823",
+        //             "side": "sell",
+        //             "taker_fee_rate": "0.0005",
+        //             "type": "market",
+        //             "unfilled_amount": "0",
+        //             "updated_at": 1729666043969
+        //         },
+        //         "message": "OK"
+        //     }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     public override object handleMarginModeAndParams(object methodName, object parameters = null, object defaultValue = null)

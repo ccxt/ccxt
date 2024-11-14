@@ -60,14 +60,14 @@ class oxfun extends oxfun$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -77,7 +77,7 @@ class oxfun extends oxfun$1 {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -859,6 +859,7 @@ class oxfun extends oxfun$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'currencyVolume24h'),
             'quoteVolume': undefined,
+            'markPrice': this.safeString(ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1001,8 +1002,8 @@ class oxfun extends oxfun$1 {
         /**
          * @method
          * @name oxfun#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1038,8 +1039,7 @@ class oxfun extends oxfun$1 {
         //         "marketCode": "OX-USD-SWAP-LIN",
         //         "fundingAt": "1715515200000",
         //         "estFundingRate": "0.000200000"
-        //     },
-        //
+        //     }
         //
         const symbol = this.safeString(fundingRate, 'marketCode');
         market = this.market(symbol);
@@ -1062,6 +1062,7 @@ class oxfun extends oxfun$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1314,6 +1315,7 @@ class oxfun extends oxfun$1 {
             const tier = listOfTiers[j];
             tiers.push({
                 'tier': this.safeNumber(tier, 'tier'),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber(tier, 'positionFloor'),
                 'maxNotional': this.safeNumber(tier, 'positionCap'),
@@ -1800,11 +1802,11 @@ class oxfun extends oxfun$1 {
         const address = this.safeString(depositAddress, 'address');
         this.checkAddress(address);
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': depositAddress,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2044,9 +2046,9 @@ class oxfun extends oxfun$1 {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
-         * @name bitflex#withdraw
+         * @name oxfun#withdraw
          * @description make a withdrawal
-         * @see https://docs.bitflex.com/spot#withdraw
+         * @see https://docs.ox.fun/?json#post-v3-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2225,7 +2227,7 @@ class oxfun extends oxfun$1 {
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -2415,7 +2417,7 @@ class oxfun extends oxfun$1 {
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders

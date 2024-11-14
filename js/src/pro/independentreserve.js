@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, InvalidNonce } from '../base/errors.js';
+import { NotSupported, ChecksumError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class independentreserve extends independentreserveRest {
@@ -18,6 +18,7 @@ export default class independentreserve extends independentreserveRest {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': false,
                 'watchOrderBook': true,
@@ -29,7 +30,9 @@ export default class independentreserve extends independentreserveRest {
                 },
             },
             'options': {
-                'checksum': false, // TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': true, // TODO: currently only working for snapshot
+                },
             },
             'streaming': {},
             'exceptions': {},
@@ -199,7 +202,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         if (checksum && receivedSnapshot) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
@@ -219,7 +222,7 @@ export default class independentreserve extends independentreserveRest {
             const calculatedChecksum = this.crc32(payload, true);
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new InvalidNonce(this.id + ' invalid checksum');
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);

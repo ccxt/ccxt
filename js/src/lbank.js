@@ -53,12 +53,14 @@ export default class lbank extends Exchange {
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -1008,16 +1010,16 @@ export default class lbank extends Exchange {
         }
         if (since === undefined) {
             const duration = this.parseTimeframe(timeframe);
-            since = this.milliseconds() - duration * 1000 * limit;
+            since = this.milliseconds() - (duration * 1000 * limit);
         }
         const request = {
             'symbol': market['id'],
             'type': this.safeString(this.timeframes, timeframe, timeframe),
             'time': this.parseToInt(since / 1000),
-            'size': limit, // max 2000
+            'size': Math.min(limit + 1, 2000), // max 2000
         };
         const response = await this.spotPublicGetKline(this.extend(request, params));
-        const ohlcvs = this.safeValue(response, 'data', []);
+        const ohlcvs = this.safeList(response, 'data', []);
         //
         //
         // [
@@ -1172,6 +1174,111 @@ export default class lbank extends Exchange {
         }
         return undefined;
     }
+    parseFundingRate(ticker, market = undefined) {
+        // {
+        //     "symbol": "BTCUSDT",
+        //     "highestPrice": "69495.5",
+        //     "underlyingPrice": "68455.904",
+        //     "lowestPrice": "68182.1",
+        //     "openPrice": "68762.4",
+        //     "positionFeeRate": "0.0001",
+        //     "volume": "33534.2858",
+        //     "markedPrice": "68434.1",
+        //     "turnover": "1200636218.210558",
+        //     "positionFeeTime": "28800",
+        //     "lastPrice": "68427.3",
+        //     "nextFeeTime": "1730736000000",
+        //     "fundingRate": "0.0001",
+        // }
+        const marketId = this.safeString(ticker, 'symbol');
+        const symbol = this.safeSymbol(marketId, market);
+        const markPrice = this.safeNumber(ticker, 'markedPrice');
+        const indexPrice = this.safeNumber(ticker, 'underlyingPrice');
+        const fundingRate = this.safeNumber(ticker, 'fundingRate');
+        const fundingTime = this.safeInteger(ticker, 'nextFeeTime');
+        const positionFeeTime = this.safeInteger(ticker, 'positionFeeTime');
+        let intervalString = undefined;
+        if (positionFeeTime !== undefined) {
+            const interval = this.parseToInt(positionFeeTime / 60 / 60);
+            intervalString = interval.toString() + 'h';
+        }
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601(fundingTime),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': intervalString,
+        };
+    }
+    async fetchFundingRate(symbol, params = {}) {
+        /**
+         * @method
+         * @name lbank#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const responseForSwap = await this.fetchFundingRates([market['symbol']], params);
+        return this.safeValue(responseForSwap, market['symbol']);
+    }
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const request = {
+            'productGroup': 'SwapU',
+        };
+        const response = await this.contractPublicGetCfdOpenApiV1PubMarketData(this.extend(request, params));
+        // {
+        //     "data": [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "highestPrice": "69495.5",
+        //             "underlyingPrice": "68455.904",
+        //             "lowestPrice": "68182.1",
+        //             "openPrice": "68762.4",
+        //             "positionFeeRate": "0.0001",
+        //             "volume": "33534.2858",
+        //             "markedPrice": "68434.1",
+        //             "turnover": "1200636218.210558",
+        //             "positionFeeTime": "28800",
+        //             "lastPrice": "68427.3",
+        //             "nextFeeTime": "1730736000000",
+        //             "fundingRate": "0.0001",
+        //         }
+        //     ],
+        //     "error_code": "0",
+        //     "msg": "Success",
+        //     "result": "true",
+        //     "success": True,
+        // }
+        const data = this.safeList(response, 'data', []);
+        const result = this.parseFundingRates(data);
+        return this.filterByArray(result, 'symbol', symbols);
+    }
     async fetchBalance(params = {}) {
         /**
          * @method
@@ -1314,7 +1421,7 @@ export default class lbank extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1489,6 +1596,27 @@ export default class lbank extends Exchange {
         //          "status":-1
         //      }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "executedQty":0.0,
+        //        "price":0.05,
+        //        "origQty":100.0,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "executedQty":0.00000000000000000000,
+        //        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //        "price":0.05000000000000000000,
+        //        "origQty":100.00000000000000000000,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
         const id = this.safeString2(order, 'orderId', 'order_id');
         const clientOrderId = this.safeString2(order, 'clientOrderId', 'custom_id');
         const timestamp = this.safeInteger2(order, 'time', 'create_time');
@@ -1498,7 +1626,7 @@ export default class lbank extends Exchange {
         let timeInForce = undefined;
         let postOnly = false;
         let type = 'limit';
-        const rawType = this.safeString(order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        const rawType = this.safeString2(order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         const parts = rawType.split('_');
         const side = this.safeString(parts, 0);
         const typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
@@ -1862,12 +1990,12 @@ export default class lbank extends Exchange {
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //          },
+        //      },
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
-        const result = this.safeValue(response, 'data', {});
-        return result;
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1905,8 +2033,8 @@ export default class lbank extends Exchange {
         //          "ts":1648506641469
         //      }
         //
-        const result = this.safeValue(response, 'data', []);
-        return result;
+        const data = this.safeList(response, 'data', []);
+        return this.parseOrders(data);
     }
     getNetworkCodeForCurrency(currencyCode, params) {
         const defaultNetworks = this.safeValue(this.options, 'defaultNetworks');
@@ -1973,11 +2101,11 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper(inverseNetworks, networkId, networkId);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         };
     }
     async fetchDepositAddressSupplement(code, params = {}) {
@@ -2013,11 +2141,11 @@ export default class lbank extends Exchange {
         const inverseNetworks = this.safeValue(this.options, 'inverse-networks', {});
         const networkCode = this.safeStringUpper(inverseNetworks, network, network);
         return {
+            'info': response,
             'currency': code,
+            'network': networkCode,
             'address': address,
             'tag': tag,
-            'network': networkCode,
-            'info': response,
         };
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
@@ -2452,27 +2580,27 @@ export default class lbank extends Exchange {
          * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-         * @param {string[]|undefined} codes array of unified currency codes
+         * @param {string[]} [codes] array of unified currency codes
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
          */
         await this.loadMarkets();
         const isAuthorized = this.checkRequiredCredentials(false);
-        const response = undefined;
+        let response = undefined;
         if (isAuthorized === true) {
             const options = this.safeValue(this.options, 'fetchDepositWithdrawFees', {});
             const defaultMethod = this.safeString(options, 'method', 'fetchPrivateDepositWithdrawFees');
             const method = this.safeString(params, 'method', defaultMethod);
             params = this.omit(params, 'method');
             if (method === 'fetchPublicDepositWithdrawFees') {
-                await this.fetchPublicDepositWithdrawFees(codes, params);
+                response = await this.fetchPublicDepositWithdrawFees(codes, params);
             }
             else {
-                await this.fetchPrivateDepositWithdrawFees(codes, params);
+                response = await this.fetchPrivateDepositWithdrawFees(codes, params);
             }
         }
         else {
-            await this.fetchPublicDepositWithdrawFees(codes, params);
+            response = await this.fetchPublicDepositWithdrawFees(codes, params);
         }
         return response;
     }

@@ -47,6 +47,8 @@ class bitvavo extends bitvavo$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -107,7 +109,7 @@ class bitvavo extends bitvavo$1 {
                 '1d': '1d',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/169202626-bd130fc5-fcf9-41bb-8d97-6093225c73cd.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
                 'api': {
                     'public': 'https://api.bitvavo.com',
                     'private': 'https://api.bitvavo.com',
@@ -266,6 +268,7 @@ class bitvavo extends bitvavo$1 {
                 },
             },
             'options': {
+                'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW': 10000,
                 'networks': {
                     'ERC20': 'ETH',
@@ -277,9 +280,6 @@ class bitvavo extends bitvavo$1 {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
         });
-    }
-    currencyToPrecision(code, fee, networkCode = undefined) {
-        return this.decimalToPrecision(fee, 0, this.currencies[code]['precision'], number.DECIMAL_PLACES);
     }
     amountToPrecision(symbol, amount) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
@@ -447,9 +447,9 @@ class bitvavo extends bitvavo$1 {
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        return this.parseCurrenciesCustom(response);
     }
-    parseCurrencies(currencies) {
+    parseCurrenciesCustom(currencies) {
         //
         //     [
         //         {
@@ -1043,11 +1043,11 @@ class bitvavo extends bitvavo$1 {
         const tag = this.safeString(response, 'paymentId');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1114,6 +1114,10 @@ class bitvavo extends bitvavo$1 {
         if (postOnly) {
             request['postOnly'] = true;
         }
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['clientOrderId'] = this.uuid22();
+        }
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1126,7 +1130,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1227,7 +1231,7 @@ class bitvavo extends bitvavo$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1307,6 +1311,7 @@ class bitvavo extends bitvavo$1 {
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -43,6 +43,8 @@ class lykke extends lykke$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -678,9 +680,9 @@ class lykke extends lykke$1 {
             const currencyId = this.safeString(balance, 'assetId');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            const free = this.safeString(balance, 'available');
+            const total = this.safeString(balance, 'available');
             const used = this.safeString(balance, 'reserved');
-            account['free'] = free;
+            account['total'] = total;
             account['used'] = used;
             result[code] = account;
         }
@@ -793,7 +795,7 @@ class lykke extends lykke$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1142,11 +1144,11 @@ class lykke extends lykke$1 {
         const tag = this.safeString(response, 'addressExtension');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     parseTransaction(transaction, currency = undefined) {

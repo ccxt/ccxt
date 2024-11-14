@@ -44,7 +44,10 @@ public partial class bitrue : Exchange
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchMarginMode", false },
@@ -84,7 +87,7 @@ public partial class bitrue : Exchange
                 { "1w", "1W" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e" },
                 { "api", new Dictionary<string, object>() {
                     { "spot", "https://www.bitrue.com/api" },
                     { "fapi", "https://fapi.bitrue.com/fapi" },
@@ -278,6 +281,7 @@ public partial class bitrue : Exchange
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse"} },
                 { "fetchMyTradesMethod", "v2PrivateGetMyTrades" },
                 { "hasAlreadyAuthenticatedSuccessfully", false },
+                { "currencyToPrecisionRoundingMode", TRUNCATE },
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
@@ -289,6 +293,67 @@ public partial class bitrue : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
+                    { "AETERNITY", "Aeternity" },
+                    { "AION", "AION" },
+                    { "ALGO", "Algorand" },
+                    { "ASK", "ASK" },
+                    { "ATOM", "ATOM" },
+                    { "AVAXC", "AVAX C-Chain" },
+                    { "BCH", "BCH" },
+                    { "BEP2", "BEP2" },
+                    { "BEP20", "BEP20" },
+                    { "Bitcoin", "Bitcoin" },
+                    { "BRP20", "BRP20" },
+                    { "ADA", "Cardano" },
+                    { "CASINOCOIN", "CasinoCoin" },
+                    { "CASINOCOIN-XRPL", "CasinoCoin XRPL" },
+                    { "CONTENTOS", "Contentos" },
+                    { "DASH", "Dash" },
+                    { "DECOIN", "Decoin" },
+                    { "DFI", "DeFiChain" },
+                    { "DGB", "DGB" },
+                    { "DIVI", "Divi" },
+                    { "DOGE", "dogecoin" },
+                    { "EOS", "EOS" },
+                    { "ETC", "ETC" },
+                    { "FILECOIN", "Filecoin" },
+                    { "FREETON", "FREETON" },
+                    { "HBAR", "HBAR" },
+                    { "HEDERA", "Hedera Hashgraph" },
+                    { "HRC20", "HRC20" },
+                    { "ICON", "ICON" },
+                    { "ICP", "ICP" },
+                    { "IGNIS", "Ignis" },
+                    { "INTERNETCOMPUTER", "Internet Computer" },
+                    { "IOTA", "IOTA" },
+                    { "KAVA", "KAVA" },
+                    { "KSM", "KSM" },
+                    { "LTC", "LiteCoin" },
+                    { "LUNA", "Luna" },
+                    { "MATIC", "MATIC" },
+                    { "MOBILECOIN", "Mobile Coin" },
+                    { "MONACOIN", "MonaCoin" },
+                    { "XMR", "Monero" },
+                    { "NEM", "NEM" },
+                    { "NEP5", "NEP5" },
+                    { "OMNI", "OMNI" },
+                    { "PAC", "PAC" },
+                    { "DOT", "Polkadot" },
+                    { "RAVEN", "Ravencoin" },
+                    { "SAFEX", "Safex" },
+                    { "SOL", "SOLANA" },
+                    { "SGB", "Songbird" },
+                    { "XML", "Stellar Lumens" },
+                    { "XYM", "Symbol" },
+                    { "XTZ", "Tezos" },
+                    { "theta", "theta" },
+                    { "THETA", "THETA" },
+                    { "VECHAIN", "VeChain" },
+                    { "WANCHAIN", "Wanchain" },
+                    { "XINFIN", "XinFin Network" },
+                    { "XRP", "XRP" },
+                    { "XRPL", "XRPL" },
+                    { "ZIL", "ZIL" },
                 } },
                 { "defaultType", "spot" },
                 { "timeframes", new Dictionary<string, object>() {
@@ -339,7 +404,7 @@ public partial class bitrue : Exchange
                     { "Order would immediately match and take.", typeof(OrderImmediatelyFillable) },
                     { "Account has insufficient balance for requested action.", typeof(InsufficientFunds) },
                     { "Rest API trading is not enabled.", typeof(ExchangeNotAvailable) },
-                    { "You don\'t have permission.", typeof(PermissionDenied) },
+                    { "You don't have permission.", typeof(PermissionDenied) },
                     { "Market is closed.", typeof(ExchangeNotAvailable) },
                     { "Too many requests. Please try again later.", typeof(DDoSProtection) },
                     { "-1000", typeof(ExchangeNotAvailable) },
@@ -406,18 +471,6 @@ public partial class bitrue : Exchange
         });
     }
 
-    public override object currencyToPrecision(object code, object fee, object networkCode = null)
-    {
-        // info is available in currencies only if the user has configured his api keys
-        if (isTrue(!isEqual(this.safeValue(getValue(this.currencies, code), "precision"), null)))
-        {
-            return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.currencies, code), "precision"), this.precisionMode, this.paddingMode);
-        } else
-        {
-            return this.numberToString(fee);
-        }
-    }
-
     public override object nonce()
     {
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
@@ -470,79 +523,6 @@ public partial class bitrue : Exchange
         //     }
         //
         return this.safeInteger(response, "serverTime");
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object uppercaseNetworkId = ((string)networkId).ToUpper();
-        object networksById = new Dictionary<string, object>() {
-            { "Aeternity", "Aeternity" },
-            { "AION", "AION" },
-            { "Algorand", "Algorand" },
-            { "ASK", "ASK" },
-            { "ATOM", "ATOM" },
-            { "AVAX C-Chain", "AVAX C-Chain" },
-            { "bch", "bch" },
-            { "BCH", "BCH" },
-            { "BEP2", "BEP2" },
-            { "BEP20", "BEP20" },
-            { "Bitcoin", "Bitcoin" },
-            { "BRP20", "BRP20" },
-            { "Cardano", "ADA" },
-            { "CasinoCoin", "CasinoCoin" },
-            { "CasinoCoin XRPL", "CasinoCoin XRPL" },
-            { "Contentos", "Contentos" },
-            { "Dash", "Dash" },
-            { "Decoin", "Decoin" },
-            { "DeFiChain", "DeFiChain" },
-            { "DGB", "DGB" },
-            { "Divi", "Divi" },
-            { "dogecoin", "DOGE" },
-            { "EOS", "EOS" },
-            { "ERC20", "ERC20" },
-            { "ETC", "ETC" },
-            { "Filecoin", "Filecoin" },
-            { "FREETON", "FREETON" },
-            { "HBAR", "HBAR" },
-            { "Hedera Hashgraph", "Hedera Hashgraph" },
-            { "HRC20", "HRC20" },
-            { "ICON", "ICON" },
-            { "ICP", "ICP" },
-            { "Ignis", "Ignis" },
-            { "Internet Computer", "Internet Computer" },
-            { "IOTA", "IOTA" },
-            { "KAVA", "KAVA" },
-            { "KSM", "KSM" },
-            { "LiteCoin", "LiteCoin" },
-            { "Luna", "Luna" },
-            { "MATIC", "MATIC" },
-            { "Mobile Coin", "Mobile Coin" },
-            { "MonaCoin", "MonaCoin" },
-            { "Monero", "Monero" },
-            { "NEM", "NEM" },
-            { "NEP5", "NEP5" },
-            { "OMNI", "OMNI" },
-            { "PAC", "PAC" },
-            { "Polkadot", "Polkadot" },
-            { "Ravencoin", "Ravencoin" },
-            { "Safex", "Safex" },
-            { "SOLANA", "SOL" },
-            { "Songbird", "Songbird" },
-            { "Stellar Lumens", "Stellar Lumens" },
-            { "Symbol", "Symbol" },
-            { "Tezos", "XTZ" },
-            { "theta", "theta" },
-            { "THETA", "THETA" },
-            { "TRC20", "TRC20" },
-            { "VeChain", "VeChain" },
-            { "VECHAIN", "VECHAIN" },
-            { "Wanchain", "Wanchain" },
-            { "XinFin Network", "XinFin Network" },
-            { "XRP", "XRP" },
-            { "XRPL", "XRPL" },
-            { "ZIL", "ZIL" },
-        };
-        return this.safeString2(networksById, networkId, uppercaseNetworkId, networkId);
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)
@@ -603,7 +583,7 @@ public partial class bitrue : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object coins = this.safeValue(response, "coins", new List<object>() {});
+        object coins = this.safeList(response, "coins", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object currency = getValue(coins, i);
@@ -615,16 +595,16 @@ public partial class bitrue : Exchange
             object minWithdrawString = null;
             object maxWithdrawString = null;
             object minWithdrawFeeString = null;
-            object networkDetails = this.safeValue(currency, "chainDetail", new List<object>() {});
+            object networkDetails = this.safeList(currency, "chainDetail", new List<object>() {});
             object networks = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
             {
                 object entry = getValue(networkDetails, j);
                 object networkId = this.safeString(entry, "chain");
                 object network = this.networkIdToCode(networkId, code);
-                object enableDeposit = this.safeValue(entry, "enableDeposit");
+                object enableDeposit = this.safeBool(entry, "enableDeposit");
                 deposit = ((bool) isTrue((enableDeposit))) ? enableDeposit : deposit;
-                object enableWithdraw = this.safeValue(entry, "enableWithdraw");
+                object enableWithdraw = this.safeBool(entry, "enableWithdraw");
                 withdraw = ((bool) isTrue((enableWithdraw))) ? enableWithdraw : withdraw;
                 object networkWithdrawFeeString = this.safeString(entry, "withdrawFee");
                 if (isTrue(!isEqual(networkWithdrawFeeString, null)))
@@ -833,11 +813,11 @@ public partial class bitrue : Exchange
         {
             symbol = add(symbol, add(":", settle));
         }
-        object filters = this.safeValue(market, "filters", new List<object>() {});
+        object filters = this.safeList(market, "filters", new List<object>() {});
         object filtersByType = this.indexBy(filters, "filterType");
         object status = this.safeString(market, "status");
-        object priceFilter = this.safeValue(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
-        object amountFilter = this.safeValue(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
+        object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
+        object amountFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         object defaultPricePrecision = this.safeString(market, "pricePrecision");
         object defaultAmountPrecision = this.safeString(market, "quantityPrecision");
         object pricePrecision = this.safeString(priceFilter, "priceScale", defaultPricePrecision);
@@ -1004,11 +984,11 @@ public partial class bitrue : Exchange
             if (isTrue(isTrue(!isEqual(subType, null)) && isTrue(isEqual(subType, "inverse"))))
             {
                 response = await this.dapiV2PrivateGetAccount(parameters);
-                result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+                result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             } else
             {
                 response = await this.fapiV2PrivateGetAccount(parameters);
-                result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+                result = this.safeDict(response, "data", new Dictionary<string, object>() {});
             }
         } else
         {
@@ -1214,7 +1194,7 @@ public partial class bitrue : Exchange
                 { "symbol", getValue(market, "id") },
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
-            data = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchTicker only support spot & swap markets")) ;
@@ -1280,12 +1260,12 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
+        object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object response = null;
         object data = null;
         if (isTrue(getValue(market, "swap")))
         {
-            object timeframesFuture = this.safeValue(timeframes, "future", new Dictionary<string, object>() {});
+            object timeframesFuture = this.safeDict(timeframes, "future", new Dictionary<string, object>() {});
             object request = new Dictionary<string, object>() {
                 { "contractName", getValue(market, "id") },
                 { "interval", this.safeString(timeframesFuture, timeframe, "1min") },
@@ -1304,7 +1284,7 @@ public partial class bitrue : Exchange
             data = response;
         } else if (isTrue(getValue(market, "spot")))
         {
-            object timeframesSpot = this.safeValue(timeframes, "spot", new Dictionary<string, object>() {});
+            object timeframesSpot = this.safeDict(timeframes, "spot", new Dictionary<string, object>() {});
             object request = new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
                 { "scale", this.safeString(timeframesSpot, timeframe, "1m") },
@@ -1318,7 +1298,7 @@ public partial class bitrue : Exchange
                 ((IDictionary<string,object>)request)["fromIdx"] = since;
             }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchOHLCV only support spot & swap markets")) ;
@@ -1553,7 +1533,7 @@ public partial class bitrue : Exchange
         object tickers = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object ticker = this.safeValue(data, i, new Dictionary<string, object>() {});
+            object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
             object market = this.market(this.safeValue(ticker, "symbol"));
             ((IDictionary<string,object>)tickers)[(string)getValue(market, "id")] = ticker;
         }
@@ -1618,8 +1598,8 @@ public partial class bitrue : Exchange
         object orderId = this.safeString(trade, "orderId");
         object id = this.safeString2(trade, "id", "tradeId");
         object side = null;
-        object buyerMaker = this.safeValue(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
-        object isBuyer = this.safeValue(trade, "isBuyer");
+        object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
+        object isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy";
@@ -1637,7 +1617,7 @@ public partial class bitrue : Exchange
             };
         }
         object takerOrMaker = null;
-        object isMaker = this.safeValue(trade, "isMaker");
+        object isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -1814,7 +1794,7 @@ public partial class bitrue : Exchange
         object id = this.safeString(order, "orderId");
         object type = this.safeStringLower(order, "type");
         object side = this.safeStringLower(order, "side");
-        object fills = this.safeValue(order, "fills", new List<object>() {});
+        object fills = this.safeList(order, "fills", new List<object>() {});
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
         object postOnly = isTrue(isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "GTX")))) || isTrue((isEqual(type, "post_only")));
@@ -1887,7 +1867,7 @@ public partial class bitrue : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -1973,7 +1953,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivatePostOrder(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2034,6 +2014,7 @@ public partial class bitrue : Exchange
         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
         * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
         * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2073,7 +2054,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivateGetOrder(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["orderId"] = id; // spot market id is mandatory
@@ -2226,7 +2207,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivateGetOpenOrders(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2334,7 +2315,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivatePostCancel(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2397,7 +2378,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivatePostAllOpenOrders(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else
         {
             throw new NotSupported ((string)add(this.id, " cancelAllOrders only support future markets")) ;
@@ -2461,7 +2442,7 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV2PrivateGetMyTrades(this.extend(request, parameters));
             }
-            data = this.safeValue(response, "data", new List<object>() {});
+            data = this.safeList(response, "data", new List<object>() {});
         } else if (isTrue(getValue(market, "spot")))
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
@@ -2665,7 +2646,7 @@ public partial class bitrue : Exchange
                 { "6", "canceled" },
             } },
         };
-        object statuses = this.safeValue(statusesByType, type, new Dictionary<string, object>() {});
+        object statuses = this.safeDict(statusesByType, type, new Dictionary<string, object>() {});
         return this.safeString(statuses, status, status);
     }
 
@@ -2874,7 +2855,7 @@ public partial class bitrue : Exchange
         //       "chainDetail": [ [Object] ]
         //   }
         //
-        object chainDetails = this.safeValue(fee, "chainDetail", new List<object>() {});
+        object chainDetails = this.safeList(fee, "chainDetail", new List<object>() {});
         object chainDetailLength = getArrayLength(chainDetails);
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -3056,7 +3037,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        object accountTypes = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountTypes = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountTypes, fromAccount, fromAccount);
         object toId = this.safeString(accountTypes, toAccount, toAccount);
         object request = new Dictionary<string, object>() {

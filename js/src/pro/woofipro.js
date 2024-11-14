@@ -24,7 +24,9 @@ export default class woofipro extends woofiproRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': true,
             },
             'urls': {
@@ -290,6 +292,71 @@ export default class woofipro extends woofiproRest {
         }
         client.resolve(result, topic);
     }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name woofipro#watchBidsAsks
+         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const name = 'bbos';
+        const topic = name;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend(request, params);
+        const tickers = await this.watchPublic(topic, message);
+        return this.filterByArray(tickers, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        //
+        //     {
+        //       "topic": "bbos",
+        //       "ts": 1726212495000,
+        //       "data": [
+        //         {
+        //           "symbol": "PERP_WOO_USDC",
+        //           "ask": 0.16570,
+        //           "askSize": 4224,
+        //           "bid": 0.16553,
+        //           "bidSize": 6645
+        //         }
+        //       ]
+        //     }
+        //
+        const topic = this.safeString(message, 'topic');
+        const data = this.safeList(message, 'data', []);
+        const timestamp = this.safeInteger(message, 'ts');
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const ticker = this.parseWsBidAsk(this.extend(data[i], { 'ts': timestamp }));
+            this.tickers[ticker['symbol']] = ticker;
+            result.push(ticker);
+        }
+        client.resolve(result, topic);
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'symbol');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'ts');
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeString(ticker, 'ask'),
+            'askVolume': this.safeString(ticker, 'askSize'),
+            'bid': this.safeString(ticker, 'bid'),
+            'bidVolume': this.safeString(ticker, 'bidSize'),
+            'info': ticker,
+        }, market);
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -377,7 +444,7 @@ export default class woofipro extends woofiproRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
@@ -717,9 +784,10 @@ export default class woofipro extends woofiproRest {
             'cost': this.safeString(order, 'totalFee'),
             'currency': this.safeString(order, 'feeAsset'),
         };
+        const priceString = this.safeString(order, 'price');
         let price = this.safeNumber(order, 'price');
         const avgPrice = this.safeNumber(order, 'avgPrice');
-        if ((price === 0) && (avgPrice !== undefined)) {
+        if (Precise.stringEq(priceString, '0') && (avgPrice !== undefined)) {
             price = avgPrice;
         }
         const amount = this.safeString(order, 'quantity');
@@ -914,7 +982,7 @@ export default class woofipro extends woofiproRest {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -1203,6 +1271,7 @@ export default class woofipro extends woofiproRest {
             'algoexecutionreport': this.handleOrderUpdate,
             'position': this.handlePositions,
             'balance': this.handleBalance,
+            'bbos': this.handleBidAsk,
         };
         const event = this.safeString(message, 'event');
         let method = this.safeValue(methods, event);

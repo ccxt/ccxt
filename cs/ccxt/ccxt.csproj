@@ -10,9 +10,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.3.49</PackageVersion>
-    <AssemblyVersion>4.3.49</AssemblyVersion>
-    <FileVersion>4.3.49</FileVersion>
+    <PackageVersion>4.4.30</PackageVersion>
+    <AssemblyVersion>4.4.30</AssemblyVersion>
+    <FileVersion>4.4.30</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -33,6 +33,12 @@
   <ItemGroup>
     <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
+</ItemGroup>
+<ItemGroup>
+  <None Update="static/StarkSharp/StarkSharp.Signer/StarkCurveSigner\pedersen_params.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Pack>true</Pack>
+  </None>
 </ItemGroup>
 
 </Project>

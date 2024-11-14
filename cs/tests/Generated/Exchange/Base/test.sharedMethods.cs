@@ -11,7 +11,11 @@ public partial class testMainClass : BaseTest
     {
         public object logTemplate(Exchange exchange, object method, object entry)
         {
-            return add(add(add(add(add(add(" <<< ", exchange.id), " "), method), " ::: "), exchange.json(entry)), " >>> ");
+            // there are cases when exchange is undefined (eg. base tests)
+            object id = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.id : "undefined";
+            object methodString = ((bool) isTrue((!isEqual(method, null)))) ? method : "undefined";
+            object entryString = ((bool) isTrue((!isEqual(exchange, null)))) ? exchange.json(entry) : "";
+            return add(add(add(add(add(add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ");
         }
         public object isTemporaryFailure(object e)
         {
@@ -351,6 +355,11 @@ public partial class testMainClass : BaseTest
             if (isTrue(!isEqual(feeObject, null)))
             {
                 assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                if (isTrue(isEqual(getValue(feeObject, "cost"), null)))
+                {
+                    return;  // todo: remove undefined check to make stricter
+                }
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), add(add(add("\"", keyString), "\" fee object should contain \"currency\" key"), logText));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -411,7 +420,8 @@ public partial class testMainClass : BaseTest
                 }
             } else
             {
-                assertInteger(exchange, skippedProperties, method, entry, key); // should be integer
+                // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+                // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
                 assertLessOrEqual(exchange, skippedProperties, method, entry, key, "18"); // should be under 18 decimals
                 assertGreaterOrEqual(exchange, skippedProperties, method, entry, key, "-8"); // in real-world cases, there would not be less than that
             }
@@ -464,6 +474,15 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
+        }
+        public object deepEqual(object a, object b)
+        {
+            return isEqual(json(a), json(b));
+        }
+        public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
+        {
+            object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
+            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
     }

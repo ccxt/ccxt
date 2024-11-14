@@ -4,10 +4,12 @@ import Client from '../base/ws/Client.js';
 export default class ascendex extends ascendexRest {
     describe(): any;
     watchPublic(messageHash: any, params?: {}): Promise<any>;
+    watchPublicMultiple(messageHashes: any, params?: {}): Promise<any>;
     watchPrivate(channel: any, messageHash: any, params?: {}): Promise<any>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): any;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookSnapshot(symbol: string, limit?: Int, params?: {}): Promise<any>;

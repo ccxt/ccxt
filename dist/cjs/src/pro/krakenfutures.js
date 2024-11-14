@@ -76,17 +76,17 @@ class krakenfutures extends krakenfutures$1 {
         const url = this.urls['api']['ws'];
         const messageHash = 'challenge';
         const client = this.client(url);
-        let future = this.safeValue(client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.future(messageHash);
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
             const request = {
                 'event': 'challenge',
                 'api_key': this.apiKey,
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message, messageHash);
-            client.subscriptions[messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
@@ -1062,6 +1062,8 @@ class krakenfutures extends krakenfutures$1 {
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
             'quoteVolume': this.safeString(ticker, 'volumeQuote'),
+            'markPrice': this.safeString(ticker, 'markPrice'),
+            'indexPrice': this.safeString(ticker, 'index'),
         });
     }
     handleOrderBookSnapshot(client, message) {
@@ -1572,7 +1574,8 @@ class krakenfutures extends krakenfutures$1 {
             const signature = this.hmac(hashedChallenge, base64Secret, sha512.sha512, 'base64');
             this.options['challenge'] = challenge;
             this.options['signedChallenge'] = signature;
-            client.resolve(message, messageHash);
+            const future = this.safeValue(client.futures, messageHash);
+            future.resolve(true);
         }
         else {
             const error = new errors.AuthenticationError(this.id + ' ' + this.json(message));

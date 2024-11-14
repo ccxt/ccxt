@@ -6,6 +6,7 @@ import { ExchangeError, NotSupported } from '../base/errors.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
@@ -483,10 +484,11 @@ export default class gemini extends geminiRest {
             const entry = rawBidAskChanges[i];
             const rawSide = this.safeString (entry, 'side');
             const price = this.safeNumber (entry, 'price');
-            const size = this.safeNumber (entry, 'remaining');
-            if (size === 0) {
+            const sizeString = this.safeString (entry, 'remaining');
+            if (Precise.stringEq (sizeString, '0')) {
                 continue;
             }
+            const size = this.parseNumber (sizeString);
             if (rawSide === 'bid') {
                 currentBidAsk['bid'] = price;
                 currentBidAsk['bidVolume'] = size;

@@ -46,7 +46,10 @@ class coinbaseexchange extends Exchange {
                 'fetchDepositAddress' => false, // the exchange does not have this method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
+                'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -1108,6 +1111,7 @@ class coinbaseexchange extends Exchange {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
              * fetches information on an order made by the user
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by coinbaseexchange fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -1241,7 +1245,7 @@ class coinbaseexchange extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1385,7 +1389,7 @@ class coinbaseexchange extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1437,7 +1441,7 @@ class coinbaseexchange extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //  {
         //      "id" => "12087495079",
         //      "amount" => "-0.0100000000000000",
@@ -1491,33 +1495,33 @@ class coinbaseexchange extends Exchange {
             $referenceId = $this->safe_string($details, 'order_id');
         }
         $status = 'ok';
-        return array(
+        return $this->safe_ledger_entry(array(
+            'info' => $item,
             'id' => $id,
-            'currency' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'direction' => $direction,
             'account' => $account,
             'referenceAccount' => $referenceAccount,
             'referenceId' => $referenceId,
-            'status' => $status,
+            'type' => $type,
+            'currency' => $code,
             'amount' => $amount,
             'before' => $before,
             'after' => $after,
+            'status' => $status,
             'fee' => null,
-            'direction' => $direction,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'type' => $type,
-            'info' => $item,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
              * @param {string} $code unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~

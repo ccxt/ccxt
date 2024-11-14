@@ -53,9 +53,11 @@ public partial class bitfinex2 : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
-                { "fetchFundingRate", true },
+                { "fetchFundingRate", "emulated" },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", true },
                 { "fetchIndexOHLCV", false },
@@ -117,7 +119,7 @@ public partial class bitfinex2 : Exchange
             } },
             { "rateLimit", 250 },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178" },
                 { "api", new Dictionary<string, object>() {
                     { "v1", "https://api.bitfinex.com" },
                     { "public", "https://api-pub.bitfinex.com" },
@@ -294,7 +296,9 @@ public partial class bitfinex2 : Exchange
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
                 { "exchangeTypes", new Dictionary<string, object>() {
+                    { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
+                    { "LIMIT", "limit" },
                     { "EXCHANGE LIMIT", "limit" },
                     { "EXCHANGE STOP", "market" },
                     { "EXCHANGE FOK", "limit" },
@@ -323,6 +327,25 @@ public partial class bitfinex2 : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BITCOIN" },
+                    { "LTC", "LITECOIN" },
+                    { "ERC20", "ETHEREUM" },
+                    { "OMNI", "TETHERUSO" },
+                    { "LIQUID", "TETHERUSL" },
+                    { "TRC20", "TETHERUSX" },
+                    { "EOS", "TETHERUSS" },
+                    { "AVAX", "TETHERUSDTAVAX" },
+                    { "SOL", "TETHERUSDTSOL" },
+                    { "ALGO", "TETHERUSDTALG" },
+                    { "BCH", "TETHERUSDTBCH" },
+                    { "KSM", "TETHERUSDTKSM" },
+                    { "DVF", "TETHERUSDTDVF" },
+                    { "OMG", "TETHERUSDTOMG" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TETHERUSE", "ERC20" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -466,12 +489,16 @@ public partial class bitfinex2 : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfo = await this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(parameters);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, new List<object>() {});
+        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
+        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
+        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
+        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        object marginIds = await this.publicGetConfPubListPairMargin(parameters);
         marginIds = this.safeValue(marginIds, 0, new List<object>() {});
         //
         //    [
@@ -752,7 +779,7 @@ public partial class bitfinex2 : Exchange
                 object currencyId = this.safeString(this.safeValue(pair, 1, new List<object>() {}), 0);
                 if (isTrue(isEqual(currencyId, cleanId)))
                 {
-                    object network = this.safeNetwork(networkId);
+                    object network = this.networkIdToCode(networkId);
                     ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                         { "info", networkId },
                         { "id", ((string)networkId).ToLower() },
@@ -779,28 +806,6 @@ public partial class bitfinex2 : Exchange
             }
         }
         return result;
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "BITCOIN", "BTC" },
-            { "LITECOIN", "LTC" },
-            { "ETHEREUM", "ERC20" },
-            { "TETHERUSE", "ERC20" },
-            { "TETHERUSO", "OMNI" },
-            { "TETHERUSL", "LIQUID" },
-            { "TETHERUSX", "TRC20" },
-            { "TETHERUSS", "EOS" },
-            { "TETHERUSDTAVAX", "AVAX" },
-            { "TETHERUSDTSOL", "SOL" },
-            { "TETHERUSDTALG", "ALGO" },
-            { "TETHERUSDTBCH", "BCH" },
-            { "TETHERUSDTKSM", "KSM" },
-            { "TETHERUSDTDVF", "DVF" },
-            { "TETHERUSDTOMG", "OMG" },
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchBalance(object parameters = null)
@@ -1911,7 +1916,7 @@ public partial class bitfinex2 : Exchange
             object cidDate = this.safeValue(parameters, "cidDate"); // client order id date
             if (isTrue(isEqual(cidDate, null)))
             {
-                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId (\'cid\') requires both \'cid\' and \'cid_date\' (\'YYYY-MM-DD\')")) ;
+                throw new InvalidOrder ((string)add(this.id, " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")) ;
             }
             request = new Dictionary<string, object>() {
                 { "cid", cid },
@@ -2372,7 +2377,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " fetchDepositAddress() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -2514,7 +2519,7 @@ public partial class bitfinex2 : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = "ok";
             if (isTrue(isEqual(id, 0)))
             {
@@ -2529,7 +2534,7 @@ public partial class bitfinex2 : Exchange
             object currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             object networkId = this.safeString(transaction, 2);
-            network = this.safeNetwork(networkId);
+            network = this.networkIdToCode(networkId);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2794,7 +2799,7 @@ public partial class bitfinex2 : Exchange
         object networkId = this.safeString(currencyNetwork, "id");
         if (isTrue(isEqual(networkId, null)))
         {
-            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for \'"), code), "\'. You can specify it by providing the \'network\' value inside params")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " withdraw() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")) ;
         }
         object wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
         parameters = this.omit(parameters, "network", "wallet");
@@ -3132,6 +3137,7 @@ public partial class bitfinex2 : Exchange
         object id = this.safeString(itemList, 0);
         object currencyId = this.safeString(itemList, 1);
         object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(itemList, 3);
         object amount = this.safeNumber(itemList, 5);
         object after = this.safeNumber(itemList, 6);
@@ -3142,7 +3148,8 @@ public partial class bitfinex2 : Exchange
             object first = this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
+            { "info", item },
             { "id", id },
             { "direction", null },
             { "account", null },
@@ -3157,8 +3164,7 @@ public partial class bitfinex2 : Exchange
             { "after", after },
             { "status", null },
             { "fee", null },
-            { "info", item },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -3166,11 +3172,11 @@ public partial class bitfinex2 : Exchange
         /**
         * @method
         * @name bitfinex2#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined max is 2500
+        * @param {int} [limit] max number of ledger entries to return, default is undefined, max is 2500
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3235,31 +3241,16 @@ public partial class bitfinex2 : Exchange
         return this.parseLedger(ledgerObjects, currency, since, limit);
     }
 
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
-    {
-        /**
-        * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        return ((object)await this.fetchFundingRates(new List<object>() {symbol}, parameters));
-    }
-
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         /**
         * @method
-        * @name bitfinex2#fetchFundingRate
-        * @description fetch the current funding rate
+        * @name bitfinex2#fetchFundingRates
+        * @description fetch the current funding rate for multiple symbols
         * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
         * @param {string[]} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbols, null)))
@@ -3446,6 +3437,7 @@ public partial class bitfinex2 : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -3949,7 +3941,7 @@ public partial class bitfinex2 : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] the price that triggers a trigger order
         * @param {boolean} [params.postOnly] set to true if you want to make a post only order

@@ -19,7 +19,9 @@ public partial class woofipro : ccxt.woofipro
                 { "watchOrders", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
+                { "watchBidsAsks", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchPositions", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -312,6 +314,81 @@ public partial class woofipro : ccxt.woofipro
         callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
     }
 
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name woofipro#watchBidsAsks
+        * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+        * @description watches best bid & ask for symbols
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object name = "bbos";
+        object topic = name;
+        object request = new Dictionary<string, object>() {
+            { "event", "subscribe" },
+            { "topic", topic },
+        };
+        object message = this.extend(request, parameters);
+        object tickers = await this.watchPublic(topic, message);
+        return this.filterByArray(tickers, "symbol", symbols);
+    }
+
+    public virtual void handleBidAsk(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //       "topic": "bbos",
+        //       "ts": 1726212495000,
+        //       "data": [
+        //         {
+        //           "symbol": "PERP_WOO_USDC",
+        //           "ask": 0.16570,
+        //           "askSize": 4224,
+        //           "bid": 0.16553,
+        //           "bidSize": 6645
+        //         }
+        //       ]
+        //     }
+        //
+        object topic = this.safeString(message, "topic");
+        object data = this.safeList(message, "data", new List<object>() {});
+        object timestamp = this.safeInteger(message, "ts");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
+                { "ts", timestamp },
+            }));
+            ((IDictionary<string,object>)this.tickers)[(string)getValue(ticker, "symbol")] = ticker;
+            ((IList<object>)result).Add(ticker);
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {result, topic});
+    }
+
+    public virtual object parseWsBidAsk(object ticker, object market = null)
+    {
+        object marketId = this.safeString(ticker, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = this.safeString(market, "symbol");
+        object timestamp = this.safeInteger(ticker, "ts");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "ask", this.safeString(ticker, "ask") },
+            { "askVolume", this.safeString(ticker, "askSize") },
+            { "bid", this.safeString(ticker, "bid") },
+            { "bidVolume", this.safeString(ticker, "bidSize") },
+            { "info", ticker },
+        }, market);
+    }
+
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -402,7 +479,7 @@ public partial class woofipro : ccxt.woofipro
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -558,7 +635,7 @@ public partial class woofipro : ccxt.woofipro
             // allows further authentication attempts
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
             }
         }
     }
@@ -780,9 +857,10 @@ public partial class woofipro : ccxt.woofipro
             { "cost", this.safeString(order, "totalFee") },
             { "currency", this.safeString(order, "feeAsset") },
         };
+        object priceString = this.safeString(order, "price");
         object price = this.safeNumber(order, "price");
         object avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(isTrue((isEqual(price, 0))) && isTrue((!isEqual(avgPrice, null)))))
+        if (isTrue(isTrue(Precise.stringEq(priceString, "0")) && isTrue((!isEqual(avgPrice, null)))))
         {
             price = avgPrice;
         }
@@ -1000,7 +1078,7 @@ public partial class woofipro : ccxt.woofipro
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1293,7 +1371,7 @@ public partial class woofipro : ccxt.woofipro
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
-
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                 }
             } else
             {
@@ -1323,6 +1401,7 @@ public partial class woofipro : ccxt.woofipro
             { "algoexecutionreport", this.handleOrderUpdate },
             { "position", this.handlePositions },
             { "balance", this.handleBalance },
+            { "bbos", this.handleBidAsk },
         };
         object eventVar = this.safeString(message, "event");
         object method = this.safeValue(methods, eventVar);

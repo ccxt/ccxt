@@ -40,9 +40,11 @@ public partial class oceanex : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchDepositAddress", false },
-                { "fetchDepositAddresses", false },
-                { "fetchDepositAddressesByNetwork", false },
+                { "fetchDepositAddress", "emulated" },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", true },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchMarkets", true },
@@ -81,7 +83,7 @@ public partial class oceanex : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"key", "members/me", "orders", "orders/filter"} },
-                    { "post", new List<object>() {"orders", "orders/multi", "order/delete", "order/delete/multi", "orders/clear"} },
+                    { "post", new List<object>() {"orders", "orders/multi", "order/delete", "order/delete/multi", "orders/clear", "/withdraws/special/new", "/deposit_address", "/deposit_addresses", "/deposit_history", "/withdraw_history"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -660,7 +662,7 @@ public partial class oceanex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -983,6 +985,88 @@ public partial class oceanex : Exchange
         object response = await this.privatePostOrdersClear(parameters);
         object data = this.safeList(response, "data");
         return this.parseOrders(data);
+    }
+
+    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    {
+        /**
+        * @method
+        * @name oceanex#fetchDepositAddressesByNetwork
+        * @description fetch the deposit addresses for a currency associated with this account
+        * @see https://api.oceanex.pro/doc/v1/#deposit-addresses-post
+        * @param {string} code unified currency code
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+        };
+        object response = await this.privatePostDepositAddresses(this.extend(request, parameters));
+        //
+        //    {
+        //        code: '0',
+        //        message: 'Operation successful',
+        //        data: {
+        //          data: {
+        //            currency_id: 'usdt',
+        //            display_name: 'USDT',
+        //            num_of_resources: '3',
+        //            resources: [
+        //              {
+        //                chain_name: 'TRC20',
+        //                currency_id: 'usdt',
+        //                address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //                memo: '',
+        //                deposit_status: 'enabled'
+        //              },
+        //              ...
+        //            ]
+        //          }
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object data2 = this.safeDict(data, "data", new Dictionary<string, object>() {});
+        object resources = this.safeList(data2, "resources", new List<object>() {});
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(resources)); postFixIncrement(ref i))
+        {
+            object resource = getValue(resources, i);
+            object enabled = this.safeString(resource, "deposit_status");
+            if (isTrue(isEqual(enabled, "enabled")))
+            {
+                object parsedAddress = this.parseDepositAddress(resource, currency);
+                ((IDictionary<string,object>)result)[(string)getValue(parsedAddress, "currency")] = parsedAddress;
+            }
+        }
+        return result;
+    }
+
+    public override object parseDepositAddress(object depositAddress, object currency = null)
+    {
+        //
+        //    {
+        //        chain_name: 'TRC20',
+        //        currency_id: 'usdt',
+        //        address: 'TPcS7VgKMFmpRrWY82GbJzDeMnemWxEbpg',
+        //        memo: '',
+        //        deposit_status: 'enabled'
+        //    }
+        //
+        object address = this.safeString(depositAddress, "address");
+        this.checkAddress(address);
+        object currencyId = this.safeString(depositAddress, "currency_id");
+        object networkId = this.safeString(depositAddress, "chain_name");
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.networkIdToCode(networkId) },
+            { "address", address },
+            { "tag", this.safeString(depositAddress, "memo") },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

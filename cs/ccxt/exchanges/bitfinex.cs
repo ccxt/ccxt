@@ -29,10 +29,16 @@ public partial class bitfinex : Exchange
                 { "fetchBalance", true },
                 { "fetchClosedOrders", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
+                { "fetchFundingHistory", false },
+                { "fetchFundingRate", false },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchLeverageTiers", false },
                 { "fetchMarginMode", false },
@@ -73,7 +79,7 @@ public partial class bitfinex : Exchange
                 { "1M", "1M" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9" },
                 { "api", new Dictionary<string, object>() {
                     { "v2", "https://api-pub.bitfinex.com" },
                     { "public", "https://api.bitfinex.com" },
@@ -363,7 +369,7 @@ public partial class bitfinex : Exchange
         //     }
         // }
         //
-        object fees = this.safeValue(response, "withdraw");
+        object fees = this.safeDict(response, "withdraw", new Dictionary<string, object>() {});
         object ids = new List<object>(((IDictionary<string,object>)fees).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -480,7 +486,7 @@ public partial class bitfinex : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object fiat = this.safeValue(this.options, "fiat", new Dictionary<string, object>() {});
+        object fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
         object makerFee = this.safeNumber(response, "maker_fee");
         object takerFee = this.safeNumber(response, "taker_fee");
         object makerFee2Fiat = this.safeNumber(response, "maker_fee_2fiat");
@@ -527,11 +533,11 @@ public partial class bitfinex : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object ids = await this.publicGetSymbols();
+        object idsPromise = this.publicGetSymbols();
         //
         //     [ "btcusd", "ltcusd", "ltcbtc" ]
         //
-        object details = await this.publicGetSymbolsDetails();
+        object detailsPromise = this.publicGetSymbolsDetails();
         //
         //     [
         //         {
@@ -546,6 +552,9 @@ public partial class bitfinex : Exchange
         //         },
         //     ]
         //
+        var idsdetailsVariable = await promiseAll(new List<object>() {idsPromise, detailsPromise});
+        var ids = ((IList<object>) idsdetailsVariable)[0];
+        var details = ((IList<object>) idsdetailsVariable)[1];
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
         {
@@ -587,7 +596,7 @@ public partial class bitfinex : Exchange
                 { "settleId", null },
                 { "type", type },
                 { "spot", (isEqual(type, "spot")) },
-                { "margin", this.safeValue(market, "margin") },
+                { "margin", this.safeBool(market, "margin") },
                 { "swap", (isEqual(type, "swap")) },
                 { "future", false },
                 { "option", false },
@@ -661,7 +670,7 @@ public partial class bitfinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object requestedType = this.safeString(parameters, "type", "exchange");
         object accountType = this.safeString(accountsByType, requestedType, requestedType);
         if (isTrue(isEqual(accountType, null)))
@@ -734,7 +743,7 @@ public partial class bitfinex : Exchange
         // however we support it in CCXT (from just looking at web inspector)
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         object currency = this.currency(code);
@@ -846,7 +855,7 @@ public partial class bitfinex : Exchange
         * @method
         * @name bitfinex#fetchTickers
         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
@@ -857,9 +866,7 @@ public partial class bitfinex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(new Dictionary<string, object>() {
-                { "result", getValue(response, i) },
-            });
+            object ticker = this.parseTicker(getValue(response, i));
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -1102,7 +1109,7 @@ public partial class bitfinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1190,7 +1197,33 @@ public partial class bitfinex : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", parseInt(id) },
         };
-        return await this.privatePostOrderCancel(this.extend(request, parameters));
+        object response = await this.privatePostOrderCancel(this.extend(request, parameters));
+        //
+        //    {
+        //        id: '161236928925',
+        //        cid: '1720172026812',
+        //        cid_date: '2024-07-05',
+        //        gid: null,
+        //        symbol: 'adaust',
+        //        exchange: 'bitfinex',
+        //        price: '0.33',
+        //        avg_execution_price: '0.0',
+        //        side: 'buy',
+        //        type: 'exchange limit',
+        //        timestamp: '1720172026.813',
+        //        is_live: true,
+        //        is_cancelled: false,
+        //        is_hidden: false,
+        //        oco_order: null,
+        //        was_forced: false,
+        //        original_amount: '10.0',
+        //        remaining_amount: '10.0',
+        //        executed_amount: '0.0',
+        //        src: 'api',
+        //        meta: {}
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1200,12 +1233,18 @@ public partial class bitfinex : Exchange
         * @name bitfinex#cancelAllOrders
         * @description cancel all open orders
         * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+        * @param {string} symbol not used by bitfinex cancelAllOrders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} response from exchange
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.privatePostOrderCancelAll(parameters);
+        object response = await this.privatePostOrderCancelAll(parameters);
+        //
+        //    { result: 'Submitting 1 order cancellations.' }
+        //
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1235,8 +1274,8 @@ public partial class bitfinex : Exchange
         //     }
         //
         object side = this.safeString(order, "side");
-        object open = this.safeValue(order, "is_live");
-        object canceled = this.safeValue(order, "is_cancelled");
+        object open = this.safeBool(order, "is_live");
+        object canceled = this.safeBool(order, "is_cancelled");
         object status = null;
         if (isTrue(open))
         {
@@ -1354,6 +1393,7 @@ public partial class bitfinex : Exchange
         * @name bitfinex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        * @param {string} id the order id
         * @param {string} symbol not used by bitfinex fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1687,8 +1727,8 @@ public partial class bitfinex : Exchange
         //         }
         //     ]
         //
-        object response = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object id = this.safeNumber(response, "withdrawal_id");
+        object response = this.safeDict(responses, 0, new Dictionary<string, object>() {});
+        object id = this.safeInteger(response, "withdrawal_id");
         object message = this.safeString(response, "message");
         object errorMessage = this.findBroadlyMatchedKey(getValue(this.exceptions, "broad"), message);
         if (isTrue(isEqual(id, 0)))
@@ -1737,7 +1777,7 @@ public partial class bitfinex : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return this.microseconds();
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -1808,7 +1848,7 @@ public partial class bitfinex : Exchange
         {
             // json response with error, i.e:
             // [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-            object responseObject = this.safeValue(response, 0, new Dictionary<string, object>() {});
+            object responseObject = this.safeDict(response, 0, new Dictionary<string, object>() {});
             object status = this.safeString(responseObject, "status", "");
             if (isTrue(isEqual(status, "error")))
             {

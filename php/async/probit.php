@@ -10,9 +10,9 @@ use ccxt\async\abstract\probit as Exchange;
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
-use ccxt\BadResponse;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
+use ccxt\BadResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -53,6 +53,7 @@ class probit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => true,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -186,7 +187,7 @@ class probit extends Exchange {
                     'RATE_LIMIT_EXCEEDED' => '\\ccxt\\RateLimitExceeded', // You are sending requests too frequently. Please try it later.
                     'MARKET_UNAVAILABLE' => '\\ccxt\\ExchangeNotAvailable', // Market is closed today
                     'INVALID_MARKET' => '\\ccxt\\BadSymbol', // Requested market is not exist
-                    'MARKET_CLOSED' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_CLOSED")
+                    'MARKET_CLOSED' => '\\ccxt\\MarketClosed', // array("errorCode":"MARKET_CLOSED")
                     'MARKET_NOT_FOUND' => '\\ccxt\\BadSymbol', // array("errorCode":"MARKET_NOT_FOUND","message":"8e2b8496-0a1e-5beb-b990-a205b902eabe","details":array())
                     'INVALID_CURRENCY' => '\\ccxt\\BadRequest', // Requested currency is not exist on ProBit system
                     'TOO_MANY_OPEN_ORDERS' => '\\ccxt\\DDoSProtection', // Too many open orders
@@ -1093,6 +1094,7 @@ class probit extends Exchange {
             /**
              * @see https://docs-en.probit.com/reference/order-3
              * fetches information on an $order made by the user
+             * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1207,7 +1209,7 @@ class probit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
@@ -1318,7 +1320,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $currencyId = $this->safe_string($depositAddress, 'currency_id');
@@ -1327,15 +1329,15 @@ class probit extends Exchange {
         $network = $this->safe_string($depositAddress, 'platform_id');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * @see https://docs-en.probit.com/reference/deposit_address
@@ -1390,7 +1392,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * @see https://docs-en.probit.com/reference/deposit_address
@@ -1415,7 +1417,7 @@ class probit extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://docs-en.probit.com/reference/withdrawal
@@ -1865,11 +1867,16 @@ class probit extends Exchange {
         }
         if (is_array($response) && array_key_exists('errorCode', $response)) {
             $errorCode = $this->safe_string($response, 'errorCode');
-            $message = $this->safe_string($response, 'message');
             if ($errorCode !== null) {
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                $errMessage = $this->safe_string($response, 'message', '');
+                $details = $this->safe_value($response, 'details');
+                $feedback = $this->id . ' ' . $errorCode . ' ' . $errMessage . ' ' . $this->json($details);
+                if (is_array($this->exceptions) && array_key_exists('exact', $this->exceptions)) {
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+                }
+                if (is_array($this->exceptions) && array_key_exists('broad', $this->exceptions)) {
+                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $errMessage, $feedback);
+                }
                 throw new ExchangeError($feedback);
             }
         }

@@ -92,7 +92,7 @@ public partial class btcalpha : Exchange
                 { "1d", "D" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/dce49f3a-61e5-4ba0-a2fe-41d192fd0e5d" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://btc-alpha.com/api" },
                 } },
@@ -780,7 +780,7 @@ public partial class btcalpha : Exchange
         * @param {string} type 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -841,6 +841,7 @@ public partial class btcalpha : Exchange
         * @name btcalpha#fetchOrder
         * @see https://btc-alpha.github.io/api-docs/#retrieve-single-order
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol not used by btcalpha fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1014,23 +1015,13 @@ public partial class btcalpha : Exchange
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         object error = this.safeString(response, "error");
-        object feedback = add(add(this.id, " "), body);
         if (isTrue(!isEqual(error, null)))
         {
+            object feedback = add(add(this.id, " "), body);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
-        if (isTrue(isTrue(isEqual(code, 401)) || isTrue(isEqual(code, 403))))
-        {
-            throw new AuthenticationError ((string)feedback) ;
-        } else if (isTrue(isEqual(code, 429)))
-        {
-            throw new DDoSProtection ((string)feedback) ;
-        }
-        if (isTrue(isLessThan(code, 400)))
-        {
-            return null;
-        }
-        throw new ExchangeError ((string)feedback) ;
+        return null;
     }
 }

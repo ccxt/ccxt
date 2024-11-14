@@ -130,7 +130,7 @@ export default class bitteam extends Exchange {
                 '1d': '1D',
             },
             'urls': {
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/cf71fe3d-b8b4-40f2-a906-907661b28793',
+                'logo': 'https://github.com/user-attachments/assets/b41b5e0d-98e5-4bd3-8a6e-aeb230a4a135',
                 'api': {
                     'history': 'https://history.bit.team',
                     'public': 'https://bit.team',
@@ -994,7 +994,7 @@ export default class bitteam extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitteam api endpoint
          * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
          */
@@ -1956,7 +1956,6 @@ export default class bitteam extends Exchange {
         const fee = {
             'currency': this.safeCurrencyCode (feeCurrencyId),
             'cost': feeCost,
-            'rate': undefined,
         };
         const intTs = this.parseToInt (timestamp);
         return this.safeTrade ({

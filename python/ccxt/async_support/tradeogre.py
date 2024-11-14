@@ -83,7 +83,6 @@ class tradeogre(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': False,
-                'fetchPermissions': False,
                 'fetchPosition': False,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': False,
@@ -221,7 +220,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 'inverse': None,
                 'contractSize': None,
                 'taker': self.fees['trading']['taker'],
-                'maker': self.fees['trading']['taker'],
+                'maker': self.fees['trading']['maker'],
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,
@@ -445,7 +444,7 @@ class tradeogre(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

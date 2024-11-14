@@ -25,6 +25,7 @@ class cex(ccxt.async_support.cex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -640,7 +641,7 @@ class cex(ccxt.async_support.cex):
         #             }
         #         }
         #     }
-        #  fullfilledOrder
+        #  fulfilledOrder
         #     {
         #         "e": "order",
         #         "data": {
@@ -961,7 +962,7 @@ class cex(ccxt.async_support.cex):
         #     }
         #
         data = self.safe_value(message, 'data', {})
-        incrementalId = self.safe_number(data, 'id')
+        incrementalId = self.safe_integer(data, 'id')
         pair = self.safe_string(data, 'pair', '')
         symbol = self.pair_to_symbol(pair)
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
@@ -1129,6 +1130,7 @@ class cex(ccxt.async_support.cex):
         """
         fetches information on an order made by the user
         :see: https://docs.cex.io/#ws-api-get-order
+        :param str id: the order id
         :param str symbol: not used by cex fetchOrder
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1187,7 +1189,7 @@ class cex(ccxt.async_support.cex):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :param boolean [params.maker_only]: Optional, maker only places an order only if offers best sell(<= max) or buy(>= max) price for self pair, if not order placement will be rejected with an error - "Order is not maker"
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -1222,7 +1224,7 @@ class cex(ccxt.async_support.cex):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """

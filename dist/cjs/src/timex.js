@@ -351,12 +351,7 @@ class timex extends timex$1 {
         //         },
         //     ]
         //
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            result.push(this.parseCurrency(currency));
-        }
-        return this.indexBy(result, 'code');
+        return this.parseCurrencies(response);
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -745,7 +740,7 @@ class timex extends timex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -876,7 +871,8 @@ class timex extends timex$1 {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        return await this.cancelOrders([id], symbol, params);
+        const orders = await this.cancelOrders([id], symbol, params);
+        return this.safeDict(orders, 0);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
@@ -918,7 +914,22 @@ class timex extends timex$1 {
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        const changedOrders = this.safeList(response, 'changedOrders', []);
+        const unchangedOrders = this.safeList(response, 'unchangedOrders', []);
+        const orders = [];
+        for (let i = 0; i < changedOrders.length; i++) {
+            const newOrder = this.safeDict(changedOrders[i], 'newOrder');
+            orders.push(this.parseOrder(newOrder));
+        }
+        for (let i = 0; i < unchangedOrders.length; i++) {
+            orders.push(this.safeOrder({
+                'info': unchangedOrders[i],
+                'id': unchangedOrders[i],
+                'status': 'unchanged',
+            }));
+        }
+        return orders;
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -1343,7 +1354,7 @@ class timex extends timex$1 {
                 fee = this.parseNumber(fraction + feeString);
             }
         }
-        return {
+        return this.safeCurrencyStructure({
             'id': code,
             'code': code,
             'info': currency,
@@ -1359,7 +1370,7 @@ class timex extends timex$1 {
                 'amount': { 'min': undefined, 'max': undefined },
             },
             'networks': {},
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1617,9 +1628,9 @@ class timex extends timex$1 {
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
+            'network': undefined,
             'address': this.safeString(depositAddress, 'address'),
             'tag': undefined,
-            'network': undefined,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

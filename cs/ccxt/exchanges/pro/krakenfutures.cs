@@ -76,18 +76,18 @@ public partial class krakenfutures : ccxt.krakenfutures
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = "challenge";
         var client = this.client(url);
-        var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(future, null)))
+        var future = client.future(messageHash);
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+        if (isTrue(isEqual(authenticated, null)))
         {
             object request = new Dictionary<string, object>() {
                 { "event", "challenge" },
                 { "api_key", this.apiKey },
             };
             object message = this.extend(request, parameters);
-            future = await this.watch(url, messageHash, message, messageHash);
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
+            this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
@@ -523,7 +523,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         {
             if (isTrue(isTrue(!isEqual(account, "futures")) && isTrue(!isEqual(account, "flex_futures"))))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either \'futures\' or \'flex_futures\'")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " watchBalance account must be either 'futures' or 'flex_futures'")) ;
             }
             messageHash = add(messageHash, add(":", account));
         }
@@ -1170,6 +1170,8 @@ public partial class krakenfutures : ccxt.krakenfutures
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "volumeQuote") },
+            { "markPrice", this.safeString(ticker, "markPrice") },
+            { "indexPrice", this.safeString(ticker, "index") },
         });
     }
 
@@ -1719,14 +1721,15 @@ public partial class krakenfutures : ccxt.krakenfutures
             object signature = this.hmac(hashedChallenge, base64Secret, sha512, "base64");
             ((IDictionary<string,object>)this.options)["challenge"] = challenge;
             ((IDictionary<string,object>)this.options)["signedChallenge"] = signature;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
+            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            (future as Future).resolve(true);
         } else
         {
             var error = new AuthenticationError(add(add(this.id, " "), this.json(message)));
             ((WebSocketClient)client).reject(error, messageHash);
             if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
             {
-
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             }
         }
         return message;

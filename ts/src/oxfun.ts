@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRate, FundingRates, DepositAddress, LeverageTier, LeverageTiers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -62,14 +62,14 @@ export default class oxfun extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposit': false,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': 'emulated',
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -79,7 +79,7 @@ export default class oxfun extends Exchange {
                 'fetchLedger': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -868,6 +868,7 @@ export default class oxfun extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'currencyVolume24h'),
             'quoteVolume': undefined, // the exchange returns cost in OX
+            'markPrice': this.safeString (ticker, 'markPrice'),
             'info': ticker,
         }, market);
     }
@@ -1009,12 +1010,12 @@ export default class oxfun extends Exchange {
         return this.parseOrderBook (data, market['symbol'], timestamp);
     }
 
-    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         /**
          * @method
          * @name oxfun#fetchFundingRates
+         * @description fetch the current funding rates for multiple markets
          * @see https://docs.ox.fun/?json#get-v3-funding-estimates
-         * @description fetch the current funding rates
          * @param {string[]} symbols unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -1045,14 +1046,13 @@ export default class oxfun extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined) {
+    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
         //
         //     {
         //         "marketCode": "OX-USD-SWAP-LIN",
         //         "fundingAt": "1715515200000",
         //         "estFundingRate": "0.000200000"
-        //     },
-        //
+        //     }
         //
         const symbol = this.safeString (fundingRate, 'marketCode');
         market = this.market (symbol);
@@ -1075,7 +1075,8 @@ export default class oxfun extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-        };
+            'interval': undefined,
+        } as FundingRate;
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1251,7 +1252,7 @@ export default class oxfun extends Exchange {
         };
     }
 
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}) {
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         /**
          * @method
          * @name oxfun#fetchLeverageTiers
@@ -1308,7 +1309,7 @@ export default class oxfun extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'marketCode');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined) {
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         marketCode: 'SOL-USD-SWAP-LIN',
@@ -1333,6 +1334,7 @@ export default class oxfun extends Exchange {
             const tier = listOfTiers[j];
             tiers.push ({
                 'tier': this.safeNumber (tier, 'tier'),
+                'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
                 'minNotional': this.safeNumber (tier, 'positionFloor'),
                 'maxNotional': this.safeNumber (tier, 'positionCap'),
@@ -1341,7 +1343,7 @@ export default class oxfun extends Exchange {
                 'info': tier,
             });
         }
-        return tiers;
+        return tiers as LeverageTier[];
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1791,7 +1793,7 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name oxfun#fetchDepositAddress
@@ -1822,19 +1824,19 @@ export default class oxfun extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
         //
         //     {"address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8"}
         //
         const address = this.safeString (depositAddress, 'address');
         this.checkAddress (address);
         return {
+            'info': depositAddress,
             'currency': currency['code'],
+            'network': undefined,
             'address': address,
             'tag': undefined,
-            'network': undefined,
-            'info': depositAddress,
-        };
+        } as DepositAddress;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2053,7 +2055,7 @@ export default class oxfun extends Exchange {
             'internal': undefined,
             'comment': undefined,
             'fee': fee,
-        };
+        } as Transaction;
     }
 
     parseDepositStatus (status) {
@@ -2076,12 +2078,12 @@ export default class oxfun extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
-         * @name bitflex#withdraw
+         * @name oxfun#withdraw
          * @description make a withdrawal
-         * @see https://docs.bitflex.com/spot#withdraw
+         * @see https://docs.ox.fun/?json#post-v3-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -2263,7 +2265,7 @@ export default class oxfun extends Exchange {
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -2455,7 +2457,7 @@ export default class oxfun extends Exchange {
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders

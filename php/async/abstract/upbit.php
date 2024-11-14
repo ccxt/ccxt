@@ -73,6 +73,15 @@ abstract class upbit extends \ccxt\async\Exchange {
     public function private_get_orders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_orders_closed($params = array()) {
+        return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_open($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_uuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_withdraws($params = array()) {
         return $this->request('withdraws', 'private', 'GET', $params, null, null, array());
     }
@@ -174,6 +183,15 @@ abstract class upbit extends \ccxt\async\Exchange {
     }
     public function privateGetOrders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersClosed($params = array()) {
+        return $this->request('orders/closed', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersOpen($params = array()) {
+        return $this->request('orders/open', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersUuids($params = array()) {
+        return $this->request('orders/uuids', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetWithdraws($params = array()) {
         return $this->request('withdraws', 'private', 'GET', $params, null, null, array());

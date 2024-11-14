@@ -27,6 +27,9 @@ public partial class bitflyer : Exchange
                 { "fetchBalance", true },
                 { "fetchClosedOrders", "emulated" },
                 { "fetchDeposits", true },
+                { "fetchFundingRate", true },
+                { "fetchFundingRateHistory", false },
+                { "fetchFundingRates", false },
                 { "fetchMarginMode", false },
                 { "fetchMarkets", true },
                 { "fetchMyTrades", true },
@@ -47,7 +50,7 @@ public partial class bitflyer : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb" },
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://api.{hostname}" },
                 } },
@@ -56,7 +59,7 @@ public partial class bitflyer : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats"} },
+                    { "get", new List<object>() {"getmarkets/usa", "getmarkets/eu", "getmarkets", "getboard", "getticker", "getexecutions", "gethealth", "getboardstate", "getchats", "getfundingrate"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"getpermissions", "getbalance", "getbalancehistory", "getcollateral", "getcollateralhistory", "getcollateralaccounts", "getaddresses", "getcoinins", "getcoinouts", "getbankaccounts", "getdeposits", "getwithdrawals", "getchildorders", "getparentorders", "getparentorder", "getexecutions", "getpositions", "gettradingcommission"} },
@@ -554,7 +557,7 @@ public partial class bitflyer : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -598,7 +601,13 @@ public partial class bitflyer : Exchange
             { "product_code", this.marketId(symbol) },
             { "child_order_acceptance_id", id },
         };
-        return await this.privatePostCancelchildorder(this.extend(request, parameters));
+        object response = await this.privatePostCancelchildorder(this.extend(request, parameters));
+        //
+        //    200 OK.
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public virtual object parseOrderStatus(object status)
@@ -745,6 +754,7 @@ public partial class bitflyer : Exchange
         * @name bitflyer#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1078,6 +1088,65 @@ public partial class bitflyer : Exchange
         };
     }
 
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitflyer#fetchFundingRate
+        * @description fetch the current funding rate
+        * @see https://lightning.bitflyer.com/docs#funding-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "product_code", getValue(market, "id") },
+        };
+        object response = await this.publicGetGetfundingrate(this.extend(request, parameters));
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        return this.parseFundingRate(response, market);
+    }
+
+    public override object parseFundingRate(object contract, object market = null)
+    {
+        //
+        //    {
+        //        "current_funding_rate": -0.003750000000
+        //        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        //    }
+        //
+        object nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
+        object nextFundingTimestamp = this.parse8601(nextFundingDatetime);
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeString(market, "symbol") },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", null },
+            { "fundingTimestamp", null },
+            { "fundingDatetime", null },
+            { "nextFundingRate", this.safeNumber(contract, "current_funding_rate") },
+            { "nextFundingTimestamp", nextFundingTimestamp },
+            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", null },
+        };
+    }
+
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
         api ??= "public";
@@ -1135,11 +1204,11 @@ public partial class bitflyer : Exchange
         object feedback = add(add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         object errorMessage = this.safeString(response, "error_message");
-        object statusCode = this.safeNumber(response, "status");
+        object statusCode = this.safeInteger(response, "status");
         if (isTrue(!isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), statusCode, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

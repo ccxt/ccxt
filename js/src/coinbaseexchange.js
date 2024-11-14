@@ -45,7 +45,10 @@ export default class coinbaseexchange extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -1093,6 +1096,7 @@ export default class coinbaseexchange extends Exchange {
          * @name coinbaseexchange#fetchOrder
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol not used by coinbaseexchange fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1222,7 +1226,7 @@ export default class coinbaseexchange extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1471,33 +1475,33 @@ export default class coinbaseexchange extends Exchange {
             referenceId = this.safeString(details, 'order_id');
         }
         const status = 'ok';
-        return {
+        return this.safeLedgerEntry({
+            'info': item,
             'id': id,
-            'currency': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'direction': direction,
             'account': account,
             'referenceAccount': referenceAccount,
             'referenceId': referenceId,
-            'status': status,
+            'type': type,
+            'currency': code,
             'amount': amount,
             'before': before,
             'after': after,
+            'status': status,
             'fee': undefined,
-            'direction': direction,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'type': type,
-            'info': item,
-        };
+        }, currency);
     }
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbaseexchange#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
-         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {int} [limit] max number of ledger entries to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch trades for
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}

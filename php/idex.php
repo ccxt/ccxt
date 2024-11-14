@@ -1150,7 +1150,7 @@ class idex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1342,7 +1342,7 @@ class idex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://api-docs-v3.idex.io/#withdraw-funds
@@ -1729,7 +1729,7 @@ class idex extends Exchange {
         return $authenticated ? ($defaultCost / 2) : $defaultCost;
     }
 
-    public function fetch_deposit_address(?string $code = null, $params = array ()) {
+    public function fetch_deposit_address(?string $code = null, $params = array ()): array {
         /**
          * fetch the Polygon address of the wallet
          * @see https://api-docs-v3.idex.io/#get-wallets
@@ -1757,7 +1757,7 @@ class idex extends Exchange {
         return $this->parse_deposit_address($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    array(
         //        array(
@@ -1779,9 +1779,9 @@ class idex extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => null,
+            'network' => 'MATIC',
             'address' => $address,
             'tag' => null,
-            'network' => 'MATIC',
         );
     }
 

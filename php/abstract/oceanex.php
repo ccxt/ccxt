@@ -61,6 +61,21 @@ abstract class oceanex extends \ccxt\Exchange {
     public function private_post_orders_clear($params = array()) {
         return $this->request('orders/clear', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_withdraws_special_new($params = array()) {
+        return $this->request('/withdraws/special/new', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_deposit_address($params = array()) {
+        return $this->request('/deposit_address', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_deposit_addresses($params = array()) {
+        return $this->request('/deposit_addresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_deposit_history($params = array()) {
+        return $this->request('/deposit_history', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_withdraw_history($params = array()) {
+        return $this->request('/withdraw_history', 'private', 'POST', $params, null, null, array());
+    }
     public function publicGetMarkets($params = array()) {
         return $this->request('markets', 'public', 'GET', $params, null, null, array());
     }
@@ -114,5 +129,20 @@ abstract class oceanex extends \ccxt\Exchange {
     }
     public function privatePostOrdersClear($params = array()) {
         return $this->request('orders/clear', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostWithdrawsSpecialNew($params = array()) {
+        return $this->request('/withdraws/special/new', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostDepositAddress($params = array()) {
+        return $this->request('/deposit_address', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostDepositAddresses($params = array()) {
+        return $this->request('/deposit_addresses', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostDepositHistory($params = array()) {
+        return $this->request('/deposit_history', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostWithdrawHistory($params = array()) {
+        return $this->request('/withdraw_history', 'private', 'POST', $params, null, null, array());
     }
 }

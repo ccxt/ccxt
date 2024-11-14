@@ -6,7 +6,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, PermissionDenied
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Bool, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Currencies, Dict, int, DepositAddress } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -22,7 +22,7 @@ export default class bigone extends Exchange {
             'name': 'BigONE',
             'countries': [ 'CN' ],
             'version': 'v3',
-            'rateLimit': 1200, // 500 request per 10 minutes
+            'rateLimit': 20, // 500 requests per 10 seconds
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -44,8 +44,13 @@ export default class bigone extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
@@ -80,7 +85,7 @@ export default class bigone extends Exchange {
             },
             'hostname': 'big.one', // or 'bigone.com'
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
@@ -160,7 +165,7 @@ export default class bigone extends Exchange {
                 },
                 'webExchange': {
                     'get': [
-                        'uc/v2/assets',
+                        'v3/assets',
                     ],
                 },
             },
@@ -342,7 +347,7 @@ export default class bigone extends Exchange {
          * @returns {dict} an associative dictionary of currencies
          */
         // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetUcV2Assets', true);
+        const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGetV3Assets', true);
         if (data === undefined) {
             return undefined;
         }
@@ -352,91 +357,40 @@ export default class bigone extends Exchange {
         //     "message": "",
         //     "data": [
         //       {
-        //         "name": "TetherUS",
-        //         "symbol": "USDT",
-        //         "contract_address": "31",
-        //         "is_deposit_enabled": true,
-        //         "is_withdrawal_enabled": true,
-        //         "is_stub": false,
-        //         "withdrawal_fee": "5.0",
-        //         "is_fiat": false,
-        //         "is_memo_required": false,
-        //         "logo": {
-        //           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        //           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //             "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //             "symbol": "USDT",
+        //             "name": "TetherUS",
+        //             "scale": 12,
+        //             "is_fiat": false,
+        //             "is_transfer_enabled": true,
+        //             "transfer_scale": 12,
+        //             "binding_gateways": [
+        //                 {
+        //                     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "Ethereum",
+        //                     "min_withdrawal_amount": "0.000001",
+        //                     "withdrawal_fee": "5.71",
+        //                     "is_withdrawal_enabled": true,
+        //                     "min_deposit_amount": "0.000001",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 6,
+        //                     "scale": 12
+        //                 },
+        //                 {
+        //                     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        //                     "is_deposit_enabled": true,
+        //                     "gateway_name": "BinanceSmartChain",
+        //                     "min_withdrawal_amount": "10",
+        //                     "withdrawal_fee": "5",
+        //                     "is_withdrawal_enabled": false,
+        //                     "min_deposit_amount": "1",
+        //                     "is_memo_required": false,
+        //                     "withdrawal_scale": 8,
+        //                     "scale": 12
+        //                 }
+        //             ]
         //         },
-        //         "info_link": null,
-        //         "scale": "12",
-        //         "default_gateway": ..., // one object from "gateways"
-        //         "gateways": [
-        //           {
-        //             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        //             "name": "Mixin",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "0",
-        //           },
-        //           {
-        //             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //             "name": "Ethereum",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "18",
-        //           },
-        //           {
-        //             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //             "name": "Tron",
-        //             "kind": "CHAIN",
-        //             "required_confirmations": "1",
-        //           },
-        //          ...
-        //         ],
-        //         "payments": [],
-        //         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        //         "binding_gateways": [
-        //           {
-        //             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        //             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Ethereum(ERC20)",
-        //             "gateway_name": "Ethereum",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "14",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "2",
-        //             "gateway": {
-        //               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        //               "name": "Ethereum",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "18",
-        //             },
-        //             "scale": "12",
-        //          },
-        //          {
-        //             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        //             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        //             "is_deposit_enabled": true,
-        //             "display_name": "Tron(TRC20)",
-        //             "gateway_name": "Tron",
-        //             "min_withdrawal_amount": "0.000001",
-        //             "min_internal_withdrawal_amount": "0.00000001",
-        //             "withdrawal_fee": "1",
-        //             "is_withdrawal_enabled": true,
-        //             "min_deposit_amount": "0.000001",
-        //             "is_memo_required": false,
-        //             "withdrawal_scale": "6",
-        //             "gateway": {
-        //               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        //               "name": "Tron",
-        //               "kind": "CHAIN",
-        //               "required_confirmations": "1",
-        //             },
-        //             "scale": "12",
-        //           },
-        //           ...
-        //         ],
-        //       },
         //       ...
         //     ],
         // }
@@ -779,6 +733,8 @@ export default class bigone extends Exchange {
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'volume', 'volume24h'),
             'quoteVolume': this.safeString (ticker, 'volume24hInUsd'),
+            'markPrice': this.safeString (ticker, 'markPrice'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
             'info': ticker,
         }, market);
     }
@@ -1465,7 +1421,7 @@ export default class bigone extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1623,7 +1579,27 @@ export default class bigone extends Exchange {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict (response, 'data', {});
+        const cancelled = this.safeList (data, 'cancelled', []);
+        const failed = this.safeList (data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push (this.safeOrder ({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1632,6 +1608,7 @@ export default class bigone extends Exchange {
          * @name bigone#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-order
+         * @param {string} id the order id
          * @param {string} symbol not used by bigone fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1841,7 +1818,7 @@ export default class bigone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bigone#fetchDepositAddress
@@ -1887,12 +1864,12 @@ export default class bigone extends Exchange {
         const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.networkIdToCode (selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (selectedNetworkId),
-            'info': response,
-        };
+        } as DepositAddress;
     }
 
     parseTransactionStatus (status: Str) {
@@ -1992,7 +1969,7 @@ export default class bigone extends Exchange {
             'fee': undefined,
             'comment': undefined,
             'internal': internal,
-        };
+        } as Transaction;
     }
 
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2176,7 +2153,7 @@ export default class bigone extends Exchange {
         return this.safeString (statuses, status, 'failed');
     }
 
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
         /**
          * @method
          * @name bigone#withdraw

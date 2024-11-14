@@ -22,6 +22,7 @@ class oxfun extends oxfun$1 {
                 'watchMyTrades': false,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchBalance': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
@@ -77,7 +78,7 @@ class oxfun extends oxfun$1 {
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
@@ -496,6 +497,77 @@ class oxfun extends oxfun$1 {
             client.resolve(ticker, messageHash);
         }
     }
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name oxfun#watchBidsAsks
+         * @see https://docs.ox.fun/?json#best-bid-ask
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market(symbols[i]);
+            args.push('bestBidAsk:' + market['id']);
+            messageHashes.push('bidask:' + market['symbol']);
+        }
+        const newTickers = await this.subscribeMultiple(messageHashes, args, params);
+        if (this.newUpdates) {
+            const tickers = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray(this.bidsasks, 'symbol', symbols);
+    }
+    handleBidAsk(client, message) {
+        //
+        //     {
+        //       "table": "bestBidAsk",
+        //       "data": {
+        //         "ask": [
+        //           19045.0,
+        //           1.0
+        //         ],
+        //         "checksum": 3790706311,
+        //         "marketCode": "BTC-USD-SWAP-LIN",
+        //         "bid": [
+        //           19015.0,
+        //           1.0
+        //         ],
+        //         "timestamp": "1665456882928"
+        //       }
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const parsedTicker = this.parseWsBidAsk(data);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve(parsedTicker, messageHash);
+    }
+    parseWsBidAsk(ticker, market = undefined) {
+        const marketId = this.safeString(ticker, 'marketCode');
+        market = this.safeMarket(marketId, market);
+        const symbol = this.safeString(market, 'symbol');
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        const ask = this.safeList(ticker, 'ask', []);
+        const bid = this.safeList(ticker, 'bid', []);
+        return this.safeTicker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'ask': this.safeNumber(ask, 0),
+            'askVolume': this.safeNumber(ask, 1),
+            'bid': this.safeNumber(bid, 0),
+            'bidVolume': this.safeNumber(bid, 1),
+            'info': ticker,
+        }, market);
+    }
     async watchBalance(params = {}) {
         /**
          * @method
@@ -766,7 +838,7 @@ class oxfun extends oxfun$1 {
          * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.clientOrderId] a unique id for the order
          * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -808,7 +880,7 @@ class oxfun extends oxfun$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
          * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1018,6 +1090,9 @@ class oxfun extends oxfun$1 {
             }
             if (table.indexOf('order') > -1) {
                 this.handleOrders(client, message);
+            }
+            if (table === 'bestBidAsk') {
+                this.handleBidAsk(client, message);
             }
         }
         else {

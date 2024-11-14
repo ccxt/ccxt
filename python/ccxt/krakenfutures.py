@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.krakenfutures import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry
+from ccxt.base.types import Balances, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -96,6 +96,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'public': 'https://demo-futures.kraken.com/derivatives/api/',
                     'private': 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts': 'https://demo-futures.kraken.com/api/charts/',
+                    'history': 'https://demo-futures.kraken.com/api/history/',
                     'www': 'https://demo-futures.kraken.com',
                 },
                 'logo': 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -610,6 +611,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         })
 
@@ -1677,16 +1680,17 @@ class krakenfutures(Exchange, ImplicitAPI):
                     executions.append(item)
                 # Final order(after placement / editing / execution / canceling)
                 orderTrigger = self.safe_value(item, 'orderTrigger')
-                details = self.safe_value_2(item, 'new', 'order', orderTrigger)
-                if details is not None:
-                    isPrior = False
-                    fixed = True
-                elif not fixed:
-                    orderPriorExecution = self.safe_value(item, 'orderPriorExecution')
-                    details = self.safe_value_2(item, 'orderPriorExecution', 'orderPriorEdit')
-                    price = self.safe_string(orderPriorExecution, 'limitPrice')
+                if details is None:
+                    details = self.safe_value_2(item, 'new', 'order', orderTrigger)
                     if details is not None:
-                        isPrior = True
+                        isPrior = False
+                        fixed = True
+                    elif not fixed:
+                        orderPriorExecution = self.safe_value(item, 'orderPriorExecution')
+                        details = self.safe_value_2(item, 'orderPriorExecution', 'orderPriorEdit')
+                        price = self.safe_string(orderPriorExecution, 'limitPrice')
+                        if details is not None:
+                            isPrior = True
             trades = self.parse_trades(executions)
             statusId = self.safe_string(order, 'status')
         if details is None:
@@ -2028,10 +2032,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             result[code] = account
         return self.safe_balance(result)
 
-    def fetch_funding_rates(self, symbols: Strings = None, params={}):
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
+        fetch the current funding rates for multiple markets
         :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
-        fetch the current funding rates
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2039,7 +2043,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         self.load_markets()
         marketIds = self.market_ids(symbols)
         response = self.publicGetTickers(params)
-        tickers = self.safe_value(response, 'tickers')
+        tickers = self.safe_list(response, 'tickers', [])
         fundingRates = []
         for i in range(0, len(tickers)):
             entry = tickers[i]
@@ -2052,7 +2056,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             fundingRates.append(parsed)
         return self.index_by(fundingRates, 'symbol')
 
-    def parse_funding_rate(self, ticker, market: Market = None):
+    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
         #
         # {"ask": 26.283,
         #  "askSize": 4.6,
@@ -2106,6 +2110,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+            'interval': None,
         }
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2249,8 +2254,8 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -2344,8 +2349,8 @@ class krakenfutures(Exchange, ImplicitAPI):
         #    }
         #
         marginLevels = self.safe_value(info, 'marginLevels')
-        id = self.safe_string(info, 'symbol')
-        market = self.safe_market(id, market)
+        marketId = self.safe_string(info, 'symbol')
+        market = self.safe_market(marketId, market)
         tiers = []
         for i in range(0, len(marginLevels)):
             tier = marginLevels[i]
@@ -2357,6 +2362,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 previousTier['notionalCap'] = notionalFloor
             tiers.append({
                 'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['quote'],
                 'notionalFloor': notionalFloor,
                 'notionalCap': None,

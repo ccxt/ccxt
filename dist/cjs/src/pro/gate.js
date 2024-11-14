@@ -94,6 +94,7 @@ class gate extends gate$1 {
                     'interval': '100ms',
                     'snapshotDelay': 10,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt',
@@ -129,7 +130,7 @@ class gate extends gate$1 {
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -225,8 +226,8 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const stop = this.safeValue2(params, 'is_stop_order', 'stop', false);
-        params = this.omit(params, ['is_stop_order', 'stop']);
+        const stop = this.safeValueN(params, ['is_stop_order', 'stop', 'trigger'], false);
+        params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
         const messageType = this.getTypeByMarket(market);
@@ -249,7 +250,7 @@ class gate extends gate$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -340,7 +341,7 @@ class gate extends gate$1 {
                 throw new errors.NotSupported(this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
-        const [request, requestParams] = this.fetchOrdersByStatusRequest(status, symbol, since, limit, params);
+        const [request, requestParams] = this.prepareOrdersByStatusRequest(status, symbol, since, limit, params);
         const newRequest = this.omit(request, ['settle']);
         const messageType = this.getTypeByMarket(market);
         const channel = messageType + '.order_list';
@@ -383,6 +384,34 @@ class gate extends gate$1 {
         };
         const orderbook = await this.subscribePublic(url, messageHash, payload, channel, query, subscription);
         return orderbook.limit();
+    }
+    async unWatchOrderBook(symbol, params = {}) {
+        /**
+         * @method
+         * @name gate#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        symbol = market['symbol'];
+        const marketId = market['id'];
+        let interval = '100ms';
+        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', interval);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.order_book_update';
+        const subMessageHash = 'orderbook' + ':' + symbol;
+        const messageHash = 'unsubscribe:orderbook' + ':' + symbol;
+        const url = this.getUrlByMarket(market);
+        const payload = [marketId, interval];
+        const limit = this.safeInteger(params, 'limit', 100);
+        if (market['contract']) {
+            const stringLimit = limit.toString();
+            payload.push(stringLimit);
+        }
+        return await this.unSubscribePublicMultiple(url, 'orderbook', [symbol], [messageHash], [subMessageHash], payload, channel, params);
     }
     handleOrderBookSubscription(client, message, subscription) {
         const symbol = this.safeString(subscription, 'symbol');
@@ -479,10 +508,13 @@ class gate extends gate$1 {
             this.handleDelta(storedOrderBook, delta);
         }
         else {
-            const error = new errors.InvalidNonce(this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
         client.resolve(storedOrderBook, messageHash);
     }
@@ -713,6 +745,42 @@ class gate extends gate$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name gate#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const marketIds = this.marketIds(symbols);
+        const market = this.market(symbols[0]);
+        const messageType = this.getTypeByMarket(market);
+        const channel = messageType + '.trades';
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            subMessageHashes.push('trades:' + symbol);
+            messageHashes.push('unsubscribe:trades:' + symbol);
+        }
+        const url = this.getUrlByMarket(market);
+        return await this.unSubscribePublicMultiple(url, 'trades', symbols, messageHashes, subMessageHashes, marketIds, channel, params);
+    }
+    async unWatchTrades(symbol, params = {}) {
+        /**
+         * @method
+         * @name gate#unWatchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
     handleTrades(client, message) {
         //
         // {
@@ -842,7 +910,7 @@ class gate extends gate$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -1082,7 +1150,7 @@ class gate extends gate$1 {
         const client = this.client(url);
         this.setPositionsCache(client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue(this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             return await client.future(type + ':fetchPositionsSnapshot');
@@ -1190,7 +1258,7 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1282,7 +1350,7 @@ class gate extends gate$1 {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber(info, 'left');
+                    const left = this.safeInteger(info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }
@@ -1510,7 +1578,7 @@ class gate extends gate$1 {
         const errs = this.safeDict(data, 'errs');
         const error = this.safeDict(message, 'error', errs);
         const code = this.safeString2(error, 'code', 'label');
-        const id = this.safeString2(message, 'id', 'requestId');
+        const id = this.safeStringN(message, ['id', 'requestId', 'request_id']);
         if (error !== undefined) {
             const messageHash = this.safeString(client.subscriptions, id);
             try {
@@ -1526,7 +1594,7 @@ class gate extends gate$1 {
                     delete client.subscriptions[messageHash];
                 }
             }
-            if (id !== undefined) {
+            if ((id !== undefined) && (id in client.subscriptions)) {
                 delete client.subscriptions[id];
             }
             return true;
@@ -1552,6 +1620,88 @@ class gate extends gate$1 {
         }
         if (id in client.subscriptions) {
             delete client.subscriptions[id];
+        }
+    }
+    handleUnSubscribe(client, message) {
+        //
+        // {
+        //     "time":1725534679,
+        //     "time_ms":1725534679786,
+        //     "id":2,
+        //     "conn_id":"fac539b443fd7002",
+        //     "trace_id":"efe1d282b630b4aa266b84bee177791a",
+        //     "channel":"spot.trades",
+        //     "event":"unsubscribe",
+        //     "payload":[
+        //        "LTC_USDT"
+        //     ],
+        //     "result":{
+        //        "status":"success"
+        //     },
+        //     "requestId":"efe1d282b630b4aa266b84bee177791a"
+        // }
+        //
+        const id = this.safeString(message, 'id');
+        const keys = Object.keys(client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString(subscription, 'id');
+                if (id !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList(subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    this.cleanUnsubscription(client, subHash, unsubHash);
+                }
+                this.cleanCache(subscription);
+            }
+        }
+    }
+    cleanCache(subscription) {
+        const topic = this.safeString(subscription, 'topic', '');
+        const symbols = this.safeList(subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString(symbolAndTimeFrame, 0);
+                const timeframe = this.safeString(symbolAndTimeFrame, 1);
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        }
+        else if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic.endsWith('trades')) {
+                    delete this.trades[symbol];
+                }
+                else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                }
+                else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        }
+        else {
+            if (topic.endsWith('trades')) {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys(this.trades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.trades[keys[i]];
+                }
+            }
         }
     }
     handleMessage(client, message) {
@@ -1650,6 +1800,10 @@ class gate extends gate$1 {
         const event = this.safeString(message, 'event');
         if (event === 'subscribe') {
             this.handleSubscriptionStatus(client, message);
+            return;
+        }
+        if (event === 'unsubscribe') {
+            this.handleUnSubscribe(client, message);
             return;
         }
         const channel = this.safeString(message, 'channel', '');
@@ -1771,6 +1925,27 @@ class gate extends gate$1 {
         const message = this.extend(request, params);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
+    async unSubscribePublicMultiple(url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params = {}) {
+        const requestId = this.requestId();
+        const time = this.seconds();
+        const request = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': payload,
+        };
+        const sub = {
+            'id': requestId.toString(),
+            'topic': topic,
+            'unsubscribe': true,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+        };
+        const message = this.extend(request, params);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, sub);
+    }
     async authenticate(url, messageType) {
         const channel = messageType + '.login';
         const client = this.client(url);
@@ -1814,7 +1989,7 @@ class gate extends gate$1 {
             'event': event,
             'payload': payload,
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash, requestId);
     }
     async subscribePrivate(url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials();
@@ -1858,7 +2033,7 @@ class gate extends gate$1 {
             client.subscriptions[tempSubscriptionHash] = messageHash;
         }
         const message = this.extend(request, params);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch(url, messageHash, message, messageHash, messageHash);
     }
 }
 

@@ -42,6 +42,8 @@ public partial class whitebit : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchDepositWithdrawFee", "emulated" },
@@ -191,7 +193,7 @@ public partial class whitebit : Exchange
                     { "Total is less than", typeof(InvalidOrder) },
                     { "fee must be no less than", typeof(InvalidOrder) },
                     { "Enable your key in API settings", typeof(PermissionDenied) },
-                    { "You don\'t have such amount for transfer", typeof(InsufficientFunds) },
+                    { "You don't have such amount for transfer", typeof(InsufficientFunds) },
                 } },
             } },
         });
@@ -730,8 +732,23 @@ public partial class whitebit : Exchange
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(null, market);
-        object last = this.safeString(ticker, "last_price");
+        // last price is provided as "last" or "last_price"
+        object last = this.safeString2(ticker, "last", "last_price");
+        // if "close" is provided, use it, otherwise use <last>
+        object close = this.safeString(ticker, "close", last);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
@@ -744,7 +761,7 @@ public partial class whitebit : Exchange
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
-            { "close", last },
+            { "close", close },
             { "last", last },
             { "previousClose", null },
             { "change", null },
@@ -1204,7 +1221,7 @@ public partial class whitebit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1329,7 +1346,7 @@ public partial class whitebit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1630,22 +1647,21 @@ public partial class whitebit : Exchange
         * @name whitebit#fetchOpenOrders
         * @description fetch all unfilled currently open orders
         * @see https://docs.whitebit.com/private/http-trade-v4/#query-unexecutedactive-orders
-        * @param {string} symbol unified market symbol
+        * @param {string} [symbol] unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "market", getValue(market, "id") },
-        };
+        object market = null;
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
+        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100);
@@ -1987,11 +2003,11 @@ public partial class whitebit : Exchange
         object tag = this.safeString(account, "memo");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", response },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", response },
         };
     }
 
@@ -2432,15 +2448,15 @@ public partial class whitebit : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         object timestamp = this.safeTimestamp(info, "modifyDate");
         return new Dictionary<string, object>() {
+            { "info", info },
             { "symbol", symbol },
-            { "marginMode", "cross" },
             { "currency", "USDT" },
             { "interest", this.safeNumber(info, "unrealizedFunding") },
             { "interestRate", 0.00098 },
             { "amountBorrowed", this.safeNumber(info, "amount") },
+            { "marginMode", "cross" },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "info", info },
         };
     }
 
@@ -2449,8 +2465,8 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRate
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the current funding rate
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -2467,11 +2483,11 @@ public partial class whitebit : Exchange
         /**
         * @method
         * @name whitebit#fetchFundingRates
-        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @description fetch the funding rate for multiple markets
+        * @see https://docs.whitebit.com/public/http-v4/#available-futures-markets-list
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2521,7 +2537,7 @@ public partial class whitebit : Exchange
         //        }
         //    ]
         //
-        object data = this.safeValue(response, "result", new List<object>() {});
+        object data = this.safeList(response, "result", new List<object>() {});
         object result = this.parseFundingRates(data);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2566,7 +2582,7 @@ public partial class whitebit : Exchange
         object indexPrice = this.safeNumber(contract, "indexPrice");
         object interestRate = this.safeNumber(contract, "interestRate");
         object fundingRate = this.safeNumber(contract, "funding_rate");
-        object nextFundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
+        object fundingTime = this.safeInteger(contract, "next_funding_rate_timestamp");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", symbol },
@@ -2576,14 +2592,15 @@ public partial class whitebit : Exchange
             { "timestamp", null },
             { "datetime", null },
             { "fundingRate", fundingRate },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", this.iso8601(null) },
+            { "fundingTimestamp", fundingTime },
+            { "fundingDatetime", this.iso8601(fundingTime) },
             { "nextFundingRate", null },
-            { "nextFundingTimestamp", nextFundingTime },
-            { "nextFundingDatetime", this.iso8601(nextFundingTime) },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", null },
         };
     }
 
@@ -2749,10 +2766,12 @@ public partial class whitebit : Exchange
                     errorInfo = status;
                 } else
                 {
-                    object errorObject = this.safeValue(response, "errors");
-                    if (isTrue(!isEqual(errorObject, null)))
+                    object errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
+                    object errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    object errorsLength = getArrayLength(errorKeys);
+                    if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
-                        object errorKey = getValue(new List<object>(((IDictionary<string,object>)errorObject).Keys), 0);
+                        object errorKey = getValue(errorKeys, 0);
                         object errorMessageArray = this.safeValue(errorObject, errorKey, new List<object>() {});
                         object errorMessageLength = getArrayLength(errorMessageArray);
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;

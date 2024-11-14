@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Bool, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -30,7 +30,7 @@ class bigone(Exchange, ImplicitAPI):
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,  # 500 request per 10 minutes
+            'rateLimit': 20,  # 500 requests per 10 seconds
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -52,8 +52,13 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -88,7 +93,7 @@ class bigone(Exchange, ImplicitAPI):
             },
             'hostname': 'big.one',  # or 'bigone.com'
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg',
+                'logo': 'https://github.com/user-attachments/assets/4e5cfd53-98cc-4b90-92cd-0d7b512653d1',
                 'api': {
                     'public': 'https://{hostname}/api/v3',
                     'private': 'https://{hostname}/api/v3/viewer',
@@ -168,7 +173,7 @@ class bigone(Exchange, ImplicitAPI):
                 },
                 'webExchange': {
                     'get': [
-                        'uc/v2/assets',
+                        'v3/assets',
                     ],
                 },
             },
@@ -347,7 +352,7 @@ class bigone(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
-        data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetUcV2Assets', True)
+        data = await self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
             return None
         #
@@ -356,91 +361,40 @@ class bigone(Exchange, ImplicitAPI):
         #     "message": "",
         #     "data": [
         #       {
-        #         "name": "TetherUS",
-        #         "symbol": "USDT",
-        #         "contract_address": "31",
-        #         "is_deposit_enabled": True,
-        #         "is_withdrawal_enabled": True,
-        #         "is_stub": False,
-        #         "withdrawal_fee": "5.0",
-        #         "is_fiat": False,
-        #         "is_memo_required": False,
-        #         "logo": {
-        #           "default": "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
-        #           "white": "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        #             "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        #             "symbol": "USDT",
+        #             "name": "TetherUS",
+        #             "scale": 12,
+        #             "is_fiat": False,
+        #             "is_transfer_enabled": True,
+        #             "transfer_scale": 12,
+        #             "binding_gateways": [
+        #                 {
+        #                     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        #                     "is_deposit_enabled": True,
+        #                     "gateway_name": "Ethereum",
+        #                     "min_withdrawal_amount": "0.000001",
+        #                     "withdrawal_fee": "5.71",
+        #                     "is_withdrawal_enabled": True,
+        #                     "min_deposit_amount": "0.000001",
+        #                     "is_memo_required": False,
+        #                     "withdrawal_scale": 6,
+        #                     "scale": 12
+        #                 },
+        #                 {
+        #                     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+        #                     "is_deposit_enabled": True,
+        #                     "gateway_name": "BinanceSmartChain",
+        #                     "min_withdrawal_amount": "10",
+        #                     "withdrawal_fee": "5",
+        #                     "is_withdrawal_enabled": False,
+        #                     "min_deposit_amount": "1",
+        #                     "is_memo_required": False,
+        #                     "withdrawal_scale": 8,
+        #                     "scale": 12
+        #                 }
+        #             ]
         #         },
-        #         "info_link": null,
-        #         "scale": "12",
-        #         "default_gateway": ...,  # one object from "gateways"
-        #         "gateways": [
-        #           {
-        #             "uuid": "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
-        #             "name": "Mixin",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "0",
-        #           },
-        #           {
-        #             "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #             "name": "Ethereum",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "18",
-        #           },
-        #           {
-        #             "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #             "name": "Tron",
-        #             "kind": "CHAIN",
-        #             "required_confirmations": "1",
-        #           },
-        #          ...
-        #         ],
-        #         "payments": [],
-        #         "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
-        #         "binding_gateways": [
-        #           {
-        #             "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
-        #             "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        #             "is_deposit_enabled": True,
-        #             "display_name": "Ethereum(ERC20)",
-        #             "gateway_name": "Ethereum",
-        #             "min_withdrawal_amount": "0.000001",
-        #             "min_internal_withdrawal_amount": "0.00000001",
-        #             "withdrawal_fee": "14",
-        #             "is_withdrawal_enabled": True,
-        #             "min_deposit_amount": "0.000001",
-        #             "is_memo_required": False,
-        #             "withdrawal_scale": "2",
-        #             "gateway": {
-        #               "uuid": "b75446c6-1446-4c8d-b3d1-39f385b0a926",
-        #               "name": "Ethereum",
-        #               "kind": "CHAIN",
-        #               "required_confirmations": "18",
-        #             },
-        #             "scale": "12",
-        #          },
-        #          {
-        #             "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
-        #             "contract_address": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-        #             "is_deposit_enabled": True,
-        #             "display_name": "Tron(TRC20)",
-        #             "gateway_name": "Tron",
-        #             "min_withdrawal_amount": "0.000001",
-        #             "min_internal_withdrawal_amount": "0.00000001",
-        #             "withdrawal_fee": "1",
-        #             "is_withdrawal_enabled": True,
-        #             "min_deposit_amount": "0.000001",
-        #             "is_memo_required": False,
-        #             "withdrawal_scale": "6",
-        #             "gateway": {
-        #               "uuid": "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
-        #               "name": "Tron",
-        #               "kind": "CHAIN",
-        #               "required_confirmations": "1",
-        #             },
-        #             "scale": "12",
-        #           },
-        #           ...
-        #         ],
-        #       },
         #       ...
         #     ],
         # }
@@ -775,6 +729,8 @@ class bigone(Exchange, ImplicitAPI):
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
             'quoteVolume': self.safe_string(ticker, 'volume24hInUsd'),
+            'markPrice': self.safe_string(ticker, 'markPrice'),
+            'indexPrice': self.safe_string(ticker, 'indexPrice'),
             'info': ticker,
         }, market)
 
@@ -1398,7 +1354,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
@@ -1540,12 +1496,31 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data', {})
+        cancelled = self.safe_list(data, 'cancelled', [])
+        failed = self.safe_list(data, 'failed', [])
+        result = []
+        for i in range(0, len(cancelled)):
+            orderId = cancelled[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            orderId = failed[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }))
+        return result
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
         :see: https://open.big.one/docs/spot_orders.html#get-one-order
+        :param str id: the order id
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1731,7 +1706,7 @@ class bigone(Exchange, ImplicitAPI):
         headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
         :see: https://open.big.one/docs/spot_deposit.html#get-deposite-address-of-one-asset-of-user
@@ -1774,11 +1749,11 @@ class bigone(Exchange, ImplicitAPI):
         tag = self.safe_string(addressObject, 'memo')
         self.check_address(address)
         return {
+            'info': response,
             'currency': code,
+            'network': self.network_id_to_code(selectedNetworkId),
             'address': address,
             'tag': tag,
-            'network': self.network_id_to_code(selectedNetworkId),
-            'info': response,
         }
 
     def parse_transaction_status(self, status: Str):
@@ -2044,7 +2019,7 @@ class bigone(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, 'failed')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://open.big.one/docs/spot_withdrawal.html#create-withdrawal-of-user

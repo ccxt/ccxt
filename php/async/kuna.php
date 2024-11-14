@@ -53,6 +53,8 @@ class kuna extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -462,17 +464,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_currencies($currencies, $params = array ()) {
-        $currencies = $this->to_array($currencies);
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $this->parse_currency($currencies[$i]);
-            $result[$currency['code']] = $currency;
-        }
-        return $result;
-    }
-
-    public function parse_currency(array $currency) {
+    public function parse_currency(array $currency): array {
         //
         //    {
         //        "code" => "BTC",
@@ -496,7 +488,7 @@ class kuna extends Exchange {
         $currencyId = $this->safe_string($currency, 'code');
         $precision = $this->safe_string($currency, 'precision');
         $tradePrecision = $this->safe_string($currency, 'tradePrecision');
-        return array(
+        return $this->safe_currency_structure(array(
             'info' => $currency,
             'id' => $currencyId,
             'code' => $this->safe_currency_code($currencyId),
@@ -507,7 +499,7 @@ class kuna extends Exchange {
             'deposit' => null,
             'withdraw' => null,
             'fee' => null,
-            'precision' => Precise::string_min($precision, $tradePrecision),
+            'precision' => $this->parse_number(Precise::string_min($precision, $tradePrecision)),
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -519,7 +511,7 @@ class kuna extends Exchange {
                 ),
             ),
             'networks' => array(),
-        );
+        ));
     }
 
     public function fetch_markets($params = array ()): PromiseInterface {
@@ -899,7 +891,6 @@ class kuna extends Exchange {
             'fee' => array(
                 'cost' => $this->safe_string($trade, 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'feeCurrency')),
-                'rate' => null,
             ),
         ), $market);
     }
@@ -960,7 +951,7 @@ class kuna extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              *
@@ -1417,7 +1408,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1609,7 +1600,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1638,7 +1629,7 @@ class kuna extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        "id" => "c52b6646-fb91-4760-b147-a4f952e8652c",             // ID of the address.

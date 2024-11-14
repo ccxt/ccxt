@@ -115,6 +115,13 @@ namespace ccxt
             return this.add(negative);
         }
 
+        public Precise or(Precise other)
+        {
+            var integer = this.integer | other.integer;
+            var decimals = Convert.ToInt32(this.decimals) + Convert.ToInt32(other.decimals);
+            return new Precise(integer.ToString(), decimals);
+        }
+
         public Precise neg()
         {
             return new Precise((-this.integer).ToString(), Convert.ToInt32(this.decimals));
@@ -282,6 +289,13 @@ namespace ccxt
                 return string1.ToString();
 
             return (new Precise(string1.ToString()).add(new Precise(string2.ToString()))).ToString();
+        }
+
+        static public string stringOr(object string1, object string2)
+        {
+            if (string1 == null || string2 == null)
+                return null;
+            return (new Precise(string1.ToString()).or(new Precise(string2.ToString()))).ToString();
         }
 
         static public bool stringGt(object a, object b)

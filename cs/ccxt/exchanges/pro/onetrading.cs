@@ -16,6 +16,7 @@ public partial class onetrading : ccxt.onetrading
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", false },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -1013,9 +1014,9 @@ public partial class onetrading : ccxt.onetrading
             object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
             object previousOrder = this.safeValue(previousOrderArray, 0, new Dictionary<string, object>() {});
             symbol = getValue(previousOrder, "symbol");
-            object filled = this.safeNumber(update, "filled_amount");
+            object filled = this.safeString(update, "filled_amount");
             object status = this.parseWsOrderStatus(updateType);
-            if (isTrue(isTrue(isEqual(updateType, "ORDER_CLOSED")) && isTrue(isEqual(filled, 0))))
+            if (isTrue(isTrue(isEqual(updateType, "ORDER_CLOSED")) && isTrue(Precise.stringEq(filled, "0"))))
             {
                 status = "canceled";
             }
@@ -1051,7 +1052,8 @@ public partial class onetrading : ccxt.onetrading
         {
             object parsed = this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
-            callDynamically(this.myTrades, "append", new object[] {parsed});
+            object myTrades = this.myTrades;
+            callDynamically(myTrades, "append", new object[] {parsed});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, add("myTrades:", symbol)});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, "myTrades"});
         }

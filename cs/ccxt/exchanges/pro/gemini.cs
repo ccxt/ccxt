@@ -511,11 +511,12 @@ public partial class gemini : ccxt.gemini
             object entry = getValue(rawBidAskChanges, i);
             object rawSide = this.safeString(entry, "side");
             object price = this.safeNumber(entry, "price");
-            object size = this.safeNumber(entry, "remaining");
-            if (isTrue(isEqual(size, 0)))
+            object sizeString = this.safeString(entry, "remaining");
+            if (isTrue(Precise.stringEq(sizeString, "0")))
             {
                 continue;
             }
+            object size = this.parseNumber(sizeString);
             if (isTrue(isEqual(rawSide, "bid")))
             {
                 ((IDictionary<string,object>)currentBidAsk)["bid"] = price;

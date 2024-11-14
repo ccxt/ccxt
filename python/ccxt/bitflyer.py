@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitflyer import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFeeInterface, Transaction
+from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, FundingRate, Trade, TradingFeeInterface, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -39,6 +39,9 @@ class bitflyer(Exchange, ImplicitAPI):
                 'fetchBalance': True,
                 'fetchClosedOrders': 'emulated',
                 'fetchDeposits': True,
+                'fetchFundingRate': True,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -59,7 +62,7 @@ class bitflyer(Exchange, ImplicitAPI):
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
+                'logo': 'https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb',
                 'api': {
                     'rest': 'https://api.{hostname}',
                 },
@@ -78,6 +81,7 @@ class bitflyer(Exchange, ImplicitAPI):
                         'gethealth',
                         'getboardstate',
                         'getchats',
+                        'getfundingrate',
                     ],
                 },
                 'private': {
@@ -530,7 +534,7 @@ class bitflyer(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -566,7 +570,13 @@ class bitflyer(Exchange, ImplicitAPI):
             'product_code': self.market_id(symbol),
             'child_order_acceptance_id': id,
         }
-        return self.privatePostCancelchildorder(self.extend(request, params))
+        response = self.privatePostCancelchildorder(self.extend(request, params))
+        #
+        #    200 OK.
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
@@ -681,6 +691,7 @@ class bitflyer(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://lightning.bitflyer.com/docs?lang=en#list-orders
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -764,7 +775,7 @@ class bitflyer(Exchange, ImplicitAPI):
         # todo unify parsePosition/parsePositions
         return response
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds
@@ -956,6 +967,58 @@ class bitflyer(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+        :see: https://lightning.bitflyer.com/docs#funding-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'product_code': market['id'],
+        }
+        response = self.publicGetGetfundingrate(self.extend(request, params))
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+        #
+        #    {
+        #        "current_funding_rate": -0.003750000000
+        #        "next_funding_rate_settledate": "2024-04-15T13:00:00"
+        #    }
+        #
+        nextFundingDatetime = self.safe_string(contract, 'next_funding_rate_settledate')
+        nextFundingTimestamp = self.parse8601(nextFundingDatetime)
+        return {
+            'info': contract,
+            'symbol': self.safe_string(market, 'symbol'),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': None,
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': self.safe_number(contract, 'current_funding_rate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': None,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + self.version + '/'
         if api == 'private':
@@ -988,8 +1051,8 @@ class bitflyer(Exchange, ImplicitAPI):
         feedback = self.id + ' ' + body
         # i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         errorMessage = self.safe_string(response, 'error_message')
-        statusCode = self.safe_number(response, 'status')
+        statusCode = self.safe_integer(response, 'status')
         if errorMessage is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], statusCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)
         return None

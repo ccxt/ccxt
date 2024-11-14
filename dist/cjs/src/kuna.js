@@ -51,6 +51,8 @@ class kuna extends kuna$1 {
                 'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -457,15 +459,6 @@ class kuna extends kuna$1 {
         const data = this.safeValue(response, 'data', []);
         return this.parseCurrencies(data);
     }
-    parseCurrencies(currencies, params = {}) {
-        currencies = this.toArray(currencies);
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = this.parseCurrency(currencies[i]);
-            result[currency['code']] = currency;
-        }
-        return result;
-    }
     parseCurrency(currency) {
         //
         //    {
@@ -490,7 +483,7 @@ class kuna extends kuna$1 {
         const currencyId = this.safeString(currency, 'code');
         const precision = this.safeString(currency, 'precision');
         const tradePrecision = this.safeString(currency, 'tradePrecision');
-        return {
+        return this.safeCurrencyStructure({
             'info': currency,
             'id': currencyId,
             'code': this.safeCurrencyCode(currencyId),
@@ -501,7 +494,7 @@ class kuna extends kuna$1 {
             'deposit': undefined,
             'withdraw': undefined,
             'fee': undefined,
-            'precision': Precise["default"].stringMin(precision, tradePrecision),
+            'precision': this.parseNumber(Precise["default"].stringMin(precision, tradePrecision)),
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -513,7 +506,7 @@ class kuna extends kuna$1 {
                 },
             },
             'networks': {},
-        };
+        });
     }
     async fetchMarkets(params = {}) {
         /**
@@ -885,7 +878,6 @@ class kuna extends kuna$1 {
             'fee': {
                 'cost': this.safeString(trade, 'fee'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
-                'rate': undefined,
             },
         }, market);
     }
@@ -944,7 +936,7 @@ class kuna extends kuna$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          *

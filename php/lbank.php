@@ -45,12 +45,14 @@ class lbank extends Exchange {
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -991,16 +993,16 @@ class lbank extends Exchange {
         }
         if ($since === null) {
             $duration = $this->parse_timeframe($timeframe);
-            $since = $this->milliseconds() - $duration * 1000 * $limit;
+            $since = $this->milliseconds() - ($duration * 1000 * $limit);
         }
         $request = array(
             'symbol' => $market['id'],
             'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'time' => $this->parse_to_int($since / 1000),
-            'size' => $limit, // max 2000
+            'size' => min ($limit + 1, 2000), // max 2000
         );
         $response = $this->spotPublicGetKline ($this->extend($request, $params));
-        $ohlcvs = $this->safe_value($response, 'data', array());
+        $ohlcvs = $this->safe_list($response, 'data', array());
         //
         //
         // array(
@@ -1157,6 +1159,110 @@ class lbank extends Exchange {
         return null;
     }
 
+    public function parse_funding_rate($ticker, ?array $market = null): array {
+        // {
+        //     "symbol" => "BTCUSDT",
+        //     "highestPrice" => "69495.5",
+        //     "underlyingPrice" => "68455.904",
+        //     "lowestPrice" => "68182.1",
+        //     "openPrice" => "68762.4",
+        //     "positionFeeRate" => "0.0001",
+        //     "volume" => "33534.2858",
+        //     "markedPrice" => "68434.1",
+        //     "turnover" => "1200636218.210558",
+        //     "positionFeeTime" => "28800",
+        //     "lastPrice" => "68427.3",
+        //     "nextFeeTime" => "1730736000000",
+        //     "fundingRate" => "0.0001",
+        // }
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $markPrice = $this->safe_number($ticker, 'markedPrice');
+        $indexPrice = $this->safe_number($ticker, 'underlyingPrice');
+        $fundingRate = $this->safe_number($ticker, 'fundingRate');
+        $fundingTime = $this->safe_integer($ticker, 'nextFeeTime');
+        $positionFeeTime = $this->safe_integer($ticker, 'positionFeeTime');
+        $intervalString = null;
+        if ($positionFeeTime !== null) {
+            $interval = $this->parse_to_int($positionFeeTime / 60 / 60);
+            $intervalString = (string) $interval . 'h';
+        }
+        return array(
+            'info' => $ticker,
+            'symbol' => $symbol,
+            'markPrice' => $markPrice,
+            'indexPrice' => $indexPrice,
+            'fundingRate' => $fundingRate,
+            'fundingTimestamp' => $fundingTime,
+            'fundingDatetime' => $this->iso8601($fundingTime),
+            'timestamp' => null,
+            'datetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $intervalString,
+        );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-$market-list
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $responseForSwap = $this->fetch_funding_rates([ $market['symbol'] ], $params);
+        return $this->safe_value($responseForSwap, $market['symbol']);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetch the funding rate for multiple markets
+         * @see https://www.lbank.com/en-US/docs/contract.html#query-contract-market-list
+         * @param {string[]|null} $symbols list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $request = array(
+            'productGroup' => 'SwapU',
+        );
+        $response = $this->contractPublicGetCfdOpenApiV1PubMarketData ($this->extend($request, $params));
+        // {
+        //     "data" => array(
+        //         {
+        //             "symbol" => "BTCUSDT",
+        //             "highestPrice" => "69495.5",
+        //             "underlyingPrice" => "68455.904",
+        //             "lowestPrice" => "68182.1",
+        //             "openPrice" => "68762.4",
+        //             "positionFeeRate" => "0.0001",
+        //             "volume" => "33534.2858",
+        //             "markedPrice" => "68434.1",
+        //             "turnover" => "1200636218.210558",
+        //             "positionFeeTime" => "28800",
+        //             "lastPrice" => "68427.3",
+        //             "nextFeeTime" => "1730736000000",
+        //             "fundingRate" => "0.0001",
+        //         }
+        //     ),
+        //     "error_code" => "0",
+        //     "msg" => "Success",
+        //     "result" => "true",
+        //     "success" => True,
+        // }
+        $data = $this->safe_list($response, 'data', array());
+        $result = $this->parse_funding_rates($data);
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1292,7 +1398,7 @@ class lbank extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1461,6 +1567,27 @@ class lbank extends Exchange {
         //          "status":-1
         //      }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "executedQty":0.0,
+        //        "price":0.05,
+        //        "origQty":100.0,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "executedQty":0.00000000000000000000,
+        //        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //        "price":0.05000000000000000000,
+        //        "origQty":100.00000000000000000000,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'custom_id');
         $timestamp = $this->safe_integer_2($order, 'time', 'create_time');
@@ -1470,7 +1597,7 @@ class lbank extends Exchange {
         $timeInForce = null;
         $postOnly = false;
         $type = 'limit';
-        $rawType = $this->safe_string($order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        $rawType = $this->safe_string_2($order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         $parts = explode('_', $rawType);
         $side = $this->safe_string($parts, 0);
         $typePart = $this->safe_string($parts, 1); // $market, maker, ioc, fok or null (limit)
@@ -1830,12 +1957,12 @@ class lbank extends Exchange {
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //          ),
+        //      ),
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
-        $result = $this->safe_value($response, 'data', array());
-        return $result;
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1872,8 +1999,8 @@ class lbank extends Exchange {
         //          "ts":1648506641469
         //      }
         //
-        $result = $this->safe_value($response, 'data', array());
-        return $result;
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_orders($data);
     }
 
     public function get_network_code_for_currency($currencyCode, $params) {
@@ -1885,7 +2012,7 @@ class lbank extends Exchange {
         return $network;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
          * @see https://www.lbank.com/en-US/docs/index.html#get-deposit-address
@@ -1908,7 +2035,7 @@ class lbank extends Exchange {
         return $response;
     }
 
-    public function fetch_deposit_address_default(string $code, $params = array ()) {
+    public function fetch_deposit_address_default(string $code, $params = array ()): array {
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -1940,15 +2067,15 @@ class lbank extends Exchange {
         $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
         $networkCode = $this->safe_string_upper($inverseNetworks, $networkId, $networkId);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $networkCode,
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $response,
         );
     }
 
-    public function fetch_deposit_address_supplement(string $code, $params = array ()) {
+    public function fetch_deposit_address_supplement(string $code, $params = array ()): array {
         // returns the $address for whatever the default $network is...
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1981,11 +2108,11 @@ class lbank extends Exchange {
         $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
         $networkCode = $this->safe_string_upper($inverseNetworks, $network, $network);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => $networkCode, // will be null if not specified in $request
             'address' => $address,
             'tag' => $tag,
-            'network' => $networkCode, // will be null if not specified in $request
-            'info' => $response,
         );
     }
 
@@ -2415,7 +2542,7 @@ class lbank extends Exchange {
          * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
          * @see https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.com/en-US/docs/index.html#withdrawal-configurations
-         * @param {string[]|null} $codes array of unified currency $codes
+         * @param {string[]} [$codes] array of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
          */
@@ -2428,12 +2555,12 @@ class lbank extends Exchange {
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $params = $this->omit($params, 'method');
             if ($method === 'fetchPublicDepositWithdrawFees') {
-                $this->fetch_public_deposit_withdraw_fees($codes, $params);
+                $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
             } else {
-                $this->fetch_private_deposit_withdraw_fees($codes, $params);
+                $response = $this->fetch_private_deposit_withdraw_fees($codes, $params);
             }
         } else {
-            $this->fetch_public_deposit_withdraw_fees($codes, $params);
+            $response = $this->fetch_public_deposit_withdraw_fees($codes, $params);
         }
         return $response;
     }

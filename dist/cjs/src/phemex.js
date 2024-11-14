@@ -48,6 +48,8 @@ class phemex extends phemex$1 {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
@@ -64,6 +66,7 @@ class phemex extends phemex$1 {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -102,7 +105,7 @@ class phemex extends phemex$1 {
                     'private': 'https://{hostname}',
                 },
                 'www': 'https://phemex.com',
-                'doc': 'https://github.com/phemex/phemex-api-docs',
+                'doc': 'https://phemex-docs.github.io/#overview',
                 'fees': 'https://phemex.com/fees-conditions',
                 'referral': {
                     'url': 'https://phemex.com/register?referralCode=EDNVJ',
@@ -160,6 +163,7 @@ class phemex extends phemex$1 {
                 'v2': {
                     'get': {
                         'public/products': 5,
+                        'public/products-plus': 5,
                         'md/v2/orderbook': 5,
                         'md/v2/trade': 5,
                         'md/v2/ticker/24hr': 5,
@@ -732,7 +736,7 @@ class phemex extends phemex$1 {
                     'max': this.parseSafeNumber(this.safeString(market, 'maxOrderValue')),
                 },
             },
-            'created': undefined,
+            'created': this.safeInteger(market, 'listTime'),
             'info': market,
         });
     }
@@ -741,6 +745,7 @@ class phemex extends phemex$1 {
          * @method
          * @name phemex#fetchMarkets
          * @description retrieves data on all markets for phemex
+         * @see https://phemex-docs.github.io/#query-product-information-3
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -2488,13 +2493,15 @@ class phemex extends phemex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.trigger] trigger price for conditional orders
          * @param {object} [params.takeProfit] *swap only* *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *swap only* *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
+         * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -2596,15 +2603,22 @@ class phemex extends phemex$1 {
             }
         }
         else if (market['swap']) {
+            const hedged = this.safeBool(params, 'hedged', false);
+            params = this.omit(params, 'hedged');
             let posSide = this.safeStringLower(params, 'posSide');
             if (posSide === undefined) {
-                posSide = 'Merged';
+                if (hedged) {
+                    if (reduceOnly) {
+                        side = (side === 'buy') ? 'sell' : 'buy';
+                    }
+                    posSide = (side === 'buy') ? 'Long' : 'Short';
+                }
+                else {
+                    posSide = 'Merged';
+                }
             }
             posSide = this.capitalize(posSide);
             request['posSide'] = posSide;
-            if (reduceOnly !== undefined) {
-                request['reduceOnly'] = reduceOnly;
-            }
             if (market['settle'] === 'USDT') {
                 request['orderQtyRq'] = amount;
             }
@@ -2800,7 +2814,7 @@ class phemex extends phemex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2941,14 +2955,41 @@ class phemex extends phemex$1 {
         let response = undefined;
         if (market['settle'] === 'USDT') {
             response = await this.privateDeleteGOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: '1'
+            //    }
+            //
         }
         else if (market['swap']) {
             response = await this.privateDeleteOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: '1'
+            //    }
+            //
         }
         else {
             response = await this.privateDeleteSpotOrdersAll(this.extend(request, params));
+            //
+            //    {
+            //        code: '0',
+            //        msg: '',
+            //        data: {
+            //            total: '1'
+            //        }
+            //    }
+            //
         }
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2956,6 +2997,7 @@ class phemex extends phemex$1 {
          * @name phemex#fetchOrder
          * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2981,7 +3023,7 @@ class phemex extends phemex$1 {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, params));
         }
         else if (market['spot']) {
-            response = await this.privateGetSpotOrdersActive(this.extend(request, params));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, params));
         }
         else {
             response = await this.privateGetExchangeOrder(this.extend(request, params));
@@ -2998,7 +3040,11 @@ class phemex extends phemex$1 {
                     throw new errors.OrderNotFound(this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue(data, 0, {});
+            order = this.safeDict(data, 0, {});
+        }
+        else if (market['spot']) {
+            const rows = this.safeList(data, 'rows', []);
+            order = this.safeDict(rows, 0, {});
         }
         return this.parseOrder(order, market);
     }
@@ -3037,7 +3083,7 @@ class phemex extends phemex$1 {
             response = await this.privateGetExchangeOrderList(this.extend(request, params));
         }
         else {
-            response = await this.privateGetSpotOrders(this.extend(request, params));
+            response = await this.privateGetApiDataSpotsOrders(this.extend(request, params));
         }
         const data = this.safeValue(response, 'data', {});
         const rows = this.safeList(data, 'rows', data);
@@ -3356,9 +3402,9 @@ class phemex extends phemex$1 {
         const request = {
             'currency': currency['id'],
         };
-        const defaultNetworks = this.safeValue(this.options, 'defaultNetworks');
+        const defaultNetworks = this.safeDict(this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper(defaultNetworks, code);
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(params, 'network', defaultNetwork);
         network = this.safeString(networks, network, network);
         if (network === undefined) {
@@ -3383,11 +3429,11 @@ class phemex extends phemex$1 {
         const tag = this.safeString(data, 'tag');
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': undefined,
             'address': address,
             'tag': tag,
-            'network': undefined,
-            'info': response,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4096,6 +4142,7 @@ class phemex extends phemex$1 {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {
@@ -4336,7 +4383,8 @@ class phemex extends phemex$1 {
         //         ]
         //     },
         //
-        market = this.safeMarket(undefined, market);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const riskLimits = (market['info']['riskLimits']);
         const tiers = [];
         let minNotional = 0;
@@ -4345,6 +4393,7 @@ class phemex extends phemex$1 {
             const maxNotional = this.safeInteger(tier, 'limit');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
@@ -4804,6 +4853,80 @@ class phemex extends phemex$1 {
         //
         const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
+    }
+    async fetchOpenInterest(symbol, params = {}) {
+        /**
+         * @method
+         * @name phemex#fetchOpenInterest
+         * @description retrieves the open interest of a trading pair
+         * @see https://phemex-docs.github.io/#query-24-hours-ticker
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} [params] exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['contract']) {
+            throw new errors.BadRequest(this.id + ' fetchOpenInterest is only supported for contract markets.');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v2GetMdV2Ticker24hr(this.extend(request, params));
+        //
+        //    {
+        //        error: null,
+        //        id: '0',
+        //        result: {
+        //          closeRp: '67550.1',
+        //          fundingRateRr: '0.0001',
+        //          highRp: '68400',
+        //          indexPriceRp: '67567.15389794',
+        //          lowRp: '66096.4',
+        //          markPriceRp: '67550.1',
+        //          openInterestRv: '1848.1144186',
+        //          openRp: '66330',
+        //          predFundingRateRr: '0.0001',
+        //          symbol: 'BTCUSDT',
+        //          timestamp: '1729114315443343001',
+        //          turnoverRv: '228863389.3237532',
+        //          volumeRq: '3388.5600312'
+        //        }
+        //    }
+        //
+        const result = this.safeDict(response, 'result');
+        return this.parseOpenInterest(result, market);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //    {
+        //        closeRp: '67550.1',
+        //        fundingRateRr: '0.0001',
+        //        highRp: '68400',
+        //        indexPriceRp: '67567.15389794',
+        //        lowRp: '66096.4',
+        //        markPriceRp: '67550.1',
+        //        openInterestRv: '1848.1144186',
+        //        openRp: '66330',
+        //        predFundingRateRr: '0.0001',
+        //        symbol: 'BTCUSDT',
+        //        timestamp: '1729114315443343001',
+        //        turnoverRv: '228863389.3237532',
+        //        volumeRq: '3388.5600312'
+        //    }
+        //
+        const timestamp = this.safeInteger(interest, 'timestamp') / 1000000;
+        const id = this.safeString(interest, 'symbol');
+        return this.safeOpenInterest({
+            'info': interest,
+            'symbol': this.safeSymbol(id, market),
+            'baseVolume': this.safeString(interest, 'volumeRq'),
+            'quoteVolume': undefined,
+            'openInterestAmount': this.safeString(interest, 'openInterestRv'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        }, market);
     }
     handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

@@ -52,6 +52,8 @@ export default class hitbtc extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -852,7 +854,8 @@ export default class hitbtc extends Exchange {
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
-                const network = this.safeNetwork(networkId);
+                let networkCode = this.networkIdToCode(networkId);
+                networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
                 fee = this.safeNumber(rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber(rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeBool(rawNetwork, 'payin_enabled', false);
@@ -870,10 +873,10 @@ export default class hitbtc extends Exchange {
                 else if (!payoutEnabledNetwork) {
                     withdrawEnabled = false;
                 }
-                networks[network] = {
+                networks[networkCode] = {
                     'info': rawNetwork,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'fee': fee,
                     'active': activeNetwork,
                     'deposit': payinEnabledNetwork,
@@ -909,14 +912,6 @@ export default class hitbtc extends Exchange {
             };
         }
         return result;
-    }
-    safeNetwork(networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        }
-        else {
-            return networkId.toUpperCase();
-        }
     }
     async createDepositAddress(code, params = {}) {
         /**
@@ -990,11 +985,10 @@ export default class hitbtc extends Exchange {
         const parsedCode = this.safeCurrencyCode(currencyId);
         return {
             'info': response,
-            'address': address,
-            'tag': tag,
-            'code': parsedCode,
             'currency': parsedCode,
             'network': undefined,
+            'address': address,
+            'tag': tag,
         };
     }
     parseBalance(response) {
@@ -1418,8 +1412,10 @@ export default class hitbtc extends Exchange {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);
@@ -2292,7 +2288,7 @@ export default class hitbtc extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
@@ -2526,7 +2522,7 @@ export default class hitbtc extends Exchange {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchMarginMode
+         * @name hitbtc#fetchMarginModes
          * @description fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters
@@ -2739,7 +2735,7 @@ export default class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#futures-info
          * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -3235,6 +3231,7 @@ export default class hitbtc extends Exchange {
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
+            'interval': undefined,
         };
     }
     async modifyMarginHelper(symbol, amount, type, params = {}) {
@@ -3556,7 +3553,8 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId);
+            let networkCode = this.networkIdToCode(networkId);
+            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeValue(networkEntry, 'default');
             const withdrawResult = {

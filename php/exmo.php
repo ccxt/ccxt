@@ -15,7 +15,7 @@ class exmo extends Exchange {
             'id' => 'exmo',
             'name' => 'EXMO',
             'countries' => array( 'LT' ), // Lithuania
-            'rateLimit' => 350, // once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit' => 100, // 10 requests per 1 second
             'version' => 'v1.1',
             'has' => array(
                 'CORS' => null,
@@ -39,6 +39,8 @@ class exmo extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
@@ -206,6 +208,7 @@ class exmo extends Exchange {
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
+                    '140333' => '\\ccxt\\InvalidOrder', // array("error":array("code":140333,"msg":"The number of characters after the point in the price exceeds the maximum number '8\u003e6'"))
                     '140434' => '\\ccxt\\BadRequest',
                     '40005' => '\\ccxt\\AuthenticationError', // Authorization error, incorrect signature
                     '40009' => '\\ccxt\\InvalidNonce', //
@@ -1392,7 +1395,7 @@ class exmo extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopPrice] the $price at which a trigger order is triggered at
          * @param {string} [$params->timeInForce] *spot only* 'fok', 'ioc' or 'post_only'
@@ -2020,7 +2023,7 @@ class exmo extends Exchange {
          * @param {string} $type not used by exmo editOrder
          * @param {string} $side not used by exmo editOrder
          * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] stop $price for stop-$market and stop-limit orders
          * @param {string} $params->marginMode must be set to isolated
@@ -2056,7 +2059,7 @@ class exmo extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a currency associated with this account
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#c8f9ced9-7ab6-4383-a6a4-bc54469ba60e
@@ -2085,11 +2088,11 @@ class exmo extends Exchange {
         }
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 
@@ -2103,7 +2106,7 @@ class exmo extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#3ab9c34d-ad58-4f87-9c57-2e2ea88a8325

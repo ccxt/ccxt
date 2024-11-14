@@ -1614,7 +1614,7 @@ class tokocrypto extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger order would be triggered
              * @param {float} [$params->cost] for spot $market buy orders, the quote quantity that can be used alternative for the $amount
@@ -2046,11 +2046,11 @@ class tokocrypto extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
-             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * fetch the deposit $address for a $currency associated with this account
+             * @see https://www.tokocrypto.com/apidocs/#deposit-$address-signed
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -2094,11 +2094,11 @@ class tokocrypto extends Exchange {
             }
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $this->safe_string($data, 'network'),
                 'address' => $address,
                 'tag' => $tag,
-                'network' => $this->safe_string($data, 'network'),
-                'info' => $response,
             );
         }) ();
     }
@@ -2359,7 +2359,7 @@ class tokocrypto extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * @see https://www.tokocrypto.com/apidocs/#withdraw-signed

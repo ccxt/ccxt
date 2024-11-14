@@ -77,6 +77,7 @@ class krakenfutures extends Exchange {
                     'public' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'private' => 'https://demo-futures.kraken.com/derivatives/api/',
                     'charts' => 'https://demo-futures.kraken.com/api/charts/',
+                    'history' => 'https://demo-futures.kraken.com/api/history/',
                     'www' => 'https://demo-futures.kraken.com',
                 ),
                 'logo' => 'https://user-images.githubusercontent.com/24300605/81436764-b22fd580-9172-11ea-9703-742783e6376d.jpg',
@@ -603,6 +604,8 @@ class krakenfutures extends Exchange {
             'average' => $average,
             'baseVolume' => $baseVolume,
             'quoteVolume' => $quoteVolume,
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
+            'indexPrice' => $this->safe_string($ticker, 'indexPrice'),
             'info' => $ticker,
         ));
     }
@@ -1741,16 +1744,18 @@ class krakenfutures extends Exchange {
                 }
                 // Final $order (after placement / editing / execution / canceling)
                 $orderTrigger = $this->safe_value($item, 'orderTrigger');
-                $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
-                if ($details !== null) {
-                    $isPrior = false;
-                    $fixed = true;
-                } elseif (!$fixed) {
-                    $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
-                    $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
-                    $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                if ($details === null) {
+                    $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
                     if ($details !== null) {
-                        $isPrior = true;
+                        $isPrior = false;
+                        $fixed = true;
+                    } elseif (!$fixed) {
+                        $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
+                        $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
+                        $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                        if ($details !== null) {
+                            $isPrior = true;
+                        }
                     }
                 }
             }
@@ -2124,10 +2129,10 @@ class krakenfutures extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
+         * fetch the current funding rates for multiple markets
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-$market-data-get-$tickers
-         * fetch the current funding rates
          * @param {string[]} $symbols unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -2135,7 +2140,7 @@ class krakenfutures extends Exchange {
         $this->load_markets();
         $marketIds = $this->market_ids($symbols);
         $response = $this->publicGetTickers ($params);
-        $tickers = $this->safe_value($response, 'tickers');
+        $tickers = $this->safe_list($response, 'tickers', array());
         $fundingRates = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $entry = $tickers[$i];
@@ -2152,7 +2157,7 @@ class krakenfutures extends Exchange {
         return $this->index_by($fundingRates, 'symbol');
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null) {
+    public function parse_funding_rate($ticker, ?array $market = null): array {
         //
         // {"ask" => 26.283,
         //  "askSize" => 4.6,
@@ -2206,6 +2211,7 @@ class krakenfutures extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -2359,8 +2365,8 @@ class krakenfutures extends Exchange {
 
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
-         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -2455,8 +2461,8 @@ class krakenfutures extends Exchange {
         //    }
         //
         $marginLevels = $this->safe_value($info, 'marginLevels');
-        $id = $this->safe_string($info, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $marketId = $this->safe_string($info, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $tiers = array();
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
@@ -2469,6 +2475,7 @@ class krakenfutures extends Exchange {
             }
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['quote'],
                 'notionalFloor' => $notionalFloor,
                 'notionalCap' => null,

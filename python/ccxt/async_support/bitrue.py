@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -73,7 +73,10 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchDepositsWithdrawals': False,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
                 'fetchMarginMode': False,
@@ -113,7 +116,7 @@ class bitrue(Exchange, ImplicitAPI):
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
+                'logo': 'https://github.com/user-attachments/assets/67abe346-1273-461a-bd7c-42fa32907c8e',
                 'api': {
                     'spot': 'https://www.bitrue.com/api',
                     'fapi': 'https://fapi.bitrue.com/fapi',
@@ -345,6 +348,7 @@ class bitrue(Exchange, ImplicitAPI):
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
@@ -356,6 +360,67 @@ class bitrue(Exchange, ImplicitAPI):
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
+                    'AETERNITY': 'Aeternity',
+                    'AION': 'AION',
+                    'ALGO': 'Algorand',
+                    'ASK': 'ASK',
+                    'ATOM': 'ATOM',
+                    'AVAXC': 'AVAX C-Chain',
+                    'BCH': 'BCH',
+                    'BEP2': 'BEP2',
+                    'BEP20': 'BEP20',
+                    'Bitcoin': 'Bitcoin',
+                    'BRP20': 'BRP20',
+                    'ADA': 'Cardano',
+                    'CASINOCOIN': 'CasinoCoin',
+                    'CASINOCOIN-XRPL': 'CasinoCoin XRPL',
+                    'CONTENTOS': 'Contentos',
+                    'DASH': 'Dash',
+                    'DECOIN': 'Decoin',
+                    'DFI': 'DeFiChain',
+                    'DGB': 'DGB',
+                    'DIVI': 'Divi',
+                    'DOGE': 'dogecoin',
+                    'EOS': 'EOS',
+                    'ETC': 'ETC',
+                    'FILECOIN': 'Filecoin',
+                    'FREETON': 'FREETON',
+                    'HBAR': 'HBAR',
+                    'HEDERA': 'Hedera Hashgraph',
+                    'HRC20': 'HRC20',
+                    'ICON': 'ICON',
+                    'ICP': 'ICP',
+                    'IGNIS': 'Ignis',
+                    'INTERNETCOMPUTER': 'Internet Computer',
+                    'IOTA': 'IOTA',
+                    'KAVA': 'KAVA',
+                    'KSM': 'KSM',
+                    'LTC': 'LiteCoin',
+                    'LUNA': 'Luna',
+                    'MATIC': 'MATIC',
+                    'MOBILECOIN': 'Mobile Coin',
+                    'MONACOIN': 'MonaCoin',
+                    'XMR': 'Monero',
+                    'NEM': 'NEM',
+                    'NEP5': 'NEP5',
+                    'OMNI': 'OMNI',
+                    'PAC': 'PAC',
+                    'DOT': 'Polkadot',
+                    'RAVEN': 'Ravencoin',
+                    'SAFEX': 'Safex',
+                    'SOL': 'SOLANA',
+                    'SGB': 'Songbird',
+                    'XML': 'Stellar Lumens',
+                    'XYM': 'Symbol',
+                    'XTZ': 'Tezos',
+                    'theta': 'theta',
+                    'THETA': 'THETA',
+                    'VECHAIN': 'VeChain',
+                    'WANCHAIN': 'Wanchain',
+                    'XINFIN': 'XinFin Network',
+                    'XRP': 'XRP',
+                    'XRPL': 'XRPL',
+                    'ZIL': 'ZIL',
                 },
                 'defaultType': 'spot',
                 'timeframes': {
@@ -473,13 +538,6 @@ class bitrue(Exchange, ImplicitAPI):
             },
         })
 
-    def currency_to_precision(self, code, fee, networkCode=None):
-        # info is available in currencies only if the user has configured his api keys
-        if self.safe_value(self.currencies[code], 'precision') is not None:
-            return self.decimal_to_precision(fee, TRUNCATE, self.currencies[code]['precision'], self.precisionMode, self.paddingMode)
-        else:
-            return self.number_to_string(fee)
-
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
@@ -521,77 +579,6 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         return self.safe_integer(response, 'serverTime')
-
-    def safe_network(self, networkId):
-        uppercaseNetworkId = networkId.upper()
-        networksById: dict = {
-            'Aeternity': 'Aeternity',
-            'AION': 'AION',
-            'Algorand': 'Algorand',
-            'ASK': 'ASK',
-            'ATOM': 'ATOM',
-            'AVAX C-Chain': 'AVAX C-Chain',
-            'bch': 'bch',
-            'BCH': 'BCH',
-            'BEP2': 'BEP2',
-            'BEP20': 'BEP20',
-            'Bitcoin': 'Bitcoin',
-            'BRP20': 'BRP20',
-            'Cardano': 'ADA',
-            'CasinoCoin': 'CasinoCoin',
-            'CasinoCoin XRPL': 'CasinoCoin XRPL',
-            'Contentos': 'Contentos',
-            'Dash': 'Dash',
-            'Decoin': 'Decoin',
-            'DeFiChain': 'DeFiChain',
-            'DGB': 'DGB',
-            'Divi': 'Divi',
-            'dogecoin': 'DOGE',
-            'EOS': 'EOS',
-            'ERC20': 'ERC20',
-            'ETC': 'ETC',
-            'Filecoin': 'Filecoin',
-            'FREETON': 'FREETON',
-            'HBAR': 'HBAR',
-            'Hedera Hashgraph': 'Hedera Hashgraph',
-            'HRC20': 'HRC20',
-            'ICON': 'ICON',
-            'ICP': 'ICP',
-            'Ignis': 'Ignis',
-            'Internet Computer': 'Internet Computer',
-            'IOTA': 'IOTA',
-            'KAVA': 'KAVA',
-            'KSM': 'KSM',
-            'LiteCoin': 'LiteCoin',
-            'Luna': 'Luna',
-            'MATIC': 'MATIC',
-            'Mobile Coin': 'Mobile Coin',
-            'MonaCoin': 'MonaCoin',
-            'Monero': 'Monero',
-            'NEM': 'NEM',
-            'NEP5': 'NEP5',
-            'OMNI': 'OMNI',
-            'PAC': 'PAC',
-            'Polkadot': 'Polkadot',
-            'Ravencoin': 'Ravencoin',
-            'Safex': 'Safex',
-            'SOLANA': 'SOL',
-            'Songbird': 'Songbird',
-            'Stellar Lumens': 'Stellar Lumens',
-            'Symbol': 'Symbol',
-            'Tezos': 'XTZ',
-            'theta': 'theta',
-            'THETA': 'THETA',
-            'TRC20': 'TRC20',
-            'VeChain': 'VeChain',
-            'VECHAIN': 'VECHAIN',
-            'Wanchain': 'Wanchain',
-            'XinFin Network': 'XinFin Network',
-            'XRP': 'XRP',
-            'XRPL': 'XRPL',
-            'ZIL': 'ZIL',
-        }
-        return self.safe_string_2(networksById, networkId, uppercaseNetworkId, networkId)
 
     async def fetch_currencies(self, params={}) -> Currencies:
         """
@@ -647,7 +634,7 @@ class bitrue(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        coins = self.safe_value(response, 'coins', [])
+        coins = self.safe_list(response, 'coins', [])
         for i in range(0, len(coins)):
             currency = coins[i]
             id = self.safe_string(currency, 'coin')
@@ -658,15 +645,15 @@ class bitrue(Exchange, ImplicitAPI):
             minWithdrawString = None
             maxWithdrawString = None
             minWithdrawFeeString = None
-            networkDetails = self.safe_value(currency, 'chainDetail', [])
+            networkDetails = self.safe_list(currency, 'chainDetail', [])
             networks: dict = {}
             for j in range(0, len(networkDetails)):
                 entry = networkDetails[j]
                 networkId = self.safe_string(entry, 'chain')
                 network = self.network_id_to_code(networkId, code)
-                enableDeposit = self.safe_value(entry, 'enableDeposit')
+                enableDeposit = self.safe_bool(entry, 'enableDeposit')
                 deposit = enableDeposit if (enableDeposit) else deposit
-                enableWithdraw = self.safe_value(entry, 'enableWithdraw')
+                enableWithdraw = self.safe_bool(entry, 'enableWithdraw')
                 withdraw = enableWithdraw if (enableWithdraw) else withdraw
                 networkWithdrawFeeString = self.safe_string(entry, 'withdrawFee')
                 if networkWithdrawFeeString is not None:
@@ -842,11 +829,11 @@ class bitrue(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         if settle is not None:
             symbol += ':' + settle
-        filters = self.safe_value(market, 'filters', [])
+        filters = self.safe_list(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
         status = self.safe_string(market, 'status')
-        priceFilter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-        amountFilter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+        priceFilter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
+        amountFilter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
         defaultPricePrecision = self.safe_string(market, 'pricePrecision')
         defaultAmountPrecision = self.safe_string(market, 'quantityPrecision')
         pricePrecision = self.safe_string(priceFilter, 'priceScale', defaultPricePrecision)
@@ -994,7 +981,7 @@ class bitrue(Exchange, ImplicitAPI):
         if type == 'swap':
             if subType is not None and subType == 'inverse':
                 response = await self.dapiV2PrivateGetAccount(params)
-                result = self.safe_value(response, 'data', {})
+                result = self.safe_dict(response, 'data', {})
                 #
                 # {
                 #         "code":"0",
@@ -1027,7 +1014,7 @@ class bitrue(Exchange, ImplicitAPI):
                 #
             else:
                 response = await self.fapiV2PrivateGetAccount(params)
-                result = self.safe_value(response, 'data', {})
+                result = self.safe_dict(response, 'data', {})
                 #
                 #     {
                 #         "code":"0",
@@ -1242,7 +1229,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'symbol': market['id'],
             }
             response = await self.spotV1PublicGetTicker24hr(self.extend(request, params))
-            data = self.safe_value(response, 0, {})
+            data = self.safe_dict(response, 0, {})
         else:
             raise NotSupported(self.id + ' fetchTicker only support spot & swap markets')
         #
@@ -1300,11 +1287,11 @@ class bitrue(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        timeframes = self.safe_value(self.options, 'timeframes', {})
+        timeframes = self.safe_dict(self.options, 'timeframes', {})
         response = None
         data = None
         if market['swap']:
-            timeframesFuture = self.safe_value(timeframes, 'future', {})
+            timeframesFuture = self.safe_dict(timeframes, 'future', {})
             request: dict = {
                 'contractName': market['id'],
                 # 1min / 5min / 15min / 30min / 1h / 1day / 1week / 1month
@@ -1318,7 +1305,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.dapiV1PublicGetKlines(self.extend(request, params))
             data = response
         elif market['spot']:
-            timeframesSpot = self.safe_value(timeframes, 'spot', {})
+            timeframesSpot = self.safe_dict(timeframes, 'spot', {})
             request: dict = {
                 'symbol': market['id'],
                 # 1m / 5m / 15m / 30m / 1H / 2H / 4H / 12H / 1D / 1W
@@ -1329,7 +1316,7 @@ class bitrue(Exchange, ImplicitAPI):
             if since is not None:
                 request['fromIdx'] = since
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         else:
             raise NotSupported(self.id + ' fetchOHLCV only support spot & swap markets')
         #
@@ -1536,7 +1523,7 @@ class bitrue(Exchange, ImplicitAPI):
         # https://github.com/ccxt/ccxt/issues/13856
         tickers: dict = {}
         for i in range(0, len(data)):
-            ticker = self.safe_value(data, i, {})
+            ticker = self.safe_dict(data, i, {})
             market = self.market(self.safe_value(ticker, 'symbol'))
             tickers[market['id']] = ticker
         return self.parse_tickers(tickers, symbols)
@@ -1598,8 +1585,8 @@ class bitrue(Exchange, ImplicitAPI):
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string_2(trade, 'id', 'tradeId')
         side = None
-        buyerMaker = self.safe_value(trade, 'isBuyerMaker')  # ignore "m" until Bitrue fixes api
-        isBuyer = self.safe_value(trade, 'isBuyer')
+        buyerMaker = self.safe_bool(trade, 'isBuyerMaker')  # ignore "m" until Bitrue fixes api
+        isBuyer = self.safe_bool(trade, 'isBuyer')
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'
         if isBuyer is not None:
@@ -1611,7 +1598,7 @@ class bitrue(Exchange, ImplicitAPI):
                 'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAssert')),
             }
         takerOrMaker = None
-        isMaker = self.safe_value(trade, 'isMaker')
+        isMaker = self.safe_bool(trade, 'isMaker')
         if isMaker is not None:
             takerOrMaker = 'maker' if isMaker else 'taker'
         return self.safe_trade({
@@ -1764,7 +1751,7 @@ class bitrue(Exchange, ImplicitAPI):
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
         side = self.safe_string_lower(order, 'side')
-        fills = self.safe_value(order, 'fills', [])
+        fills = self.safe_list(order, 'fills', [])
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
@@ -1824,7 +1811,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: *spot only* the price at which a trigger order is triggered at
         :param str [params.clientOrderId]: a unique id for the order, automatically generated if not sent
@@ -1894,7 +1881,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivatePostOrder(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivatePostOrder(self.extend(request, params))
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
         elif market['spot']:
             request['symbol'] = market['id']
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -1942,6 +1929,7 @@ class bitrue(Exchange, ImplicitAPI):
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
         :see: https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
         :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1968,7 +1956,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivateGetOrder(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivateGetOrder(self.extend(request, params))
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
         elif market['spot']:
             request['orderId'] = id  # spot market id is mandatory
             request['symbol'] = market['id']
@@ -2098,7 +2086,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivateGetOpenOrders(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivateGetOpenOrders(self.extend(request, params))
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         elif market['spot']:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateGetOpenOrders(self.extend(request, params))
@@ -2186,7 +2174,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivatePostCancel(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivatePostCancel(self.extend(request, params))
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
         elif market['spot']:
             request['symbol'] = market['id']
             response = await self.spotV1PrivateDeleteOrder(self.extend(request, params))
@@ -2237,7 +2225,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivatePostAllOpenOrders(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivatePostAllOpenOrders(self.extend(request, params))
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         else:
             raise NotSupported(self.id + ' cancelAllOrders only support future markets')
         #
@@ -2282,7 +2270,7 @@ class bitrue(Exchange, ImplicitAPI):
                 response = await self.fapiV2PrivateGetMyTrades(self.extend(request, params))
             elif market['inverse']:
                 response = await self.dapiV2PrivateGetMyTrades(self.extend(request, params))
-            data = self.safe_value(response, 'data', [])
+            data = self.safe_list(response, 'data', [])
         elif market['spot']:
             request['symbol'] = market['id']
             response = await self.spotV2PrivateGetMyTrades(self.extend(request, params))
@@ -2469,7 +2457,7 @@ class bitrue(Exchange, ImplicitAPI):
                 '6': 'canceled',
             },
         }
-        statuses = self.safe_value(statusesByType, type, {})
+        statuses = self.safe_dict(statusesByType, type, {})
         return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2592,7 +2580,7 @@ class bitrue(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
@@ -2650,7 +2638,7 @@ class bitrue(Exchange, ImplicitAPI):
         #       "chainDetail": [[Object]]
         #   }
         #
-        chainDetails = self.safe_value(fee, 'chainDetail', [])
+        chainDetails = self.safe_list(fee, 'chainDetail', [])
         chainDetailLength = len(chainDetails)
         result: dict = {
             'info': fee,
@@ -2728,7 +2716,7 @@ class bitrue(Exchange, ImplicitAPI):
             'status': 'ok',
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
@@ -2791,7 +2779,7 @@ class bitrue(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        accountTypes = self.safe_value(self.options, 'accountsByType', {})
+        accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
         toId = self.safe_string(accountTypes, toAccount, toAccount)
         request: dict = {

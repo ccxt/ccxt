@@ -41,10 +41,14 @@ public partial class digifinex : Exchange
                 { "fetchCrossBorrowRates", true },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
+                { "fetchFundingInterval", true },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -138,9 +142,9 @@ public partial class digifinex : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "10001", new List<object>() {typeof(BadRequest), "Wrong request method, please check it\'s a GET ot POST request"} },
+                    { "10001", new List<object>() {typeof(BadRequest), "Wrong request method, please check it's a GET ot POST request"} },
                     { "10002", new List<object>() {typeof(AuthenticationError), "Invalid ApiKey"} },
-                    { "10003", new List<object>() {typeof(AuthenticationError), "Sign doesn\'t match"} },
+                    { "10003", new List<object>() {typeof(AuthenticationError), "Sign doesn't match"} },
                     { "10004", new List<object>() {typeof(BadRequest), "Illegal request parameters"} },
                     { "10005", new List<object>() {typeof(DDoSProtection), "Request frequency exceeds the limit"} },
                     { "10006", new List<object>() {typeof(PermissionDenied), "Unauthorized to execute this request"} },
@@ -162,7 +166,7 @@ public partial class digifinex : Exchange
                     { "20015", new List<object>() {typeof(BadRequest), "Date exceeds the limit"} },
                     { "20018", new List<object>() {typeof(PermissionDenied), "Your trading rights have been banned by the system"} },
                     { "20019", new List<object>() {typeof(BadSymbol), "Wrong trading pair symbol. Correct format:\"usdt_btc\". Quote asset is in the front"} },
-                    { "20020", new List<object>() {typeof(DDoSProtection), "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user\'s transaction rate and withdrawal rate."} },
+                    { "20020", new List<object>() {typeof(DDoSProtection), "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate."} },
                     { "50000", new List<object>() {typeof(ExchangeError), "Exception error"} },
                     { "20021", new List<object>() {typeof(BadRequest), "Invalid currency"} },
                     { "20022", new List<object>() {typeof(BadRequest), "The ending timestamp must be larger than the starting timestamp"} },
@@ -181,7 +185,7 @@ public partial class digifinex : Exchange
                     { "20036", new List<object>() {typeof(ExchangeError), "Withdrawal cancellation failed"} },
                     { "20037", new List<object>() {typeof(InvalidAddress), "The withdrawal address, Tag or chain type is not included in the withdrawal management list"} },
                     { "20038", new List<object>() {typeof(InvalidAddress), "The withdrawal address is not on the white list"} },
-                    { "20039", new List<object>() {typeof(ExchangeError), "Can\'t be canceled in current status"} },
+                    { "20039", new List<object>() {typeof(ExchangeError), "Can't be canceled in current status"} },
                     { "20040", new List<object>() {typeof(RateLimitExceeded), "Withdraw too frequently; limitation: 3 times a minute, 100 times a day"} },
                     { "20041", new List<object>() {typeof(PermissionDenied), "Beyond the daily withdrawal limit"} },
                     { "20042", new List<object>() {typeof(BadSymbol), "Current trading pair does not support API trading"} },
@@ -1159,6 +1163,8 @@ public partial class digifinex : Exchange
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "vol", "volume_24h") },
             { "quoteVolume", this.safeString(ticker, "base_vol") },
+            { "markPrice", this.safeString(ticker, "mark_price") },
+            { "indexPrice", indexPrice },
             { "info", ticker },
         }, market);
     }
@@ -1564,7 +1570,7 @@ public partial class digifinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -1738,7 +1744,7 @@ public partial class digifinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} request to be sent to the exchange
         */
@@ -1973,8 +1979,42 @@ public partial class digifinex : Exchange
             {
                 throw new OrderNotFound ((string)add(add(add(this.id, " cancelOrder() "), id), " not found")) ;
             }
+            object orders = this.parseCancelOrders(response);
+            return this.safeDict(orders, 0);
+        } else
+        {
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", response },
+                { "orderId", this.safeString(response, "data") },
+            });
         }
-        return response;
+    }
+
+    public virtual object parseCancelOrders(object response)
+    {
+        object success = this.safeList(response, "success");
+        object error = this.safeList(response, "error");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(error)); postFixIncrement(ref i))
+        {
+            object order = getValue(error, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2010,13 +2050,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object canceledOrders = this.safeValue(response, "success", new List<object>() {});
-        object numCanceledOrders = getArrayLength(canceledOrders);
-        if (isTrue(isLessThan(numCanceledOrders, 1)))
-        {
-            throw new OrderNotFound ((string)add(this.id, " cancelOrders() error")) ;
-        }
-        return response;
+        return this.parseCancelOrders(response);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -2687,7 +2721,9 @@ public partial class digifinex : Exchange
         //     }
         //
         object type = this.parseLedgerEntryType(this.safeString2(item, "type", "finance_type"));
-        object code = this.safeCurrencyCode(this.safeString2(item, "currency_mark", "currency"), currency);
+        object currencyId = this.safeString2(item, "currency_mark", "currency");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeNumber2(item, "num", "change");
         object after = this.safeNumber(item, "balance");
         object timestamp = this.safeTimestamp(item, "time");
@@ -2695,7 +2731,7 @@ public partial class digifinex : Exchange
         {
             timestamp = this.safeInteger(item, "timestamp");
         }
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", null },
             { "direction", null },
@@ -2711,7 +2747,7 @@ public partial class digifinex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "fee", null },
-        };
+        }, currency);
     }
 
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2719,12 +2755,12 @@ public partial class digifinex : Exchange
         /**
         * @method
         * @name digifinex#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
-        * @param {string} code unified currency code, default is undefined
+        * @param {string} [code] unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
+        * @param {int} [limit] max number of ledger entries to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
@@ -2840,9 +2876,9 @@ public partial class digifinex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
         };
     }
 
@@ -3237,15 +3273,15 @@ public partial class digifinex : Exchange
         object currency = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "base");
         object symbol = this.safeSymbol(marketId, market);
         return new Dictionary<string, object>() {
-            { "account", symbol },
+            { "info", info },
             { "symbol", symbol },
             { "currency", currency },
             { "interest", null },
             { "interestRate", 0.001 },
             { "amountBorrowed", this.parseNumber(amountBorrowed) },
+            { "marginMode", null },
             { "timestamp", null },
             { "datetime", null },
-            { "info", info },
         };
     }
 
@@ -3329,7 +3365,7 @@ public partial class digifinex : Exchange
         return this.parseBorrowRates(result, "currency");
     }
 
-    public virtual object parseBorrowRate(object info, object currency = null)
+    public override object parseBorrowRate(object info, object currency = null)
     {
         //
         //     {
@@ -3407,8 +3443,23 @@ public partial class digifinex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ((object)this.parseFundingRate(data, market));
+    }
+
+    public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name digifinex#fetchFundingInterval
+        * @description fetch the current funding rate interval
+        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.fetchFundingRate(symbol, parameters);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -3425,6 +3476,9 @@ public partial class digifinex : Exchange
         object marketId = this.safeString(contract, "instrument_id");
         object timestamp = this.safeInteger(contract, "funding_time");
         object nextTimestamp = this.safeInteger(contract, "next_funding_time");
+        object fundingTimeString = this.safeString(contract, "funding_time");
+        object nextFundingTimeString = this.safeString(contract, "next_funding_time");
+        object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market) },
@@ -3437,13 +3491,26 @@ public partial class digifinex : Exchange
             { "fundingRate", this.safeNumber(contract, "funding_rate") },
             { "fundingTimestamp", timestamp },
             { "fundingDatetime", this.iso8601(timestamp) },
-            { "nextFundingRate", this.safeString(contract, "next_funding_rate") },
+            { "nextFundingRate", this.safeNumber(contract, "next_funding_rate") },
             { "nextFundingTimestamp", nextTimestamp },
             { "nextFundingDatetime", this.iso8601(nextTimestamp) },
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+            { "interval", this.parseFundingInterval(millisecondsInterval) },
         };
+    }
+
+    public virtual object parseFundingInterval(object interval)
+    {
+        object intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
     }
 
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4051,8 +4118,8 @@ public partial class digifinex : Exchange
         /**
         * @method
         * @name digifinex#fetchMarketLeverageTiers
-        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+        * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
@@ -4131,9 +4198,10 @@ public partial class digifinex : Exchange
         {
             object tier = getValue(brackets, i);
             object marketId = this.safeString(info, "instrument_id");
-            market = this.safeMarket(marketId);
+            market = this.safeMarket(marketId, market);
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market, null, "swap") },
                 { "currency", getValue(market, "settle") },
                 { "minNotional", null },
                 { "maxNotional", this.safeNumber(tier, "max_limit") },

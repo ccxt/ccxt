@@ -1597,7 +1597,7 @@ class tokocrypto extends tokocrypto$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
@@ -2038,8 +2038,8 @@ class tokocrypto extends tokocrypto$1 {
         /**
          * @method
          * @name tokocrypto#fetchDepositAddress
-         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
@@ -2083,11 +2083,11 @@ class tokocrypto extends tokocrypto$1 {
         }
         this.checkAddress(address);
         return {
+            'info': response,
             'currency': code,
+            'network': this.safeString(data, 'network'),
             'address': address,
             'tag': tag,
-            'network': this.safeString(data, 'network'),
-            'info': response,
         };
     }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {

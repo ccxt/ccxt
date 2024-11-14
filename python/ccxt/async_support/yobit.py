@@ -5,8 +5,9 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.yobit import ImplicitAPI
+import asyncio
 import hashlib
-from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Balances, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,27 +52,48 @@ class yobit(Exchange, ImplicitAPI):
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
@@ -83,6 +105,7 @@ class yobit(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
@@ -91,9 +114,14 @@ class yobit(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchUnderlyingAssets': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
@@ -248,6 +276,7 @@ class yobit(Exchange, ImplicitAPI):
                 'XIN': 'XINCoin',
                 'XMT': 'SummitCoin',
                 'XRA': 'Ratecoin',
+                'BCHN': 'BSV',
             },
             'options': {
                 'maxUrlLength': 2048,
@@ -541,31 +570,7 @@ class yobit(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
-        """
-        :see: https://yobit.net/en/api
-        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
-        """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument')
-        await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        ids = None
-        if symbols is None:
-            ids = self.ids
-        else:
-            ids = self.market_ids(symbols)
-        idsLength = len(ids)
-        idsString = '-'.join(ids)
-        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
-        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        lenghtOfBaseUrl = 30  # the url including api-base and endpoint dir is 30 chars
-        actualLength = len(idsString) + lenghtOfBaseUrl
-        if actualLength > maxLength:
-            raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
+    async def fetch_tickers_helper(self, idsString: str, params={}) -> Tickers:
         request: dict = {
             'pair': idsString,
         }
@@ -578,7 +583,53 @@ class yobit(Exchange, ImplicitAPI):
             market = self.safe_market(id)
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
-        return self.filter_by_array_tickers(result, 'symbol', symbols)
+        return result
+
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        :see: https://yobit.net/en/api
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.all]: you can set to `true` for convenience to fetch all tickers from self exchange by sending multiple requests
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        allSymbols = None
+        allSymbols, params = self.handle_param_bool(params, 'all', False)
+        if symbols is None and not allSymbols:
+            raise ArgumentsRequired(self.id + ' fetchTickers() requires "symbols" argument or use `params["all"] = True` to send multiple requests for all markets')
+        await self.load_markets()
+        promises = []
+        maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
+        # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        lenghtOfBaseUrl = 40  # safe space for the url including api-base and endpoint dir is 30 chars
+        if allSymbols:
+            symbols = self.symbols
+            ids = ''
+            for i in range(0, len(self.ids)):
+                id = self.ids[i]
+                prefix = '' if (ids == '') else '-'
+                ids += prefix + id
+                if len(ids) > maxLength:
+                    promises.append(self.fetch_tickers_helper(ids, params))
+                    ids = ''
+            if ids != '':
+                promises.append(self.fetch_tickers_helper(ids, params))
+        else:
+            symbols = self.market_symbols(symbols)
+            ids = self.market_ids(symbols)
+            idsLength: number = len(ids)
+            idsString = '-'.join(ids)
+            actualLength = len(idsString) + lenghtOfBaseUrl
+            if actualLength > maxLength:
+                raise ArgumentsRequired(self.id + ' fetchTickers() is being requested for ' + str(idsLength) + ' markets(which has an URL length of ' + str(actualLength) + ' characters), but it exceedes max URL length(' + str(maxLength) + '), please pass limisted symbols array to fetchTickers to fit in one request')
+            promises.append(self.fetch_tickers_helper(idsString, params))
+        resultAll = await asyncio.gather(*promises)
+        finalResult = {}
+        for i in range(0, len(resultAll)):
+            result = self.filter_by_array_tickers(resultAll[i], 'symbol', symbols)
+            finalResult = self.extend(finalResult, result)
+        return finalResult
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
@@ -760,7 +811,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1074,7 +1125,7 @@ class yobit(Exchange, ImplicitAPI):
         ids = list(trades.keys())
         result = []
         for i in range(0, len(ids)):
-            id = ids[i]
+            id = self.safe_string(ids, i)
             trade = self.parse_trade(self.extend(trades[id], {
                 'trade_id': id,
             }), market)
@@ -1102,10 +1153,10 @@ class yobit(Exchange, ImplicitAPI):
             'info': response['info'],
         }
 
-    async def fetch_deposit_address(self, code: str, params={}):
+    async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
-        :see: https://yobit.net/en/api
         fetch the deposit address for a currency associated with self account
+        :see: https://yobit.net/en/api
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1128,32 +1179,14 @@ class yobit(Exchange, ImplicitAPI):
         address = self.safe_string(response['return'], 'address')
         self.check_address(address)
         return {
-            'id': None,
+            'info': response,
             'currency': code,
+            'network': None,
             'address': address,
             'tag': None,
-            'network': None,
-            'info': response,
-            'txid': None,
-            'type': None,
-            'amount': None,
-            'status': None,
-            'timestamp': None,
-            'datetime': None,
-            'addressFrom': None,
-            'addressTo': None,
-            'tagFrom': None,
-            'tagTo': None,
-            'updated': None,
-            'comment': None,
-            'fee': {
-                'currency': None,
-                'cost': None,
-                'rate': None,
-            },
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         :see: https://yobit.net/en/api
         make a withdrawal

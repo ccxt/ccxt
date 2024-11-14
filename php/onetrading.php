@@ -49,6 +49,7 @@ class onetrading extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -114,8 +115,8 @@ class onetrading extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api' => array(
-                    'public' => 'https://api.onetrading.com/public',
-                    'private' => 'https://api.onetrading.com/public',
+                    'public' => 'https://api.onetrading.com/fast',
+                    'private' => 'https://api.onetrading.com/fast',
                 ),
                 'www' => 'https://onetrading.com/',
                 'doc' => array(
@@ -1021,7 +1022,7 @@ class onetrading extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1030,11 +1031,11 @@ class onetrading extends Exchange {
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -1062,7 +1063,7 @@ class onetrading extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
@@ -1214,7 +1215,7 @@ class onetrading extends Exchange {
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1495,7 +1496,7 @@ class onetrading extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] onetrading only does stop limit orders and does not do stop $market
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1629,6 +1630,7 @@ class onetrading extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by onetrading fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

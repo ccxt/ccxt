@@ -208,6 +208,9 @@ abstract class xt extends \ccxt\Exchange {
     public function private_spot_post_balance_account_transfer($params = array()) {
         return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_spot_post_ws_token($params = array()) {
+        return $this->request('ws-token', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_spot_delete_batch_order($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));
     }
@@ -651,6 +654,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function privateSpotPostBalanceAccountTransfer($params = array()) {
         return $this->request('balance/account/transfer', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateSpotPostWsToken($params = array()) {
+        return $this->request('ws-token', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateSpotDeleteBatchOrder($params = array()) {
         return $this->request('batch-order', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 1));

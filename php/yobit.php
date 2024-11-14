@@ -37,27 +37,48 @@ class yobit extends Exchange {
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
@@ -69,6 +90,7 @@ class yobit extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
@@ -77,9 +99,14 @@ class yobit extends Exchange {
                 'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
+                'fetchUnderlyingAssets' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => false,
+                'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
@@ -234,6 +261,7 @@ class yobit extends Exchange {
                 'XIN' => 'XINCoin',
                 'XMT' => 'SummitCoin',
                 'XRA' => 'Ratecoin',
+                'BCHN' => 'BSV',
             ),
             'options' => array(
                 'maxUrlLength' => 2048,
@@ -542,34 +570,7 @@ class yobit extends Exchange {
         ), $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
-        /**
-         * @see https://yobit.net/en/api
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=$ticker-structure $ticker structures~
-         */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires "symbols" argument');
-        }
-        $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $ids = null;
-        if ($symbols === null) {
-            $ids = $this->ids;
-        } else {
-            $ids = $this->market_ids($symbols);
-        }
-        $idsLength = count($ids);
-        $idsString = implode('-', $ids);
-        $maxLength = $this->safe_integer($this->options, 'maxUrlLength', 2048);
-        // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-        $lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        $actualLength = strlen($idsString) . $lenghtOfBaseUrl;
-        if ($actualLength > $maxLength) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() is being requested for ' . (string) $idsLength . ' markets (which has an URL length of ' . (string) $actualLength . ' characters), but it exceedes max URL length (' . (string) $maxLength . '), please pass limisted $symbols array to fetchTickers to fit in one request');
-        }
+    public function fetch_tickers_helper(string $idsString, $params = array ()): array {
         $request = array(
             'pair' => $idsString,
         );
@@ -583,7 +584,61 @@ class yobit extends Exchange {
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
-        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+        return $result;
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+        /**
+         * @see https://yobit.net/en/api
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {array} [$params->all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=ticker-structure ticker structures~
+         */
+        $allSymbols = null;
+        list($allSymbols, $params) = $this->handle_param_bool($params, 'all', false);
+        if ($symbols === null && !$allSymbols) {
+            throw new ArgumentsRequired($this->id . ' fetchTickers() requires "symbols" argument or use `$params["all"] = true` to send multiple requests for all markets');
+        }
+        $this->load_markets();
+        $promises = array();
+        $maxLength = $this->safe_integer($this->options, 'maxUrlLength', 2048);
+        // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
+        $lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if ($allSymbols) {
+            $symbols = $this->symbols;
+            $ids = '';
+            for ($i = 0; $i < count($this->ids); $i++) {
+                $id = $this->ids[$i];
+                $prefix = ($ids === '') ? '' : '-';
+                $ids .= $prefix . $id;
+                if (strlen($ids) > $maxLength) {
+                    $promises[] = $this->fetch_tickers_helper($ids, $params);
+                    $ids = '';
+                }
+            }
+            if ($ids !== '') {
+                $promises[] = $this->fetch_tickers_helper($ids, $params);
+            }
+        } else {
+            $symbols = $this->market_symbols($symbols);
+            $ids = $this->market_ids($symbols);
+            $idsLength = count($ids);
+            $idsString = implode('-', $ids);
+            $actualLength = strlen($idsString) . $lenghtOfBaseUrl;
+            if ($actualLength > $maxLength) {
+                throw new ArgumentsRequired($this->id . ' fetchTickers() is being requested for ' . (string) $idsLength . ' markets (which has an URL length of ' . (string) $actualLength . ' characters), but it exceedes max URL length (' . (string) $maxLength . '), please pass limisted $symbols array to fetchTickers to fit in one request');
+            }
+            $promises[] = $this->fetch_tickers_helper($idsString, $params);
+        }
+        $resultAll = $promises;
+        $finalResult = array();
+        for ($i = 0; $i < count($resultAll); $i++) {
+            $result = $this->filter_by_array_tickers($resultAll[$i], 'symbol', $symbols);
+            $finalResult = $this->extend($finalResult, $result);
+        }
+        return $finalResult;
     }
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
@@ -778,7 +833,7 @@ class yobit extends Exchange {
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1105,7 +1160,7 @@ class yobit extends Exchange {
         $ids = is_array($trades) ? array_keys($trades) : array();
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
+            $id = $this->safe_string($ids, $i);
             $trade = $this->parse_trade($this->extend($trades[$id], array(
                 'trade_id' => $id,
             )), $market);
@@ -1136,10 +1191,10 @@ class yobit extends Exchange {
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
-         * @see https://yobit.net/en/api
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://yobit.net/en/api
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1164,33 +1219,15 @@ class yobit extends Exchange {
         $address = $this->safe_string($response['return'], 'address');
         $this->check_address($address);
         return array(
-            'id' => null,
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $response,
-            'txid' => null,
-            'type' => null,
-            'amount' => null,
-            'status' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'addressFrom' => null,
-            'addressTo' => null,
-            'tagFrom' => null,
-            'tagTo' => null,
-            'updated' => null,
-            'comment' => null,
-            'fee' => array(
-                'currency' => null,
-                'cost' => null,
-                'rate' => null,
-            ),
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * @see https://yobit.net/en/api
          * make a withdrawal

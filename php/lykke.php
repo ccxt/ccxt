@@ -41,6 +41,8 @@ class lykke extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
@@ -673,9 +675,9 @@ class lykke extends Exchange {
             $currencyId = $this->safe_string($balance, 'assetId');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $free = $this->safe_string($balance, 'available');
+            $total = $this->safe_string($balance, 'available');
             $used = $this->safe_string($balance, 'reserved');
-            $account['free'] = $free;
+            $account['total'] = $total;
             $account['used'] = $used;
             $result[$code] = $account;
         }
@@ -788,7 +790,7 @@ class lykke extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1102,7 +1104,7 @@ class lykke extends Exchange {
         return array( $this->parse_number($price), $this->parse_number($amount) );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
          * @see https://lykkecity.github.io/Trading-API/#get-deposit-$address-for-a-given-asset
@@ -1130,11 +1132,11 @@ class lykke extends Exchange {
         $tag = $this->safe_string($response, 'addressExtension');
         $this->check_address($address);
         return array(
+            'info' => $response,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $response,
         );
     }
 
@@ -1241,7 +1243,7 @@ class lykke extends Exchange {
         return $this->parse_transactions($payload, $currency, $since, $limit);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @see https://lykkecity.github.io/Trading-API/#withdrawal

@@ -20,6 +20,7 @@ public partial class lbank : ccxt.lbank
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -529,7 +530,7 @@ public partial class lbank : ccxt.lbank
         /**
         * @method
         * @name lbank#watchOrders
-        * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+        * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
         * @description get the list of trades associated with the user
         * @param {string} [symbol] unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -702,11 +703,11 @@ public partial class lbank : ccxt.lbank
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         /**
         * @method
-        * @name lbank#watchOrderBook
+        * @name lbank#fetchOrderBookWs
         * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -740,7 +741,6 @@ public partial class lbank : ccxt.lbank
         * @method
         * @name lbank#watchOrderBook
         * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-        * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -866,10 +866,16 @@ public partial class lbank : ccxt.lbank
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
         object pingId = this.safeString(message, "ping");
-        await client.send(new Dictionary<string, object>() {
-            { "action", "pong" },
-            { "pong", pingId },
-        });
+        try
+        {
+            await client.send(new Dictionary<string, object>() {
+                { "action", "pong" },
+                { "pong", pingId },
+            });
+        } catch(Exception e)
+        {
+            this.onError(client as WebSocketClient, e);
+        }
     }
 
     public override void handleMessage(WebSocketClient client, object message)

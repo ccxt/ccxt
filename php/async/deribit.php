@@ -56,6 +56,8 @@ class deribit extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingRate' => true,
@@ -859,6 +861,8 @@ class deribit extends Exchange {
                     } elseif ($isSpot) {
                         $type = 'spot';
                     }
+                    $inverse = null;
+                    $linear = null;
                     if ($isSpot) {
                         $symbol = $base . '/' . $quote;
                     } elseif (!$isComboMarket) {
@@ -872,6 +876,8 @@ class deribit extends Exchange {
                                 $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
                             }
                         }
+                        $inverse = ($quote !== $settle);
+                        $linear = ($settle === $quote);
                     }
                     $parsedMarketValue = $this->safe_value($parsedMarkets, $symbol);
                     if ($parsedMarketValue) {
@@ -897,8 +903,8 @@ class deribit extends Exchange {
                         'option' => $option,
                         'active' => $this->safe_value($market, 'is_active'),
                         'contract' => !$isSpot,
-                        'linear' => ($settle === $quote),
-                        'inverse' => ($settle !== $quote),
+                        'linear' => $linear,
+                        'inverse' => $inverse,
                         'taker' => $this->safe_number($market, 'taker_commission'),
                         'maker' => $this->safe_number($market, 'maker_commission'),
                         'contractSize' => $this->safe_number($market, 'contract_size'),
@@ -1052,7 +1058,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1088,11 +1094,11 @@ class deribit extends Exchange {
             $address = $this->safe_string($result, 'address');
             $this->check_address($address);
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => null,
                 'address' => $address,
                 'tag' => null,
-                'network' => null,
-                'info' => $response,
             );
         }) ();
     }
@@ -1169,6 +1175,8 @@ class deribit extends Exchange {
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => $this->safe_string($stats, 'volume'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -1772,7 +1780,7 @@ class deribit extends Exchange {
         $filledString = $this->safe_string($order, 'filled_amount');
         $amount = $this->safe_string($order, 'amount');
         $cost = Precise::string_mul($filledString, $averageString);
-        if ($market['inverse']) {
+        if ($this->safe_bool($market, 'inverse')) {
             if ($averageString !== '0') {
                 $cost = Precise::string_div($amount, $averageString);
             }
@@ -1888,8 +1896,8 @@ class deribit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency. For inverse perpetual and futures the $amount is in the quote currency USD. For options it is in the underlying assets base currency.
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} $amount how much you want to trade in units of the base currency. For perpetual and inverse futures the $amount is in USD units. For options it is in the underlying assets base currency.
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trigger] the $trigger $type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
              * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
@@ -2061,8 +2069,8 @@ class deribit extends Exchange {
              * @param {string} [$symbol] unified $symbol of the market to edit an $order in
              * @param {string} [$type] 'market' or 'limit'
              * @param {string} [$side] 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency, inverse swap and future use the quote currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the base currency, ignored in market orders
+             * @param {float} $amount how much you want to trade in units of the base currency. For perpetual and inverse futures the $amount is in USD units. For options it is in the underlying assets base currency.
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current market $price
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -2138,7 +2146,21 @@ class deribit extends Exchange {
                 $request['instrument_name'] = $market['id'];
                 $response = Async\await($this->privateGetCancelAllByInstrument ($this->extend($request, $params)));
             }
-            return $response;
+            //
+            //    {
+            //        jsonrpc => '2.0',
+            //        result => '1',
+            //        usIn => '1720508354127369',
+            //        usOut => '1720508354133603',
+            //        usDiff => '6234',
+            //        testnet => true
+            //    }
+            //
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -2927,7 +2949,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3023,7 +3045,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()) {
+    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -3112,7 +3134,7 @@ class deribit extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3152,6 +3174,7 @@ class deribit extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => '8h',
         );
     }
 

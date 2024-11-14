@@ -30,6 +30,8 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
+    public $message_queue = array();
+    public $useMessageQueue = false;
     public $options = array();
 
     public $on_message_callback;
@@ -74,6 +76,15 @@ class Client {
         if (array_key_exists($message_hash, $this->rejections)) {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
+            unset($this->message_queue[$message_hash]);
+            return $future;
+        }
+        if ($this->useMessageQueue && array_key_exists($message_hash, $this->message_queue)) {
+            $queue = $this->message_queue[$message_hash];
+            if (count($queue) > 0) {
+                $future->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
+            }
         }
         return $future;
     }
@@ -82,10 +93,26 @@ class Client {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
-        if (array_key_exists($message_hash, $this->futures)) {
-            $promise = $this->futures[$message_hash];
-            $promise->resolve($result);
-            unset($this->futures[$message_hash]);
+        if ($this->useMessageQueue) {
+            if (!array_key_exists($message_hash, $this->message_queue)) {
+                $this->message_queue[$message_hash] = array();
+            }
+            $queue = $this->message_queue[$message_hash];
+            array_push($queue, $result);
+            while (count($queue) > 10) {
+                array_shift($queue);
+            }
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve(array_shift($queue));
+                unset($this->futures[$message_hash]);
+            }
+        } else {
+            if (array_key_exists($message_hash, $this->futures)) {
+                $promise = $this->futures[$message_hash];
+                $promise->resolve($result);
+                unset($this->futures[$message_hash]);
+            }
         }
         return $result;
     }
@@ -290,6 +317,7 @@ class Client {
 
     public function reset($error) {
         $this->clear_ping_interval();
+        $this->message_queue = array();
         $this->reject($error);
     }
 

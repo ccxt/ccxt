@@ -1087,7 +1087,7 @@ class coinsph extends Exchange {
          * @param {string} $type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
@@ -1556,7 +1556,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal to coins_ph account
          * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
@@ -1813,7 +1813,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
          * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
@@ -1845,7 +1845,7 @@ class coinsph extends Exchange {
         return $this->parse_deposit_address($response, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "ETH",
@@ -1856,11 +1856,11 @@ class coinsph extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'coin');
         $parsedCurrency = $this->safe_currency_code($currencyId, $currency);
         return array(
+            'info' => $depositAddress,
             'currency' => $parsedCurrency,
+            'network' => null,
             'address' => $this->safe_string($depositAddress, 'address'),
             'tag' => $this->safe_string($depositAddress, 'addressTag'),
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
