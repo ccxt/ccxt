@@ -1406,6 +1406,48 @@ class Transpiler {
 
     // ========================================================================
 
+    moveJsDocInside(method) {
+
+        const isOutsideJSDoc = /^\s*\/\*\*/;
+
+        if (!method.match(isOutsideJSDoc)) {
+            return method;
+        }
+
+        const newLines = [];
+        const methodSplit = method.split('\n');
+
+        // move jsdoc inside the method
+        // below the signature to simplify the docs in python/php
+        for (let i = 0; i < methodSplit.length; i++) {
+            const line = methodSplit[i];
+            if (line.match(isOutsideJSDoc)) {
+                const jsDocIden = '        ';
+                let jsdoc = jsDocIden + line.trim();
+                while (!jsdoc.match(/\*\//)) {
+                    i++;
+                    const lineTrimmed = methodSplit[i].trim();
+                    // if (lineTrimmed == "*/") {
+                    //     jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    // } else {
+                        jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    // }
+                }
+                newLines.push(methodSplit[i+1]);
+                i++;
+                newLines.push(jsdoc);
+            } else {
+                newLines.push(line);
+            }
+        }
+        const res = newLines.join('\n');
+        // write this to a tmp file
+        fs.writeFileSync('tmp.js', res);
+        return res;
+    }
+
+    // ========================================================================
+
     transpileMethodsToAllLanguages (className, methods) {
 
         let python2 = []
@@ -1416,7 +1458,8 @@ class Transpiler {
 
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
-            let part = methods[i].trim ()
+            let part = this.moveJsDocInside(methods[i].trim());
+            // let part = methods[i].trim ()
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
