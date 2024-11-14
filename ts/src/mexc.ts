@@ -426,15 +426,10 @@ export default class mexc extends Exchange {
                     'LTC/USDT:USDT': true,
                     'ETH/USDT:USDT': true,
                 },
-                'fetchMarkets': {
-                    'types': {
-                        'spot': true,
-                        'swap': {
-                            'linear': true,
-                            'inverse': false,
-                        },
-                    },
-                },
+                'fetchMarkets': [
+                    'spot',
+                    'swap',
+                ],
                 'timeframes': {
                     'spot': {
                         '1m': '1m',
@@ -1043,261 +1038,215 @@ export default class mexc extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const spotMarketPromise = this.fetchSpotMarkets (params);
-        const swapMarketPromise = this.fetchSwapMarkets (params);
-        const [ spotMarket, swapMarket ] = await Promise.all ([ spotMarketPromise, swapMarketPromise ]);
-        return this.arrayConcat (spotMarket, swapMarket);
-    }
-
-    async fetchSpotMarkets (params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @name mexc#fetchMarkets
-         * @description retrieves data on all spot markets for mexc
-         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
-        const response = await this.spotPublicGetExchangeInfo (params);
-        //
-        //     {
-        //         "timezone": "CST",
-        //         "serverTime": 1647521860402,
-        //         "rateLimits": [],
-        //         "exchangeFilters": [],
-        //         "symbols": [
-        //           {
-        //                "symbol": "OGNUSDT",
-        //                "status": "1",
-        //                "baseAsset": "OGN",
-        //                "baseAssetPrecision": "2",
-        //                "quoteAsset": "USDT",
-        //                "quoteAssetPrecision": "4",
-        //                "orderTypes": [
-        //                    "LIMIT",
-        //                    "LIMIT_MAKER"
-        //                ],
-        //                "baseCommissionPrecision": "2",
-        //                "quoteCommissionPrecision": "4",
-        //                "quoteOrderQtyMarketAllowed": false,
-        //                "isSpotTradingAllowed": true,
-        //                "isMarginTradingAllowed": true,
-        //                "permissions": [
-        //                    "SPOT",
-        //                    "MARGIN"
-        //                ],
-        //                "filters": [],
-        //                "baseSizePrecision": "0.01", // this turned out to be a minimum base amount for order
-        //                "maxQuoteAmount": "5000000",
-        //                "makerCommission": "0.002",
-        //                "takerCommission": "0.002"
-        //                "quoteAmountPrecision": "5", // this turned out to be a minimum cost amount for order
-        //                "quotePrecision": "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
-        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
-        //            },
-        //         ]
-        //     }
-        //
-        // Notes:
-        // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
-        //
-        const data = this.safeValue (response, 'symbols', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const status = this.safeString (market, 'status');
-            const isSpotTradingAllowed = this.safeValue (market, 'isSpotTradingAllowed');
-            let active = false;
-            if ((status === '1') && (isSpotTradingAllowed)) {
-                active = true;
+        const promisesRaw = [];
+        let fetchMarketsTypes = undefined;
+        [ fetchMarketsTypes, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchMarkets', [ 'spot', 'swap' ]);
+        for (let i = 0; i < fetchMarketsTypes.length; i++) {
+            const marketType = fetchMarketsTypes[i];
+            if (marketType === 'spot') {
+                promisesRaw.push (this.spotPublicGetExchangeInfo (params));
+                //
+                //     {
+                //         "timezone": "CST",
+                //         "serverTime": 1647521860402,
+                //         "rateLimits": [],
+                //         "exchangeFilters": [],
+                //         "symbols": [
+                //           {
+                //                "symbol": "OGNUSDT",
+                //                "status": "1",
+                //                "baseAsset": "OGN",
+                //                "baseAssetPrecision": "2",
+                //                "quoteAsset": "USDT",
+                //                "quoteAssetPrecision": "4",
+                //                "orderTypes": [
+                //                    "LIMIT",
+                //                    "LIMIT_MAKER"
+                //                ],
+                //                "baseCommissionPrecision": "2",
+                //                "quoteCommissionPrecision": "4",
+                //                "quoteOrderQtyMarketAllowed": false,
+                //                "isSpotTradingAllowed": true,
+                //                "isMarginTradingAllowed": true,
+                //                "permissions": [
+                //                    "SPOT",
+                //                    "MARGIN"
+                //                ],
+                //                "filters": [],
+                //                "baseSizePrecision": "0.01", // this turned out to be a minimum base amount for order
+                //                "maxQuoteAmount": "5000000",
+                //                "makerCommission": "0.002",
+                //                "takerCommission": "0.002"
+                //                "quoteAmountPrecision": "5", // this turned out to be a minimum cost amount for order
+                //                "quotePrecision": "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
+                //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+                //            },
+                //         ]
+                //     }
+                //
+                // Notes:
+                // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
+                //
+            } else if (marketType === 'swap') {
+                const currentRl: number = this.rateLimit;
+                this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
+                promisesRaw.push (this.contractPublicGetDetail (params));
+                this.setProperty (this, 'rateLimit', currentRl);
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":[
+                //             {
+                //                 "symbol":"BTC_USDT",
+                //                 "displayName":"BTC_USDT永续",
+                //                 "displayNameEn":"BTC_USDT SWAP",
+                //                 "positionOpenType":3,
+                //                 "baseCoin":"BTC",
+                //                 "quoteCoin":"USDT",
+                //                 "settleCoin":"USDT",
+                //                 "contractSize":0.0001,
+                //                 "minLeverage":1,
+                //                 "maxLeverage":125,
+                //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+                //                 "volScale":0, // probably: contract amount precision
+                //                 "amountScale":4, // probably: quote currency precision
+                //                 "priceUnit":0.5, // price tick size
+                //                 "volUnit":1, // probably: contract tick size
+                //                 "minVol":1,
+                //                 "maxVol":1000000,
+                //                 "bidLimitPriceRate":0.1,
+                //                 "askLimitPriceRate":0.1,
+                //                 "takerFeeRate":0.0006,
+                //                 "makerFeeRate":0.0002,
+                //                 "maintenanceMarginRate":0.004,
+                //                 "initialMarginRate":0.008,
+                //                 "riskBaseVol":10000,
+                //                 "riskIncrVol":200000,
+                //                 "riskIncrMmr":0.004,
+                //                 "riskIncrImr":0.004,
+                //                 "riskLevelLimit":5,
+                //                 "priceCoefficientVariation":0.1,
+                //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
+                //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+                //                 "isNew":false,
+                //                 "isHot":true,
+                //                 "isHidden":false
+                //             },
+                //         ]
+                //     }
+                //
+            } else {
+                throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
-            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed');
-            const makerCommission = this.safeNumber (market, 'makerCommission');
-            const takerCommission = this.safeNumber (market, 'takerCommission');
-            const maxQuoteAmount = this.safeNumber (market, 'maxQuoteAmount');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': isMarginTradingAllowed,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': active,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'taker': takerCommission,
-                'maker': makerCommission,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision'))),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'baseSizePrecision'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': this.safeNumber (market, 'quoteAmountPrecision'),
-                        'max': maxQuoteAmount,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+        }
+        const results = await Promise.all (promisesRaw);
+        let markets = [];
+        for (let i = 0; i < results.length; i++) {
+            const entry = results[i];
+            const resultMarkets = this.safeList2 (entry, 'symbols', 'data', []);
+            markets = this.arrayConcat (markets, resultMarkets);
+        }
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            result.push (this.parseMarket (markets[i]));
         }
         return result;
     }
 
-    async fetchSwapMarkets (params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @name mexc#fetchMarkets
-         * @description retrieves data on all swap markets for mexc
-         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
-        const currentRl: number = this.rateLimit;
-        this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
-        const response = await this.contractPublicGetDetail (params);
-        this.setProperty (this, 'rateLimit', currentRl);
-        //
-        //     {
-        //         "success":true,
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC_USDT",
-        //                 "displayName":"BTC_USDT永续",
-        //                 "displayNameEn":"BTC_USDT SWAP",
-        //                 "positionOpenType":3,
-        //                 "baseCoin":"BTC",
-        //                 "quoteCoin":"USDT",
-        //                 "settleCoin":"USDT",
-        //                 "contractSize":0.0001,
-        //                 "minLeverage":1,
-        //                 "maxLeverage":125,
-        //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, i.e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
-        //                 "volScale":0, // probably: contract amount precision
-        //                 "amountScale":4, // probably: quote currency precision
-        //                 "priceUnit":0.5, // price tick size
-        //                 "volUnit":1, // probably: contract tick size
-        //                 "minVol":1,
-        //                 "maxVol":1000000,
-        //                 "bidLimitPriceRate":0.1,
-        //                 "askLimitPriceRate":0.1,
-        //                 "takerFeeRate":0.0006,
-        //                 "makerFeeRate":0.0002,
-        //                 "maintenanceMarginRate":0.004,
-        //                 "initialMarginRate":0.008,
-        //                 "riskBaseVol":10000,
-        //                 "riskIncrVol":200000,
-        //                 "riskIncrMmr":0.004,
-        //                 "riskIncrImr":0.004,
-        //                 "riskLevelLimit":5,
-        //                 "priceCoefficientVariation":0.1,
-        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew":false,
-        //                 "isHot":true,
-        //                 "isHidden":false
-        //             },
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data', []);
-        const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
-            const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCoin');
-            const quoteId = this.safeString (market, 'quoteCoin');
-            const settleId = this.safeString (market, 'settleCoin');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const state = this.safeString (market, 'state');
-            result.push ({
-                'id': id,
-                'symbol': base + '/' + quote + ':' + settle,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'swap',
-                'spot': false,
-                'margin': false,
-                'swap': true,
-                'future': false,
-                'option': false,
-                'active': (state === '0'),
-                'contract': true,
-                'linear': true,
-                'inverse': false,
-                'taker': this.safeNumber (market, 'takerFeeRate'),
-                'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': this.safeNumber (market, 'contractSize'),
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeNumber (market, 'volUnit'),
-                    'price': this.safeNumber (market, 'priceUnit'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': this.safeNumber (market, 'minLeverage'),
-                        'max': this.safeNumber (market, 'maxLeverage'),
-                    },
-                    'amount': {
-                        'min': this.safeNumber (market, 'minVol'),
-                        'max': this.safeNumber (market, 'maxVol'),
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-                'info': market,
-            });
+    parseMarket (market: Dict): Market {
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString2 (market, 'baseAsset', 'baseCoin');
+        const quoteId = this.safeString2 (market, 'quoteAsset', 'quoteCoin');
+        const settleId = this.safeString (market, 'settleCoin');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let settle = undefined;
+        let type = 'spot';
+        let isSwap = false;
+        let isSpot = true;
+        let symbol = base + '/' + quote;
+        let amountPrecision = undefined;
+        let pricePrecision = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        if (settleId !== undefined) {
+            if (settleId === quoteId) {
+                linear = true;
+                inverse = false;
+            } else {
+                linear = false;
+                inverse = true;
+            }
+            settle = this.safeCurrencyCode (settleId);
+            type = 'swap';
+            isSwap = true;
+            isSpot = false;
+            symbol = symbol + ':' + settle;
+            amountPrecision = this.safeNumber (market, 'volUnit');
+            pricePrecision = this.safeNumber (market, 'priceUnit');
+        } else {
+            amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision')));
+            pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quoteAssetPrecision')));
         }
+        const status = this.safeString (market, 'status');
+        const state = this.safeString (market, 'state');
+        const isSpotTradingAllowed = this.safeBool (market, 'isSpotTradingAllowed', false);
+        let active = false;
+        if (((status === '1') && (isSpotTradingAllowed)) || (state === '0')) {
+            active = true;
+        }
+        const result = {
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': type,
+            'spot': isSpot,
+            'margin': this.safeBool (market, 'isMarginTradingAllowed', false),
+            'swap': isSwap,
+            'future': false,
+            'option': false,
+            'active': active,
+            'contract': isSwap,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': this.safeNumber2 (market, 'takerCommission', 'takerFeeRate'),
+            'maker': this.safeNumber2 (market, 'makerCommission', 'makerFeeRate'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.safeNumber (market, 'minLeverage'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': this.safeNumber2 (market, 'baseSizePrecision', 'minVol'),
+                    'max': this.safeNumber (market, 'maxVol'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'quoteAmountPrecision'),
+                    'max': this.safeNumber (market, 'maxQuoteAmount'),
+                },
+            },
+            'created': undefined,
+            'info': market,
+        } as Market;
         return result;
     }
 
