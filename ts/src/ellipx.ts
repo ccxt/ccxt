@@ -320,7 +320,7 @@ export default class ellipx extends Exchange {
          */
         const response = await this._restGetMarket (params);
         const request_id = this.safeString (response, 'request_id');
-        if (response.result !== 'success') {
+        if (response['result'] !== 'success') {
             throw new ExchangeError ('Failed to fetch markets: ' + request_id);
         }
         const markets = this.safeValue (response, 'data', []);
