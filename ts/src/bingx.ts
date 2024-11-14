@@ -2534,6 +2534,7 @@ export default class bingx extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -4406,9 +4407,13 @@ export default class bingx extends Exchange {
         //        "tranId":13526853623
         //    }
         //
+        const id = this.safeString (response, 'tranId');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' transfer failed: ' + this.json (response));
+        }
         return {
             'info': response,
-            'id': this.safeString (response, 'tranId'),
+            'id': id,
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
