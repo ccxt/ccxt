@@ -948,7 +948,7 @@ Supported precision modes in `exchange['precisionMode']` are:
 
 - `TICK_SIZE` – almost all exchanges use this precision mode. In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `DECIMAL_PLACES` (**DEPRECATED, CCXT no longer uses this mode anywhere**) – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
+- `DECIMAL_PLACES` (**DEPRECATED, CCXT no longer uses this mode anywhere**) – counts all digits. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
 
 ### Notes On Precision And Limits
 
