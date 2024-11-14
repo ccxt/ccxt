@@ -1473,6 +1473,7 @@ class wavesexchange extends wavesexchange$1 {
      * @method
      * @name wavesexchange#cancelOrder
      * @description cancels an open order
+     * @see https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2079,6 +2080,7 @@ class wavesexchange extends wavesexchange$1 {
      * @method
      * @name wavesexchange#fetchTrades
      * @description get the list of most recent trades for a particular symbol
+     * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
