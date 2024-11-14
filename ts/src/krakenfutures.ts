@@ -1096,11 +1096,11 @@ export default class krakenfutures extends Exchange {
 
     /**
      * @method
-     * @param params
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
      * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {

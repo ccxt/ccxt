@@ -2758,12 +2758,15 @@ export default class gate extends Exchange {
     }
 
     /**
+     * @method
+     * @name gate#fetchBalance
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {string} [params.symbol] margin only - unified ccxt symbol
      * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();

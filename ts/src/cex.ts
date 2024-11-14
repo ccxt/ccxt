@@ -425,8 +425,7 @@ export default class cex extends Exchange {
      * @name cex#fetchTicker
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-     * @param symbol
+     * @param {string} symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */

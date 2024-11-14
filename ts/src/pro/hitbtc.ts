@@ -130,6 +130,7 @@ export default class hitbtc extends hitbtcRest {
      * @ignore
      * @method
      * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix for the message hash
      * @param {string[]} [symbols] unified CCXT symbol(s)
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
@@ -183,7 +184,6 @@ export default class hitbtc extends hitbtcRest {
      * @ignore
      * @method
      * @param {string} name websocket endpoint name
-     * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async tradeRequest (name: string, params = {}) {

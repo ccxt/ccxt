@@ -2640,7 +2640,6 @@ export default class woofipro extends Exchange {
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
