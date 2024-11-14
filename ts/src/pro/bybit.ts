@@ -887,7 +887,7 @@ export default class bybit extends bybitRest {
      * @description unsubscribe from the orderbook channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -1077,7 +1077,7 @@ export default class bybit extends bybitRest {
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
     async unWatchTradesForSymbols (symbols: Strings, params = {}): Promise<any> {
@@ -1105,7 +1105,7 @@ export default class bybit extends bybitRest {
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
      * @param {string} symbol unified symbol of the market to unwatch the trades for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {

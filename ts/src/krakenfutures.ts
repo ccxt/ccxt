@@ -1043,7 +1043,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount number of contracts
      * @param {float} [price] limit order price
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.reduceOnly] set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
      * @param {bool} [params.postOnly] set as true if you wish to make a postOnly order, default is false
      * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
@@ -1100,7 +1100,7 @@ export default class krakenfutures extends Exchange {
      * @description create a list of trade orders
      * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {

@@ -60,7 +60,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @description create a list of trade orders using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrdersWs (orders: OrderRequest[], params = {}) {

@@ -265,7 +265,7 @@ export default class coincatch extends coincatchRest {
      * @description unsubscribe from the ticker channel
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
      * @param {string} symbol unified symbol of the market to unwatch the ticker for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
@@ -464,7 +464,7 @@ export default class coincatch extends coincatchRest {
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
      * @param timeframe
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
@@ -563,7 +563,7 @@ export default class coincatch extends coincatchRest {
      * @description unsubscribe from the orderbook channel
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
@@ -768,7 +768,7 @@ export default class coincatch extends coincatchRest {
      * @description unsubscribe from the trades channel
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param {string} symbol unified symbol of the market to unwatch the trades for
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {

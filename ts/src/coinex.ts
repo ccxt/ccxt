@@ -3368,7 +3368,7 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3706,7 +3706,7 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

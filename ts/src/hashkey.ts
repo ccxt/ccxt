@@ -2984,7 +2984,7 @@ export default class hashkey extends Exchange {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol (not used by hashkey)
-     * @param params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
