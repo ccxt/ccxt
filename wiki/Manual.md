@@ -2583,6 +2583,9 @@ If `since` is not specified the `fetchOHLCV` method will return the time range a
 ### Get raw OHLCV response
 
 Currently, ccxt uses structure where it does not include raw info from `fetchOHLCV` response. However, users might be able to override the response with some custom codes, like:
+
+<!-- tabs:start -->
+#### **Javascript**
 ```javascript
 const ex = new ccxt.coinbase();
 const originalParser = ex.parseOHLCV.bind(ex);
@@ -2595,6 +2598,24 @@ ex.parseOHLCV = ((ohlcv, market = undefined) => {
 const result = await ex.fetchOHLCV('BTC/USDT', '1m');
 console.log (result[0]);
 ```
+#### **Python**
+```python
+# add raw member at last position in list
+async def test():
+    ex = ccxt.async_support.coinbase()
+    prase_ohlcv_original = ex.parse_ohlcv
+    def prase_ohlcv_custom(ohlcv, market):
+        res = prase_ohlcv_original(ohlcv, market)
+        res.append(ohlcv)
+        return res
+    ex.parse_ohlcv = prase_ohlcv_custom 
+    result = await ex.fetch_ohlcv('BTC/USDT', '1m')
+    print (result[0])
+
+asyncio.run(test())
+```
+<!-- tabs:end -->
+
 
 ### Notes On Latency
 
