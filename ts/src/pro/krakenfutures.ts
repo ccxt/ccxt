@@ -188,6 +188,7 @@ export default class krakenfutures extends krakenfuturesRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -278,6 +279,8 @@ export default class krakenfutures extends krakenfuturesRest {
      * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

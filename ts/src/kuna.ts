@@ -1162,6 +1162,7 @@ export default class kuna extends Exchange {
      * @name kuna#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.kuna.io/docs/get-order-details-by-id
+     * @param id
      * @param {string} symbol not used by kuna fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      *

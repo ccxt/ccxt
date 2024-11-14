@@ -1688,6 +1688,7 @@ export default class lbank extends Exchange {
      * @description fetches information on an order made by the user
      * @see https://www.lbank.com/en-US/docs/index.html#query-order
      * @see https://www.lbank.com/en-US/docs/index.html#query-order-new
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

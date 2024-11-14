@@ -3136,6 +3136,7 @@ export default class woo extends Exchange {
      * @see https://docs.woo.org/#update-futures-leverage-setting
      * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
      * @param {string} [symbo] unified market symbol (is mandatory for swap markets)
+     * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
      * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.

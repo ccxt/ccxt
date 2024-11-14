@@ -1235,6 +1235,7 @@ export default class kucoin extends Exchange {
     }
 
     /**
+     * @param force
      * @method
      * @name kucoin#loadMigrationStatus
      * @description loads the migration status for the account (hf or not)
@@ -4958,6 +4959,7 @@ export default class kucoin extends Exchange {
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+     * @param leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange

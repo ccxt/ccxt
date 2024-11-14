@@ -138,6 +138,7 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
+     * @param params
      * @name bitget#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
@@ -436,6 +437,8 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
+     * @param timeframe
+     * @param params
      * @name bitget#unWatchOHLCV
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
@@ -553,6 +556,7 @@ export default class bitget extends bitgetRest {
     /**
      * @method
      * @name bitget#unWatchOrderBook
+     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
@@ -768,6 +772,7 @@ export default class bitget extends bitgetRest {
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
      * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -806,6 +811,7 @@ export default class bitget extends bitgetRest {
 
     /**
      * @method
+     * @param params
      * @name bitget#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
@@ -959,6 +965,8 @@ export default class bitget extends bitgetRest {
      * @description watch all open positions
      * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}

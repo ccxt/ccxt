@@ -472,6 +472,7 @@ export default class luno extends Exchange {
      * @name luno#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://www.luno.com/en/developers/api#tag/Orders/operation/GetOrder
+     * @param id
      * @param {string} symbol not used by luno fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

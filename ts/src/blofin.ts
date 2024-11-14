@@ -579,6 +579,7 @@ export default class blofin extends Exchange {
      * @description fetches mark price for the market
      * @see https://docs.blofin.com/index.html#get-mark-price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1353,6 +1354,7 @@ export default class blofin extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name blofin#createOrders
      * @description create a list of trade orders
      * @see https://blofin.com/docs#place-multiple-orders

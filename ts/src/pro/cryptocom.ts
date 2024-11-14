@@ -341,6 +341,7 @@ export default class cryptocom extends cryptocomRest {
      * @description get the list of most recent trades for a particular symbol
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -371,6 +372,7 @@ export default class cryptocom extends cryptocomRest {
      * @description get the list of most recent trades for a particular symbol
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -874,6 +876,8 @@ export default class cryptocom extends cryptocomRest {
      * @description watch all open positions
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

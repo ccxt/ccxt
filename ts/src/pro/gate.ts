@@ -169,6 +169,7 @@ export default class gate extends gateRest {
 
     /**
      * @method
+     * @param params
      * @name gate#createOrdersWs
      * @description create a list of trade orders
      * @see https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
@@ -335,6 +336,7 @@ export default class gate extends gateRest {
      * @name gate#fetchOrdersWs
      * @see https://www.gate.io/docs/developers/futures/ws/en/#order-list
      * @description fetches information on multiple orders made by the user by status
+     * @param status
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} [since] the earliest time in ms to fetch orders for
      * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -741,6 +743,7 @@ export default class gate extends gateRest {
      * @name gate#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -773,6 +776,7 @@ export default class gate extends gateRest {
      * @name gate#unWatchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
@@ -1148,6 +1152,8 @@ export default class gate extends gateRest {
      * @see https://www.gate.io/docs/developers/options/ws/en/#positions-channel
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
@@ -1427,6 +1433,7 @@ export default class gate extends gateRest {
      * @see https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
      * @see https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
      * @param {string} symbol unified CCXT market symbol
+     * @param symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the gate api endpoint

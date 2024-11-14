@@ -931,6 +931,7 @@ export default class idex extends Exchange {
      * @name idex#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://api-docs-v3.idex.io/#get-orders
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

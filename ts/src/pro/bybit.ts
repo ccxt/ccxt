@@ -435,6 +435,7 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -886,6 +887,7 @@ export default class bybit extends bybitRest {
     /**
      * @method
      * @name bybit#unWatchOrderBookForSymbols
+     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
@@ -923,6 +925,8 @@ export default class bybit extends bybitRest {
     /**
      * @method
      * @name bybit#unWatchOrderBook
+     * @param symbol
+     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
@@ -1073,6 +1077,7 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
+     * @param params
      * @name bybit#unWatchTradesForSymbols
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
@@ -1100,6 +1105,7 @@ export default class bybit extends bybitRest {
 
     /**
      * @method
+     * @param params
      * @name bybit#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
@@ -1403,6 +1409,8 @@ export default class bybit extends bybitRest {
      * @see https://bybit-exchange.github.io/docs/v5/websocket/private/position
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

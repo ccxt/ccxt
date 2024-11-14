@@ -1049,6 +1049,8 @@ export default class woo extends wooRest {
      * @see https://docs.woo.org/#position-push
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

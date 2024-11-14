@@ -385,6 +385,7 @@ export default class bitmex extends bitmexRest {
      * @description watch the public liquidations of a trading pair
      * @see https://www.bitmex.com/app/wsAPI#Liquidation
      * @param {string} symbol unified CCXT market symbol
+     * @param symbols
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
@@ -742,6 +743,8 @@ export default class bitmex extends bitmexRest {
      * @description watch all open positions
      * @see https://www.bitmex.com/app/wsAPI#Subscriptions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

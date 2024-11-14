@@ -261,6 +261,7 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
+     * @param params
      * @name coinctach#unWatchTicker
      * @description unsubscribe from the ticker channel
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
@@ -458,6 +459,8 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
+     * @param timeframe
+     * @param params
      * @name coincatch#unWatchOHLCV
      * @description unsubscribe from the ohlcv channel
      * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
@@ -557,6 +560,7 @@ export default class coincatch extends coincatchRest {
     /**
      * @method
      * @name coincatch#unWatchOrderBook
+     * @param params
      * @description unsubscribe from the orderbook channel
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -580,6 +584,7 @@ export default class coincatch extends coincatchRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
@@ -723,6 +728,7 @@ export default class coincatch extends coincatchRest {
      * @description watches information on multiple trades made in a market
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
      * @param {string} symbol unified market symbol of the market trades were made in
+     * @param symbols
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -760,6 +766,7 @@ export default class coincatch extends coincatchRest {
 
     /**
      * @method
+     * @param params
      * @name coincatch#unWatchTrades
      * @description unsubscribe from the trades channel
      * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
@@ -1182,6 +1189,8 @@ export default class coincatch extends coincatchRest {
      * @description watch all open positions
      * @see https://coincatch.github.io/github.io/en/mix/#positions-channel
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */

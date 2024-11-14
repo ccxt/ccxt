@@ -1448,6 +1448,7 @@ export default class woofipro extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
@@ -2499,6 +2500,7 @@ export default class woofipro extends Exchange {
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
      * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+     * @param leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange

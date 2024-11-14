@@ -1880,6 +1880,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#spot-orders-history
      * @see https://api.hitbtc.com/#futures-orders-history
      * @see https://api.hitbtc.com/#margin-orders-history
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -2507,6 +2508,7 @@ export default class hitbtc extends Exchange {
      * @see https://api.hitbtc.com/#get-margin-position-parameters
      * @see https://api.hitbtc.com/#get-futures-position-parameters
      * @param {string} symbol unified symbol of the market the order was made in
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
      */
@@ -3569,6 +3571,8 @@ export default class hitbtc extends Exchange {
      * @name hitbtc#closePosition
      * @description closes open positions for a market
      * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+     * @param symbol
+     * @param side
      * @param {object} [params] extra parameters specific to the okx api endpoint
      * @param {string} [params.symbol] *required* unified market symbol
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'

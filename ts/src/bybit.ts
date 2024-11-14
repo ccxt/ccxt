@@ -1116,6 +1116,7 @@ export default class bybit extends Exchange {
     }
 
     /**
+     * @param params
      * @method
      * @name bybit#isUnifiedEnabled
      * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
@@ -1206,6 +1207,7 @@ export default class bybit extends Exchange {
     }
 
     /**
+     * @param params
      * @method
      * @name bybit#upgradeUnifiedTradeAccount
      * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
@@ -3907,6 +3909,7 @@ export default class bybit extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name bybit#createOrders
      * @description create a list of trade orders
      * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
@@ -8219,6 +8222,7 @@ export default class bybit extends Exchange {
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
      * @param {string} currency base currency to fetch an option chain for
+     * @param code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
      */
@@ -8334,6 +8338,7 @@ export default class bybit extends Exchange {
      * @description fetches historical positions
      * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
      * @param {string} [symbol] unified market symbols, symbols must have the same subType (must all be linear or all be inverse)
+     * @param symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
      * @param {object} params extra parameters specific to the exchange api endpoint

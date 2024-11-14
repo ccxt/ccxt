@@ -3176,6 +3176,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
      * @param {string} type 'spot', 'swap' or 'future
      * @param {string} [marginMode] 'cross' or 'isolated'
+     * @param symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
@@ -3712,6 +3713,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
      * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

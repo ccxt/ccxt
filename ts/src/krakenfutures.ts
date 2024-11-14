@@ -1046,6 +1046,7 @@ export default class krakenfutures extends Exchange {
      * @param {bool} [params.reduceOnly] set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
      * @param {bool} [params.postOnly] set as true if you wish to make a postOnly order, default is false
      * @param {string} [params.clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
+     * @param params
      * @param {float} [params.triggerPrice] the price that a stop order is triggered at
      * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
@@ -1094,6 +1095,7 @@ export default class krakenfutures extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name krakenfutures#createOrders
      * @description create a list of trade orders
      * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management

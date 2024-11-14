@@ -769,6 +769,7 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchFundingRates
      * @description retrieves data on all swap markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+     * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1209,6 +1210,7 @@ export default class hyperliquid extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -1955,6 +1957,7 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided

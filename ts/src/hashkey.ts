@@ -2980,6 +2980,7 @@ export default class hashkey extends Exchange {
      * @method
      * @name hashkey#cancelOrders
      * @description cancel multiple orders
+     * @param params
      * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
      * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
      * @param {string[]} ids order ids

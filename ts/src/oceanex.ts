@@ -678,6 +678,7 @@ export default class oceanex extends Exchange {
      * @name oceanex#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://api.oceanex.pro/doc/v1/#order-status-get
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

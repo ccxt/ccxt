@@ -950,6 +950,7 @@ export default class timex extends Exchange {
      * @name timex#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/History/getOrderDetails
+     * @param id
      * @param {string} symbol not used by timex fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

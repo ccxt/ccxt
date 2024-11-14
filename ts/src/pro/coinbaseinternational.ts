@@ -627,6 +627,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols

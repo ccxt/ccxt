@@ -581,6 +581,8 @@ export default class vertex extends vertexRest {
      * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}

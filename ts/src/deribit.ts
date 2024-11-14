@@ -1839,6 +1839,7 @@ export default class deribit extends Exchange {
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.deribit.com/#private-get_order_state
+     * @param id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3083,6 +3084,8 @@ export default class deribit extends Exchange {
      * @description fetch the current funding rate
      * @see https://docs.deribit.com/#public-get_funding_rate_history
      * @param {string} symbol unified market symbol
+     * @param since
+     * @param limit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -3535,6 +3538,7 @@ export default class deribit extends Exchange {
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://docs.deribit.com/#public-get_book_summary_by_currency
      * @param {string} currency base currency to fetch an option chain for
+     * @param code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
      */

@@ -1055,6 +1055,7 @@ export default class yobit extends Exchange {
      * @name yobit#fetchOrder
      * @see https://yobit.net/en/api
      * @description fetches information on an order made by the user
+     * @param {string} id order id
      * @param {string} symbol not used by yobit fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

@@ -5815,6 +5815,7 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name binance#createOrders
      * @description *contract only* create a list of trade orders
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
@@ -12964,6 +12965,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
      * @param {string} symbol unified symbol of the market the order was made in
+     * @param symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}

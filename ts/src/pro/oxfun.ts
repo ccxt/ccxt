@@ -94,6 +94,7 @@ export default class oxfun extends oxfunRest {
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.ox.fun/?json#trade
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -657,6 +658,8 @@ export default class oxfun extends oxfunRest {
      * @see https://docs.ox.fun/?json#position-channel
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}

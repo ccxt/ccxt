@@ -56,6 +56,7 @@ export default class hyperliquid extends hyperliquidRest {
 
     /**
      * @method
+     * @param params
      * @name hyperliquid#createOrdersWs
      * @description create a list of trade orders using WebSocket post request
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order

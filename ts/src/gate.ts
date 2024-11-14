@@ -899,6 +899,7 @@ export default class gate extends Exchange {
     }
 
     /**
+     * @param params
      * @method
      * @name gate#isUnifiedEnabled
      * @description returns unifiedAccount so the user can check if the unified account is enabled
@@ -4105,6 +4106,7 @@ export default class gate extends Exchange {
 
     /**
      * @method
+     * @param params
      * @name gate#createOrders
      * @description create a list of trade orders
      * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
@@ -7787,6 +7789,7 @@ export default class gate extends Exchange {
      * @description fetches data for an underlying asset that is commonly found in an option chain
      * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
      * @param {string} currency base currency to fetch an option chain for
+     * @param code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @param {int} [params.expiration] unix timestamp of the expiration time
