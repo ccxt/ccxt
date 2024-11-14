@@ -28,7 +28,9 @@ function processFile(fileContent) {
                 }
                 jsDocLines.push(fileSplit[j]);
                 // remove 1 level of identation from jsdoc
-                jsDocLines = jsDocLines.map((line) => '     ' + line.trim());
+                const spaces4 = '    ';
+                const spaces5 = '     ';
+                jsDocLines = jsDocLines.map((line, i) => (i == 0 ? spaces4 : spaces5) + line.trim());
                 newFile.push(jsDocLines.join('\n'));
                 newFile.push(currentLine);
                 i = j;
