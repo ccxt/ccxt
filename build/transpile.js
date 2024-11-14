@@ -1422,8 +1422,8 @@ class Transpiler {
         for (let i = 0; i < methodSplit.length; i++) {
             const line = methodSplit[i];
             if (line.match(isOutsideJSDoc)) {
-                const jsDocIden = '        ';
-                let jsdoc = jsDocIden + line.trim();
+                const jsDocIden = '         ';
+                let jsdoc = '        ' + line.trim();
                 const jsDocLines = [jsdoc];
                 while (!jsdoc.match(/\*\//)) {
                     i++;
@@ -1446,8 +1446,7 @@ class Transpiler {
             }
         }
         const res = newLines.join('\n');
-        // write this to a tmp file
-        return res;
+    return res;
     }
 
     // ========================================================================
