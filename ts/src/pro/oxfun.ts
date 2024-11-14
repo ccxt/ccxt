@@ -72,35 +72,35 @@ export default class oxfun extends oxfunRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://docs.ox.fun/?json#trade
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name oxfun#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://docs.ox.fun/?json#trade
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.ox.fun/?json#trade
+     * @param {string[]} symbols
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name oxfun#watchTradesForSymbols
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.ox.fun/?json#trade
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const args = [];
@@ -187,20 +187,20 @@ export default class oxfun extends oxfunRest {
         });
     }
 
+    /**
+     * @method
+     * @name oxfun#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.ox.fun/?json#candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name oxfun#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.ox.fun/?json#candles
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -219,19 +219,19 @@ export default class oxfun extends oxfunRest {
         return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.ox.fun/?json#candles
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name oxfun#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://docs.ox.fun/?json#candles
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT:OX', '1m'], ['OX/USDT', '5m']]");
@@ -330,34 +330,34 @@ export default class oxfun extends oxfunRest {
         ];
     }
 
+    /**
+     * @method
+     * @name oxfun#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.ox.fun/?json#fixed-size-order-book
+     * @see https://docs.ox.fun/?json#full-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name oxfun#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.ox.fun/?json#fixed-size-order-book
-         * @see https://docs.ox.fun/?json#full-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.ox.fun/?json#fixed-size-order-book
+     * @see https://docs.ox.fun/?json#full-order-book
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name oxfun#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.ox.fun/?json#fixed-size-order-book
-         * @see https://docs.ox.fun/?json#full-order-book
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let channel = 'depth';
@@ -425,32 +425,32 @@ export default class oxfun extends oxfunRest {
         client.resolve (orderbook, messageHash);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchTicker
+     * @see https://docs.ox.fun/?json#ticker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name oxfun#watchTicker
-         * @see https://docs.ox.fun/?json#ticker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         const ticker = await this.watchTickers ([ symbol ], params);
         return this.safeValue (ticker, symbol);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchTickers
+     * @see https://docs.ox.fun/?json#ticker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name oxfun#watchTickers
-         * @see https://docs.ox.fun/?json#ticker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const allSymbols = (symbols === undefined);
         let sym = symbols;
@@ -513,16 +513,16 @@ export default class oxfun extends oxfunRest {
         }
     }
 
+    /**
+     * @method
+     * @name oxfun#watchBidsAsks
+     * @see https://docs.ox.fun/?json#best-bid-ask
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name oxfun#watchBidsAsks
-         * @see https://docs.ox.fun/?json#best-bid-ask
-         * @description watches best bid & ask for symbols
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const messageHashes = [];
@@ -587,16 +587,16 @@ export default class oxfun extends oxfunRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name oxfun#watchBalance
+     * @see https://docs.ox.fun/?json#balance-channel
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name oxfun#watchBalance
-         * @see https://docs.ox.fun/?json#balance-channel
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         this.authenticate ();
         const args = 'balance:all';
@@ -651,17 +651,19 @@ export default class oxfun extends oxfunRest {
         client.resolve (this.balance, 'balance');
     }
 
+    /**
+     * @method
+     * @name oxfun#watchPositions
+     * @see https://docs.ox.fun/?json#position-channel
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name oxfun#watchPositions
-         * @see https://docs.ox.fun/?json#position-channel
-         * @description watch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         const allSymbols = (symbols === undefined);
@@ -772,19 +774,19 @@ export default class oxfun extends oxfunRest {
         });
     }
 
+    /**
+     * @method
+     * @name oxfun#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.ox.fun/?json#order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name oxfun#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://docs.ox.fun/?json#order-channel
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         let messageHash = 'orders';
@@ -853,30 +855,30 @@ export default class oxfun extends oxfunRest {
         }
     }
 
+    /**
+     * @method
+     * @name oxfun#createOrderWs
+     * @see https://docs.ox.fun/?json#order-commands
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+     * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+     * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
+     * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+     * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
+     * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
+     * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name oxfun#createOrderWs
-         * @see https://docs.ox.fun/?json#order-commands
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.clientOrderId] a unique id for the order
-         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
-         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {float} [params.limitPrice] Limit price for the STOP_LIMIT order
-         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
-         * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
-         * @param {string} [params.selfTradePreventionMode] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
-         * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         const messageHash = this.nonce ().toString ();
@@ -895,23 +897,23 @@ export default class oxfun extends oxfunRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name oxfun#editOrderWs
+     * @description edit a trade order
+     * @see https://docs.ox.fun/?json#modify-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
+     * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name oxfun#editOrderWs
-         * @description edit a trade order
-         * @see https://docs.ox.fun/?json#modify-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {int} [params.timestamp] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
-         * @param {int} [params.recvWindow] in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         const messageHash = this.nonce ().toString ();
@@ -975,17 +977,17 @@ export default class oxfun extends oxfunRest {
         client.resolve (order, messageHash);
     }
 
+    /**
+     * @method
+     * @name oxfun#cancelOrderWs
+     * @see https://docs.ox.fun/?json#cancel-order
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name oxfun#cancelOrderWs
-         * @see https://docs.ox.fun/?json#cancel-order
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
@@ -1005,17 +1007,17 @@ export default class oxfun extends oxfunRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name okx#cancelOrdersWs
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name okx#cancelOrdersWs
-         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
-         * @description cancel multiple orders
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const idsLength: number = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
