@@ -1052,6 +1052,7 @@ export default class hyperliquid extends Exchange {
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
+        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
         const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], SIGNIFICANT_DIGITS, this.paddingMode);
         const decimalParsedResult = this.decimalToPrecision (result, ROUND, 0.000001, TICK_SIZE, this.paddingMode);
         return decimalParsedResult;
