@@ -496,7 +496,7 @@ export default class phemex extends Exchange {
                     'index': 'ByIndexPrice',
                     'ask': 'ByAskPrice',
                     'bid': 'ByBidPrice',
-                }
+                },
             },
         });
     }
@@ -2669,7 +2669,7 @@ export default class phemex extends Exchange {
                     }
                     const takeProfitTriggerPriceType = this.safeString2 (takeProfit, 'triggerPriceType', 'tpTrigger');
                     if (takeProfitTriggerPriceType !== undefined) {
-                        request['tpTrigger']  = this.safeString (this.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType);
+                        request['tpTrigger'] = this.safeString (this.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType);
                     }
                     const tpLimitPrice = this.safeString (takeProfit, 'price');
                     if (tpLimitPrice !== undefined) {
