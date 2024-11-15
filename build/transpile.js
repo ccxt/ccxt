@@ -925,7 +925,30 @@ class Transpiler {
         }
         // check unified methods and autofill the .has tree
         const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
-        const specialMethods = [ 'fetchMarkOHLCV', 'fetchPremiumOHLCV', 'fetchPremiumIndexOHLCV', 'fetchIndexOHLCV' ];
+        const specialMethods = [
+            'fetchMarkOHLCV',
+            'fetchPremiumOHLCV',
+            'fetchPremiumIndexOHLCV',
+            'fetchIndexOHLCV',
+            'createTrailingAmountOrder',
+            'createTrailingAmountOrderWs',
+            'createTrailingPercentOrder',
+            'createTrailingPercentOrderWs',
+            'createMarketOrderWithCost',
+            'createMarketOrderWithCostWs',
+            'createMarketBuyOrderWithCost',
+            'createMarketBuyOrderWithCostWs',
+            'createMarketSellOrderWithCost',
+            'createMarketSellOrderWithCostWs',
+            'createTriggerOrder',
+            'createTriggerOrderWs',
+            'createStopLossOrder',
+            'createStopLossOrderWs',
+            'createTakeProfitOrder',
+            'createTakeProfitOrderWs',
+            'createOrderWithTakeProfitAndStopLoss',
+            'createOrderWithTakeProfitAndStopLossWs',
+        ];
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method defition, then it should be true
             if (code.includes ('\n    async ' + methodName + ' (')) {
