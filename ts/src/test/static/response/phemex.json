@@ -107,17 +107,23 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
+                    "reduceOnly": null,
                     "side": "buy",
                     "price": 192,
+                    "stopPrice": null,
+                    "triggerPrice": null,
                     "takeProfitPrice": 277,
                     "stopLossPrice": 190,
                     "amount": 0.01,
                     "filled": 0,
                     "remaining": 0.01,
                     "cost": 0,
+                    "average": null,
                     "status": "open",
+                    "fee": null,
                     "trades": [],
-                    "fees": []
+                    "fees": [],
+                    "lastUpdateTimestamp": null
                 }
             }
         ],
