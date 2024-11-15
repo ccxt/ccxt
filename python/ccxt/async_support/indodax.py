@@ -1286,11 +1286,15 @@ class indodax(Exchange, ImplicitAPI):
         # {success: 0, error: "invalid order."}
         # or
         # [{data, ...}, {...}, ...]
+        # {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if isinstance(response, list):
             return None  # public endpoints may return []-arrays
         error = self.safe_value(response, 'error', '')
         if not ('success' in response) and error == '':
             return None  # no 'success' property on public responses
+        status = self.safe_string(response, 'success')
+        if status == 'approved':
+            return None
         if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not ('return' in response):

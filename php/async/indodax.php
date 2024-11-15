@@ -1381,12 +1381,17 @@ class indodax extends Exchange {
         // array( success => 0, $error => "invalid order." )
         // or
         // [array( data, ... ), array( ... ), ... ]
+        // array("success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":"")
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');
         if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
             return null; // no 'success' property on public responses
+        }
+        $status = $this->safe_string($response, 'success');
+        if ($status === 'approved') {
+            return null;
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
