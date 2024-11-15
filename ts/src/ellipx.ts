@@ -830,12 +830,7 @@ export default class ellipx extends Exchange {
         const amountFloat = this.parseAmount (amount);
         const priceFloat = this.parseAmount (price);
         const pair = this.safeValue (trade, 'pair', []);
-        let symbol = undefined;
-        if (pair.length === 2) {
-            symbol = pair[0] + '/' + pair[1];
-        } else {
-            symbol = market['symbol'];
-        }
+        const marketSymbol = this.safeString (pair, 0) + '/' + this.safeString (pair, 1);
         const bidOrder = this.safeValue (trade, 'bid', {});
         const askOrder = this.safeValue (trade, 'ask', {});
         const orderId = side === 'buy' ? this.safeString (bidOrder, 'id') : this.safeString (askOrder, 'id');
@@ -844,7 +839,7 @@ export default class ellipx extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': marketSymbol,
             'type': undefined,
             'side': side,
             'order': orderId,
