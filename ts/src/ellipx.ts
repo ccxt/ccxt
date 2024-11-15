@@ -329,22 +329,26 @@ export default class ellipx extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'Market__');
-        const baseId = this.safeString (market, 'Primary_Unit__');
-        const quoteId = this.safeString (market, 'Secondary_Unit__');
         const base = this.safeString (market['Primary'], 'Key');
         const quote = this.safeString (market['Secondary'], 'Key');
         const status = this.safeString (market, 'Status') === 'active';
-        const created = this.safeInteger (market['Created'], 'unix');
-        const amountPrecision = this.safeInteger (market['Primary'], 'Decimals');
-        const pricePrecision = this.safeInteger (market['Secondary'], 'Decimals');
+        const created = this.safeTimestamp (market['Created'], 'unix');
+        let amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
+        let pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
+        if (amountPrecision === undefined) {
+            amountPrecision = undefined;
+        }
+        if (pricePrecision === undefined) {
+            pricePrecision = undefined;
+        }
         return {
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
             'settle': undefined,
-            'baseId': baseId,
-            'quoteId': quoteId,
+            'baseId': this.safeString (market['Primary'], 'Crypto_Token__'),
+            'quoteId': this.safeString (market['Secondary'], 'Crypto_Token__'),
             'settleId': undefined,
             'type': 'spot',
             'spot': true,
@@ -577,7 +581,7 @@ export default class ellipx extends Exchange {
             throw new ExchangeError (this.id + ' fetchOrderBook() failed: ' + this.json (response));
         }
         const data = this.safeValue (response, 'data', {});
-        const timestamp = undefined;
+        const timestamp = this.milliseconds (); // the exchange does not provide timestamp for this.
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -702,16 +706,15 @@ export default class ellipx extends Exchange {
     }
 
     parseCurrency (currency): Currency {
-        const id = this.safeString (currency, 'Crypto_Token_Info__');
+        const id = this.safeString (currency, 'Crypto_Token__');
         const token = this.safeValue (currency, 'Crypto_Token', {});
         const code = this.safeCurrencyCode (this.safeString (token, 'Symbol'));
         const name = this.safeString (token, 'Name');
-        const type = this.safeString (currency, 'Type');
         const active = this.safeString (currency, 'Status') === 'valid';
         const deposit = this.safeString (currency, 'Can_Deposit') === 'Y';
         const withdraw = this.safeString (currency, 'Status') === 'valid';
         const fee = this.parseAmount (currency['Withdraw_Fee']);
-        const precision = this.safeInteger (token, 'Decimals');
+        const precision = this.parseNumber (this.parsePrecision (this.safeString (token, 'Decimals')));
         const minDeposit = this.parseAmount (currency['Minimum_Deposit']);
         const minWithdraw = this.parseAmount (currency['Minimum_Withdraw']);
         const networkId = this.safeString (currency, 'Crypto_Chain__');
@@ -748,7 +751,7 @@ export default class ellipx extends Exchange {
             'withdraw': withdraw,
             'fee': fee,
             'precision': precision,
-            'type': type,
+            'type': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
