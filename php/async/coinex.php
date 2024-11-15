@@ -581,7 +581,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -709,8 +711,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for coinex
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-market
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-market
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -981,8 +985,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-ticker
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1055,8 +1061,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-ticker
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-ticker
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1131,7 +1139,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://docs.coinex.com/api/v2/common/http/time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -1154,8 +1164,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-$depth
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-$depth
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1312,8 +1324,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of the most recent trades for a particular $symbol
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-deals
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-deals
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1360,8 +1374,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1428,8 +1444,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by $market symbols
              */
@@ -1536,8 +1554,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/http/list-$market-kline
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-kline
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1745,10 +1765,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance         // spot
              * @see https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance      // swap
              * @see https://docs.coinex.com/api/v2/assets/balance/http/get-marigin-balance      // margin
              * @see https://docs.coinex.com/api/v2/assets/balance/http/get-financial-balance    // financial
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'margin', 'swap', 'financial', or 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -2055,8 +2077,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade003_market_order
              * @see https://docs.coinex.com/api/v2/spot/order/http/put-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2176,6 +2200,7 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/put-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/put-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/put-order
@@ -2183,6 +2208,7 @@ class coinex extends Exchange {
              * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
              * @see https://docs.coinex.com/api/v2/futures/position/http/set-position-stop-loss
              * @see https://docs.coinex.com/api/v2/futures/position/http/set-position-take-profit
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2420,10 +2446,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders (all $orders should be of the same $symbol)
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/put-multi-$order
              * @see https://docs.coinex.com/api/v2/spot/order/http/put-multi-stop-$order
              * @see https://docs.coinex.com/api/v2/futures/order/http/put-multi-$order
              * @see https://docs.coinex.com/api/v2/futures/order/http/put-multi-stop-$order
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
@@ -2620,10 +2648,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$order
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-batch-$stop-$order
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$order
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-batch-$stop-$order
+             *
              * @param {string[]} $ids $order $ids
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2804,10 +2834,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/edit-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/edit-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/edit-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/edit-stop-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -2948,6 +2980,7 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-stop-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-order-by-client-$id
@@ -2956,6 +2989,7 @@ class coinex extends Exchange {
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-order-by-client-$id
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-stop-order-by-client-$id
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3243,8 +3277,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' for canceling spot margin orders
@@ -3290,8 +3326,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/get-order-status
              * @see https://docs.coinex.com/api/v2/futures/order/http/get-order-status
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3380,10 +3418,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetch a list of orders
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-$stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-$stop-order
+             *
              * @param $status
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -3695,10 +3735,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-pending-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-pending-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-pending-stop-order
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -3719,10 +3761,12 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-order
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-stop-order
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3739,7 +3783,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/update-deposit-address
+             *
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] the blockchain $network to create a deposit address on
@@ -3776,7 +3822,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-address
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] the blockchain network to create a deposit address on
@@ -3840,8 +3888,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals
              * @see https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -3929,8 +3979,10 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-$position
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-$position
+             *
              * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
@@ -4020,7 +4072,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade position
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+             *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4154,7 +4208,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
+             *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4204,7 +4260,9 @@ class coinex extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-$leverage
+             *
              * set the level of $leverage for a $market
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
@@ -4251,7 +4309,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             *
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -4456,7 +4516,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4470,7 +4532,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4484,7 +4548,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding fee payments paid and received on this account
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4554,7 +4620,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4596,7 +4664,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate interval
+             *
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate
+             *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4663,7 +4733,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rates for multiple markets
+             *
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate
+             *
              * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -4710,7 +4782,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -4787,7 +4861,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding rate prices
+             *
              * @see https://docs.coinex.com/api/v2/futures/market/http/list-$market-funding-rate-history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
@@ -4966,7 +5042,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://docs.coinex.com/api/v2/assets/transfer/http/transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -5047,7 +5125,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
+             *
              * @see https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfer structures to retrieve
@@ -5107,7 +5187,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history
+             *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
@@ -5166,7 +5248,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history
+             *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposit structures to retrieve
@@ -5257,7 +5341,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
+             *
              * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the borrow rate for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->code unified $currency $code
@@ -5299,7 +5385,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
             /**
              * fetch the $interest owed by the user for borrowing currency for margin trading
+             *
              * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history
+             *
              * @param {string} [$code] unified currency $code
              * @param {string} [$symbol] unified $market $symbol when fetch $interest in isolated markets
              * @param {int} [$since] the earliest time in ms to fetch borrrow $interest for
@@ -5383,7 +5471,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * create a loan to borrow margin
+             *
              * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-borrow
+             *
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to borrow
              * @param {float} $amount the $amount to borrow
@@ -5432,7 +5522,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
+             *
              * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/margin-repay
+             *
              * @param {string} $symbol unified $market $symbol, required for coinex
              * @param {string} $code unified $currency $code of the $currency to repay
              * @param {float} $amount the $amount to repay
@@ -5496,7 +5588,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for deposits and withdrawals
+             *
              * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -5618,7 +5712,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
+             *
              * @see https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->code unified $currency $code
@@ -5682,7 +5778,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical $positions
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position
+             *
              * @param {string} $symbol unified contract $symbol
              * @param {int} [$since] the earliest time in ms to fetch $positions for
              * @param {int} [$limit] the maximum amount of $records to fetch, default is 10
@@ -5757,7 +5855,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes an open position for a $market
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/close-position
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {string} [$side] buy or sell, not used by coinex
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5962,7 +6062,9 @@ class coinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $since, $limit, $params) {
             /**
              * fetches the history of margin added or reduced from contract isolated positions
+             *
              * @see https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {string} [$type] not used by coinex fetchMarginAdjustmentHistory
              * @param {int} [$since] timestamp in ms of the earliest change to fetch

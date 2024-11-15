@@ -60,7 +60,9 @@ class bitrue(ccxt.async_support.bitrue):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -166,7 +168,9 @@ class bitrue(ccxt.async_support.bitrue):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on user orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+
         :param str symbol:
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum amount of orders to return

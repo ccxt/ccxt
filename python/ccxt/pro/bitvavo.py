@@ -111,7 +111,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
+        https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -121,7 +123,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
+        https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -173,7 +177,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
-        :see: https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
+        https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -590,7 +596,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -618,7 +626,9 @@ class bitvavo(ccxt.async_support.bitvavo):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edit a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -635,7 +645,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -649,7 +661,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
@@ -685,7 +699,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         fetches information on an order made by the user
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -705,7 +721,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -752,7 +770,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_my_trades_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.bitvavo.com/#tag/Trades
+
+        https://docs.bitvavo.com/#tag/Trades
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -834,7 +854,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_withdrawals_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -872,7 +894,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -889,7 +913,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_deposits_ws(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -927,7 +953,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_trading_fees_ws(self, params={}) -> TradingFees:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -938,7 +966,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_markets_ws(self, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+
         retrieves data on all markets for bitvavo
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
@@ -947,7 +977,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_currencies_ws(self, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: an associative dictionary of currencies
@@ -1003,7 +1035,9 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def fetch_balance_ws(self, params={}) -> Balances:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`

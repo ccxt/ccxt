@@ -331,7 +331,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitmex
-        :see: https://docs.ox.fun/?json#get-v3-markets
+
+        https://docs.ox.fun/?json#get-v3-markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -504,7 +506,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.ox.fun/?json#get-v3-assets
+
+        https://docs.ox.fun/?json#get-v3-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -721,7 +725,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.ox.fun/?json#get-v3-tickers
+
+        https://docs.ox.fun/?json#get-v3-tickers
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -782,7 +788,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.ox.fun/?json#get-v3-tickers
+
+        https://docs.ox.fun/?json#get-v3-tickers
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -865,7 +873,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.ox.fun/?json#get-v3-candles
+
+        https://docs.ox.fun/?json#get-v3-candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch(default 24 hours ago)
@@ -946,7 +956,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.ox.fun/?json#get-v3-depth
+
+        https://docs.ox.fun/?json#get-v3-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 5, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -991,7 +1003,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the current funding rates for multiple markets
-        :see: https://docs.ox.fun/?json#get-v3-funding-estimates
+
+        https://docs.ox.fun/?json#get-v3-funding-estimates
+
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1056,7 +1070,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         Fetches the history of funding rates
-        :see: https://docs.ox.fun/?json#get-v3-funding-rates
+
+        https://docs.ox.fun/?json#get-v3-funding-rates
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch(default 24 hours ago)
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1131,7 +1147,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches the history of funding payments
-        :see: https://docs.ox.fun/?json#get-v3-funding
+
+        https://docs.ox.fun/?json#get-v3-funding
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch(default 24 hours ago)
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1215,7 +1233,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for self market
-        :see: https://docs.ox.fun/?json#get-v3-leverage-tiers
+
+        https://docs.ox.fun/?json#get-v3-leverage-tiers
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -1304,7 +1324,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.ox.fun/?json#get-v3-exchange-trades
+
+        https://docs.ox.fun/?json#get-v3-exchange-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch(default 24 hours ago)
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1350,7 +1372,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.ox.fun/?json#get-v3-trades
+
+        https://docs.ox.fun/?json#get-v3-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1459,7 +1483,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.ox.fun/?json#get-v3-balances
+
+        https://docs.ox.fun/?json#get-v3-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.asset]: currency id, if empty the exchange returns info about all currencies
         :param str [params.subAcc]: Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
@@ -1550,7 +1576,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch subaccounts associated with a profile
-        :see: https://docs.ox.fun/?json#get-v3-account-names
+
+        https://docs.ox.fun/?json#get-v3-account-names
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -1589,7 +1617,9 @@ class oxfun(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://docs.ox.fun/?json#post-v3-transfer
+
+        https://docs.ox.fun/?json#post-v3-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account id to transfer from
@@ -1630,7 +1660,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a history of internal transfers made on an account
-        :see: https://docs.ox.fun/?json#get-v3-transfer
+
+        https://docs.ox.fun/?json#get-v3-transfer
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1713,7 +1745,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.ox.fun/?json#get-v3-deposit-addresses
+
+        https://docs.ox.fun/?json#get-v3-deposit-addresses
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for fetch deposit address
@@ -1754,7 +1788,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.ox.fun/?json#get-v3-deposit
+
+        https://docs.ox.fun/?json#get-v3-deposit
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1802,7 +1838,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.ox.fun/?json#get-v3-withdrawal
+
+        https://docs.ox.fun/?json#get-v3-withdrawal
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1970,7 +2008,9 @@ class oxfun(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.ox.fun/?json#post-v3-withdrawal
+
+        https://docs.ox.fun/?json#post-v3-withdrawal
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1978,8 +2018,8 @@ class oxfun(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for withdraw
         :param bool [params.externalFee]: if False, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.tfaType]: GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
         :param str [params.code]: 2FA code
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
@@ -2024,7 +2064,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.ox.fun/?json#get-v3-positions
+
+        https://docs.ox.fun/?json#get-v3-positions
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.subAcc]:
@@ -2137,7 +2179,9 @@ class oxfun(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
-        :see: https://docs.ox.fun/?json#post-v3-orders-place
+
+        https://docs.ox.fun/?json#post-v3-orders-place
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
@@ -2293,7 +2337,9 @@ class oxfun(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
         """
         create a list of trade orders
-        :see: https://docs.ox.fun/?json#post-v3-orders-place
+
+        https://docs.ox.fun/?json#post-v3-orders-place
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.timestamp]: *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
@@ -2376,7 +2422,9 @@ class oxfun(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://open.big.one/docs/spot_orders.html#create-order
+
+        https://open.big.one/docs/spot_orders.html#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2393,7 +2441,9 @@ class oxfun(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
-        :see: https://docs.ox.fun/?json#get-v3-orders-status
+
+        https://docs.ox.fun/?json#get-v3-orders-status
+
         fetches information on an order made by the user
         :param str id: a unique id for the order
         :param str [symbol]: not used by oxfun fetchOrder
@@ -2435,7 +2485,9 @@ class oxfun(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.ox.fun/?json#get-v3-orders-working
+
+        https://docs.ox.fun/?json#get-v3-orders-working
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -2456,7 +2508,9 @@ class oxfun(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.ox.fun/?json#delete-v3-orders-cancel
+
+        https://docs.ox.fun/?json#delete-v3-orders-cancel
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2490,7 +2544,9 @@ class oxfun(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://docs.ox.fun/?json#delete-v3-orders-cancel-all
+
+        https://docs.ox.fun/?json#delete-v3-orders-cancel-all
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from exchange
@@ -2515,7 +2571,9 @@ class oxfun(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://docs.ox.fun/?json#delete-v3-orders-cancel
+
+        https://docs.ox.fun/?json#delete-v3-orders-cancel
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint

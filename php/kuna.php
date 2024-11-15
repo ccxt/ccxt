@@ -400,7 +400,9 @@ class kuna extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
          * @see https://docs.kuna.io/docs/get-time-on-the-server
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -420,7 +422,9 @@ class kuna extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://docs.kuna.io/docs/get-information-about-available-currencies
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -506,7 +510,9 @@ class kuna extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves $data on all $markets for kuna
+         *
          * @see https://docs.kuna.io/docs/get-all-traded-$markets
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
          */
@@ -598,7 +604,9 @@ class kuna extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+         *
          * @see https://docs.kuna.io/docs/get-public-orders-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] 5, 10, 20, 50, 100, 500, or 1000 (default)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -685,7 +693,9 @@ class kuna extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market. The average is not returned in the $response, but the median can be accessed via $response['info']['price']
+         *
          * @see https://docs.kuna.io/docs/get-market-info-by-tickers
+         *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -727,7 +737,9 @@ class kuna extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://docs.kuna.io/docs/get-$market-info-by-tickers
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -778,7 +790,9 @@ class kuna extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://docs.kuna.io/docs/get-public-trades-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] between 1 and 100, 25 by default
@@ -920,7 +934,9 @@ class kuna extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://docs.kuna.io/docs/create-a-new-order-private
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1129,7 +1145,9 @@ class kuna extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
+         *
          * @see https://docs.kuna.io/docs/get-order-details-by-$id
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by kuna fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1185,7 +1203,9 @@ class kuna extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://docs.kuna.io/docs/get-active-client-orders-private
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] 1-100, the maximum number of open orders structures to retrieve
@@ -1244,7 +1264,9 @@ class kuna extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://docs.kuna.io/docs/get-private-orders-history
+         *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1261,7 +1283,9 @@ class kuna extends Exchange {
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch a list of orders
+         *
          * @see https://docs.kuna.io/docs/get-private-orders-history
+         *
          * @param {string} $status canceled, closed, expired, open, pending, rejected, or waitStop
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1326,7 +1350,9 @@ class kuna extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
+         *
          * @see https://docs.kuna.io/docs/get-private-trades-history
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] not used by kuna fetchMyTrades
          * @param {int} [$limit] not used by kuna fetchMyTrades
@@ -1371,7 +1397,9 @@ class kuna extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://docs.kuna.io/docs/create-a-withdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -1422,7 +1450,9 @@ class kuna extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made to an account
+         *
          * @see https://docs.kuna.io/docs/get-withdraw-history
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1489,7 +1519,9 @@ class kuna extends Exchange {
     public function fetch_withdrawal(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a currency withdrawal via the withdrawal $id
+         *
          * @see https://docs.kuna.io/docs/get-withdraw-details-by-$id
+         *
          * @param {string} $id withdrawal $id
          * @param {string} $code not used by kuna.fetchWithdrawal
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1528,7 +1560,9 @@ class kuna extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a $currency deposit address
+         *
          * @see https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -1555,7 +1589,9 @@ class kuna extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://docs.kuna.io/docs/find-crypto-address-for-deposit
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -1614,7 +1650,9 @@ class kuna extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://docs.kuna.io/docs/get-deposit-history
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1681,7 +1719,9 @@ class kuna extends Exchange {
     public function fetch_deposit(string $id, ?string $code = null, $params = array ()) {
         /**
          * fetch $data on a $currency deposit via the deposit $id
+         *
          * @see https://docs.kuna.io/docs/get-deposit-details-by-$id
+         *
          * @param {string} $id deposit $id
          * @param {string} $code filter by $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint

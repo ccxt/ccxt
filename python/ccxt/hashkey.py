@@ -537,7 +537,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_time(self, params={}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
+        https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -552,7 +554,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -571,7 +575,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for the exchange
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: the id of the market to fetch
         :returns dict[]: an array of objects representing market data
@@ -1030,7 +1036,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1137,7 +1145,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum value is 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1172,7 +1182,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
@@ -1203,9 +1215,11 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+
         :param str symbol: *is mandatory for swap markets* unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -1405,7 +1419,9 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1481,7 +1497,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1514,7 +1532,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1570,7 +1590,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_last_prices(self, symbols: Strings = None, params={}) -> LastPrices:
         """
         fetches the last price for multiple markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+
         :param str[] [symbols]: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: the id of the market to fetch last price for
@@ -1610,7 +1632,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account ID, for Master Key only
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch balance for(default 'spot')
@@ -1722,7 +1746,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+
         :param str code: unified currency code(default is 'USDT')
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for fetch deposit address(default is 'ETH')
@@ -1784,7 +1810,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1828,7 +1856,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
+        https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
@@ -1878,7 +1908,9 @@ class hashkey(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
+        https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2029,7 +2061,9 @@ class hashkey(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
+        https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account id to transfer from
@@ -2088,7 +2122,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -2153,7 +2189,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+
         :param str [code]: unified currency code, default is None(not used)
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
@@ -2269,9 +2307,11 @@ class hashkey(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
         :param str side: 'buy' or 'sell'
@@ -2313,8 +2353,10 @@ class hashkey(Exchange, ImplicitAPI):
     def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on spot market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+        https://hashkeyglobal-apidoc.readme.io/reference/create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER'
         :param str side: 'buy' or 'sell'
@@ -2437,7 +2479,7 @@ class hashkey(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'LIMIT_MAKER'
@@ -2479,7 +2521,7 @@ class hashkey(Exchange, ImplicitAPI):
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> dict:
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP'
@@ -2533,7 +2575,9 @@ class hashkey(Exchange, ImplicitAPI):
     def create_swap_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         create a trade order on swap market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -2577,8 +2621,10 @@ class hashkey(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders(all orders should be of the same symbol)
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2684,8 +2730,10 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2766,8 +2814,10 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: 'buy' or 'sell'
@@ -2805,8 +2855,10 @@ class hashkey(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
+        https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol(not used by hashkey)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2843,8 +2895,10 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetches information on an order made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-order
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-order
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2942,10 +2996,12 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/sub
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/sub
+        https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+
         :param str [symbol]: unified market symbol of the market orders were made in - is mandatory for swap markets
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -2977,10 +3033,12 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_open_spot_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for spot markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/sub
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/sub
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3048,10 +3106,12 @@ class hashkey(Exchange, ImplicitAPI):
 
     def fetch_open_swap_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-         * @ignore
+ @ignore
         fetch all unfilled currently open orders for swap markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+
         :param str symbol: *is mandatory* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - maximum 500
@@ -3138,9 +3198,11 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+        https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+
         :param str symbol: *is mandatory for swap markets* unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3498,7 +3560,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -3521,7 +3585,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
@@ -3577,7 +3643,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -3624,7 +3692,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
         fetch open positions for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
         fetch all open positions
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3644,7 +3714,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
         """
         fetch open positions for a single market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+
         fetch all open positions for specific symbol
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3726,7 +3798,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
+        https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -3763,7 +3837,9 @@ class hashkey(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
+        https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3790,7 +3866,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
+        https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -3902,8 +3980,10 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
+        https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -3932,7 +4012,9 @@ class hashkey(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         *for spot markets only* fetch the trading fees for multiple markets
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """

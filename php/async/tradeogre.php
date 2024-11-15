@@ -169,7 +169,9 @@ class tradeogre extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bigone
+             *
              * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#markets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -555,7 +557,9 @@ class tradeogre extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

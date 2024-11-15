@@ -356,7 +356,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://docs.woo.org/#get-system-maintenance-status-public
+
+        https://docs.woo.org/#get-system-maintenance-status-public
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -390,7 +392,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://docs.woo.org/#get-system-maintenance-status-public
+
+        https://docs.woo.org/#get-system-maintenance-status-public
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -410,7 +414,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for woo
-        :see: https://docs.woo.org/#exchange-information
+
+        https://docs.woo.org/#exchange-information
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -523,7 +529,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.woo.org/#market-trades-public
+
+        https://docs.woo.org/#market-trades-public
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -648,7 +656,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://docs.woo.org/#get-account-information-new
+
+        https://docs.woo.org/#get-account-information-new
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -701,7 +711,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.woo.org/#available-token-public
+
+        https://docs.woo.org/#available-token-public
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -833,7 +845,9 @@ class woo(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://docs.woo.org/#send-order
+
+        https://docs.woo.org/#send-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -848,7 +862,9 @@ class woo(Exchange, ImplicitAPI):
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
-        :see: https://docs.woo.org/#send-order
+
+        https://docs.woo.org/#send-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -863,7 +879,9 @@ class woo(Exchange, ImplicitAPI):
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-        :see: https://docs.woo.org/#send-algo-order
+
+        https://docs.woo.org/#send-algo-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -885,7 +903,9 @@ class woo(Exchange, ImplicitAPI):
     def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent=None, trailingTriggerPrice=None, params={}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-        :see: https://docs.woo.org/#send-algo-order
+
+        https://docs.woo.org/#send-algo-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -907,8 +927,10 @@ class woo(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.woo.org/#send-order
-        :see: https://docs.woo.org/#send-algo-order
+
+        https://docs.woo.org/#send-order
+        https://docs.woo.org/#send-algo-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1089,10 +1111,12 @@ class woo(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.woo.org/#edit-order
-        :see: https://docs.woo.org/#edit-order-by-client_order_id
-        :see: https://docs.woo.org/#edit-algo-order
-        :see: https://docs.woo.org/#edit-algo-order-by-client_order_id
+
+        https://docs.woo.org/#edit-order
+        https://docs.woo.org/#edit-order-by-client_order_id
+        https://docs.woo.org/#edit-algo-order
+        https://docs.woo.org/#edit-algo-order-by-client_order_id
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1170,9 +1194,11 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.woo.org/#cancel-algo-order
-        :see: https://docs.woo.org/#cancel-order
-        :see: https://docs.woo.org/#cancel-order-by-client_order_id
+
+        https://docs.woo.org/#cancel-algo-order
+        https://docs.woo.org/#cancel-order
+        https://docs.woo.org/#cancel-order-by-client_order_id
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1217,9 +1243,11 @@ class woo(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.woo.org/#cancel-all-pending-orders
-        :see: https://docs.woo.org/#cancel-orders
-        :see: https://docs.woo.org/#cancel-all-pending-algo-orders
+
+        https://docs.woo.org/#cancel-all-pending-orders
+        https://docs.woo.org/#cancel-orders
+        https://docs.woo.org/#cancel-all-pending-algo-orders
+
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1251,7 +1279,9 @@ class woo(Exchange, ImplicitAPI):
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
         dead man's switch, cancel all orders after the given timeout
-        :see: https://docs.woo.org/#cancel-all-after
+
+        https://docs.woo.org/#cancel-all-after
+
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
@@ -1276,8 +1306,10 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.woo.org/#get-algo-order
-        :see: https://docs.woo.org/#get-order
+
+        https://docs.woo.org/#get-algo-order
+        https://docs.woo.org/#get-order
+
         fetches information on an order made by the user
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1342,8 +1374,10 @@ class woo(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.woo.org/#get-orders
-        :see: https://docs.woo.org/#get-algo-orders
+
+        https://docs.woo.org/#get-orders
+        https://docs.woo.org/#get-algo-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1424,8 +1458,10 @@ class woo(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.woo.org/#get-orders
-        :see: https://docs.woo.org/#get-algo-orders
+
+        https://docs.woo.org/#get-orders
+        https://docs.woo.org/#get-algo-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1444,8 +1480,10 @@ class woo(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.woo.org/#get-orders
-        :see: https://docs.woo.org/#get-algo-orders
+
+        https://docs.woo.org/#get-orders
+        https://docs.woo.org/#get-algo-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1597,7 +1635,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.woo.org/#orderbook-snapshot-public
+
+        https://docs.woo.org/#orderbook-snapshot-public
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1633,8 +1673,10 @@ class woo(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.woo.org/#kline-public
-        :see: https://docs.woo.org/#kline-historical-data-public
+
+        https://docs.woo.org/#kline-public
+        https://docs.woo.org/#kline-historical-data-public
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1723,7 +1765,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://docs.woo.org/#get-trades
+
+        https://docs.woo.org/#get-trades
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1763,7 +1807,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.woo.org/#get-trades
+
+        https://docs.woo.org/#get-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1817,7 +1863,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://docs.woo.org/#get-assets-of-subaccounts
+
+        https://docs.woo.org/#get-assets-of-subaccounts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -1861,7 +1909,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.woo.org/#get-current-holding-get-balance-new
+
+        https://docs.woo.org/#get-current-holding-get-balance-new
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1910,7 +1960,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.woo.org/#get-token-deposit-address
+
+        https://docs.woo.org/#get-token-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1997,7 +2049,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
-        :see: https://docs.woo.org/#get-asset-history
+
+        https://docs.woo.org/#get-asset-history
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
@@ -2058,7 +2112,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.woo.org/#get-asset-history
+
+        https://docs.woo.org/#get-asset-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2073,7 +2129,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.woo.org/#get-asset-history
+
+        https://docs.woo.org/#get-asset-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2088,7 +2146,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://docs.woo.org/#get-asset-history
+
+        https://docs.woo.org/#get-asset-history
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -2160,7 +2220,9 @@ class woo(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://docs.woo.org/#get-transfer-history
+
+        https://docs.woo.org/#get-transfer-history
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2195,7 +2257,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        :see: https://docs.woo.org/#get-transfer-history
+
+        https://docs.woo.org/#get-transfer-history
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
@@ -2295,7 +2359,9 @@ class woo(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.woo.org/#token-withdraw
+
+        https://docs.woo.org/#token-withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2334,7 +2400,9 @@ class woo(Exchange, ImplicitAPI):
     def repay_margin(self, code: str, amount: float, symbol: Str = None, params={}):
         """
         repay borrowed margin and interest
-        :see: https://docs.woo.org/#repay-interest
+
+        https://docs.woo.org/#repay-interest
+
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param str symbol: not used by woo.repayMargin()
@@ -2493,7 +2561,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://docs.woo.org/#get-funding-fee-history
+
+        https://docs.woo.org/#get-funding-fee-history
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -2596,7 +2666,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate interval
-        :see: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+
+        https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2606,7 +2678,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+
+        https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2636,7 +2710,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+
+        https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
@@ -2667,7 +2743,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+
+        https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -2728,7 +2806,9 @@ class woo(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
-        :see: https://docs.woo.org/#update-position-mode
+
+        https://docs.woo.org/#update-position-mode
+
         :param bool hedged: set to True to use HEDGE_MODE, False for ONE_WAY
         :param str symbol: not used by woo setPositionMode
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2755,7 +2835,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://docs.woo.org/#get-account-information-new
+
+        https://docs.woo.org/#get-account-information-new
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: *for swap markets only* 'cross' or 'isolated'
@@ -2878,8 +2960,10 @@ class woo(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://docs.woo.org/#update-leverage-setting
-        :see: https://docs.woo.org/#update-futures-leverage-setting
+
+        https://docs.woo.org/#update-leverage-setting
+        https://docs.woo.org/#update-futures-leverage-setting
+
         :param float leverage: the rate of leverage(1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
         :param str [symbol]: unified market symbol(is mandatory for swap markets)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2908,7 +2992,9 @@ class woo(Exchange, ImplicitAPI):
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://docs.woo.org/#update-isolated-margin-setting
+
+        https://docs.woo.org/#update-isolated-margin-setting
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2920,7 +3006,9 @@ class woo(Exchange, ImplicitAPI):
     def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://docs.woo.org/#update-isolated-margin-setting
+
+        https://docs.woo.org/#update-isolated-margin-setting
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3132,7 +3220,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
-        :see: https://docs.woo.org/#get-quote-rfq
+
+        https://docs.woo.org/#get-quote-rfq
+
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
         :param float [amount]: how much you want to trade in units of the from currency
@@ -3172,7 +3262,9 @@ class woo(Exchange, ImplicitAPI):
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         convert from one currency to another
-        :see: https://docs.woo.org/#send-quote-rft
+
+        https://docs.woo.org/#send-quote-rft
+
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -3201,7 +3293,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
         """
         fetch the data for a conversion trade
-        :see: https://docs.woo.org/#get-quote-trade
+
+        https://docs.woo.org/#get-quote-trade
+
         :param str id: the id of the trade that you want to fetch
         :param str [code]: the unified currency code of the conversion trade
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3240,7 +3334,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
         """
         fetch the users history of conversion trades
-        :see: https://docs.woo.org/#get-quote-trades
+
+        https://docs.woo.org/#get-quote-trades
+
         :param str [code]: the unified currency code
         :param int [since]: the earliest time in ms to fetch conversions for
         :param int [limit]: the maximum number of conversion structures to retrieve
@@ -3337,7 +3433,9 @@ class woo(Exchange, ImplicitAPI):
     def fetch_convert_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies that can be converted
-        :see: https://docs.woo.org/#get-quote-asset-info
+
+        https://docs.woo.org/#get-quote-asset-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """

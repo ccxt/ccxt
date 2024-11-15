@@ -637,7 +637,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+
         retrieves data on all markets for okcoin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -815,7 +817,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-order-book
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -914,7 +918,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-ticker
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -958,7 +964,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-tickers
+
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1047,8 +1055,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-trades-history
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1098,8 +1108,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks
+        https://www.okcoin.com/docs-v5/en/#rest-api-market-data-get-candlesticks-history
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1272,7 +1284,9 @@ class okcoin(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1288,10 +1302,12 @@ class okcoin(Exchange, ImplicitAPI):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1536,9 +1552,11 @@ class okcoin(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1575,7 +1593,7 @@ class okcoin(Exchange, ImplicitAPI):
 
     def parse_ids(self, ids):
         """
-         * @ignore
+ @ignore
         :param string[]|str ids: order ids
         :returns str[]: list of order ids
         """
@@ -1587,9 +1605,11 @@ class okcoin(Exchange, ImplicitAPI):
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1859,8 +1879,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-details
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
         fetches information on an order made by the user
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1900,8 +1922,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1941,9 +1965,11 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2113,7 +2139,9 @@ class okcoin(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+        https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -2132,7 +2160,9 @@ class okcoin(Exchange, ImplicitAPI):
     def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        :see: https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
+        https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
@@ -2171,7 +2201,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+
         transfer currency internally between wallets on the same account
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2310,7 +2342,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2364,7 +2398,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2433,7 +2469,9 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2624,8 +2662,10 @@ class okcoin(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
+        https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2675,9 +2715,11 @@ class okcoin(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
-        :see: https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+
+        https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
+        https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
+        https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None

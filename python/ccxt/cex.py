@@ -191,7 +191,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+
+        https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -303,7 +305,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for ace
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+
+        https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -415,7 +419,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+        https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
         :param str symbol:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -427,7 +433,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
+        https://trade.cex.io/docs/#rest-public-api-calls-ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -494,7 +502,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+
+        https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -569,7 +579,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-order-book
+
+        https://trade.cex.io/docs/#rest-public-api-calls-order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -606,7 +618,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+        https://trade.cex.io/docs/#rest-public-api-calls-candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -675,7 +689,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://trade.cex.io/docs/#rest-public-api-calls-candles
+
+        https://trade.cex.io/docs/#rest-public-api-calls-candles
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -761,7 +777,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+
+        https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.method]: 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
         :param dict [params.account]:  in case 'privatePostGetMyAccountStatusV3' is chosen, self can specify the account name(default is empty string)
@@ -826,8 +844,10 @@ class cex(Exchange, ImplicitAPI):
     def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @param status
+
+        https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+ @param status
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -901,7 +921,9 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+        https://trade.cex.io/docs/#rest-private-api-calls-orders
+
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -913,7 +935,9 @@ class cex(Exchange, ImplicitAPI):
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+        https://trade.cex.io/docs/#rest-private-api-calls-orders
+
         fetches information on multiple canceled orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
@@ -926,7 +950,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an open order made by the user
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+        https://trade.cex.io/docs/#rest-private-api-calls-orders
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -942,7 +968,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an closed order made by the user
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+
+        https://trade.cex.io/docs/#rest-private-api-calls-orders
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1043,7 +1071,9 @@ class cex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-new-order
+
+        https://trade.cex.io/docs/#rest-private-api-calls-new-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1134,7 +1164,9 @@ class cex(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+
+        https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1156,7 +1188,9 @@ class cex(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+
+        https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+
         :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1184,7 +1218,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+
+        https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
@@ -1268,7 +1304,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+
+        https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1354,7 +1392,9 @@ class cex(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+
+        https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
@@ -1467,7 +1507,9 @@ class cex(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+
+        https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account-id(default to empty string) to refer to(at self moment, only sub-accounts allowed by exchange)

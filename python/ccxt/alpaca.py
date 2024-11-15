@@ -314,7 +314,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for alpaca
-        :see: https://docs.alpaca.markets/reference/get-v2-assets
+
+        https://docs.alpaca.markets/reference/get-v2-assets
+
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -438,8 +440,10 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.alpaca.markets/reference/cryptotrades
-        :see: https://docs.alpaca.markets/reference/cryptolatesttrades
+
+        https://docs.alpaca.markets/reference/cryptotrades
+        https://docs.alpaca.markets/reference/cryptolatesttrades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -508,7 +512,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.alpaca.markets/reference/cryptolatestorderbooks
+
+        https://docs.alpaca.markets/reference/cryptolatestorderbooks
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -569,8 +575,10 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.alpaca.markets/reference/cryptobars
-        :see: https://docs.alpaca.markets/reference/cryptolatestbars
+
+        https://docs.alpaca.markets/reference/cryptobars
+        https://docs.alpaca.markets/reference/cryptolatestbars
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -681,7 +689,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+        https://docs.alpaca.markets/reference/cryptosnapshots-1
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
@@ -695,7 +705,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.alpaca.markets/reference/cryptosnapshots-1
+
+        https://docs.alpaca.markets/reference/cryptosnapshots-1
+
         :param str[] symbols: unified symbols of the markets to fetch tickers for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
@@ -814,7 +826,9 @@ class alpaca(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.alpaca.markets/reference/postorder
+
+        https://docs.alpaca.markets/reference/postorder
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'stop_limit'
         :param str side: 'buy' or 'sell'
@@ -891,7 +905,9 @@ class alpaca(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.alpaca.markets/reference/deleteorderbyorderid
+
+        https://docs.alpaca.markets/reference/deleteorderbyorderid
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -912,7 +928,9 @@ class alpaca(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://docs.alpaca.markets/reference/deleteallorders
+
+        https://docs.alpaca.markets/reference/deleteallorders
+
         :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -931,7 +949,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.alpaca.markets/reference/getorderbyorderid
+
+        https://docs.alpaca.markets/reference/getorderbyorderid
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -949,7 +969,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.alpaca.markets/reference/getallorders
+
+        https://docs.alpaca.markets/reference/getallorders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1019,7 +1041,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.alpaca.markets/reference/getallorders
+
+        https://docs.alpaca.markets/reference/getallorders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1035,7 +1059,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.alpaca.markets/reference/getallorders
+
+        https://docs.alpaca.markets/reference/getallorders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1051,7 +1077,9 @@ class alpaca(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.alpaca.markets/reference/patchorderbyorderid-1
+
+        https://docs.alpaca.markets/reference/patchorderbyorderid-1
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market to create an order in
         :param str [type]: 'market', 'limit' or 'stop_limit'
@@ -1191,7 +1219,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+
+        https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -1295,7 +1325,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.alpaca.markets/reference/listcryptofundingwallets
+
+        https://docs.alpaca.markets/reference/listcryptofundingwallets
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1337,7 +1369,9 @@ class alpaca(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.alpaca.markets/reference/createcryptotransferforaccount
+
+        https://docs.alpaca.markets/reference/createcryptotransferforaccount
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1412,7 +1446,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+        https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1424,7 +1460,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+        https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposit structures to retrieve
@@ -1436,7 +1474,9 @@ class alpaca(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
+        https://docs.alpaca.markets/reference/listcryptofundingtransfers
+
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawal structures to retrieve

@@ -326,7 +326,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -343,7 +345,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -404,7 +408,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinlist
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -499,7 +505,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -534,7 +542,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-market-summary
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -623,7 +633,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -660,7 +672,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-candles
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -739,7 +753,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-auctions
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-auctions
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(default 200, max 500)
@@ -863,7 +879,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -1038,7 +1056,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-accounts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -1074,7 +1094,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1116,7 +1138,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve(default 200, max 500)
@@ -1173,7 +1197,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         fetch all the trades made from a single order
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1189,7 +1215,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve(default 200, max 500)
@@ -1250,7 +1278,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-id
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-id
+
         :param int|str id: order id
         :param str symbol: not used by coinlist fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1290,7 +1320,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve(default 200, max 500)
@@ -1307,7 +1339,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of closed order structures to retrieve(default 200, max 500)
@@ -1324,7 +1358,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of canceled order structures to retrieve(default 200, max 500)
@@ -1341,7 +1377,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel open orders of market
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-orders
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1365,7 +1403,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-id
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-id
+
         :param str id: order id
         :param str symbol: not used by coinlist cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1388,7 +1428,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-orders
+
         :param str[] ids: order ids
         :param str symbol: not used by coinlist cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1420,7 +1462,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#create-new-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         :param str side: 'buy' or 'sell'
@@ -1486,7 +1530,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
@@ -1659,9 +1705,11 @@ class coinlist(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-wallet-to-pro
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-pro-to-wallet
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-between-entities
+        https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-wallet-to-pro
+        https://trade-docs.coinlist.co/?javascript--nodejs#transfer-funds-from-pro-to-wallet
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -1707,7 +1755,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#list-transfers
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfer structures to retrieve(default 200, max 500)
@@ -1818,7 +1868,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal
         :param int [limit]: max number of deposit/withdrawals to return(default 200, max 500)
@@ -1890,7 +1942,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         request a withdrawal from CoinList wallet.(Disabled by default. Contact CoinList to apply for an exception.)
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#request-withdrawal-from-wallet
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1984,7 +2038,9 @@ class coinlist(Exchange, ImplicitAPI):
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
+
+        https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return(default 200, max 500)

@@ -212,7 +212,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.coinone.co.kr/reference/currencies
+
+        https://docs.coinone.co.kr/reference/currencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -275,7 +277,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -398,7 +402,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.coinone.co.kr/v1.0/reference/v21
+
+        https://docs.coinone.co.kr/v1.0/reference/v21
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -409,7 +415,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinone.co.kr/v1.0/reference/orderbook
+
+        https://docs.coinone.co.kr/v1.0/reference/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -453,8 +461,10 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -513,7 +523,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -684,7 +696,9 @@ class coinone(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
+        https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -724,8 +738,10 @@ class coinone(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'

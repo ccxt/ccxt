@@ -3595,8 +3595,8 @@ class bybit extends bybit$1 {
     /**
      * @method
      * @name bybit#createMarketBuyOrderWithCost
-     * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @description create a market buy order by providing the symbol and cost
+     * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3613,8 +3613,8 @@ class bybit extends bybit$1 {
     /**
      * @method
      * @name bybit#createMarkeSellOrderWithCost
-     * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @description create a market sell order by providing the symbol and cost
+     * @see https://bybit-exchange.github.io/docs/v5/order/create-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint

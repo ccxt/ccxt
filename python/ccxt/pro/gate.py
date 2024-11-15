@@ -133,8 +133,10 @@ class gate(ccxt.async_support.gate):
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-place
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-place
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-place
+        https://www.gate.io/docs/developers/futures/ws/en/#order-place
+
         Create an order on the exchange
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market' *"market" is contract only*
@@ -175,7 +177,9 @@ class gate(ccxt.async_support.gate):
     async def create_orders_ws(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -196,8 +200,10 @@ class gate(ccxt.async_support.gate):
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
+
+        https://www.gate.io/docs/developers/futures/ws/en/#cancel-all-open-orders-matched
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel-all-with-specified-currency-pair
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
@@ -220,8 +226,10 @@ class gate(ccxt.async_support.gate):
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         Cancels an open order
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-cancel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-cancel
+        https://www.gate.io/docs/developers/futures/ws/en/#order-cancel
+
         :param str id: Order id
         :param str symbol: Unified market symbol
         :param dict [params]: Parameters specified by the exchange api
@@ -245,8 +253,10 @@ class gate(ccxt.async_support.gate):
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order, gate currently only supports the modification of the price or amount fields
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-amend
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-amend
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-amend
+        https://www.gate.io/docs/developers/futures/ws/en/#order-amend
+
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -269,8 +279,10 @@ class gate(ccxt.async_support.gate):
     async def fetch_order_ws(self, id: str, symbol: Str = None, params={}):
         """
         Retrieves information on an order
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-status
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-status
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-status
+        https://www.gate.io/docs/developers/futures/ws/en/#order-status
+
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict [params]: Parameters specified by the exchange api
@@ -293,7 +305,9 @@ class gate(ccxt.async_support.gate):
     async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -305,7 +319,9 @@ class gate(ccxt.async_support.gate):
     async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -316,9 +332,11 @@ class gate(ccxt.async_support.gate):
 
     async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
+        https://www.gate.io/docs/developers/futures/ws/en/#order-list
+
         fetches information on multiple orders made by the user by status
-         * @param status
+ @param status
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None [since]: the earliest time in ms to fetch orders for
         :param int|None [limit]: the maximum number of order structures to retrieve
@@ -535,7 +553,9 @@ class gate(ccxt.async_support.gate):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -550,7 +570,9 @@ class gate(ccxt.async_support.gate):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -581,8 +603,10 @@ class gate(ccxt.async_support.gate):
 
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
-        :see: https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+
+        https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
+        https://www.gate.io/docs/developers/apiv4/ws/en/#order-book-channel
+
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1037,13 +1061,15 @@ class gate(ccxt.async_support.gate):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
-        :see: https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+
+        https://www.gate.io/docs/developers/futures/ws/en/#positions-subscription
+        https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
+        https://www.gate.io/docs/developers/options/ws/en/#positions-channel
+
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
-         * @param since
-         * @param limit
+ @param since
+ @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -1271,9 +1297,11 @@ class gate(ccxt.async_support.gate):
     async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
+        https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -1285,9 +1313,11 @@ class gate(ccxt.async_support.gate):
     async def watch_my_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the private liquidations of a trading pair
-        :see: https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
-        :see: https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
+        https://www.gate.io/docs/developers/futures/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/delivery/ws/en/#liquidates-api
+        https://www.gate.io/docs/developers/options/ws/en/#liquidates-channel
+
         :param str[] symbols: unified CCXT market symbols
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve

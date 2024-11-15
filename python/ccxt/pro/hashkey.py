@@ -73,7 +73,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -165,7 +167,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
@@ -217,7 +221,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -280,7 +286,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -342,7 +350,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -455,7 +465,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -557,11 +569,13 @@ class hashkey(ccxt.async_support.hashkey):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
-         * @param since
-         * @param limit
+ @param since
+ @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -652,7 +666,9 @@ class hashkey(ccxt.async_support.hashkey):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
+        https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to watch balance for(default 'spot')
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`

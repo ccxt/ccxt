@@ -2667,9 +2667,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             # future
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#check-server-time                            # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Check-Server-Time    # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Check-Server-time             # future
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -2691,8 +2693,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://developers.binance.com/docs/wallet/capital/all-coins-info
-        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+
+        https://developers.binance.com/docs/wallet/capital/all-coins-info
+        https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -2899,12 +2903,14 @@ class binance(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for binance
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              # future
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             # option
-        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             # cross margin
-        :see: https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             # isolated margin
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#exchange-information                             # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Exchange-Information              # future
+        https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             # option
+        https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                             # cross margin
+        https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                             # isolated margin
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -3452,14 +3458,16 @@ class binance(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    # spot
-        :see: https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       # cross margin
-        :see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       # isolated margin
-        :see: https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     # funding
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               # future
-        :see: https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           # option
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            # portfolio margin
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-information-user_data                    # spot
+        https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       # cross margin
+        https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       # isolated margin
+        https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     # funding
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Futures-Account-Balance               # future
+        https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           # option
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            # portfolio margin
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
@@ -3708,10 +3716,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            # future
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           # option
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#order-book                           # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book   # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book            # future
+        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                           # option
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3938,7 +3948,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://developers.binance.com/docs/wallet/others/system-status
+
+        https://developers.binance.com/docs/wallet/others/system-status
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -3961,11 +3973,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           # spot
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            # future
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           # option
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                           # spot
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#rolling-window-price-change-statistics                        # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics            # future
+        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           # option
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.rolling]:(spot only) default False, if True, uses the rolling 24 hour ticker endpoint /api/v3/ticker
@@ -3998,9 +4012,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          # future
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-order-book-ticker                         # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Order-Book-Ticker          # future
+
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4030,9 +4046,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_last_prices(self, symbols: Strings = None, params={}):
         """
         fetches the last price for multiple markets
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           # future
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker                          # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker           # future
+
         :param str[]|None symbols: unified symbols of the markets to fetch the last prices
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4129,10 +4147,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          # spot
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  # swap
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           # future
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          # option
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#24hr-ticker-price-change-statistics                          # spot
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  # swap
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/24hr-Ticker-Price-Change-Statistics           # future
+        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          # option
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4165,8 +4185,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
         fetches mark price for the market
-        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
-        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+
+        https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4195,8 +4217,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_mark_prices(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches mark prices for multiple markets
-        :see: https://binance-docs.github.io/apidocs/futures/en/#mark-price
-        :see: https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+
+        https://binance-docs.github.io/apidocs/futures/en/#mark-price
+        https://binance-docs.github.io/apidocs/delivery/en/#index-price-and-mark-price
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -4284,16 +4308,18 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#klinecandlestick-data
+        https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -4657,19 +4683,23 @@ class binance(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-         * Default fetchTradesMethod
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          # publicGetAggTrades(spot)
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List  # fapiPublicGetAggTrades(swap)
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          # dapiPublicGetAggTrades(future)
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       # eapiPublicGetTrades(option)
-         * Other fetchTradesMethod
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       # publicGetTrades(spot)
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               # fapiPublicGetTrades(swap)
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        # dapiPublicGetTrades(future)
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         # publicGetHistoricalTrades(spot)
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                # fapiPublicGetHistoricalTrades(swap)
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         # dapiPublicGetHistoricalTrades(future)
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        # eapiPublicGetHistoricalTrades(option)
+ Default fetchTradesMethod
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#compressedaggregate-trades-list                          # publicGetAggTrades(spot)
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List  # fapiPublicGetAggTrades(swap)
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Compressed-Aggregate-Trades-List          # dapiPublicGetAggTrades(future)
+        https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       # eapiPublicGetTrades(option)
+
+ Other fetchTradesMethod
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#recent-trades-list                                       # publicGetTrades(spot)
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               # fapiPublicGetTrades(swap)
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Recent-Trades-List                        # dapiPublicGetTrades(future)
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#old-trade-lookup                                         # publicGetHistoricalTrades(spot)
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                # fapiPublicGetHistoricalTrades(swap)
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Old-Trades-Lookup                         # dapiPublicGetHistoricalTrades(future)
+        https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        # eapiPublicGetHistoricalTrades(option)
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [limit]: default 500, max 1000
@@ -4677,8 +4707,8 @@ class binance(Exchange, ImplicitAPI):
         :param int [params.until]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [params.fetchTradesMethod]: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param int [params.fromId]: trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -4789,9 +4819,11 @@ class binance(Exchange, ImplicitAPI):
 
     def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         edit a trade order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
@@ -4852,7 +4884,7 @@ class binance(Exchange, ImplicitAPI):
 
     def edit_spot_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         helper function to build request for editSpotOrder
         :param str id: order id to be edited
         :param str symbol: unified symbol of the market to create an order in
@@ -4976,8 +5008,10 @@ class binance(Exchange, ImplicitAPI):
     def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -5027,9 +5061,11 @@ class binance(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-an-existing-order-and-send-a-new-order-trade
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Order
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -5623,9 +5659,11 @@ class binance(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         *contract only* create a list of trade orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Place-Multiple-Orders
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -5698,18 +5736,20 @@ class binance(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
-        :see: https://developers.binance.com/docs/derivatives/option/trade/New-Order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-trade
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
+        https://developers.binance.com/docs/derivatives/option/trade/New-Order
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#sor
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#test-new-order-using-sor-trade
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
@@ -5790,7 +5830,7 @@ class binance(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         helper function to build the request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -6039,7 +6079,9 @@ class binance(Exchange, ImplicitAPI):
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
@@ -6056,7 +6098,9 @@ class binance(Exchange, ImplicitAPI):
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6072,7 +6116,9 @@ class binance(Exchange, ImplicitAPI):
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market sell order by providing the symbol and cost
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#new-order-trade
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6088,13 +6134,15 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#query-order-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Order
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6151,15 +6199,17 @@ class binance(Exchange, ImplicitAPI):
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -6408,15 +6458,17 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#current-open-orders-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -6489,12 +6541,14 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """
         fetch an open order by the id
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Query-Current-Open-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6690,15 +6744,17 @@ class binance(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -6717,15 +6773,17 @@ class binance(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -6744,15 +6802,17 @@ class binance(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#all-orders-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
+
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -6774,16 +6834,18 @@ class binance(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
-        :see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-order-trade
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Order
+        https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+        https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6853,15 +6915,17 @@ class binance(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
-        :see: https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#cancel-all-open-orders-on-a-symbol-trade
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
+        https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+        https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
@@ -7008,13 +7072,15 @@ class binance(Exchange, ImplicitAPI):
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Multiple-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Cancel-Multiple-Orders
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.origClientOrderIdList]: max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
         :param int[] [params.recvWindow]:
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -7074,10 +7140,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -7101,13 +7169,15 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
-        :see: https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+
+        https://developers.binance.com/docs/binance-spot-api-docs/rest-api#account-trade-list-user_data
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List
+        https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
+        https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -7312,7 +7382,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_dust_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all dust trades made by the user
-        :see: https://developers.binance.com/docs/wallet/asset/dust-log
+
+        https://developers.binance.com/docs/wallet/asset/dust-log
+
         :param str symbol: not used by binance fetchMyDustTrades()
         :param int [since]: the earliest time in ms to fetch my dust trades for
         :param int [limit]: the maximum number of dust trades to retrieve
@@ -7446,8 +7518,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://developers.binance.com/docs/wallet/capital/deposite-history
-        :see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+        https://developers.binance.com/docs/wallet/capital/deposite-history
+        https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -7546,8 +7620,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://developers.binance.com/docs/wallet/capital/withdraw-history
-        :see: https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
+        https://developers.binance.com/docs/wallet/capital/withdraw-history
+        https://developers.binance.com/docs/fiat/rest-api/Get-Fiat-Deposit-Withdraw-History
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -7960,7 +8036,9 @@ class binance(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+
+        https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -8045,7 +8123,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        :see: https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+
+        https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
@@ -8177,7 +8257,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://developers.binance.com/docs/wallet/capital/deposite-address
+
+        https://developers.binance.com/docs/wallet/capital/deposite-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for fetch deposit address
@@ -8262,9 +8344,11 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
-         * @deprecated
+ @deprecated
         please use fetchDepositWithdrawFees instead
-        :see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+        https://developers.binance.com/docs/wallet/capital/all-coins-info
+
         :param str[]|None codes: not used by binance fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -8374,7 +8458,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://developers.binance.com/docs/wallet/capital/all-coins-info
+
+        https://developers.binance.com/docs/wallet/capital/all-coins-info
+
         :param str[]|None codes: not used by binance fetchDepositWithdrawFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -8494,7 +8580,9 @@ class binance(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://developers.binance.com/docs/wallet/capital/withdraw
+
+        https://developers.binance.com/docs/wallet/capital/withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -8557,11 +8645,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/User-Commission-Rate
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/User-Commission-Rate
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-UM
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-User-Commission-Rate-for-CM
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch trading fees in a portfolio margin account
@@ -8620,10 +8710,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://developers.binance.com/docs/wallet/asset/trade-fee
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+
+        https://developers.binance.com/docs/wallet/asset/trade-fee
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -8786,9 +8878,11 @@ class binance(Exchange, ImplicitAPI):
 
     def futures_transfer(self, code: str, amount, type, params={}):
         """
-         * @ignore
+ @ignore
         transfer between futures account
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
+
         :param str code: unified currency code
         :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -8816,8 +8910,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -8853,8 +8949,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Rate-History-of-Perpetual-Futures
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -8920,8 +9018,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate for multiple markets
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -9539,10 +9639,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Notional-Bracket-for-Symbol
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the leverage tiers for a portfolio margin account
@@ -9611,7 +9713,7 @@ class binance(Exchange, ImplicitAPI):
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         """
-         * @ignore
+ @ignore
         :param dict info: Exchange response for 1 market
         :param dict market: CCXT market
         """
@@ -9652,7 +9754,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on an open position
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -9693,7 +9797,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_option_positions(self, symbols: Strings = None, params={}):
         """
         fetch data on open options positions
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
@@ -9801,11 +9907,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-        :see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.params]: extra parameters specific to the exchange API endpoint
@@ -9832,13 +9940,15 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_account_positions(self, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         fetch account positions
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions in a portfolio margin account
@@ -9951,13 +10061,15 @@ class binance(Exchange, ImplicitAPI):
 
     def fetch_positions_risk(self, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         fetch positions risk
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions for a portfolio margin account
@@ -10117,10 +10229,12 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -10170,10 +10284,12 @@ class binance(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Initial-Leverage
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Initial-Leverage
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Initial-Leverage
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Initial-Leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10212,8 +10328,10 @@ class binance(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Margin-Type
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Margin-Type
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10266,10 +10384,12 @@ class binance(Exchange, ImplicitAPI):
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Change-Position-Mode
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by binance setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10316,11 +10436,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all markets
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -10383,7 +10505,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+
+        https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records, default 100, max 100
@@ -10423,7 +10547,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records of the user
-        :see: https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+
+        https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -10552,7 +10678,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ledger_entry(self, id: str, code: Str = None, params={}) -> LedgerEntry:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+
+        https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+
         :param str id: the identification number of the ledger entry
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10587,11 +10715,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
+        https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Income-History
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Income-History
+
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
@@ -11037,8 +11167,10 @@ class binance(Exchange, ImplicitAPI):
     def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         remove margin from a position
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11049,8 +11181,10 @@ class binance(Exchange, ImplicitAPI):
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Isolated-Position-Margin
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Modify-Isolated-Position-Margin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11061,7 +11195,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
@@ -11089,11 +11225,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
-        :see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+        https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param dict [params.vipLevel]: user's current specific margin data will be returned if viplevel is omitted
         :returns dict: an `isolated borrow rate structure <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
         """
@@ -11106,11 +11244,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies
-        :see: https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
+        https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.symbol]: unified market symbol
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param dict [params.vipLevel]: user's current specific margin data will be returned if viplevel is omitted
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
         """
@@ -11148,7 +11288,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Query-Margin-Interest-Rate-History
+
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
         :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
@@ -11244,7 +11386,9 @@ class binance(Exchange, ImplicitAPI):
     def create_gift_code(self, code: str, amount, params={}):
         """
         create gift code
-        :see: https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+
+        https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
+
         :param str code: gift code
         :param float amount: amount of currency for the gift
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11280,7 +11424,9 @@ class binance(Exchange, ImplicitAPI):
     def redeem_gift_code(self, giftcardCode, params={}):
         """
         redeem gift code
-        :see: https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+
+        https://developers.binance.com/docs/gift_card/market-data/Redeem-a-Binance-Gift-Card
+
         :param str giftcardCode:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
@@ -11305,7 +11451,9 @@ class binance(Exchange, ImplicitAPI):
     def verify_gift_code(self, id: str, params={}):
         """
         verify gift code
-        :see: https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+
+        https://developers.binance.com/docs/gift_card/market-data/Verify-Binance-Gift-Card-by-Gift-Card-Number
+
         :param str id: reference number id
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
@@ -11327,8 +11475,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Get-Interest-History
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-Margin-BorrowLoan-Interest-History
+
         :param str [code]: unified currency code
         :param str [symbol]: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -11417,9 +11567,11 @@ class binance(Exchange, ImplicitAPI):
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Repay-Debt
+
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11474,7 +11626,9 @@ class binance(Exchange, ImplicitAPI):
     def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -11503,8 +11657,10 @@ class binance(Exchange, ImplicitAPI):
     def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Borrow
+
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11537,7 +11693,9 @@ class binance(Exchange, ImplicitAPI):
     def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
+        https://developers.binance.com/docs/margin_trading/borrow-and-repay/Margin-Account-Borrow-Repay
+
         :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
@@ -11595,8 +11753,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params={}):
         """
         Retrieves the open interest history of a currency
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest-Statistics
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest-Statistics
+
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
@@ -11656,9 +11816,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         retrieves the open interest of a contract trading pair
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Open-Interest
+        https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -11742,11 +11904,13 @@ class binance(Exchange, ImplicitAPI):
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
-        :see: https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
-        :see: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+
+        https://developers.binance.com/docs/margin_trading/trade/Get-Force-Liquidation-Record
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Users-Force-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -11971,7 +12135,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_greeks(self, symbol: str, params={}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
+        https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
@@ -12055,8 +12221,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_position_mode(self, symbol: Str = None, params={}):
         """
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Current-Position-Mode
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Get-Current-Position-Mode
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -12088,9 +12256,11 @@ class binance(Exchange, ImplicitAPI):
     def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
         """
         fetches margin modes("isolated" or "cross") that the market for the symbol in in, with symbol=None all markets for a subType(linear/inverse) are returned
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -12177,8 +12347,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of a specific symbol
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -12231,7 +12403,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_option(self, symbol: str, params={}) -> Option:
         """
         fetches option data that is commonly found in an option chain
-        :see: https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+
+        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
@@ -12317,8 +12491,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_margin_adjustment_history(self, symbol: Str = None, type: Str = None, since: Num = None, limit: Num = None, params={}) -> List[MarginModification]:
         """
         fetches the history of margin added or reduced from contract isolated positions
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History
+
         :param str symbol: unified market symbol
         :param str [type]: "add" or "reduce"
         :param int [since]: timestamp in ms of the earliest change to fetch
@@ -12372,7 +12548,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_convert_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies that can be converted
-        :see: https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+
+        https://developers.binance.com/docs/convert/market-data/Query-order-quantity-precision-per-asset
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -12424,7 +12602,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
-        :see: https://developers.binance.com/docs/convert/trade/Send-quote-request
+
+        https://developers.binance.com/docs/convert/trade/Send-quote-request
+
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
         :param float amount: how much you want to trade in units of the from currency
@@ -12458,7 +12638,9 @@ class binance(Exchange, ImplicitAPI):
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         convert from one currency to another
-        :see: https://developers.binance.com/docs/convert/trade/Accept-Quote
+
+        https://developers.binance.com/docs/convert/trade/Accept-Quote
+
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -12500,7 +12682,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
         """
         fetch the data for a conversion trade
-        :see: https://developers.binance.com/docs/convert/trade/Order-Status
+
+        https://developers.binance.com/docs/convert/trade/Order-Status
+
         :param str id: the id of the trade that you want to fetch
         :param str [code]: the unified currency code of the conversion trade
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -12570,7 +12754,9 @@ class binance(Exchange, ImplicitAPI):
     def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
         """
         fetch the users history of conversion trades
-        :see: https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+
+        https://developers.binance.com/docs/convert/trade/Get-Convert-Trade-History
+
         :param str [code]: the unified currency code
         :param int [since]: the earliest time in ms to fetch conversions for
         :param int [limit]: the maximum number of conversion structures to retrieve
@@ -12749,8 +12935,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_funding_intervals(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the funding rate interval for multiple markets
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Info
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Get-Funding-Info
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -12788,8 +12976,10 @@ class binance(Exchange, ImplicitAPI):
     def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
         """
         fetches the long short ratio history for a unified market symbol
-        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
-        :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Long-Short-Ratio
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Long-Short-Ratio
+
         :param str symbol: unified symbol of the market to fetch the long short ratio for
         :param str [timeframe]: the period for the ratio, default is 24 hours
         :param int [since]: the earliest time in ms to fetch ratios for

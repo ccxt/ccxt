@@ -615,7 +615,9 @@ class okcoin extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+         *
          * retrieves data on all $markets for okcoin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -803,7 +805,9 @@ class okcoin extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-order-book
+         *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -905,7 +909,9 @@ class okcoin extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-ticker
+         *
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -950,7 +956,9 @@ class okcoin extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
+         *
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1043,8 +1051,10 @@ class okcoin extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades-history
+         *
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1098,8 +1108,10 @@ class okcoin extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks-history
+         *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1286,7 +1298,9 @@ class okcoin extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1304,10 +1318,12 @@ class okcoin extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-$order
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-$order
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-$order
+         *
          * create a trade $order
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1586,9 +1602,11 @@ class okcoin extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-$order
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-$order
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-$order
+         *
          * cancels an open $order
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -1643,9 +1661,11 @@ class okcoin extends Exchange {
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1931,8 +1951,10 @@ class okcoin extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-$order-details
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-$order-list
+         *
          * fetches information on an $order made by the user
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -1978,8 +2000,10 @@ class okcoin extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+         *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -2024,9 +2048,11 @@ class okcoin extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+         *
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2203,7 +2229,9 @@ class okcoin extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
+         *
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+         *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -2224,7 +2252,9 @@ class okcoin extends Exchange {
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
+         *
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
@@ -2264,7 +2294,9 @@ class okcoin extends Exchange {
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+         *
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
@@ -2408,7 +2440,9 @@ class okcoin extends Exchange {
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+         *
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2467,7 +2501,9 @@ class okcoin extends Exchange {
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+         *
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2540,7 +2576,9 @@ class okcoin extends Exchange {
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+         *
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2739,8 +2777,10 @@ class okcoin extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+         *
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -2795,9 +2835,11 @@ class okcoin extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
          * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
+         *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null

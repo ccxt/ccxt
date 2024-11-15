@@ -56,9 +56,11 @@ class coinbase(ccxt.async_support.coinbase):
 
     async def subscribe(self, name: str, isPrivate: bool, symbol=None, params={}):
         """
-         * @ignore
+ @ignore
         subscribes to a websocket channel
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
         :param str name: the name of the channel
         :param boolean isPrivate: whether the channel is private or not
         :param str [symbol]: unified market symbol
@@ -93,9 +95,11 @@ class coinbase(ccxt.async_support.coinbase):
 
     async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         subscribes to a websocket channel
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
         :param str name: the name of the channel
         :param boolean isPrivate: whether the channel is private or not
         :param str[] [symbols]: unified market symbol
@@ -149,7 +153,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+
         :param str [symbol]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -160,7 +166,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -347,7 +355,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -365,7 +375,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -384,7 +396,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -401,7 +415,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -417,7 +433,9 @@ class coinbase(ccxt.async_support.coinbase):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
