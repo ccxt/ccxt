@@ -2139,6 +2139,7 @@ export default class phemex extends Exchange {
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Canceled': 'canceled',
+            'Suspended': 'canceled',
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -2653,6 +2654,10 @@ export default class phemex extends Exchange {
                         }
                         request['slTrigger'] = stopLossTriggerPriceType;
                     }
+                    const slLimitPrice = this.safeString (stopLoss, 'price');
+                    if (slLimitPrice !== undefined) {
+                        request['slPxRp'] = this.priceToPrecision (symbol, slLimitPrice);
+                    }
                 }
                 if (takeProfitDefined) {
                     const takeProfitTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
@@ -2676,6 +2681,10 @@ export default class phemex extends Exchange {
                             }
                         }
                         request['tpTrigger'] = takeProfitTriggerPriceType;
+                    }
+                    const tpLimitPrice = this.safeString (takeProfit, 'price');
+                    if (tpLimitPrice !== undefined) {
+                        request['tpPxRp'] = this.priceToPrecision (symbol, tpLimitPrice);
                     }
                 }
             }
