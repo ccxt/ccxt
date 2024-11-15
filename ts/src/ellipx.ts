@@ -1287,8 +1287,6 @@ export default class ellipx extends Exchange {
          * @param {string|undefined} tag Additional tag/memo for currencies that require it
          * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         * Example:
-         * const result = await exchange.withdraw("DOGE", 10, "your_supported_wallet_address", undefined, { 'Crypto_Chain__': 'chain-kjfvwn-l2xn-eclc-ul5d-mb6fu5hm', "Unit__": "unit-yxtm7o-5g4r-h3ja-6n6y-2hlqyxji")
          */
         this.checkAddress (address);
         await this.loadMarkets ();
