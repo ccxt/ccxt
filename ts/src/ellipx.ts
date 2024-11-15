@@ -713,10 +713,19 @@ export default class ellipx extends Exchange {
         const active = this.safeString (currency, 'Status') === 'valid';
         const deposit = this.safeString (currency, 'Can_Deposit') === 'Y';
         const withdraw = this.safeString (currency, 'Status') === 'valid';
-        const fee = this.parseAmount (currency['Withdraw_Fee']);
+        let fee = undefined;
+        if (currency['Withdraw_Fee'] !== undefined) {
+            fee = this.parseAmount (currency['Withdraw_Fee']);
+        }
         const precision = this.parseNumber (this.parsePrecision (this.safeString (token, 'Decimals')));
-        const minDeposit = this.parseAmount (currency['Minimum_Deposit']);
-        const minWithdraw = this.parseAmount (currency['Minimum_Withdraw']);
+        let minDeposit = undefined;
+        if (currency['Minimum_Deposit'] !== undefined) {
+            minDeposit = this.parseAmount (currency['Minimum_Deposit']);
+        }
+        let minWithdraw = undefined;
+        if (currency['Minimum_Withdraw'] !== undefined) {
+            minWithdraw = this.parseAmount (currency['Minimum_Withdraw']);
+        }
         const networkId = this.safeString (currency, 'Crypto_Chain__');
         const networkData = this.safeValue (currency, 'Crypto_Chain', {});
         const networkCode = this.safeString (networkData, 'Type', 'default');
