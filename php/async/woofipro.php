@@ -1449,6 +1449,7 @@ class woofipro extends Exchange {
              * *contract only* create a list of trade $orders
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -2500,6 +2501,7 @@ class woofipro extends Exchange {
             /**
              * set the level of $leverage for a market
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-$leverage-setting
+             * @param $leverage
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
@@ -2639,7 +2641,6 @@ class woofipro extends Exchange {
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-$positions-info
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());

@@ -145,8 +145,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
+             * @param {string} $messageHash unique identifier for the message
              * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
-             * @param {string[]|null} $symbols CCXT market $symbols
+             * @param {string[]} [$symbols] CCXT market $symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -179,7 +180,6 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
-             * @param {string[]|null} symbols CCXT market symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -386,7 +386,7 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */

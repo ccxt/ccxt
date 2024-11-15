@@ -2017,6 +2017,7 @@ class kraken extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+             * @param {string} $id order $id
              * @param {string} $symbol not used by kraken fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2167,6 +2168,7 @@ class kraken extends Exchange {
              * fetch $orders by the list of $order $id
              * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
              * @param {string[]|null} $ids list of $order $id
+             * @param $symbol
              * @param {array} [$params] extra parameters specific to the kraken api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
              */

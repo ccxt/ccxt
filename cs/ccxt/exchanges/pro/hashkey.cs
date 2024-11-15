@@ -74,21 +74,21 @@ public partial class hashkey : ccxt.hashkey
         return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), listenKey);
     }
 
+    /**
+     * @method
+     * @name hashkey#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.binary] true or false - default false
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.binary] true or false - default false
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -177,18 +177,18 @@ public partial class hashkey : ccxt.hashkey
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")};
     }
 
+    /**
+     * @method
+     * @name hahskey#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.binary] true or false - default false
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name hahskey#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.binary] true or false - default false
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -236,20 +236,20 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
 
+    /**
+     * @method
+     * @name hashkey#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.binary] true or false - default false
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#watchTrades
-        * @description watches information on multiple trades made in a market
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-        * @param {string} symbol unified market symbol of the market trades were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.binary] true or false - default false
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -314,18 +314,18 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name alpaca#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name alpaca#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -385,19 +385,19 @@ public partial class hashkey : ccxt.hashkey
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
+    /**
+     * @method
+     * @name hashkey#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object messageHash = "orders";
@@ -520,19 +520,19 @@ public partial class hashkey : ccxt.hashkey
         }, market);
     }
 
+    /**
+     * @method
+     * @name hashkey#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+     * @param {string} symbol unified market symbol of the market trades were made in
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#watchMyTrades
-        * @description watches information on multiple trades made by the user
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-        * @param {string} symbol unified market symbol of the market trades were made in
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object messageHash = "myTrades";
@@ -644,17 +644,19 @@ public partial class hashkey : ccxt.hashkey
         }, market);
     }
 
+    /**
+     * @method
+     * @name hashkey#watchPositions
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+     * @description watch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#watchPositions
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-        * @description watch all open positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} params extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object listenKey = await this.authenticate();
@@ -754,17 +756,17 @@ public partial class hashkey : ccxt.hashkey
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object listenKey = await this.authenticate();
         await this.loadMarkets();

@@ -1396,6 +1396,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+        :see: https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1443,6 +1444,7 @@ class wavesexchange(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1962,6 +1964,7 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch

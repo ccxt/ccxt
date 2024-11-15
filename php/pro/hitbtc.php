@@ -134,6 +134,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
+             * @param {string} $messageHashPrefix prefix for the message hash
              * @param {string[]} [$symbols] unified CCXT symbol(s)
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
@@ -189,7 +190,6 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
-             * @param {string} [symbol] unified CCXT symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
             Async\await($this->load_markets());
@@ -339,7 +339,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {string[]} [$symbols]
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->method 'ticker/{$speed}' ,'ticker/price/{$speed}', 'ticker/{$speed}/batch' (default), or 'ticker/{$speed}/price/batch''
              * @param {string} $params->speed '1s' (default), or '3s'

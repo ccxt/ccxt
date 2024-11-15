@@ -898,6 +898,7 @@ class gate extends Exchange {
 
     public function load_unified_status($params = array ()) {
         /**
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * returns $unifiedAccount so the user can check if the unified account is enabled
          * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
          * @return {boolean} true or false if the enabled unified account is enabled or not and sets the $unifiedAccount option if it is null
@@ -2724,6 +2725,7 @@ class gate extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {string} [$params->symbol] margin only - unified ccxt $symbol
          * @param {boolean} [$params->unifiedAccount] default false, set to true for fetching the unified account balance
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $this->load_unified_status();
@@ -3622,8 +3624,8 @@ class gate extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {int} [$params->until] end time in ms
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] end time in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
@@ -4052,6 +4054,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-$orders
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -6134,7 +6137,6 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
@@ -6181,9 +6183,9 @@ class gate extends Exchange {
         /**
          * create a loan to borrow margin
          * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
+         * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
@@ -6228,7 +6230,6 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
          * @param {boolean} [$params->unifiedAccount] set to true for borrowing in the unified account
@@ -7655,7 +7656,7 @@ class gate extends Exchange {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
-         * @param {string} $currency base $currency to fetch an option chain for
+         * @param {string} $code base $currency to fetch an option chain for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
          * @param {int} [$params->expiration] unix timestamp of the expiration time
@@ -7789,9 +7790,9 @@ class gate extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch positions for
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} offset list offset, starting from 0
-         * @param {string} side long or short
-         * @param {string} pnl query profit or loss
+         * @param {int} [$params->offset] list offset, starting from 0
+         * @param {string} [$params->side] long or short
+         * @param {string} [$params->pnl] query profit or loss
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
          */
         $this->load_markets();

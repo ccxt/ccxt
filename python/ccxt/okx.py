@@ -2924,6 +2924,7 @@ class okx(Exchange, ImplicitAPI):
         create a list of trade orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -6038,7 +6039,7 @@ class okx(Exchange, ImplicitAPI):
         fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [param.accountId]: if you have multiple accounts, you must specify the account id to fetch the position mode
+        :param str [params.accountId]: if you have multiple accounts, you must specify the account id to fetch the position mode
         :returns dict: an object detailing whether the market is in hedged or one-way mode
         """
         accounts = self.fetch_accounts()
@@ -7330,7 +7331,7 @@ class okx(Exchange, ImplicitAPI):
         """
         fetches data for an underlying asset that is commonly found in an option chain
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-        :param str currency: base currency to fetch an option chain for
+        :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.uly]: the underlying asset, can be obtained from fetchUnderlyingAssets()
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
@@ -7779,6 +7780,8 @@ class okx(Exchange, ImplicitAPI):
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
         :param str [symbol]: not used by okx fetchMarginAdjustmentHistory
         :param str [type]: "add" or "reduce"
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange api endpoint
         :param boolean [params.auto]: True if fetching auto margin increases
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`

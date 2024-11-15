@@ -560,6 +560,8 @@ class hashkey(ccxt.async_support.hashkey):
         :see: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

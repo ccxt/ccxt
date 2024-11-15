@@ -516,7 +516,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols:
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -558,7 +558,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """

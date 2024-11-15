@@ -468,7 +468,7 @@ class kucoin(ccxt.async_support.kucoin):
         """
         get the list of most recent trades for a particular symbol
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols:
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -500,7 +500,7 @@ class kucoin(ccxt.async_support.kucoin):
         """
         unWatches trades stream
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -663,7 +663,6 @@ class kucoin(ccxt.async_support.kucoin):
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
-        :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols

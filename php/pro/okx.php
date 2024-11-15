@@ -198,7 +198,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {string} $symbols
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -242,7 +242,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches from the stream $channel
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -674,7 +674,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watch the public liquidations of a trading pair
              * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-$channel
-             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string} $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
@@ -770,7 +770,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watch the private liquidations of a trading pair
              * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-$channel
-             * @param {string} $symbol unified CCXT market $symbol
+             * @param {string[]} $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
@@ -1691,6 +1691,8 @@ class okx extends \ccxt\async\okx {
              * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

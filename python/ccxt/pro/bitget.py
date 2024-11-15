@@ -141,6 +141,7 @@ class bitget(ccxt.async_support.bitget):
         :see: https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
         :see: https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
         :param str symbol: unified symbol of the market to unwatch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -418,6 +419,8 @@ class bitget(ccxt.async_support.bitget):
         :see: https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
         :see: https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
         :param str symbol: unified symbol of the market to unwatch the ohlcv for
+        :param str timeframe:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
@@ -524,6 +527,7 @@ class bitget(ccxt.async_support.bitget):
         :see: https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
         :see: https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
         :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -708,7 +712,7 @@ class bitget(ccxt.async_support.bitget):
         get the list of most recent trades for a particular symbol
         :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
         :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -746,6 +750,7 @@ class bitget(ccxt.async_support.bitget):
         :see: https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
         :see: https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
         :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -885,6 +890,8 @@ class bitget(ccxt.async_support.bitget):
         watch all open positions
         :see: https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`

@@ -1976,9 +1976,9 @@ class oxfun(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for withdraw
         :param bool [params.externalFee]: if False, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-        :param dict [params]: extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
         :param str [params.tfaType]: GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA

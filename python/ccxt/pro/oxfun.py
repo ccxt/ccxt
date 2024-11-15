@@ -92,7 +92,7 @@ class oxfun(ccxt.async_support.oxfun):
         """
         get the list of most recent trades for a particular symbol
         :see: https://docs.ox.fun/?json#trade
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols:
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -597,6 +597,8 @@ class oxfun(ccxt.async_support.oxfun):
         :see: https://docs.ox.fun/?json#position-channel
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int|str [params.tag]: If given it will be echoed in the reply and the max size of tag is 32
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
@@ -823,9 +825,9 @@ class oxfun(ccxt.async_support.oxfun):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.timestamp]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
         :param int [params.recvWindow]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()

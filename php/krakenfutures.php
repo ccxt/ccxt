@@ -1027,6 +1027,7 @@ class krakenfutures extends Exchange {
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount number of contracts
          * @param {float} [$price] limit order $price
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->reduceOnly] set if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
          * @param {bool} [$params->postOnly] set if you wish to make a postOnly order, default is false
          * @param {string} [$params->clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
@@ -1034,6 +1035,7 @@ class krakenfutures extends Exchange {
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
          * @param {string} [$params->triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger $price $type, 'last', 'mark' or 'index', default is 'last'
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1080,6 +1082,7 @@ class krakenfutures extends Exchange {
          * create a list of trade $orders
          * @see https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();

@@ -1464,6 +1464,7 @@ class exmo(Exchange, ImplicitAPI):
         """
         *spot only* fetches information on an order made by the user
         :see: https://documenter.getpostman.com/view/10287440/SzYXWKPi#cf27781e-28e5-4b39-a52d-3110f5d22459  # spot
+        :param str id: order id
         :param str symbol: not used by exmo fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

@@ -1784,6 +1784,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :see: https://api.hitbtc.com/#spot-orders-history
         :see: https://api.hitbtc.com/#futures-orders-history
         :see: https://api.hitbtc.com/#margin-orders-history
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
@@ -2347,7 +2348,7 @@ class hitbtc(Exchange, ImplicitAPI):
         fetches margin mode of the user
         :see: https://api.hitbtc.com/#get-margin-position-parameters
         :see: https://api.hitbtc.com/#get-futures-position-parameters
-        :param str symbol: unified symbol of the market the order was made in
+        :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
         """
@@ -3315,6 +3316,8 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         closes open positions for a market
         :see: https://api.hitbtc.com/#close-all-futures-margin-positions
+         * @param symbol
+         * @param side
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.symbol]: *required* unified market symbol
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'

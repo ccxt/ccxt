@@ -3076,6 +3076,7 @@ class okx extends Exchange {
              * create a list of trade $orders
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-$orders
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -6455,7 +6456,7 @@ class okx extends Exchange {
              * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [param.accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
+             * @param {string} [$params->accountId] if you have multiple $accounts, you must specify the account id to fetch the position mode
              * @return {array} an object detailing whether the market is in hedged or one-way mode
              */
             $accounts = Async\await($this->fetch_accounts());
@@ -7881,7 +7882,7 @@ class okx extends Exchange {
             /**
              * fetches data for an underlying asset that is commonly found in an option chain
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
-             * @param {string} $currency base $currency to fetch an option chain for
+             * @param {string} $code base $currency to fetch an option chain for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
@@ -8359,6 +8360,8 @@ class okx extends Exchange {
              * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
              * @param {string} [$symbol] not used by okx fetchMarginAdjustmentHistory
              * @param {string} [$type] "add" or "reduce"
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @param {boolean} [$params->auto] true if fetching $auto margin increases
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~

@@ -913,7 +913,9 @@ class woofipro(ccxt.async_support.woofipro):
         """
         :see: https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
         watch all open positions
-        :param str[]|None symbols: list of unified market symbols
+        :param str[] [symbols]: list of unified market symbols
+         * @param since timestamp in ms of the earliest position to fetch
+         * @param limit the maximum number of positions to fetch
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

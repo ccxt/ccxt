@@ -1616,10 +1616,10 @@ class poloniexfutures(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str orderIdFills: filles for a specific order(other parameters can be ignored if specified)
-        :param str side: buy or sell
-        :param str type:  limit, market, limit_stop or market_stop
-        :param int endAt: end time(milisecond)
+        :param str [params.orderIdFills]: filles for a specific order(other parameters can be ignored if specified)
+        :param str [params.side]: buy or sell
+        :param str [params.type]:  limit, market, limit_stop or market_stop
+        :param int [params.endAt]: end time(milisecond)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()

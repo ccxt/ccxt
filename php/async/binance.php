@@ -4949,8 +4949,8 @@ class binance extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5824,6 +5824,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
              * @see https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -8654,6 +8655,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/wallet/capital/deposite-address
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] $network for fetch deposit address
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
              */
             Async\await($this->load_markets());
@@ -10416,7 +10418,8 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+             * @param {array} [$params->params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
              * @param {bool} [$params->useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
@@ -12971,7 +12974,7 @@ class binance extends Exchange {
              * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
              * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-             * @param {string[]} [$symbols] a list of unified $market $symbols
+             * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~

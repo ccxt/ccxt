@@ -332,8 +332,6 @@ class cryptocom extends \ccxt\async\cryptocom {
              * get the list of most recent trades for a particular $symbol
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
              * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -346,7 +344,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -376,7 +374,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             /**
              * get the list of most recent trades for a particular $symbol
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -880,6 +878,8 @@ class cryptocom extends \ccxt\async\cryptocom {
              * watch all open positions
              * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-position_balance
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

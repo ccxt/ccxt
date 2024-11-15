@@ -241,16 +241,16 @@ export default class coinex extends coinexRest {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name coinex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+     * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name coinex#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
-         * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, 'spot');
@@ -396,19 +396,19 @@ export default class coinex extends coinexRest {
             this.balance[code] = account;
         }
     }
+    /**
+     * @method
+     * @name coinex#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
+     * @see https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+     * @param {string} [symbol] unified symbol of the market the trades were made in
+     * @param {int} [since] the earliest time in ms to watch trades
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
-         * @see https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
-         * @param {string} [symbol] unified symbol of the market the trades were made in
-         * @param {int} [since] the earliest time in ms to watch trades
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         if (symbol !== undefined) {
@@ -615,33 +615,33 @@ export default class coinex extends coinexRest {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name coinex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[market['symbol']];
     }
+    /**
+     * @method
+     * @name coinex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
         let market = undefined;
@@ -672,35 +672,35 @@ export default class coinex extends coinexRest {
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
     }
+    /**
+     * @method
+     * @name coinex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name coinex#watchTradesForSymbols
+     * @description watch the most recent trades for a list of symbols
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+     * @param {string[]} symbols unified symbols of the markets to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchTradesForSymbols
-         * @description watch the most recent trades for a list of symbols
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
-         * @param {string[]} symbols unified symbols of the markets to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const subscribedSymbols = [];
         const messageHashes = [];
@@ -734,18 +734,18 @@ export default class coinex extends coinexRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name coinex#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const watchOrderBookSubscriptions = {};
         const messageHashes = [];
@@ -795,18 +795,18 @@ export default class coinex extends coinexRest {
         }
         return orderbooks.limit();
     }
+    /**
+     * @method
+     * @name coinex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
@@ -881,20 +881,20 @@ export default class coinex extends coinexRest {
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
         client.resolve(this.orderbooks[symbol], messageHash);
     }
+    /**
+     * @method
+     * @name coinex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.coinex.com/api/v2/spot/order/ws/user-order
+     * @see https://docs.coinex.com/api/v2/futures/order/ws/user-order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://docs.coinex.com/api/v2/spot/order/ws/user-order
-         * @see https://docs.coinex.com/api/v2/futures/order/ws/user-order
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const stop = this.safeBool2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
@@ -1212,17 +1212,17 @@ export default class coinex extends coinexRest {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name coinex#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+     * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinex#watchBidsAsks
-         * @description watches best bid & ask for symbols
-         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
-         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
-         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];

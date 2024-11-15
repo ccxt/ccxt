@@ -1120,9 +1120,11 @@ class bybit extends Exchange {
     public function is_unified_enabled($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
              * @see https://bybit-exchange.github.io/docs/v5/account/account-info
              * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
+             * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
              */
             // The API key of user id must own one of permissions will be allowed to call following API endpoints.
             // SUB UID => "Account Transfer"
@@ -1210,8 +1212,10 @@ class bybit extends Exchange {
     public function upgrade_unified_trade_account($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
              * upgrades the account to unified trade account *warning* this is irreversible
+             * @see https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {any} nothing
              */
             return Async\await($this->privatePostV5AccountUpgradeToUta ($params));
         }) ();
@@ -3919,6 +3923,7 @@ class bybit extends Exchange {
              * create a list of trade $orders
              * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -5568,9 +5573,9 @@ class bybit extends Exchange {
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
             Async\await($this->load_markets());
@@ -8232,7 +8237,7 @@ class bybit extends Exchange {
             /**
              * fetches data for an underlying asset that is commonly found in an option chain
              * @see https://bybit-exchange.github.io/docs/v5/market/tickers
-             * @param {string} $currency base $currency to fetch an option chain for
+             * @param {string} $code base $currency to fetch an option chain for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
              */
@@ -8347,7 +8352,7 @@ class bybit extends Exchange {
             /**
              * fetches historical $positions
              * @see https://bybit-exchange.github.io/docs/v5/position/close-pnl
-             * @param {string} [symbol] unified $market $symbols, $symbols must have the same $subType (must all be linear or all be inverse)
+             * @param {string[]} $symbols a list of unified $market $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, $params["until"] - $since <= 7 days
              * @param {int} [$limit] the maximum amount of records to fetch, default=50, max=100
              * @param {array} $params extra parameters specific to the exchange api endpoint

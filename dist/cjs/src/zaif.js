@@ -138,15 +138,15 @@ class zaif extends zaif$1 {
             },
         });
     }
+    /**
+     * @method
+     * @name zaif#fetchMarkets
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
+     * @description retrieves data on all markets for zaif
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchMarkets
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id12
-         * @description retrieves data on all markets for zaif
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const markets = await this.publicGetCurrencyPairsAll(params);
         //
         //     [
@@ -254,30 +254,30 @@ class zaif extends zaif$1 {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name zaif#fetchBalance
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchBalance
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id10
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostGetInfo(params);
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name zaif#fetchOrderBook
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchOrderBook
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id34
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -326,16 +326,16 @@ class zaif extends zaif$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name zaif#fetchTicker
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchTicker
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id22
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -392,18 +392,18 @@ class zaif extends zaif$1 {
             'fee': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name zaif#fetchTrades
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchTrades
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/PublicAPI.html#id28
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -431,20 +431,20 @@ class zaif extends zaif$1 {
         }
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name zaif#createOrder
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#createOrder
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id23
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         if (type !== 'limit') {
             throw new errors.ExchangeError(this.id + ' createOrder() allows limit orders only');
@@ -462,17 +462,17 @@ class zaif extends zaif$1 {
             'id': response['return']['order_id'].toString(),
         }, market);
     }
+    /**
+     * @method
+     * @name zaif#cancelOrder
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol not used by zaif cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#cancelOrder
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol not used by zaif cancelOrder ()
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const request = {
             'order_id': id,
         };
@@ -550,18 +550,18 @@ class zaif extends zaif$1 {
             'average': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name zaif#fetchOpenOrders
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchOpenOrders
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/MarginTradingAPI.html#id28
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         const request = {
@@ -575,18 +575,18 @@ class zaif extends zaif$1 {
         const response = await this.privatePostActiveOrders(this.extend(request, params));
         return this.parseOrders(response['return'], market, since, limit);
     }
+    /**
+     * @method
+     * @name zaif#fetchClosedOrders
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#fetchClosedOrders
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id24
-         * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let market = undefined;
         const request = {
@@ -606,19 +606,19 @@ class zaif extends zaif$1 {
         const response = await this.privatePostTradeHistory(this.extend(request, params));
         return this.parseOrders(response['return'], market, since, limit);
     }
+    /**
+     * @method
+     * @name zaif#withdraw
+     * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name zaif#withdraw
-         * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
         await this.loadMarkets();

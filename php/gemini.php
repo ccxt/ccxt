@@ -1350,6 +1350,7 @@ class gemini extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://docs.gemini.com/rest-api/#order-status
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

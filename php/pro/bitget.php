@@ -143,6 +143,7 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
              * @param {string} $symbol unified $symbol of the market to unwatch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -441,6 +442,8 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
              * @param {string} $symbol unified $symbol of the market to unwatch the ohlcv for
+             * @param {string} $timeframe
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
@@ -557,6 +560,7 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
@@ -771,7 +775,7 @@ class bitget extends \ccxt\async\bitget {
              * get the list of most recent $trades for a particular $symbol
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -815,6 +819,7 @@ class bitget extends \ccxt\async\bitget {
              * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
              * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
              * @param {string} $symbol unified $symbol of the market to unwatch the trades for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
             Async\await($this->load_markets());
@@ -963,6 +968,8 @@ class bitget extends \ccxt\async\bitget {
              * watch all open positions
              * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}

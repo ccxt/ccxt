@@ -1111,6 +1111,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.kuna.io/docs/get-order-details-by-id
+        :param str id: order id
         :param str symbol: not used by kuna fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
          *

@@ -1029,6 +1029,7 @@ class yobit extends Exchange {
         /**
          * @see https://yobit.net/en/api
          * fetches information on an order made by the user
+         * @param {string} $id order $id
          * @param {string} $symbol not used by yobit fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

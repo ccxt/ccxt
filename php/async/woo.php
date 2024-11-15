@@ -1342,7 +1342,6 @@ class woo extends Exchange {
              * dead man's switch, cancel all orders after the given $timeout
              * @see https://docs.woo.org/#cancel-all-after
              * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
-             * @param {boolean} activated countdown
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
              */
@@ -3137,7 +3136,7 @@ class woo extends Exchange {
              * @see https://docs.woo.org/#update-$leverage-setting
              * @see https://docs.woo.org/#update-futures-$leverage-setting
              * @param {float} $leverage the rate of $leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
-             * @param {string} [symbo] unified $market $symbol (is mandatory for swap markets)
+             * @param {string} [$symbol] unified $market $symbol (is mandatory for swap markets)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
              * @param {string} [$params->position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.

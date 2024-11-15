@@ -4798,8 +4798,8 @@ class binance(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -5627,6 +5627,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
         :see: https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -8179,6 +8180,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/wallet/capital/deposite-address
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.network]: network for fetch deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
         """
         self.load_markets()
@@ -9806,7 +9808,8 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+        :param dict [params.params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
         :param bool [params.useV2]: set to True if you want to use the obsolete endpoint, where some more additional fields were provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
@@ -12088,7 +12091,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-        :param str[] [symbols]: a list of unified market symbols
+        :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`

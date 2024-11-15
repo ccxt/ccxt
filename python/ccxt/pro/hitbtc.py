@@ -130,6 +130,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
          * @ignore
         :param str name: websocket endpoint name
+        :param str messageHashPrefix: prefix for the message hash
         :param str[] [symbols]: unified CCXT symbol(s)
         :param dict [params]: extra parameters specific to the hitbtc api
         """
@@ -176,7 +177,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
          * @ignore
         :param str name: websocket endpoint name
-        :param str [symbol]: unified CCXT symbol
         :param dict [params]: extra parameters specific to the hitbtc api
         """
         await self.load_markets()
@@ -309,7 +309,7 @@ class hitbtc(ccxt.async_support.hitbtc):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str[] [symbols]:
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['method']: 'ticker/{speed}' ,'ticker/price/{speed}', 'ticker/{speed}/batch'(default), or 'ticker/{speed}/price/batch''
         :param str params['speed']: '1s'(default), or '3s'

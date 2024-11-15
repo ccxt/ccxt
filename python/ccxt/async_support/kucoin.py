@@ -1239,6 +1239,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     async def load_migration_status(self, force: bool = False):
         """
+         * @param force
         loads the migration status for the account(hf or not)
         :see: https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
         """
@@ -2508,7 +2509,6 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.stop]: *invalid for isolated margin* True if cancelling all stop orders
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param str [params.orderIds]: *stop orders only* Comma seperated order IDs
-        :param bool [params.stop]: True if cancelling a stop order
         :param bool [params.hf]: False,  # True for hf order
         :returns: Response from the exchange
         """
@@ -2550,7 +2550,6 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: max number of orders to return
         :param dict [params]: exchange specific params
         :param int [params.until]: end time in ms
-        :param bool [params.stop]: True if fetching stop orders
         :param str [params.side]: buy or sell
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
@@ -2693,7 +2692,6 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int [params.currentPage]: *stop orders only* current page
         :param str [params.orderIds]: *stop orders only* comma seperated order ID list
-        :param bool [params.stop]: True if fetching a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4646,6 +4644,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
         :see: https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+         * @param leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange

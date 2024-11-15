@@ -1062,6 +1062,8 @@ class woo extends \ccxt\async\woo {
              * @see https://docs.woo.org/#position-push
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

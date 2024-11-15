@@ -1186,6 +1186,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         fetches historical positions
         :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
         :param str[] [symbols]: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: closing end time
         :param int [params.pageId]: page id
@@ -1963,6 +1965,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

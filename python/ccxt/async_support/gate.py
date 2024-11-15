@@ -917,6 +917,7 @@ class gate(Exchange, ImplicitAPI):
 
     async def load_unified_status(self, params={}):
         """
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         returns unifiedAccount so the user can check if the unified account is enabled
         :see: https://www.gate.io/docs/developers/apiv4/#get-account-detail
         :returns boolean: True or False if the enabled unified account is enabled or not and sets the unifiedAccount option if it is None
@@ -2637,6 +2638,7 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.symbol]: margin only - unified ccxt symbol
         :param boolean [params.unifiedAccount]: default False, set to True for fetching the unified account balance
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         await self.load_unified_status()
@@ -3486,8 +3488,8 @@ class gate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param int [params.until]: end time in ms
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -3886,6 +3888,7 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
         :see: https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -5810,7 +5813,6 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.mode]: 'all' or 'partial' payment mode, extra parameter required for isolated margin
         :param str [params.id]: '34267567' loan id, extra parameter required for isolated margin
@@ -5855,9 +5857,9 @@ class gate(Exchange, ImplicitAPI):
         """
         create a loan to borrow margin
         :see: https://www.gate.io/docs/developers/apiv4/en/#marginuni
+        :param str symbol: unified market symbol, required for isolated margin
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.rate]: '0.0002' or '0.002' extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
@@ -5901,7 +5903,6 @@ class gate(Exchange, ImplicitAPI):
         :see: https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
-        :param str symbol: unified market symbol, required for isolated margin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.rate]: '0.0002' or '0.002' extra parameter required for isolated margin
         :param boolean [params.unifiedAccount]: set to True for borrowing in the unified account
@@ -7237,7 +7238,7 @@ class gate(Exchange, ImplicitAPI):
         """
         fetches data for an underlying asset that is commonly found in an option chain
         :see: https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
-        :param str currency: base currency to fetch an option chain for
+        :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.underlying]: the underlying asset, can be obtained from fetchUnderlyingAssets()
         :param int [params.expiration]: unix timestamp of the expiration time
@@ -7369,9 +7370,9 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch positions for
          *
          * EXCHANGE SPECIFIC PARAMETERS
-        :param int offset: list offset, starting from 0
-        :param str side: long or short
-        :param str pnl: query profit or loss
+        :param int [params.offset]: list offset, starting from 0
+        :param str [params.side]: long or short
+        :param str [params.pnl]: query profit or loss
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()

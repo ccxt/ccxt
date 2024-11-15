@@ -540,6 +540,8 @@ class vertex(ccxt.async_support.vertex):
         :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`

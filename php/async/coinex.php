@@ -3292,6 +3292,7 @@ class coinex extends Exchange {
              * fetches information on an order made by the user
              * @see https://docs.coinex.com/api/v2/spot/order/http/get-order-status
              * @see https://docs.coinex.com/api/v2/futures/order/http/get-order-status
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -3383,9 +3384,11 @@ class coinex extends Exchange {
              * @see https://docs.coinex.com/api/v2/spot/order/http/list-finished-$stop-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-order
              * @see https://docs.coinex.com/api/v2/futures/order/http/list-finished-$stop-order
+             * @param $status
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] set to true for fetching trigger orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching spot margin orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -3723,6 +3726,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] set to true for fetching trigger orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated' for fetching spot margin orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

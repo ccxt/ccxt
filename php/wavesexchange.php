@@ -1465,6 +1465,7 @@ class wavesexchange extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1513,6 +1514,7 @@ class wavesexchange extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+         * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2064,6 +2066,7 @@ class wavesexchange extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch

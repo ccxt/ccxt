@@ -372,7 +372,7 @@ class bitmex(ccxt.async_support.bitmex):
         """
         watch the public liquidations of a trading pair
         :see: https://www.bitmex.com/app/wsAPI#Liquidation
-        :param str symbol: unified CCXT market symbol
+        :param str[] symbols:
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
@@ -704,6 +704,8 @@ class bitmex(ccxt.async_support.bitmex):
         watch all open positions
         :see: https://www.bitmex.com/app/wsAPI#Subscriptions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

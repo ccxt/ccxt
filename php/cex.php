@@ -413,7 +413,7 @@ class cex extends Exchange {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-         * @param {string[]|null} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string} $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
@@ -854,6 +854,7 @@ class cex extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+         * @param $status
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve

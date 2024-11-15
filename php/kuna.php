@@ -1130,6 +1130,7 @@ class kuna extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://docs.kuna.io/docs/get-order-details-by-$id
+         * @param {string} $id order $id
          * @param {string} $symbol not used by kuna fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *

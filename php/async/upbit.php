@@ -1762,6 +1762,7 @@ class upbit extends Exchange {
             /**
              * @see https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
              * fetches information on an order made by the user
+             * @param {string} $id order $id
              * @param {string} $symbol not used by upbit fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

@@ -752,6 +752,8 @@ class bitmart extends \ccxt\async\bitmart {
              * @see https://developer-pro.bitmart.com/en/futures/#private-position-channel
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

@@ -2236,13 +2236,13 @@ class mexc extends Exchange {
              * @ignore
              * create a trade $order
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-$order
-             * @param {string} symbol unified symbol of the $market to create an $order in
+             * @param {string} $market unified symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {string} [$marginMode] only 'isolated' is supported for spot-margin trading
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @param {bool} [$params->postOnly] if true, the $order will only be posted if it will be a maker $order
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
@@ -2297,13 +2297,13 @@ class mexc extends Exchange {
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
              * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
              * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
-             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $market unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+             * @param {string} [$marginMode] only 'isolated' is supported for spot-margin trading
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
              * @param {bool} [$params->postOnly] if true, the order will only be posted if it will be a maker order
              * @param {bool} [$params->reduceOnly] indicates if this order is to reduce the size of a position
@@ -2499,6 +2499,7 @@ class mexc extends Exchange {
              * fetches information on an order made by the user
              * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#$query-order
              * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#$query-the-order-based-on-the-order-number
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] only 'isolated' is supported, for spot-margin trading
@@ -5739,11 +5740,11 @@ class mexc extends Exchange {
              * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] not used by mexc fetchPositionsHistory
              * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange api endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
-             * @param {int} type position type，1 => long, 2 => short
-             * @param {int} page_num current page number, default is 1
+             * @param {int} [$params->type] position type，1 => long, 2 => short
+             * @param {int} [$params->page_num] current page number, default is 1
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
              */
             Async\await($this->load_markets());

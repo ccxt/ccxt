@@ -1000,6 +1000,7 @@ class yobit(Exchange, ImplicitAPI):
         """
         :see: https://yobit.net/en/api
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: not used by yobit fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

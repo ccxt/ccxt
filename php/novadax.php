@@ -853,6 +853,7 @@ class novadax extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://doc.novadax.com/en-US/#get-order-details
+         * @param {string} $id order $id
          * @param {string} $symbol not used by novadax fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

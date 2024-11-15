@@ -982,6 +982,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1153,6 +1154,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -2765,7 +2767,6 @@ class cryptocom(Exchange, ImplicitAPI):
         closes open positions for a market
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
         :param str symbol: Unified CCXT market symbol
-        :param str [marginMode]: not used by cryptocom.closePositions
         :param str [side]: not used by cryptocom.closePositions
         :param dict [params]: extra parameters specific to the okx api endpoint
          *

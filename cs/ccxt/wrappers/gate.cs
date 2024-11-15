@@ -337,6 +337,50 @@ public partial class gate
         var res = await this.fetchTickers(symbols, parameters);
         return new Tickers(res);
     }
+    /// <summary>
+    /// undefined
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : spot, margin, swap or future, if not provided this.options['defaultType'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.settle</term>
+    /// <description>
+    /// string : 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// string : margin only - unified ccxt symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.unifiedAccount</term>
+    /// <description>
+    /// boolean : default false, set to true for fetching the unified account balance
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -598,15 +642,15 @@ public partial class gate
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.until</term>
-    /// <description>
-    /// int : end time in ms
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : end time in ms
     /// </description>
     /// </item>
     /// <item>
@@ -833,6 +877,12 @@ public partial class gate
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders"/>  <br/>
     /// See <see href="https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1822,6 +1872,24 @@ public partial class gate
     /// <term>params.until</term>
     /// <description>
     /// int : the latest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.offset</term>
+    /// <description>
+    /// int : list offset, starting from 0
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : long or short
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.pnl</term>
+    /// <description>
+    /// string : query profit or loss
     /// </description>
     /// </item>
     /// </list>

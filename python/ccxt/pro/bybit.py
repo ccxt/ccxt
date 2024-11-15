@@ -410,7 +410,7 @@ class bybit(ccxt.async_support.bybit):
         unWatches a price ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
-        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -690,8 +690,6 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
-        :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -823,6 +821,7 @@ class bybit(ccxt.async_support.bybit):
         unsubscribe from the orderbook channel
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
         :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -854,7 +853,8 @@ class bybit(ccxt.async_support.bybit):
         """
         unsubscribe from the orderbook channel
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
-        :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param str symbol: symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
@@ -987,6 +987,7 @@ class bybit(ccxt.async_support.bybit):
         unsubscribe from the trades channel
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
         :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -1010,6 +1011,7 @@ class bybit(ccxt.async_support.bybit):
         unsubscribe from the trades channel
         :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
         :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
         await self.load_markets()
@@ -1283,6 +1285,8 @@ class bybit(ccxt.async_support.bybit):
         :see: https://bybit-exchange.github.io/docs/v5/websocket/private/position
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

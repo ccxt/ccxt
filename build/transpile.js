@@ -1460,12 +1460,9 @@ class Transpiler {
                 while (!jsdoc.match(/\*\//)) {
                     i++;
                     const lineTrimmed = methodSplit[i].trim();
-                    // if (lineTrimmed == "*/") {
-                    //     jsdoc += '\n' + jsDocIden + lineTrimmed;
-                    // } else {
-                        jsdoc += '\n' + jsDocIden + lineTrimmed;
-                        jsDocLines.push(jsDocIden + lineTrimmed);
-                    // }
+
+                    jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    jsDocLines.push(jsDocIden + lineTrimmed);
                 }
                 newLines.push(methodSplit[i+1]);
                 i++;

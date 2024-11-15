@@ -98,7 +98,7 @@ class oxfun extends \ccxt\async\oxfun {
             /**
              * get the list of most recent $trades for a particular $symbol
              * @see https://docs.ox.fun/?json#trade
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {string[]} $symbols
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -662,6 +662,8 @@ class oxfun extends \ccxt\async\oxfun {
              * @see https://docs.ox.fun/?json#position-channel
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int|string} [$params->tag] If given it will be echoed in the reply and the max size of tag is 32
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
@@ -911,9 +913,9 @@ class oxfun extends \ccxt\async\oxfun {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->timestamp] in milliseconds. If an order reaches the matching engine and the current $timestamp exceeds $timestamp . recvWindow, then the order will be rejected.
              * @param {int} [$params->recvWindow] in milliseconds. If an order reaches the matching engine and the current $timestamp exceeds $timestamp . recvWindow, then the order will be rejected. If $timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());

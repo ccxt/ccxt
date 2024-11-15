@@ -1883,10 +1883,10 @@ class hashkey(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: network for withdraw
         :param str [params.clientOrderId]: client order id
         :param str [params.platform]: the platform to withdraw to(hashkey, HashKey HK)
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
@@ -2809,6 +2809,7 @@ class hashkey(Exchange, ImplicitAPI):
         :see: https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol(not used by hashkey)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch entry for(default 'spot')
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

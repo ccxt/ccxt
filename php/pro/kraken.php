@@ -506,7 +506,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @see https://docs.kraken.com/api/docs/websocket-v1/ticker
-             * @param {string} symbol unified symbol of the market to fetch the $ticker for
+             * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
              */

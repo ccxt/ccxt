@@ -1875,6 +1875,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+        :param str id: order id
         :param str symbol: not used by kraken fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2009,6 +2010,7 @@ class kraken(Exchange, ImplicitAPI):
         fetch orders by the list of order id
         :see: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
         :param str[]|None ids: list of order id
+         * @param symbol
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict[]: a list of `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

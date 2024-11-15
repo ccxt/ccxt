@@ -455,7 +455,7 @@ class blofin(ccxt.async_support.blofin):
         """
         watches information on multiple orders made by the user across multiple symbols
         :see: https://docs.blofin.com/index.html#ws-order-channel
-        :param str symbol: unified market symbol of the market orders were made in
+        :param str[] symbols:
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -503,6 +503,8 @@ class blofin(ccxt.async_support.blofin):
         :see: https://docs.blofin.com/index.html#ws-positions-channel
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

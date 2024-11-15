@@ -993,6 +993,7 @@ class cryptocom extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-$order-detail
+         * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -1183,6 +1184,7 @@ class cryptocom extends Exchange {
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2916,7 +2918,6 @@ class cryptocom extends Exchange {
          * closes open positions for a $market
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [marginMode] not used by cryptocom.closePositions
          * @param {string} [$side] not used by cryptocom.closePositions
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          *

@@ -417,7 +417,7 @@ class cex(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :see: https://trade.cex.io/docs/#rest-public-api-calls-ticker
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str symbol:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -828,6 +828,7 @@ class cex(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
         :see: https://trade.cex.io/docs/#rest-private-api-calls-orders
+         * @param status
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

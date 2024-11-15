@@ -1643,6 +1643,7 @@ class upbit(Exchange, ImplicitAPI):
         """
         :see: https://docs.upbit.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: not used by upbit fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

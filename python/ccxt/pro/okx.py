@@ -185,7 +185,7 @@ class okx(ccxt.async_support.okx):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str symbols:
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -223,7 +223,7 @@ class okx(ccxt.async_support.okx):
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
         unWatches from the stream channel
-        :param str symbol: unified symbol of the market to fetch trades for
+        :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -605,7 +605,7 @@ class okx(ccxt.async_support.okx):
         """
         watch the public liquidations of a trading pair
         :see: https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-channel
-        :param str symbol: unified CCXT market symbol
+        :param str symbols:
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the okx api endpoint
@@ -691,7 +691,7 @@ class okx(ccxt.async_support.okx):
         """
         watch the private liquidations of a trading pair
         :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
-        :param str symbol: unified CCXT market symbol
+        :param str[] symbols:
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
         :param dict [params]: exchange specific parameters for the okx api endpoint
@@ -1522,6 +1522,8 @@ class okx(ccxt.async_support.okx):
         :see: https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+         * @param since
+         * @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
