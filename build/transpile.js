@@ -926,10 +926,12 @@ class Transpiler {
         // check unified methods and autofill the .has tree
         const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
         const specialMethods = [
+            // ohlcv-related
             'fetchMarkOHLCV',
             'fetchPremiumOHLCV',
             'fetchPremiumIndexOHLCV',
             'fetchIndexOHLCV',
+            // order-related
             'createTrailingAmountOrder',
             'createTrailingAmountOrderWs',
             'createTrailingPercentOrder',
@@ -948,6 +950,16 @@ class Transpiler {
             'createTakeProfitOrderWs',
             'createOrderWithTakeProfitAndStopLoss',
             'createOrderWithTakeProfitAndStopLossWs',
+            'createPostOnlyOrder',
+            'createPostOnlyOrderWs',
+            'createReduceOnlyOrder',
+            'createReduceOnlyOrderWs',
+            'createStopOrder',
+            'createStopOrderWs',
+            'createStopLimitOrder',
+            'createStopLimitOrderWs',
+            'createStopMarketOrder',
+            'createStopMarketOrderWs',
         ];
         for (const methodName of Object.keys (defaultHas)) {
             // if code contains unified method defition, then it should be true
