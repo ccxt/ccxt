@@ -440,9 +440,9 @@ export default class bitfinex extends bitfinexRest {
                     'wallet',
                 ],
             };
-            this.spawn (this.watch, url, method, request, 1);
+            this.watch (url, method, request, 1);
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client: Client, message) {
