@@ -2667,7 +2667,7 @@ export default class phemex extends Exchange {
                     } else {
                         request['takeProfitEp'] = this.toEp (takeProfitTriggerPrice, market);
                     }
-                    const takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTrigger');
+                    const takeProfitTriggerPriceType = this.safeString2 (takeProfit, 'triggerPriceType', 'tpTrigger');
                     if (takeProfitTriggerPriceType !== undefined) {
                         request['tpTrigger']  = this.safeString (this.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType);
                     }
