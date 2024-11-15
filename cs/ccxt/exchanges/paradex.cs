@@ -1080,18 +1080,23 @@ public partial class paradex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object cachedToken = this.safeString(this.options, "authToken");
+        object now = this.nonce();
         if (isTrue(!isEqual(cachedToken, null)))
         {
-            return cachedToken;
+            object cachedExpires = this.safeInteger(this.options, "expires");
+            if (isTrue(isLessThan(now, cachedExpires)))
+            {
+                return cachedToken;
+            }
         }
         object account = await this.retrieveAccount();
-        object now = this.nonce();
+        object expires = add(now, multiply(86400, 7));
         object req = new Dictionary<string, object>() {
             { "method", "POST" },
             { "path", "/v1/auth" },
             { "body", "" },
             { "timestamp", now },
-            { "expiration", add(now, multiply(86400, 7)) },
+            { "expiration", expires },
         };
         object domain = await this.prepareParadexDomain();
         object messageTypes = new Dictionary<string, object>() {
@@ -1126,6 +1131,7 @@ public partial class paradex : Exchange
         //
         object token = this.safeString(response, "jwt_token");
         ((IDictionary<string,object>)this.options)["authToken"] = token;
+        ((IDictionary<string,object>)this.options)["expires"] = expires;
         return token;
     }
 

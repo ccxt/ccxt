@@ -1049,17 +1049,21 @@ class paradex extends Exchange {
     public function authenticate_rest($params = array ()) {
         return Async\async(function () use ($params) {
             $cachedToken = $this->safe_string($this->options, 'authToken');
+            $now = $this->nonce();
             if ($cachedToken !== null) {
-                return $cachedToken;
+                $cachedExpires = $this->safe_integer($this->options, 'expires');
+                if ($now < $cachedExpires) {
+                    return $cachedToken;
+                }
             }
             $account = Async\await($this->retrieve_account());
-            $now = $this->nonce();
+            $expires = $now + 86400 * 7;
             $req = array(
                 'method' => 'POST',
                 'path' => '/v1/auth',
                 'body' => '',
                 'timestamp' => $now,
-                'expiration' => $now + 86400 * 7,
+                'expiration' => $expires,
             );
             $domain = Async\await($this->prepare_paradex_domain());
             $messageTypes = array(
@@ -1085,6 +1089,7 @@ class paradex extends Exchange {
             //
             $token = $this->safe_string($response, 'jwt_token');
             $this->options['authToken'] = $token;
+            $this->options['expires'] = $expires;
             return $token;
         }) ();
     }

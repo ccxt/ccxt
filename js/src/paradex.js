@@ -1019,17 +1019,21 @@ export default class paradex extends Exchange {
     }
     async authenticateRest(params = {}) {
         const cachedToken = this.safeString(this.options, 'authToken');
+        const now = this.nonce();
         if (cachedToken !== undefined) {
-            return cachedToken;
+            const cachedExpires = this.safeInteger(this.options, 'expires');
+            if (now < cachedExpires) {
+                return cachedToken;
+            }
         }
         const account = await this.retrieveAccount();
-        const now = this.nonce();
+        const expires = now + 86400 * 7;
         const req = {
             'method': 'POST',
             'path': '/v1/auth',
             'body': '',
             'timestamp': now,
-            'expiration': now + 86400 * 7,
+            'expiration': expires,
         };
         const domain = await this.prepareParadexDomain();
         const messageTypes = {
@@ -1055,6 +1059,7 @@ export default class paradex extends Exchange {
         //
         const token = this.safeString(response, 'jwt_token');
         this.options['authToken'] = token;
+        this.options['expires'] = expires;
         return token;
     }
     parseOrder(order, market = undefined) {

@@ -989,16 +989,19 @@ class paradex(Exchange, ImplicitAPI):
 
     async def authenticate_rest(self, params={}):
         cachedToken = self.safe_string(self.options, 'authToken')
-        if cachedToken is not None:
-            return cachedToken
-        account = await self.retrieve_account()
         now = self.nonce()
+        if cachedToken is not None:
+            cachedExpires = self.safe_integer(self.options, 'expires')
+            if now < cachedExpires:
+                return cachedToken
+        account = await self.retrieve_account()
+        expires = now + 86400 * 7
         req = {
             'method': 'POST',
             'path': '/v1/auth',
             'body': '',
             'timestamp': now,
-            'expiration': now + 86400 * 7,
+            'expiration': expires,
         }
         domain = await self.prepare_paradex_domain()
         messageTypes = {
@@ -1024,6 +1027,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         token = self.safe_string(response, 'jwt_token')
         self.options['authToken'] = token
+        self.options['expires'] = expires
         return token
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
