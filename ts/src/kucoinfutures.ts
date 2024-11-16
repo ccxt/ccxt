@@ -2441,6 +2441,8 @@ export default class kucoinfutures extends kucoin {
      * @method
      * @name kucoinfutures#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -2449,40 +2451,92 @@ export default class kucoinfutures extends kucoin {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
-            throw new BadRequest (this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
-        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request: Dict = {
-            'currency': this.safeString (currency, 'id'), // Currency,including XBT,USDT
+            'currency': this.safeString (currency, 'id'),
             'amount': amountToPrecision,
         };
-        // transfer from usdm futures wallet to spot wallet
-        const response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
-        //
-        //    {
-        //        "code": "200000",
-        //        "data": {
-        //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
-        //        }
-        //    }
-        //
-        const data = this.safeValue (response, 'data');
+        const toAccountString = this.parseTransferType (toAccount);
+        let response = undefined;
+        if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
+            request['recAccountType'] = toAccountString;
+            response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "6738754373ceee00011ec3f8",
+            //             "bizNo": "6738754373ceee00011ec3f7",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": "",
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": "",
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "USDT",
+            //             "amount": "5",
+            //             "fee": "0",
+            //             "sn": 1519769124846692,
+            //             "reason": "",
+            //             "createdAt": 1731753283000,
+            //             "updatedAt": 1731753283000
+            //         }
+            //     }
+            //
+        } else if (toAccount === 'future' || toAccount === 'swap') {
+            request['payAccountType'] = 'MAIN';
+            response = await this.futuresPrivatePostTransferIn (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest (this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
+        }
+        const data = this.safeDict (response, 'data', {});
         return this.extend (this.parseTransfer (data, currency), {
             'amount': this.parseNumber (amountToPrecision),
-            'fromAccount': 'future',
-            'toAccount': 'spot',
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
         });
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
-        // transfer
+        // transfer to spot or funding account
         //
         //     {
         //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+        //     }
+        //
+        // transfer to future account
+        //
+        //     {
+        //         "applyId": "6738754373ceee00011ec3f8",
+        //         "bizNo": "6738754373ceee00011ec3f7",
+        //         "payAccountType": "CONTRACT",
+        //         "payTag": "DEFAULT",
+        //         "remark": "",
+        //         "recAccountType": "MAIN",
+        //         "recTag": "DEFAULT",
+        //         "recRemark": "",
+        //         "recSystem": "KUCOIN",
+        //         "status": "PROCESSING",
+        //         "currency": "USDT",
+        //         "amount": "5",
+        //         "fee": "0",
+        //         "sn": 1519769124846692,
+        //         "reason": "",
+        //         "createdAt": 1731753283000,
+        //         "updatedAt": 1731753283000
         //     }
         //
         const timestamp = this.safeInteger (transfer, 'updatedAt');
@@ -2491,7 +2545,7 @@ export default class kucoinfutures extends kucoin {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (undefined, currency),
-            'amount': undefined,
+            'amount': this.safeNumber (transfer, 'amount'),
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': this.safeString (transfer, 'status'),
@@ -2504,6 +2558,14 @@ export default class kucoinfutures extends kucoin {
             'PROCESSING': 'pending',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseTransferType (transferType: Str): Str {
+        const transferTypes: Dict = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        };
+        return this.safeStringUpper (transferTypes, transferType, transferType);
     }
 
     /**
