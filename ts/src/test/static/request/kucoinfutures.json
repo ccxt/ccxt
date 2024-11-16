@@ -737,13 +737,13 @@
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"recAccountType\":\"MAIN\"}"
             },
             {
-                "description": "transfer from spot to future account",
+                "description": "transfer from funding to future account",
                 "method": "transfer",
                 "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
                 "input": [
                   "USDT",
                   5,
-                  "spot",
+                  "funding",
                   "future"
                 ],
                 "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"MAIN\"}"
@@ -758,7 +758,7 @@
                   "spot",
                   "swap"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"MAIN\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"TRADE\"}"
             }
         ]
     }
