@@ -507,7 +507,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-platform-status
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
              */
@@ -531,7 +533,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitfinex2
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-conf
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -662,7 +666,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-conf
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -854,7 +860,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for $balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-wallets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$balance-structure $balance structure~
              */
@@ -900,7 +908,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -1049,7 +1059,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-book
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
              * @param {int} [$limit] the maximum $amount of $order book entries to return, bitfinex only allows 1, 25, or 100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1169,7 +1181,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-$tickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1239,7 +1253,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-$ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1343,7 +1359,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-$trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch, default 120, max 10000
@@ -1396,7 +1414,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1668,7 +1688,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create an $order on the exchange
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-submit-$order
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
@@ -1753,7 +1775,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-order-multi
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1815,7 +1839,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open $orders
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
+             *
              * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1838,7 +1864,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$order
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol Not used by bitfinex2 cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1873,7 +1901,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders at the same time
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1954,8 +1984,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by it's $id
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1977,8 +2009,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open $order by it's $id
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-$orders-by-$symbol
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2000,8 +2034,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2069,8 +2105,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2153,7 +2191,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-order-trades
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -2185,8 +2225,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-trades
              * @see https://docs.bitfinex.com/reference/rest-auth-trades-by-$symbol
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2224,7 +2266,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit address
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-deposit-address
+             *
              * @param {string} $code unified currency $code of the currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -2241,7 +2285,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-deposit-$address
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -2458,7 +2504,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-summary
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
@@ -2571,8 +2619,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://docs.bitfinex.com/reference/movement-info
              * @see https://docs.bitfinex.com/reference/rest-auth-movements
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -2632,7 +2682,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-withdraw
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2723,7 +2775,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-positions
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -2981,7 +3035,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-ledgers
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null, max is 2500
@@ -3041,7 +3097,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rate for multiple $symbols
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             *
              * @param {string[]} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -3093,7 +3151,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] timestamp in ms of the earliest funding $rate entry
              * @param {int} [$limit] max number of funding $rate entrys to return
@@ -3277,7 +3337,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a contract trading pair
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=open-interest-structure open interest structure~
@@ -3327,7 +3389,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * retrieves the open interest history of a currency
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-derivatives-status-history
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {string} $timeframe the time period of each row of data, not used by bitfinex2
              * @param {int} [$since] the time in ms of the earliest record to retrieve unix timestamp
@@ -3465,7 +3529,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the public liquidations of a trading pair
+             *
              * @see https://docs.bitfinex.com/reference/rest-public-liquidations
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -3557,7 +3623,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * either adds or reduces margin in a swap position in order to set the margin to a specific value
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-deriv-pos-collateral-set
+             *
              * @param {string} $symbol unified $market $symbol of the $market to set margin in
              * @param {float} $amount the $amount to set the margin to
              * @param {array} [$params] parameters specific to the exchange API endpoint
@@ -3615,8 +3683,10 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders
              * @see https://docs.bitfinex.com/reference/rest-auth-retrieve-orders-by-$symbol
+             *
              * @param {string} $id the $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3682,7 +3752,9 @@ class bitfinex2 extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
+             *
              * @see https://docs.bitfinex.com/reference/rest-auth-update-$order
+             *
              * @param {string} $id edit $order $id
              * @param {string} $symbol unified $symbol of the $market to edit an $order in
              * @param {string} $type 'market' or 'limit'

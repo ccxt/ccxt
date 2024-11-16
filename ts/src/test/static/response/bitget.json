@@ -1573,6 +1573,128 @@
                   }
                 ]
             }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731569715346",
+                  "data": {
+                    "marginCoin": "USDT",
+                    "locked": "0",
+                    "available": "19.88811074",
+                    "crossedMaxAvailable": "19.88811074",
+                    "isolatedMaxAvailable": "19.88811074",
+                    "maxTransferOut": "19.88811074",
+                    "accountEquity": "19.88811074",
+                    "usdtEquity": "19.888110749166",
+                    "btcEquity": "0.000221569208",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "marginCoin": "USDT",
+                    "locked": "0",
+                    "available": "19.88811074",
+                    "crossedMaxAvailable": "19.88811074",
+                    "isolatedMaxAvailable": "19.88811074",
+                    "maxTransferOut": "19.88811074",
+                    "accountEquity": "19.88811074",
+                    "usdtEquity": "19.888110749166",
+                    "btcEquity": "0.000221569208",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "cross"
+                }
+            },
+            {
+                "description": "fetch inverse swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731569580954",
+                  "data": {
+                    "marginCoin": "BTC",
+                    "locked": "0",
+                    "available": "0",
+                    "crossedMaxAvailable": "0",
+                    "isolatedMaxAvailable": "0",
+                    "maxTransferOut": "0",
+                    "accountEquity": "0",
+                    "usdtEquity": "0.000028085535",
+                    "btcEquity": "0.000000000312",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "marginCoin": "BTC",
+                    "locked": "0",
+                    "available": "0",
+                    "crossedMaxAvailable": "0",
+                    "isolatedMaxAvailable": "0",
+                    "maxTransferOut": "0",
+                    "accountEquity": "0",
+                    "usdtEquity": "0.000028085535",
+                    "btcEquity": "0.000000000312",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "cross"
+                }
+            }
         ]
     }
 }

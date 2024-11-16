@@ -801,9 +801,11 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
-        :see: https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
+        https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+        https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: wallet type, 'spot', 'margin', or 'swap'
         :param str [params.marginMode]: 'cross' or None, for spot margin trading, value of 'isolated' is invalid
@@ -1012,8 +1014,10 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://ascendex.github.io/ascendex-pro-api/#ticker
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+
+        https://ascendex.github.io/ascendex-pro-api/#ticker
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1171,7 +1175,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://ascendex.github.io/ascendex-pro-api/#market-trades
+
+        https://ascendex.github.io/ascendex-pro-api/#market-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1437,7 +1443,7 @@ class ascendex(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         helper function to build request
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1510,8 +1516,10 @@ class ascendex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order on the exchange
-        :see: https://ascendex.github.io/ascendex-pro-api/#place-order
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+
+        https://ascendex.github.io/ascendex-pro-api/#place-order
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+
         :param str symbol: unified CCXT market symbol
         :param str type: "limit" or "market"
         :param str side: "buy" or "sell"
@@ -1606,8 +1614,10 @@ class ascendex(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+
+        https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
@@ -1692,8 +1702,10 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://ascendex.github.io/ascendex-pro-api/#query-order
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+
+        https://ascendex.github.io/ascendex-pro-api/#query-order
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1795,8 +1807,10 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://ascendex.github.io/ascendex-pro-api/#list-open-orders
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
+
+        https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1906,8 +1920,10 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
+
+        https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2069,8 +2085,10 @@ class ascendex(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-order
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
+
+        https://ascendex.github.io/ascendex-pro-api/#cancel-order
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2177,8 +2195,10 @@ class ascendex(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
+
+        https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list with a single `order structure <https://docs.ccxt.com/#/?id=order-structure>` with the response assigned to the info property
@@ -2278,7 +2298,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+
+        https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code for deposit chain
@@ -2769,7 +2791,9 @@ class ascendex(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2796,7 +2820,9 @@ class ascendex(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2962,7 +2988,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+
+        https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -3039,7 +3067,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -3111,7 +3141,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
         """
         fetches the set margin mode of the user
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/#/?id=margin-mode-structure>`
@@ -3180,7 +3212,9 @@ class ascendex(Exchange, ImplicitAPI):
     def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract markets
-        :see: https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`

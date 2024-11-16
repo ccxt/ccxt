@@ -118,7 +118,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -131,7 +133,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -188,7 +192,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://docs.bitvavo.com/#tag/Market-data-subscription-WebSocket/paths/~1subscribeTicker24h/post
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -659,7 +665,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+             *
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -690,7 +698,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -710,7 +720,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+             *
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
@@ -727,7 +739,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+             *
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
@@ -768,7 +782,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+             *
              * fetches information on an order made by the user
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -792,7 +808,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/get
+             *
              * fetches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -850,7 +868,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Trades
+             *
              * fetch all trades made by the user
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -941,7 +961,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_withdrawals_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+             *
              * fetch all withdrawals made from an account
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -983,7 +1005,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Market-Data/paths/{1}market~~1candles/get
+             *
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1003,7 +1027,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_deposits_ws(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+             *
              * fetch all $deposits made to an account
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
@@ -1045,7 +1071,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_trading_fees_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+             *
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
@@ -1059,7 +1087,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_markets_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+             *
              * retrieves data on all markets for bitvavo
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
@@ -1071,7 +1101,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_currencies_ws($params = array ()) {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+             *
              * fetches all available currencies on an exchange
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} an associative dictionary of currencies
@@ -1132,7 +1164,9 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function fetch_balance_ws($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+             *
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~

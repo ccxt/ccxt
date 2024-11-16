@@ -562,6 +562,52 @@
                     }
                 }
             }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "isolated"
+                }
+            },
+            {
+                "description": "fetch inverse swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "symbol": "XBTUSDM",
+                    "marginMode": "ISOLATED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "XBTUSDM",
+                    "marginMode": "ISOLATED"
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "isolated"
+                }
+            }
         ]
     }
 }

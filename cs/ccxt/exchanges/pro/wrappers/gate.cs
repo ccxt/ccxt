@@ -130,6 +130,12 @@ public partial class gate
     /// <remarks>
     /// See <see href="https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
