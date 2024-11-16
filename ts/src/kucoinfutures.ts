@@ -2980,6 +2980,7 @@ export default class kucoinfutures extends kucoin {
         /**
          * @ignore
          * @method
+         * @name kucoinfutures#parseMarketLeverageTiers
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
          */
@@ -3228,7 +3229,7 @@ export default class kucoinfutures extends kucoin {
 
     /**
      * @method
-     * @name kucoin#fetchLeverage
+     * @name kucoinfutures#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
      * @param {string} symbol unified market symbol

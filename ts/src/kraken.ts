@@ -3101,6 +3101,8 @@ export default class kraken extends Exchange {
     }
 
     /**
+     * @method
+     * @name kraken#transferOut
      * @description transfer from spot wallet to futures wallet
      * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
      * @param {str} code Unified currency code
