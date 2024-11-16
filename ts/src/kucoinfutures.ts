@@ -2493,7 +2493,7 @@ export default class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-        } else if (toAccount === 'future' || toAccount === 'swap') {
+        } else if (toAccount === 'future' || toAccount === 'swap' || toAccount === 'contract') {
             request['payAccountType'] = this.parseTransferType (fromAccount);
             response = await this.futuresPrivatePostTransferIn (this.extend (request, params));
             //
