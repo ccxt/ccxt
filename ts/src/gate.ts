@@ -3153,7 +3153,8 @@ export default class gate extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        let request: Dict = {};
+        [ request, params ] = this.prepareRequest (market, undefined, params);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -3165,7 +3166,7 @@ export default class gate extends Exchange {
             params = this.omit (params, 'until');
             request['to'] = this.parseToInt (until / 1000);
         }
-        const response = await this.publicFuturesGetSettleFundingRate (this.extend (request, query));
+        const response = await this.publicFuturesGetSettleFundingRate (this.extend (request, params));
         //
         //     {
         //         "r": "0.00063521",
