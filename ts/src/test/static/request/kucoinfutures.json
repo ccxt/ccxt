@@ -2,7 +2,8 @@
     "exchange": "kucoinfutures",
     "skipKeys": [
         "clientOid",
-        "to"
+        "to",
+        "bizNo"
     ],
     "outputType": "json",
     "methods": {
