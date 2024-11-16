@@ -1100,8 +1100,7 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId');
         const response = this.safeValue (message, 'response');
         const currencies = this.parseCurrencies (response);
         client.resolve (currencies, messageHash);
@@ -1214,10 +1213,9 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response', {});
         const markets = this.parseMarkets (response);
-        const messageHash = this.buildMessageHash (action, response);
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (markets, messageHash);
     }
 
