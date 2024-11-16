@@ -323,10 +323,9 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response');
         const ohlcv = this.parseOHLCVs (response, undefined, undefined, undefined);
-        const messageHash = this.buildMessageHash (action);
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (ohlcv, messageHash);
     }
 
@@ -745,14 +744,15 @@ export default class bitvavo extends bitvavoRest {
         //        }]
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response');
-        const firstRawOrder = this.safeValue (response, 0, {});
-        const marketId = this.safeString (firstRawOrder, 'market');
+        // const action = this.safeString (message, 'action');
+        const response = this.safeList (message, 'response');
+        // const firstRawOrder = this.safeValue (response, 0, {});
+        // const marketId = this.safeString (firstRawOrder, 'market');
         const orders = this.parseOrders (response);
-        let messageHash = this.buildMessageHash (action, { 'market': marketId });
-        client.resolve (orders, messageHash);
-        messageHash = this.buildMessageHash (action, message);
+        // let messageHash = this.buildMessageHash (action, { 'market': marketId });
+        // client.resolve (orders, messageHash);
+        // messageHash = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (orders, messageHash);
     }
 
@@ -802,13 +802,20 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
+    requestId () {
+        const ts = this.milliseconds ().toString ();
+        const randomNumber = this.randNumber (4);
+        const randomPart = randomNumber.toString ();
+        return parseInt (ts + randomPart);
+    }
+
     async watchRequest (action, request) {
+        const messageHash = this.requestId ();
+        const messageHashStr = messageHash.toString ();
         request['action'] = action;
-        const messageHash = this.buildMessageHash (action, request);
-        this.checkMessageHashDoesNotExist (messageHash);
+        request['requestId'] = messageHash;
         const url = this.urls['api']['ws'];
-        const randomSubHash = this.randNumber (5).toString () + ':' + messageHash;
-        return await this.watch (url, messageHash, request, randomSubHash);
+        return await this.watch (url, messageHashStr, request, messageHashStr);
     }
 
     /**
@@ -880,12 +887,12 @@ export default class bitvavo extends bitvavoRest {
         //    }
         //
         //
-        const action = this.safeString (message, 'action');
-        const response = this.safeValue (message, 'response');
-        const firstRawTrade = this.safeValue (response, 0, {});
-        const marketId = this.safeString (firstRawTrade, 'market');
+        // const action = this.safeString (message, 'action');
+        const response = this.safeList (message, 'response');
+        // const marketId = this.safeString (firstRawTrade, 'market');
         const trades = this.parseTrades (response, undefined, undefined, undefined);
-        const messageHash = this.buildMessageHash (action, { 'market': marketId });
+        // const messageHash = this.buildMessageHash (action, { 'market': marketId });
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (trades, messageHash);
     }
 
@@ -920,8 +927,9 @@ export default class bitvavo extends bitvavoRest {
         //        }
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId');
         const response = this.safeValue (message, 'response');
         const withdraw = this.parseTransaction (response);
         client.resolve (withdraw, messageHash);
@@ -962,9 +970,10 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
-        const response = this.safeValue (message, 'response');
+        // const action = this.safeString (message, 'action');
+        // const messageHash = this.buildMessageHash (action, message);
+        const response = this.safeList (message, 'response');
+        const messageHash = this.safeString (message, 'requestId');
         const withdrawals = this.parseTransactions (response, undefined, undefined, undefined, { 'type': 'withdrawal' });
         client.resolve (withdrawals, messageHash);
     }
@@ -1111,8 +1120,7 @@ export default class bitvavo extends bitvavoRest {
         //        }
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId');
         const response = this.safeValue (message, 'response');
         const fees = this.parseTradingFees (response);
         client.resolve (fees, messageHash);
@@ -1145,8 +1153,7 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action', 'privateGetBalance');
-        const messageHash = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId');
         const response = this.safeValue (message, 'response', []);
         const balance = this.parseBalance (response);
         client.resolve (balance, messageHash);
@@ -1181,10 +1188,9 @@ export default class bitvavo extends bitvavoRest {
         //        }
         //    }
         //
-        const action = this.safeString (message, 'action');
         const response = this.safeValue (message, 'response', {});
         const order = this.parseOrder (response);
-        const messageHash = this.buildMessageHash (action, response);
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (order, messageHash);
     }
 
@@ -1229,19 +1235,6 @@ export default class bitvavo extends bitvavoRest {
             messageHash = method.call (this, action, params);
         }
         return messageHash;
-    }
-
-    checkMessageHashDoesNotExist (messageHash) {
-        const supressMultipleWsRequestsError = this.safeBool (this.options, 'supressMultipleWsRequestsError', false);
-        if (!supressMultipleWsRequestsError) {
-            const client = this.safeValue (this.clients, this.urls['api']['ws']) as Client;
-            if (client !== undefined) {
-                const future = this.safeValue (client.futures, messageHash);
-                if (future !== undefined) {
-                    throw new ExchangeError (this.id + ' a similar request with messageHash ' + messageHash + ' is already pending, you must wait for a response, or turn off this error by setting supressMultipleWsRequestsError in the options to true');
-                }
-            }
-        }
     }
 
     actionAndMarketMessageHash (action, params = {}) {
