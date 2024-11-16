@@ -1033,10 +1033,9 @@ export default class bitvavo extends bitvavoRest {
         //        ]
         //    }
         //
-        const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
         const response = this.safeValue (message, 'response');
         const deposits = this.parseTransactions (response, undefined, undefined, undefined, { 'type': 'deposit' });
+        const messageHash = this.safeString (message, 'requestId');
         client.resolve (deposits, messageHash);
     }
 
