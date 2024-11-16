@@ -504,6 +504,13 @@ class phemex(Exchange, ImplicitAPI):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'triggerPriceTypesMap': {
+                    'last': 'ByLastPrice',
+                    'mark': 'ByMarkPrice',
+                    'index': 'ByIndexPrice',
+                    'ask': 'ByAskPrice',
+                    'bid': 'ByBidPrice',
+                },
             },
         })
 
@@ -2070,6 +2077,7 @@ class phemex(Exchange, ImplicitAPI):
             'PartiallyFilled': 'open',
             'Filled': 'closed',
             'Canceled': 'canceled',
+            'Suspended': 'canceled',
             '1': 'open',
             '2': 'canceled',
             '3': 'closed',
@@ -2539,13 +2547,10 @@ class phemex(Exchange, ImplicitAPI):
                         request['stopLossEp'] = self.to_ep(stopLossTriggerPrice, market)
                     stopLossTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'slTrigger')
                     if stopLossTriggerPriceType is not None:
-                        if market['settle'] == 'USDT':
-                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice') and (stopLossTriggerPriceType != 'ByIndexPrice') and (stopLossTriggerPriceType != 'ByAskPrice') and (stopLossTriggerPriceType != 'ByBidPrice') and (stopLossTriggerPriceType != 'ByMarkPriceLimit') and (stopLossTriggerPriceType != 'ByLastPriceLimit'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
-                        else:
-                            if (stopLossTriggerPriceType != 'ByMarkPrice') and (stopLossTriggerPriceType != 'ByLastPrice'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
-                        request['slTrigger'] = stopLossTriggerPriceType
+                        request['slTrigger'] = self.safe_string(self.options['triggerPriceTypesMap'], stopLossTriggerPriceType, stopLossTriggerPriceType)
+                    slLimitPrice = self.safe_string(stopLoss, 'price')
+                    if slLimitPrice is not None:
+                        request['slPxRp'] = self.price_to_precision(symbol, slLimitPrice)
                 if takeProfitDefined:
                     takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     if takeProfitTriggerPrice is None:
@@ -2554,15 +2559,12 @@ class phemex(Exchange, ImplicitAPI):
                         request['takeProfitRp'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     else:
                         request['takeProfitEp'] = self.to_ep(takeProfitTriggerPrice, market)
-                    takeProfitTriggerPriceType = self.safe_string_2(stopLoss, 'triggerPriceType', 'tpTrigger')
+                    takeProfitTriggerPriceType = self.safe_string_2(takeProfit, 'triggerPriceType', 'tpTrigger')
                     if takeProfitTriggerPriceType is not None:
-                        if market['settle'] == 'USDT':
-                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice') and (takeProfitTriggerPriceType != 'ByIndexPrice') and (takeProfitTriggerPriceType != 'ByAskPrice') and (takeProfitTriggerPriceType != 'ByBidPrice') and (takeProfitTriggerPriceType != 'ByMarkPriceLimit') and (takeProfitTriggerPriceType != 'ByLastPriceLimit'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"')
-                        else:
-                            if (takeProfitTriggerPriceType != 'ByMarkPrice') and (takeProfitTriggerPriceType != 'ByLastPrice'):
-                                raise InvalidOrder(self.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"')
-                        request['tpTrigger'] = takeProfitTriggerPriceType
+                        request['tpTrigger'] = self.safe_string(self.options['triggerPriceTypesMap'], takeProfitTriggerPriceType, takeProfitTriggerPriceType)
+                    tpLimitPrice = self.safe_string(takeProfit, 'price')
+                    if tpLimitPrice is not None:
+                        request['tpPxRp'] = self.price_to_precision(symbol, tpLimitPrice)
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
             if market['settle'] == 'USDT':
                 request['priceRp'] = self.price_to_precision(symbol, price)

@@ -167,7 +167,7 @@ export default class kucoinfutures extends kucoin {
      * @method
      * @name kucoinfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/futures/#place-an-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
      * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
@@ -183,6 +183,7 @@ export default class kucoinfutures extends kucoin {
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed

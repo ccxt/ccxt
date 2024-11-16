@@ -1432,7 +1432,7 @@ class kucoinfutures extends kucoin {
         /**
          * Create an order on the exchange
          *
-         * @see https://docs.kucoin.com/futures/#place-an-order
+         * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
          * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
          *
          * @param {string} $symbol Unified CCXT $market $symbol
@@ -1449,6 +1449,7 @@ class kucoinfutures extends kucoin {
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
          * @param {string} [$params->timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {float} [$params->cost] the cost of the order in units of USDT
          * ----------------- Exchange Specific Parameters -----------------
          * @param {float} [$params->leverage] Leverage size of the order
          * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1543,18 +1544,23 @@ class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
-        if ($amount < 1) {
-            throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
-        }
-        $preciseAmount = intval($this->amount_to_precision($symbol, $amount));
         $request = array(
             'clientOid' => $clientOrderId,
             'side' => $side,
             'symbol' => $market['id'],
             'type' => $type, // limit or $market
-            'size' => $preciseAmount,
             'leverage' => 1,
         );
+        $cost = $this->safe_string($params, 'cost');
+        $params = $this->omit($params, 'cost');
+        if ($cost !== null) {
+            $request['valueQty'] = $this->cost_to_precision($symbol, $cost);
+        } else {
+            if ($amount < 1) {
+                throw new InvalidOrder($this->id . ' createOrder() minimum contract order $amount is 1');
+            }
+            $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+        }
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');

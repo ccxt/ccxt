@@ -1456,7 +1456,7 @@ public partial class kucoinfutures : kucoin
      * @method
      * @name kucoinfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/futures/#place-an-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
      * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
@@ -1472,6 +1472,7 @@ public partial class kucoinfutures : kucoin
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1578,19 +1579,26 @@ public partial class kucoinfutures : kucoin
         // required param, cannot be used twice
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId", this.uuid());
         parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"});
-        if (isTrue(isLessThan(amount, 1)))
-        {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
-        }
-        object preciseAmount = parseInt(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
             { "clientOid", clientOrderId },
             { "side", side },
             { "symbol", getValue(market, "id") },
             { "type", type },
-            { "size", preciseAmount },
             { "leverage", 1 },
         };
+        object cost = this.safeString(parameters, "cost");
+        parameters = this.omit(parameters, "cost");
+        if (isTrue(!isEqual(cost, null)))
+        {
+            ((IDictionary<string,object>)request)["valueQty"] = this.costToPrecision(symbol, cost);
+        } else
+        {
+            if (isTrue(isLessThan(amount, 1)))
+            {
+                throw new InvalidOrder ((string)add(this.id, " createOrder() minimum contract order amount is 1")) ;
+            }
+            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];

@@ -1404,7 +1404,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         """
         Create an order on the exchange
 
-        https://docs.kucoin.com/futures/#place-an-order
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
         https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
 
         :param str symbol: Unified CCXT market symbol
@@ -1421,6 +1421,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
+        :param float [params.cost]: the cost of the order in units of USDT
  ----------------- Exchange Specific Parameters -----------------
         :param float [params.leverage]: Leverage size of the order
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
@@ -1510,17 +1511,21 @@ class kucoinfutures(kucoin, ImplicitAPI):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        if amount < 1:
-            raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
-        preciseAmount = int(self.amount_to_precision(symbol, amount))
         request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type,  # limit or market
-            'size': preciseAmount,
             'leverage': 1,
         }
+        cost = self.safe_string(params, 'cost')
+        params = self.omit(params, 'cost')
+        if cost is not None:
+            request['valueQty'] = self.cost_to_precision(symbol, cost)
+        else:
+            if amount < 1:
+                raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')

@@ -494,6 +494,13 @@ class phemex extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'triggerPriceTypesMap' => array(
+                    'last' => 'ByLastPrice',
+                    'mark' => 'ByMarkPrice',
+                    'index' => 'ByIndexPrice',
+                    'ask' => 'ByAskPrice',
+                    'bid' => 'ByBidPrice',
+                ),
             ),
         ));
     }
@@ -2153,6 +2160,7 @@ class phemex extends Exchange {
             'PartiallyFilled' => 'open',
             'Filled' => 'closed',
             'Canceled' => 'canceled',
+            'Suspended' => 'canceled',
             '1' => 'open',
             '2' => 'canceled',
             '3' => 'closed',
@@ -2657,16 +2665,11 @@ class phemex extends Exchange {
                         }
                         $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTrigger');
                         if ($stopLossTriggerPriceType !== null) {
-                            if ($market['settle'] === 'USDT') {
-                                if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice') && ($stopLossTriggerPriceType !== 'ByIndexPrice') && ($stopLossTriggerPriceType !== 'ByAskPrice') && ($stopLossTriggerPriceType !== 'ByBidPrice') && ($stopLossTriggerPriceType !== 'ByMarkPriceLimit') && ($stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
-                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                                }
-                            } else {
-                                if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice')) {
-                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
-                                }
-                            }
-                            $request['slTrigger'] = $stopLossTriggerPriceType;
+                            $request['slTrigger'] = $this->safe_string($this->options['triggerPriceTypesMap'], $stopLossTriggerPriceType, $stopLossTriggerPriceType);
+                        }
+                        $slLimitPrice = $this->safe_string($stopLoss, 'price');
+                        if ($slLimitPrice !== null) {
+                            $request['slPxRp'] = $this->price_to_precision($symbol, $slLimitPrice);
                         }
                     }
                     if ($takeProfitDefined) {
@@ -2679,18 +2682,13 @@ class phemex extends Exchange {
                         } else {
                             $request['takeProfitEp'] = $this->to_ep($takeProfitTriggerPrice, $market);
                         }
-                        $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTrigger');
+                        $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTrigger');
                         if ($takeProfitTriggerPriceType !== null) {
-                            if ($market['settle'] === 'USDT') {
-                                if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice') && ($takeProfitTriggerPriceType !== 'ByIndexPrice') && ($takeProfitTriggerPriceType !== 'ByAskPrice') && ($takeProfitTriggerPriceType !== 'ByBidPrice') && ($takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && ($takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
-                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                                }
-                            } else {
-                                if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice')) {
-                                    throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
-                                }
-                            }
-                            $request['tpTrigger'] = $takeProfitTriggerPriceType;
+                            $request['tpTrigger'] = $this->safe_string($this->options['triggerPriceTypesMap'], $takeProfitTriggerPriceType, $takeProfitTriggerPriceType);
+                        }
+                        $tpLimitPrice = $this->safe_string($takeProfit, 'price');
+                        if ($tpLimitPrice !== null) {
+                            $request['tpPxRp'] = $this->price_to_precision($symbol, $tpLimitPrice);
                         }
                     }
                 }

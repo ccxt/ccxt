@@ -1429,7 +1429,7 @@ export default class kucoinfutures extends kucoin {
      * @method
      * @name kucoinfutures#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/futures/#place-an-order
+     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
      * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
@@ -1445,6 +1445,7 @@ export default class kucoinfutures extends kucoin {
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
      * @param {string} [params.timeInForce] GTC, GTT, IOC, or FOK, default is GTC, limit orders only
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
+     * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
      * @param {float} [params.leverage] Leverage size of the order
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
@@ -1540,18 +1541,24 @@ export default class kucoinfutures extends kucoin {
         // required param, cannot be used twice
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId', this.uuid());
         params = this.omit(params, ['clientOid', 'clientOrderId']);
-        if (amount < 1) {
-            throw new InvalidOrder(this.id + ' createOrder() minimum contract order amount is 1');
-        }
-        const preciseAmount = parseInt(this.amountToPrecision(symbol, amount));
         const request = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type,
-            'size': preciseAmount,
             'leverage': 1,
         };
+        const cost = this.safeString(params, 'cost');
+        params = this.omit(params, 'cost');
+        if (cost !== undefined) {
+            request['valueQty'] = this.costToPrecision(symbol, cost);
+        }
+        else {
+            if (amount < 1) {
+                throw new InvalidOrder(this.id + ' createOrder() minimum contract order amount is 1');
+            }
+            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+        }
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');

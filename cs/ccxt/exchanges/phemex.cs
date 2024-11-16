@@ -454,6 +454,13 @@ public partial class phemex : Exchange
                 { "transfer", new Dictionary<string, object>() {
                     { "fillResponseFromRequest", true },
                 } },
+                { "triggerPriceTypesMap", new Dictionary<string, object>() {
+                    { "last", "ByLastPrice" },
+                    { "mark", "ByMarkPrice" },
+                    { "index", "ByIndexPrice" },
+                    { "ask", "ByAskPrice" },
+                    { "bid", "ByBidPrice" },
+                } },
             } },
         });
     }
@@ -2226,6 +2233,7 @@ public partial class phemex : Exchange
             { "PartiallyFilled", "open" },
             { "Filled", "closed" },
             { "Canceled", "canceled" },
+            { "Suspended", "canceled" },
             { "1", "open" },
             { "2", "canceled" },
             { "3", "closed" },
@@ -2755,20 +2763,12 @@ public partial class phemex : Exchange
                     object stopLossTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "slTrigger");
                     if (isTrue(!isEqual(stopLossTriggerPriceType, null)))
                     {
-                        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-                        {
-                            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByIndexPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByAskPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByBidPrice")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPriceLimit")))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPriceLimit")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", \"ByIndexPrice\", \"ByAskPrice\", \"ByBidPrice\", \"ByMarkPriceLimit\", \"ByLastPriceLimit\" or \"ByLastPrice\"")) ;
-                            }
-                        } else
-                        {
-                            if (isTrue(isTrue((!isEqual(stopLossTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(stopLossTriggerPriceType, "ByLastPrice")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", or \"ByLastPrice\"")) ;
-                            }
-                        }
-                        ((IDictionary<string,object>)request)["slTrigger"] = stopLossTriggerPriceType;
+                        ((IDictionary<string,object>)request)["slTrigger"] = this.safeString(getValue(this.options, "triggerPriceTypesMap"), stopLossTriggerPriceType, stopLossTriggerPriceType);
+                    }
+                    object slLimitPrice = this.safeString(stopLoss, "price");
+                    if (isTrue(!isEqual(slLimitPrice, null)))
+                    {
+                        ((IDictionary<string,object>)request)["slPxRp"] = this.priceToPrecision(symbol, slLimitPrice);
                     }
                 }
                 if (isTrue(takeProfitDefined))
@@ -2785,23 +2785,15 @@ public partial class phemex : Exchange
                     {
                         ((IDictionary<string,object>)request)["takeProfitEp"] = this.toEp(takeProfitTriggerPrice, market);
                     }
-                    object takeProfitTriggerPriceType = this.safeString2(stopLoss, "triggerPriceType", "tpTrigger");
+                    object takeProfitTriggerPriceType = this.safeString2(takeProfit, "triggerPriceType", "tpTrigger");
                     if (isTrue(!isEqual(takeProfitTriggerPriceType, null)))
                     {
-                        if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
-                        {
-                            if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByIndexPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByAskPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByBidPrice")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPriceLimit")))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPriceLimit")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", \"ByIndexPrice\", \"ByAskPrice\", \"ByBidPrice\", \"ByMarkPriceLimit\", \"ByLastPriceLimit\" or \"ByLastPrice\"")) ;
-                            }
-                        } else
-                        {
-                            if (isTrue(isTrue((!isEqual(takeProfitTriggerPriceType, "ByMarkPrice"))) && isTrue((!isEqual(takeProfitTriggerPriceType, "ByLastPrice")))))
-                            {
-                                throw new InvalidOrder ((string)add(this.id, " createOrder() take profit trigger price type must be one of \"ByMarkPrice\", or \"ByLastPrice\"")) ;
-                            }
-                        }
-                        ((IDictionary<string,object>)request)["tpTrigger"] = takeProfitTriggerPriceType;
+                        ((IDictionary<string,object>)request)["tpTrigger"] = this.safeString(getValue(this.options, "triggerPriceTypesMap"), takeProfitTriggerPriceType, takeProfitTriggerPriceType);
+                    }
+                    object tpLimitPrice = this.safeString(takeProfit, "price");
+                    if (isTrue(!isEqual(tpLimitPrice, null)))
+                    {
+                        ((IDictionary<string,object>)request)["tpPxRp"] = this.priceToPrecision(symbol, tpLimitPrice);
                     }
                 }
             }
