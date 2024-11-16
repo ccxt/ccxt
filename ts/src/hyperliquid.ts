@@ -4,7 +4,7 @@
 import Exchange from './abstract/hyperliquid.js';
 import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/functions/number.js';
+import { ROUND, SIGNIFICANT_DIGITS, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -205,7 +205,7 @@ export default class hyperliquid extends Exchange {
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'commonCurrencies': {
             },
             'options': {
@@ -260,7 +260,7 @@ export default class hyperliquid extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (data, 'szDecimals'))),
                 'info': data,
                 'active': undefined,
                 'deposit': undefined,
@@ -450,7 +450,9 @@ export default class hyperliquid extends Exchange {
             const symbol = base + '/' + quote;
             const innerBaseTokenInfo = this.safeDict (baseTokenInfo, 'spec', baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
-            const amountPrecision = this.safeInteger (innerBaseTokenInfo, 'szDecimals');
+            const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
+            // exchange seems to have Singificant Precision 5, so we use custom priceToPrecision overload in this file
+            const pricePrecisionStr = Precise.stringSub ('8', amountPrecisionStr); // MAX DECIMALS is 8
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
@@ -481,8 +483,8 @@ export default class hyperliquid extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': amountPrecision, // decimal places
-                    'price': 8 - amountPrecision, // MAX_DECIMALS is 8
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
                 },
                 'limits': {
                     'leverage': {
@@ -547,7 +549,8 @@ export default class hyperliquid extends Exchange {
         const fees = this.safeDict (this.fees, 'swap', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
-        const amountPrecision = this.safeInteger (market, 'szDecimals');
+        const amountPrecisionStr = this.safeString (market, 'szDecimals');
+        const pricePrecisionStr = Precise.stringSub ('6', amountPrecisionStr); // MAX DECIMALS is 6
         return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
@@ -575,8 +578,8 @@ export default class hyperliquid extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision, // decimal places
-                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
+                'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
+                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)), 
             },
             'limits': {
                 'leverage': {
@@ -1055,6 +1058,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
         const result = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
+        // after aligning to 5 decimal places, ensure it fits within max 8 decimal places
         const decimalParsedResult = this.decimalToPrecision (result, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
         return decimalParsedResult;
     }
