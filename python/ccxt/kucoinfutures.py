@@ -2354,6 +2354,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2361,38 +2365,90 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
-        if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
         request: dict = {
-            'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
+            'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
-        # transfer from usdm futures wallet to spot wallet
-        response = self.futuresPrivatePostTransferOut(self.extend(request, params))
-        #
-        #    {
-        #        "code": "200000",
-        #        "data": {
-        #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
-        #        }
-        #    }
-        #
-        data = self.safe_value(response, 'data')
+        toAccountString = self.parse_transfer_type(toAccount)
+        response = None
+        if toAccountString == 'TRADE' or toAccountString == 'MAIN':
+            request['recAccountType'] = toAccountString
+            response = self.futuresPrivatePostTransferOut(self.extend(request, params))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "applyId": "6738754373ceee00011ec3f8",
+            #             "bizNo": "6738754373ceee00011ec3f7",
+            #             "payAccountType": "CONTRACT",
+            #             "payTag": "DEFAULT",
+            #             "remark": "",
+            #             "recAccountType": "MAIN",
+            #             "recTag": "DEFAULT",
+            #             "recRemark": "",
+            #             "recSystem": "KUCOIN",
+            #             "status": "PROCESSING",
+            #             "currency": "USDT",
+            #             "amount": "5",
+            #             "fee": "0",
+            #             "sn": 1519769124846692,
+            #             "reason": "",
+            #             "createdAt": 1731753283000,
+            #             "updatedAt": 1731753283000
+            #         }
+            #     }
+            #
+        elif toAccount == 'future' or toAccount == 'swap':
+            request['payAccountType'] = 'MAIN'
+            response = self.futuresPrivatePostTransferIn(self.extend(request, params))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' transfer() only supports transfers between future/swap, spot and funding accounts')
+        data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'amount': self.parse_number(amountToPrecision),
-            'fromAccount': 'future',
-            'toAccount': 'spot',
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
         })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer
+        # transfer to spot or funding account
         #
         #     {
         #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+        #     }
+        #
+        # transfer to future account
+        #
+        #     {
+        #         "applyId": "6738754373ceee00011ec3f8",
+        #         "bizNo": "6738754373ceee00011ec3f7",
+        #         "payAccountType": "CONTRACT",
+        #         "payTag": "DEFAULT",
+        #         "remark": "",
+        #         "recAccountType": "MAIN",
+        #         "recTag": "DEFAULT",
+        #         "recRemark": "",
+        #         "recSystem": "KUCOIN",
+        #         "status": "PROCESSING",
+        #         "currency": "USDT",
+        #         "amount": "5",
+        #         "fee": "0",
+        #         "sn": 1519769124846692,
+        #         "reason": "",
+        #         "createdAt": 1731753283000,
+        #         "updatedAt": 1731753283000
         #     }
         #
         timestamp = self.safe_integer(transfer, 'updatedAt')
@@ -2401,7 +2457,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(None, currency),
-            'amount': None,
+            'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': None,
             'toAccount': None,
             'status': self.safe_string(transfer, 'status'),
@@ -2413,6 +2469,13 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'PROCESSING': 'pending',
         }
         return self.safe_string(statuses, status, status)
+
+    def parse_transfer_type(self, transferType: Str) -> Str:
+        transferTypes: dict = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        }
+        return self.safe_string_upper(transferTypes, transferType, transferType)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

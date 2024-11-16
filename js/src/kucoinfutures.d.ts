@@ -356,6 +356,8 @@ export default class kucoinfutures extends kucoin {
      * @method
      * @name kucoinfutures#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -366,6 +368,7 @@ export default class kucoinfutures extends kucoin {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
+    parseTransferType(transferType: Str): Str;
     /**
      * @method
      * @name kucoinfutures#fetchMyTrades

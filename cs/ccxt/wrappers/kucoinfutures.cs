@@ -847,6 +847,8 @@ public partial class kucoinfutures
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
