@@ -12,6 +12,7 @@ const ROUND_UP = ccxt\ROUND_UP;
 const ROUND_DOWN = ccxt\ROUND_DOWN;
 
 // digits counting mode
+const DECIMAL_PLACES = ccxt\DECIMAL_PLACES;
 const SIGNIFICANT_DIGITS = ccxt\SIGNIFICANT_DIGITS;
 const TICK_SIZE = ccxt\TICK_SIZE;
 
