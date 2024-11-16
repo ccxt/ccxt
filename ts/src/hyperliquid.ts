@@ -579,7 +579,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
-                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)), 
+                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
             },
             'limits': {
                 'leverage': {
