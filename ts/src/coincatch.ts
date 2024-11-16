@@ -4605,7 +4605,7 @@ export default class coincatch extends Exchange {
 
     /**
      * @method
-     * @name hashkey#setLeverage
+     * @name coincatch#setLeverage
      * @description set the level of leverage for a market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
      * @param {float} leverage the rate of leverage
