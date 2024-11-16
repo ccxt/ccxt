@@ -2285,7 +2285,7 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @ignore
-         * @name hashkey#createSpotOrderRequest
+         * @name coincatch#createSpotOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -2463,7 +2463,7 @@ export default class coincatch extends Exchange {
         /**
          * @method
          * @ignore
-         * @name hashkey#createSwapOrderRequest
+         * @name coincatch#createSwapOrderRequest
          * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
