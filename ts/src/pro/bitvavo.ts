@@ -1395,11 +1395,19 @@ export default class bitvavo extends bitvavoRest {
         //        errorCode: 217,
         //        error: 'Minimum order size in quote currency is 5 EUR or 0.001 BTC.'
         //    }
+        //    {
+        //        action: 'privateCreateOrder',
+        //        requestId: '17317539426571916',
+        //        market: 'USDT-EUR',
+        //        errorCode: 216,
+        //        error: 'You do not have sufficient balance to complete this operation.'
+        //    }
         //
         const error = this.safeString (message, 'error');
         const code = this.safeInteger (error, 'errorCode');
         const action = this.safeString (message, 'action');
-        const messageHash = this.buildMessageHash (action, message);
+        const buildMessage = this.buildMessageHash (action, message);
+        const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
             this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
