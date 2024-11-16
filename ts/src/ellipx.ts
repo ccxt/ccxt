@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, IndexType, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
+import { Str, Int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -580,34 +580,19 @@ export default class ellipx extends Exchange {
         if (response['result'] !== 'success') {
             throw new ExchangeError (this.id + ' fetchOrderBook() failed: ' + this.json (response));
         }
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeValue (response, 'data', {}); // exchange specific v e f params
         const timestamp = this.milliseconds (); // the exchange does not provide timestamp for this.
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
-    }
-
-    parseBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        bidasks = this.toArray (bidasks);
-        const result = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            const price = this.parseAmount (this.safeValue (bidasks[i], priceKey, undefined));
-            const amount = this.parseAmount (this.safeValue (bidasks[i], amountKey, undefined));
-            const bidAsk = [ price, amount ];
-            result.push (bidAsk);
+        const dataBidsLength = data['bids'].length;
+        const dataAsksLength = data['asks'].length;
+        for (let i = 0; i < dataBidsLength; i++) {
+            data['bids'][i]['price'] = this.parseAmount (data['bids'][i]['price']);
+            data['bids'][i]['amount'] = this.parseAmount (data['bids'][i]['amount']);
         }
-        return result;
-    }
-
-    parseOrderBook (orderbook: object, symbol: string, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'amount', countOrIdKey: IndexType = 2): OrderBook {
-        const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
-        const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy (bids, 0, true),
-            'asks': this.sortBy (asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        } as any;
+        for (let i = 0; i < dataAsksLength; i++) {
+            data['asks'][i]['price'] = this.parseAmount (data['asks'][i]['price']);
+            data['asks'][i]['amount'] = this.parseAmount (data['asks'][i]['amount']);
+        }
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
