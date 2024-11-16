@@ -2155,8 +2155,8 @@ export default class kraken extends Exchange {
      * @name kraken#fetchOrdersByIds
      * @description fetch orders by the list of order id
      * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-     * @param {string[]|undefined} ids list of order id
-     * @param symbol
+     * @param {string[]} [ids] list of order id
+     * @param {string} [symbol] unified ccxt market symbol
      * @param {object} [params] extra parameters specific to the kraken api endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
