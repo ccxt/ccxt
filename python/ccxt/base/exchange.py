@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.29'
+__version__ = '4.4.31'
 
 # -----------------------------------------------------------------------------
 
@@ -2097,7 +2097,7 @@ class Exchange(object):
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """
-         * @ignore
+ @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
@@ -2108,7 +2108,7 @@ class Exchange(object):
 
     def safe_bool_2(self, dictionary, key1: IndexType, key2: IndexType, defaultValue: bool = None):
         """
-         * @ignore
+ @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
@@ -2116,7 +2116,7 @@ class Exchange(object):
 
     def safe_bool(self, dictionary, key: IndexType, defaultValue: bool = None):
         """
-         * @ignore
+ @ignore
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
@@ -2124,7 +2124,7 @@ class Exchange(object):
 
     def safe_dict_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: dict = None):
         """
-         * @ignore
+ @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
@@ -2138,7 +2138,7 @@ class Exchange(object):
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
         """
-         * @ignore
+ @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
@@ -2146,7 +2146,7 @@ class Exchange(object):
 
     def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
         """
-         * @ignore
+ @ignore
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
@@ -2154,7 +2154,7 @@ class Exchange(object):
 
     def safe_list_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: List[Any] = None):
         """
-         * @ignore
+ @ignore
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
@@ -2167,7 +2167,7 @@ class Exchange(object):
 
     def safe_list_2(self, dictionaryOrList, key1: IndexType, key2: str, defaultValue: List[Any] = None):
         """
-         * @ignore
+ @ignore
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
@@ -2175,7 +2175,7 @@ class Exchange(object):
 
     def safe_list(self, dictionaryOrList, key: IndexType, defaultValue: List[Any] = None):
         """
-         * @ignore
+ @ignore
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
@@ -3738,7 +3738,7 @@ class Exchange(object):
 
     def network_code_to_id(self, networkCode: str, currencyCode: Str = None):
         """
-         * @ignore
+ @ignore
         tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
         :param str networkCode: unified network code
         :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
@@ -3786,7 +3786,7 @@ class Exchange(object):
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
         """
-         * @ignore
+ @ignore
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have "options['networksById']" defined.
         :param str networkId: exchange specific network id/title, like: TRON, Trc-20, usdt-erc20, etc
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
@@ -4316,7 +4316,7 @@ class Exchange(object):
 
     def check_required_credentials(self, error=True):
         """
-         * @ignore
+ @ignore
         :param boolean error: raise an error that a credential is required if True
         :returns boolean: True if all required credentials have been set, otherwise False or an error is thrown is param error=true
         """
@@ -4444,8 +4444,8 @@ class Exchange(object):
 
     def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None):
         """
-         * @ignore
-         * @param methodName the method calling handleMarketTypeAndParams
+ @ignore
+ @param methodName the method calling handleMarketTypeAndParams
         :param Market market:
         :param dict params:
         :param str [params.type]: type assigned by user
@@ -4491,7 +4491,7 @@ class Exchange(object):
 
     def handle_margin_mode_and_params(self, methodName: str, params={}, defaultValue=None):
         """
-         * @ignore
+ @ignore
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
@@ -5259,7 +5259,7 @@ class Exchange(object):
 
     def parse_precision(self, precision: str):
         """
-         * @ignore
+ @ignore
         :param str precision: The number of digits to the right of the decimal
         :returns str: a string number equal to 1e-precision
         """
@@ -5275,7 +5275,7 @@ class Exchange(object):
 
     def integer_precision_to_amount(self, precision: Str):
         """
-         * @ignore
+ @ignore
         handles positive & negative numbers too. parsePrecision() does not handle negative numbers, but self method handles
         :param str precision: The number of digits to the right of the decimal
         :returns str: a string number equal to 1e-precision
@@ -5548,7 +5548,7 @@ class Exchange(object):
 
     def is_post_only(self, isMarketOrder: bool, exchangeSpecificParam, params={}):
         """
-         * @ignore
+ @ignore
         :param str type: Order type
         :param boolean exchangeSpecificParam: exchange specific postOnly
         :param dict [params]: exchange specific params
@@ -5573,7 +5573,7 @@ class Exchange(object):
 
     def handle_post_only(self, isMarketOrder: bool, exchangeSpecificPostOnlyOption: bool, params: Any = {}):
         """
-         * @ignore
+ @ignore
         :param str type: Order type
         :param boolean exchangeSpecificBoolean: exchange specific postOnly
         :param dict [params]: exchange specific params
@@ -5686,7 +5686,7 @@ class Exchange(object):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         * @returns {} A list of candles ordered, open, high, low, close, None
+ @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
             request: dict = {
@@ -5716,8 +5716,8 @@ class Exchange(object):
 
     def handle_time_in_force(self, params={}):
         """
-         * @ignore
-         * Must add timeInForce to self.options to use self method
+ @ignore
+ Must add timeInForce to self.options to use self method
         :returns str: returns the exchange specific value for timeInForce
         """
         timeInForce = self.safe_string_upper(params, 'timeInForce')  # supported values GTC, IOC, PO
@@ -5730,8 +5730,8 @@ class Exchange(object):
 
     def convert_type_to_account(self, account):
         """
-         * @ignore
-         * Must add accountsByType to self.options to use self method
+ @ignore
+ Must add accountsByType to self.options to use self method
         :param str account: key for account name in self.options['accountsByType']
         :returns: the exchange specific account name or the isolated margin id for transfers
         """
@@ -5747,7 +5747,7 @@ class Exchange(object):
 
     def check_required_argument(self, methodName: str, argument, argumentName, options=[]):
         """
-         * @ignore
+ @ignore
         :param str methodName: the name of the method that the argument is being checked for
         :param str argument: the argument's actual value provided
         :param str argumentName: the name of the argument being checked(for logging purposes)
@@ -5764,7 +5764,7 @@ class Exchange(object):
 
     def check_required_margin_argument(self, methodName: str, symbol: Str, marginMode: str):
         """
-         * @ignore
+ @ignore
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         :param str marginMode: is either 'isolated' or 'cross'
@@ -5776,7 +5776,7 @@ class Exchange(object):
 
     def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         """
-         * @ignore
+ @ignore
         :param object[]|dict response: unparsed response from the exchange
         :param str[]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
         :param str currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
@@ -5816,7 +5816,7 @@ class Exchange(object):
 
     def assign_default_deposit_withdraw_fees(self, fee, currency=None):
         """
-         * @ignore
+ @ignore
         Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
         :param dict fee: A deposit withdraw fee structure
         :param dict currency: A currency structure, the response from self.currency()
@@ -5841,7 +5841,7 @@ class Exchange(object):
 
     def parse_incomes(self, incomes, market=None, since: Int = None, limit: Int = None):
         """
-         * @ignore
+ @ignore
         parses funding fee info from exchange response
         :param dict[] incomes: each item describes once instance of currency being received or paid
         :param dict market: ccxt market
@@ -5872,7 +5872,7 @@ class Exchange(object):
 
     def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-         * @deprecated
+ @deprecated
         *DEPRECATED* use fetchDepositsWithdrawals instead
         :param str code: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -5887,14 +5887,14 @@ class Exchange(object):
 
     def filter_by_array_positions(self, objects, key: IndexType, values=None, indexed=True):
         """
-         * @ignore
+ @ignore
         Typed wrapper for filterByArray that returns a list of positions
         """
         return self.filter_by_array(objects, key, values, indexed)
 
     def filter_by_array_tickers(self, objects, key: IndexType, values=None, indexed=True):
         """
-         * @ignore
+ @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
@@ -6178,7 +6178,7 @@ class Exchange(object):
 
     def parse_liquidations(self, liquidations: List[dict], market: Market = None, since: Int = None, limit: Int = None):
         """
-         * @ignore
+ @ignore
         parses liquidation info from the exchange response
         :param dict[] liquidations: each item describes an instance of a liquidation event
         :param dict market: ccxt market

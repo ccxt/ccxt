@@ -1303,7 +1303,7 @@ public partial class woo
     /// See <see href="https://docs.woo.org/#update-futures-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>symbo</term>
+    /// <term>symbol</term>
     /// <description>
     /// string : unified market symbol (is mandatory for swap markets)
     /// </description>

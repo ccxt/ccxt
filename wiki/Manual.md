@@ -2526,13 +2526,9 @@ UNDER CONSTRUCTION
 
 ## OHLCV Candlestick Charts
 
-```diff
-- this is under heavy development right now, contributions appreciated
-```
-
 Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named `has['fetchOHLCV']` indicates whether the exchange supports candlestick data series or not.
 
-The `fetchOHLCV` method is declared in the following way:
+To fetch OHLCV candles/bars from an exchange, ccxt has the `fetchOHLCV` method, which is declared in the following way:
 
 ```javascript
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
@@ -2583,6 +2579,43 @@ Like with most other unified and implicit methods, the `fetchOHLCV` method accep
 The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
+
+### Get raw OHLCV response
+
+Currently, the structure CCXT uses does not include the raw response from the exchange. However, users might be able to override the return value by doing:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const ex = new ccxt.coinbase();
+const originalParser = ex.parseOHLCV.bind(ex);
+ex.parseOHLCV = ((ohlcv, market = undefined) => {
+    return {
+        'result': originalParser(ohlcv, market),
+        'raw': ohlcv,
+    };
+});
+const result = await ex.fetchOHLCV('BTC/USDT', '1m');
+console.log (result[0]);
+```
+#### **Python**
+```python
+# add raw member at last position in list
+async def test():
+    ex = ccxt.async_support.coinbase()
+    prase_ohlcv_original = ex.parse_ohlcv
+    def prase_ohlcv_custom(ohlcv, market):
+        res = prase_ohlcv_original(ohlcv, market)
+        res.append(ohlcv)
+        return res
+    ex.parse_ohlcv = prase_ohlcv_custom
+    result = await ex.fetch_ohlcv('BTC/USDT', '1m')
+    print (result[0])
+
+asyncio.run(test())
+```
+<!-- tabs:end -->
+
 
 ### Notes On Latency
 
@@ -2981,7 +3014,8 @@ Returns
 [
     {
         "tier": 1,                       // tier index
-        "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+        "symbol": "BTC/USDT",            // the market symbol that the leverage tier applies to
+        "currency": "USDT",              // the currency that minNotional and maxNotional are in
         "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
         "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
         "maintenanceMarginRate": 0.0065, // maintenance margin rate
@@ -2990,7 +3024,8 @@ Returns
     },
     {
         "tier": 2,
-        "notionalCurrency": "USDT",
+        "symbol": "BTC/USDT",
+        "currency": "USDT",
         "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
         "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
         "maintenanceMarginRate": 0.01,
@@ -3000,7 +3035,8 @@ Returns
     ...
     {
         "tier": 9,
-        "notionalCurrency": "USDT",
+        "symbol": "BTC/USDT",
+        "currency": "USDT",
         "minNotional": 20000000,
         "maxNotional": 50000000,
         "maintenanceMarginRate": 0.5,
@@ -4663,15 +4699,15 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
@@ -4685,15 +4721,15 @@ amount = 123.45  # your amount
 price = 115.321  # your price
 params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
         'price': 100.33,  # limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
         # no limit price for a market take profit order
         # 'price': 160.33,  # this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
@@ -4707,15 +4743,15 @@ $amount = 123.45; // your amount
 $price = 115.321; // your price
 $params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);

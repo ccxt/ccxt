@@ -649,6 +649,30 @@ public partial class poloniexfutures
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.orderIdFills</term>
+    /// <description>
+    /// string : filles for a specific order (other parameters can be ignored if specified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : buy or sell
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string :  limit, market, limit_stop or market_stop
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.endAt</term>
+    /// <description>
+    /// int : end time (milisecond)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>

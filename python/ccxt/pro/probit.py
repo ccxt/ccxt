@@ -58,7 +58,9 @@ class probit(ccxt.async_support.probit):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs-en.probit.com/reference/balance-1
+
+        https://docs-en.probit.com/reference/balance-1
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -120,7 +122,9 @@ class probit(ccxt.async_support.probit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs-en.probit.com/reference/marketdata
+
+        https://docs-en.probit.com/reference/marketdata
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.interval]: Unit time to synchronize market information(ms). Available units: 100, 500
@@ -161,7 +165,9 @@ class probit(ccxt.async_support.probit):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs-en.probit.com/reference/trade_history
+
+        https://docs-en.probit.com/reference/trade_history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -218,7 +224,9 @@ class probit(ccxt.async_support.probit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of trades associated with the user
-        :see: https://docs-en.probit.com/reference/trade_history
+
+        https://docs-en.probit.com/reference/trade_history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -291,7 +299,9 @@ class probit(ccxt.async_support.probit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on an order made by the user
-        :see: https://docs-en.probit.com/reference/open_order
+
+        https://docs-en.probit.com/reference/open_order
+
         :param str symbol: unified symbol of the market the order was made in
         :param int [since]: timestamp in ms of the earliest order to watch
         :param int [limit]: the maximum amount of orders to watch
@@ -370,7 +380,9 @@ class probit(ccxt.async_support.probit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs-en.probit.com/reference/marketdata
+
+        https://docs-en.probit.com/reference/marketdata
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint

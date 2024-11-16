@@ -946,6 +946,7 @@
                     "BTC/USDT:USDT": [
                         {
                             "tier": 1,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 0,
                             "maxNotional": 300000,
@@ -960,6 +961,7 @@
                         },
                         {
                             "tier": 2,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 300000,
                             "maxNotional": 1000000,
@@ -974,6 +976,7 @@
                         },
                         {
                             "tier": 3,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 1000000,
                             "maxNotional": 2000000,
@@ -988,6 +991,7 @@
                         },
                         {
                             "tier": 4,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 2000000,
                             "maxNotional": 2500000,
@@ -1002,6 +1006,7 @@
                         },
                         {
                             "tier": 5,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 2500000,
                             "maxNotional": 3000000,
@@ -1016,6 +1021,7 @@
                         },
                         {
                             "tier": 6,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 3000000,
                             "maxNotional": 3500000,
@@ -1030,6 +1036,7 @@
                         },
                         {
                             "tier": 7,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 3500000,
                             "maxNotional": 4000000,
@@ -1044,6 +1051,7 @@
                         },
                         {
                             "tier": 8,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 4000000,
                             "maxNotional": 4500000,
@@ -1058,6 +1066,7 @@
                         },
                         {
                             "tier": 9,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 4500000,
                             "maxNotional": 5000000,
@@ -1072,6 +1081,7 @@
                         },
                         {
                             "tier": 10,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 5000000,
                             "maxNotional": 10000000,
@@ -1086,6 +1096,7 @@
                         },
                         {
                             "tier": 11,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 10000000,
                             "maxNotional": 1000000000,

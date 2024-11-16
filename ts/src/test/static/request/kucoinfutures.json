@@ -133,6 +133,22 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"be4eeb70-2371-46de-9afa-88fec3070f1f\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "linear swap create order with a cost param",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  25,
+                  25000,
+                  {
+                    "cost": "25"
+                  }
+                ],
+                "output": "{\"clientOid\":\"dab82652-e3a0-44b7-a118-b37a54233141\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":1,\"valueQty\":\"25\",\"price\":\"25000\"}"
             }
         ],
         "createOrders": [

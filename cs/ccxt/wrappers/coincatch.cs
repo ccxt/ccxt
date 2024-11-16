@@ -354,15 +354,15 @@ public partial class coincatch
     /// See <see href="https://coincatch.github.io/github.io/en/spot/#get-coin-address"/>  <br/>
     /// <list type="table">
     /// <item>
-    /// <term>params.network</term>
-    /// <description>
-    /// string : network for fetch deposit address
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : network for fetch deposit address
     /// </description>
     /// </item>
     /// </list>
@@ -492,7 +492,7 @@ public partial class coincatch
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :          * @param {object} [params] extra parameters specific to the exchange API endpoint
+    /// string :      * @param {object} [params] extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
