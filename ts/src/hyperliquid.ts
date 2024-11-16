@@ -452,7 +452,6 @@ export default class hyperliquid extends Exchange {
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecisionStr = this.safeString (innerBaseTokenInfo, 'szDecimals');
             // exchange seems to have Singificant Precision 5, so we use custom priceToPrecision overload in this file
-            const pricePrecisionStr = Precise.stringSub ('8', amountPrecisionStr); // MAX DECIMALS is 8
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
             markets.push (this.safeMarketStructure ({
@@ -484,7 +483,7 @@ export default class hyperliquid extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
-                    'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
+                    'price': this.parseNumber (this.parsePrecision (Precise.stringSub ('8', amountPrecisionStr))), // MAX DECIMALS is 8
                 },
                 'limits': {
                     'leverage': {
@@ -550,7 +549,6 @@ export default class hyperliquid extends Exchange {
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecisionStr = this.safeString (market, 'szDecimals');
-        const pricePrecisionStr = Precise.stringSub ('6', amountPrecisionStr); // MAX DECIMALS is 6
         return this.safeMarketStructure ({
             'id': baseId,
             'symbol': symbol,
@@ -579,7 +577,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber (this.parsePrecision (amountPrecisionStr)),
-                'price': this.parseNumber (this.parsePrecision (pricePrecisionStr)),
+                'price': this.parseNumber (this.parsePrecision (Precise.stringSub ('6', amountPrecisionStr))), // MAX DECIMALS is 6
             },
             'limits': {
                 'leverage': {
