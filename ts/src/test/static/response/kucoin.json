@@ -1178,6 +1178,213 @@
                   "tag": null
                 }
             }
+        ],
+        "fetchBorrowInterest":[
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "debtRatio": "0",
+                    "status": "EFFECTIVE",
+                    "accounts": [
+                      {
+                        "currency": "USDT",
+                        "total": "5",
+                        "available": "5",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "20",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "1INCH",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "70",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      },
+                      {
+                        "currency": "ZRO",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "liability": "0",
+                        "maxBorrowSize": "5",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "currency": "USDT",
+                      "total": "5",
+                      "available": "5",
+                      "hold": "0",
+                      "liability": "0",
+                      "maxBorrowSize": "20",
+                      "borrowEnabled": true,
+                      "transferInEnabled": true
+                    },
+                    "symbol": null,
+                    "currency": "USDT",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "cross",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
+            },
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "BTC",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "totalAssetOfQuoteCurrency": "5",
+                    "totalLiabilityOfQuoteCurrency": "0",
+                    "timestamp": 1731485747638,
+                    "assets": [
+                      {
+                        "symbol": "LTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "LTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0.6"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "5",
+                          "available": "5",
+                          "hold": "0",
+                          "maxBorrowSize": "45"
+                        }
+                      },
+                      {
+                        "symbol": "BTC-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "BTC",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      },
+                      {
+                        "symbol": "ZRO-USDT",
+                        "status": "EFFECTIVE",
+                        "debtRatio": "0",
+                        "baseAsset": {
+                          "currency": "ZRO",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        },
+                        "quoteAsset": {
+                          "currency": "USDT",
+                          "borrowEnabled": true,
+                          "transferInEnabled": true,
+                          "liability": "0",
+                          "total": "0",
+                          "available": "0",
+                          "hold": "0",
+                          "maxBorrowSize": "0"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTC-USDT",
+                      "status": "EFFECTIVE",
+                      "debtRatio": "0",
+                      "baseAsset": {
+                        "currency": "BTC",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      },
+                      "quoteAsset": {
+                        "currency": "USDT",
+                        "borrowEnabled": true,
+                        "transferInEnabled": true,
+                        "liability": "0",
+                        "total": "0",
+                        "available": "0",
+                        "hold": "0",
+                        "maxBorrowSize": "0"
+                      }
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "BTC",
+                    "interest": null,
+                    "interestRate": null,
+                    "amountBorrowed": 0,
+                    "marginMode": "isolated",
+                    "timestamp": null,
+                    "datetime": null
+                  }
+                ]
+            }
         ]
     }
 }

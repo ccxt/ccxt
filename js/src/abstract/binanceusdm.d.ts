@@ -143,6 +143,12 @@ interface binance {
     sapiGetEthStakingWbethHistoryWrapHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetEthStakingWbethHistoryUnwrapHistory(params?: {}): Promise<implicitReturnType>;
     sapiGetEthStakingEthHistoryWbethRewardsHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingSolHistoryStakingHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingSolHistoryRedemptionHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingSolHistoryBnsolRewardsHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingSolHistoryRateHistory(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingAccount(params?: {}): Promise<implicitReturnType>;
+    sapiGetSolStakingSolQuota(params?: {}): Promise<implicitReturnType>;
     sapiGetMiningPubAlgoList(params?: {}): Promise<implicitReturnType>;
     sapiGetMiningPubCoinList(params?: {}): Promise<implicitReturnType>;
     sapiGetMiningWorkerDetail(params?: {}): Promise<implicitReturnType>;
@@ -330,6 +336,8 @@ interface binance {
     sapiPostEthStakingEthStake(params?: {}): Promise<implicitReturnType>;
     sapiPostEthStakingEthRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostEthStakingWbethWrap(params?: {}): Promise<implicitReturnType>;
+    sapiPostSolStakingSolStake(params?: {}): Promise<implicitReturnType>;
+    sapiPostSolStakingSolRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostMiningHashTransferConfig(params?: {}): Promise<implicitReturnType>;
     sapiPostMiningHashTransferConfigCancel(params?: {}): Promise<implicitReturnType>;
     sapiPostPortfolioRepay(params?: {}): Promise<implicitReturnType>;
@@ -362,6 +370,7 @@ interface binance {
     sapiPostSimpleEarnLockedRedeem(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleSetAutoSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnLockedSetAutoSubscribe(params?: {}): Promise<implicitReturnType>;
+    sapiPostSimpleEarnLockedSetRedeemOption(params?: {}): Promise<implicitReturnType>;
     sapiPostDciProductSubscribe(params?: {}): Promise<implicitReturnType>;
     sapiPostDciProductAutoCompoundEdit(params?: {}): Promise<implicitReturnType>;
     sapiPutUserDataStream(params?: {}): Promise<implicitReturnType>;
@@ -586,6 +595,9 @@ interface binance {
     eapiPrivateGetMmp(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
     eapiPrivateGetOrder(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockOrderOrders(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockOrderExecute(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateGetBlockUserTrades(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostListenKey(params?: {}): Promise<implicitReturnType>;
@@ -593,12 +605,16 @@ interface binance {
     eapiPrivatePostMmpReset(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePostCountdownCancelAllHeartBeat(params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePostBlockOrderCreate(params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePostBlockOrderExecute(params?: {}): Promise<implicitReturnType>;
     eapiPrivatePutListenKey(params?: {}): Promise<implicitReturnType>;
+    eapiPrivatePutBlockOrderCreate(params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteBatchOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteAllOpenOrdersByUnderlying(params?: {}): Promise<implicitReturnType>;
     eapiPrivateDeleteListenKey(params?: {}): Promise<implicitReturnType>;
+    eapiPrivateDeleteBlockOrderCreate(params?: {}): Promise<implicitReturnType>;
     publicGetPing(params?: {}): Promise<implicitReturnType>;
     publicGetTime(params?: {}): Promise<implicitReturnType>;
     publicGetDepth(params?: {}): Promise<implicitReturnType>;

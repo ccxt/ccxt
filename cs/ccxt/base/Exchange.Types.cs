@@ -1216,6 +1216,7 @@ public struct Position
 public struct LeverageTier
 {
     public Int64? tier;
+    public string? symbol;
     public string? currency;
     public double? minNotional;
     public double? maxNotional;
@@ -1226,6 +1227,7 @@ public struct LeverageTier
     public LeverageTier(object leverageTier)
     {
         tier = Exchange.SafeInteger(leverageTier, "tier");
+        symbol = Exchange.SafeString(leverageTier, "symbol");
         currency = Exchange.SafeString(leverageTier, "currency");
         minNotional = Exchange.SafeFloat(leverageTier, "minNotional");
         maxNotional = Exchange.SafeFloat(leverageTier, "maxNotional");

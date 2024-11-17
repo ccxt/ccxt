@@ -433,6 +433,24 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_eth_staking_eth_history_wbethrewardshistory($params = array()) {
         return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function sapi_get_sol_staking_sol_history_stakinghistory($params = array()) {
+        return $this->request('sol-staking/sol/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_redemptionhistory($params = array()) {
+        return $this->request('sol-staking/sol/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_bnsolrewardshistory($params = array()) {
+        return $this->request('sol-staking/sol/history/bnsolRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_ratehistory($params = array()) {
+        return $this->request('sol-staking/sol/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_account($params = array()) {
+        return $this->request('sol-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_quota($params = array()) {
+        return $this->request('sol-staking/sol/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapi_get_mining_pub_algolist($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -994,6 +1012,12 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_post_eth_staking_wbeth_wrap($params = array()) {
         return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function sapi_post_sol_staking_sol_stake($params = array()) {
+        return $this->request('sol-staking/sol/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_sol_staking_sol_redeem($params = array()) {
+        return $this->request('sol-staking/sol/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
     public function sapi_post_mining_hash_transfer_config($params = array()) {
         return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
     }
@@ -1089,6 +1113,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapi_post_simple_earn_locked_setautosubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_simple_earn_locked_setredeemoption($params = array()) {
+        return $this->request('simple-earn/locked/setRedeemOption', 'sapi', 'POST', $params, null, null, array("cost" => 5));
     }
     public function sapi_post_dci_product_subscribe($params = array()) {
         return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -1762,6 +1789,15 @@ abstract class binance extends \ccxt\async\Exchange {
     public function eapiprivate_get_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function eapiprivate_get_block_order_orders($params = array()) {
+        return $this->request('block/order/orders', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_block_order_execute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_block_user_trades($params = array()) {
+        return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1783,8 +1819,17 @@ abstract class binance extends \ccxt\async\Exchange {
     public function eapiprivate_post_countdowncancelallheartbeat($params = array()) {
         return $this->request('countdownCancelAllHeartBeat', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function eapiprivate_post_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_post_block_order_execute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function eapiprivate_put_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function eapiprivate_delete_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -1800,6 +1845,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function eapiprivate_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function eapiprivate_delete_block_order_create($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function public_get_ping($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));
@@ -2656,6 +2704,24 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetEthStakingEthHistoryWbethRewardsHistory($params = array()) {
         return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function sapiGetSolStakingSolHistoryStakingHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryRedemptionHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryBnsolRewardsHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/bnsolRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryRateHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingAccount($params = array()) {
+        return $this->request('sol-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolQuota($params = array()) {
+        return $this->request('sol-staking/sol/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapiGetMiningPubAlgoList($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3217,6 +3283,12 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiPostEthStakingWbethWrap($params = array()) {
         return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function sapiPostSolStakingSolStake($params = array()) {
+        return $this->request('sol-staking/sol/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostSolStakingSolRedeem($params = array()) {
+        return $this->request('sol-staking/sol/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
     public function sapiPostMiningHashTransferConfig($params = array()) {
         return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
     }
@@ -3312,6 +3384,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiPostSimpleEarnLockedSetAutoSubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostSimpleEarnLockedSetRedeemOption($params = array()) {
+        return $this->request('simple-earn/locked/setRedeemOption', 'sapi', 'POST', $params, null, null, array("cost" => 5));
     }
     public function sapiPostDciProductSubscribe($params = array()) {
         return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -3985,6 +4060,15 @@ abstract class binance extends \ccxt\async\Exchange {
     public function eapiPrivateGetOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function eapiPrivateGetBlockOrderOrders($params = array()) {
+        return $this->request('block/order/orders', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetBlockOrderExecute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetBlockUserTrades($params = array()) {
+        return $this->request('block/user-trades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4006,8 +4090,17 @@ abstract class binance extends \ccxt\async\Exchange {
     public function eapiPrivatePostCountdownCancelAllHeartBeat($params = array()) {
         return $this->request('countdownCancelAllHeartBeat', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function eapiPrivatePostBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivatePostBlockOrderExecute($params = array()) {
+        return $this->request('block/order/execute', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
+    }
+    public function eapiPrivatePutBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'PUT', $params, null, null, array("cost" => 5));
     }
     public function eapiPrivateDeleteOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
@@ -4023,6 +4116,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function eapiPrivateDeleteListenKey($params = array()) {
         return $this->request('listenKey', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function eapiPrivateDeleteBlockOrderCreate($params = array()) {
+        return $this->request('block/order/create', 'eapiPrivate', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 0.2));

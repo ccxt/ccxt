@@ -174,7 +174,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://www.coinspot.com.au/api#listmybalance
+
+        https://www.coinspot.com.au/api#listmybalance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -202,7 +204,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://www.coinspot.com.au/api#listopenorders
+
+        https://www.coinspot.com.au/api#listopenorders
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -254,7 +258,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://www.coinspot.com.au/api#latestprices
+
+        https://www.coinspot.com.au/api#latestprices
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -283,7 +289,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.coinspot.com.au/api#latestprices
+
+        https://www.coinspot.com.au/api#latestprices
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -322,7 +330,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.coinspot.com.au/api#orderhistory
+
+        https://www.coinspot.com.au/api#orderhistory
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -349,7 +359,9 @@ class coinspot(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://www.coinspot.com.au/api#rotransaction
+
+        https://www.coinspot.com.au/api#rotransaction
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -470,7 +482,9 @@ class coinspot(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://www.coinspot.com.au/api#placebuyorder
+
+        https://www.coinspot.com.au/api#placebuyorder
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -494,8 +508,10 @@ class coinspot(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://www.coinspot.com.au/api#cancelbuyorder
-        :see: https://www.coinspot.com.au/api#cancelsellorder
+
+        https://www.coinspot.com.au/api#cancelbuyorder
+        https://www.coinspot.com.au/api#cancelsellorder
+
         :param str id: order id
         :param str symbol: not used by coinspot cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint

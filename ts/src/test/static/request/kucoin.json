@@ -856,7 +856,7 @@
             {
                 "description": "isolated fetch the borrow interest",
                 "method": "fetchBorrowInterest",
-                "url": "https://api.kucoin.com/api/v3/isolated/accounts?quoteCurrency=USDT",
+                "url": "https://api.kucoin.com/api/v3/isolated/accounts?balanceCurrency=USDT",
                 "input": [
                   "USDT",
                   "BTC/USDT",

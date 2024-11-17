@@ -350,7 +350,7 @@ public partial class kucoinfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/futures/#place-an-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-order"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -411,6 +411,12 @@ public partial class kucoinfutures
     /// <term>params.postOnly</term>
     /// <description>
     /// string : Post only flag, invalid when timeInForce is IOC or FOK
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of USDT
     /// </description>
     /// </item>
     /// <item>
@@ -841,6 +847,8 @@ public partial class kucoinfutures
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

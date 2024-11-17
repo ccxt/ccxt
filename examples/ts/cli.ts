@@ -5,6 +5,7 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
+import add_static_result from '../../utils/update-static-request-response.js'
 
 const fsPromises = fs.promises;
 ansi.nice
@@ -42,6 +43,21 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , shouldCreateBoth = process.argv.includes ('--static')
     , raw = process.argv.includes ('--raw')
     , noKeys = process.argv.includes ('--no-keys')
+
+let foundDescription = undefined;
+for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === '--name') {
+        foundDescription = process.argv[i + 1];
+        // search that string in `params` and remove it
+        for (let j = 0; j < params.length; j++) {
+            if (params[j] === foundDescription) {
+                params.splice(j, 1);
+                break;
+            }
+        }
+        break;
+    }
+}
 
 //-----------------------------------------------------------------------------
 if (!raw) {
@@ -153,6 +169,11 @@ function createRequestTemplate(exchange, methodName, args, result) {
     log.green('-------------------------------------------')
     log (JSON.stringify (final, null, 2))
     log.green('-------------------------------------------')
+    if (foundDescription !== undefined) {
+        final.description = foundDescription;
+        log.green('auto-saving static result');
+        add_static_result('request', exchange.id, methodName, final);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -169,6 +190,11 @@ function createResponseTemplate(exchange, methodName, args, result) {
     log.green('-------------------------------------------')
     log (jsonStringify (final, 2))
     log.green('-------------------------------------------')
+    if (foundDescription !== undefined) {
+        final.description = foundDescription;
+        log.green('auto-saving static result');
+        add_static_result('response', exchange.id, methodName, final);
+    }
 }
 
 //-----------------------------------------------------------------------------

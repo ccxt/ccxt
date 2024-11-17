@@ -932,6 +932,356 @@
                   "tag": null
                 }
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT to a whitelisted address",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  20,
+                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                ],
+                "httpResponse": {
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "tx_hash": null,
+                  "direction": "OUTGOING",
+                  "amount": "20",
+                  "usd_value": "19.99856",
+                  "chain": "ETH",
+                  "asset": "USDT",
+                  "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "status": "PROCESSING",
+                  "created_at": "2024-11-07T02:39:01.775495Z",
+                  "network_fee": "4",
+                  "fees": "0.1"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "PROCESSING",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "4",
+                    "fees": "0.1"
+                  },
+                  "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                  "txid": null,
+                  "timestamp": 1730947141775,
+                  "datetime": "2024-11-07T02:39:01.775495Z",
+                  "network": "ETH",
+                  "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                  "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": "withdrawal",
+                  "amount": 20,
+                  "currency": "USDT",
+                  "status": "pending",
+                  "updated": null,
+                  "fee": {
+                    "cost": 4.1,
+                    "currency": "USDT"
+                  },
+                  "comment": null,
+                  "internal": null
+                }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDT deposits",
+                "method": "fetchDeposits",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                      "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                      "direction": "INCOMING",
+                      "amount": "41.73",
+                      "usd_value": "41.7",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                      "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                      "status": "COMPLETE",
+                      "created_at": "2024-11-05T09:57:39.9987Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "txid": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "timestamp": 1730800659998,
+                    "datetime": "2024-11-05T09:57:39.9987Z",
+                    "network": "ETH",
+                    "address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressTo": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressFrom": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 41.73,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                      "tx_hash": null,
+                      "direction": "OUTGOING",
+                      "amount": "20",
+                      "usd_value": "19.99856",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                      "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                      "status": "FAILED",
+                      "created_at": "2024-11-07T02:39:01.775495Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "txid": null,
+                    "timestamp": 1730947141775,
+                    "datetime": "2024-11-07T02:39:01.775495Z",
+                    "network": "ETH",
+                    "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 20,
+                    "currency": "USDT",
+                    "status": "failed",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch deposits and withdrawals for USDT",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "tx_hash": null,
+                    "direction": "OUTGOING",
+                    "amount": "20",
+                    "usd_value": "19.99856",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "status": "FAILED",
+                    "created_at": "2024-11-07T02:39:01.775495Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  },
+                  {
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "direction": "INCOMING",
+                    "amount": "41.73",
+                    "usd_value": "41.7",
+                    "chain": "ETH",
+                    "asset": "USDT",
+                    "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "status": "COMPLETE",
+                    "created_at": "2024-11-05T09:57:39.9987Z",
+                    "network_fee": "0",
+                    "fees": "0"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                      "tx_hash": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                      "direction": "INCOMING",
+                      "amount": "41.73",
+                      "usd_value": "41.7",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                      "to_address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                      "status": "COMPLETE",
+                      "created_at": "2024-11-05T09:57:39.9987Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "0d929e68-c1fe-4a55-a9e7-11a49e9a5962",
+                    "txid": "0xc83877ebede523aedd1c252fac7d4456ed02efae72fc24ae40fa83c48d19c92a",
+                    "timestamp": 1730800659998,
+                    "datetime": "2024-11-05T09:57:39.9987Z",
+                    "network": "ETH",
+                    "address": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressTo": "0x935a1B871b732D72720a34B8dA61584d6966110F",
+                    "addressFrom": "0x9642b23Ed1E01Df1092B92641051881a322F5D4E",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 41.73,
+                    "currency": "USDT",
+                    "status": "ok",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  },
+                  {
+                    "info": {
+                      "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                      "tx_hash": null,
+                      "direction": "OUTGOING",
+                      "amount": "20",
+                      "usd_value": "19.99856",
+                      "chain": "ETH",
+                      "asset": "USDT",
+                      "from_address": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                      "to_address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                      "status": "FAILED",
+                      "created_at": "2024-11-07T02:39:01.775495Z",
+                      "network_fee": "0",
+                      "fees": "0"
+                    },
+                    "id": "e27b70a6-5610-40d7-8468-a516a284b776",
+                    "txid": null,
+                    "timestamp": 1730947141775,
+                    "datetime": "2024-11-07T02:39:01.775495Z",
+                    "network": "ETH",
+                    "address": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressTo": "0x49a2c0925196e4dcf05945f67f690153190fbaab",
+                    "addressFrom": "0x3777C930E4dCA196E070d39B60c644C8Aae02f23",
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "withdrawal",
+                    "amount": 20,
+                    "currency": "USDT",
+                    "status": "failed",
+                    "updated": null,
+                    "fee": {
+                      "cost": 0,
+                      "currency": "USDT"
+                    },
+                    "comment": null,
+                    "internal": null
+                  }
+                ]
+            }
         ]
     }
 }

@@ -2822,7 +2822,7 @@
                     "previousFundingRate": null,
                     "previousFundingTimestamp": null,
                     "previousFundingDatetime": null,
-                    "interval": null
+                    "interval": "8h"
                   }
                 }
             }
@@ -2921,7 +2921,7 @@
                   "previousFundingRate": null,
                   "previousFundingTimestamp": null,
                   "previousFundingDatetime": null,
-                  "interval": null
+                  "interval": "8h"
                 }
             }
         ]

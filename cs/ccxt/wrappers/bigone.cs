@@ -264,6 +264,18 @@ public partial class bigone
     /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.operator</term>
+    /// <description>
+    /// string : *stop order only* GTE or LTE (default)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.client_order_id</term>
+    /// <description>
+    /// string : must match ^[a-zA-Z0-9-_]{1,36}$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
