@@ -569,8 +569,10 @@ class bitbns(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
+
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/place-orders
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/market-orders-quantity  # market orders
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -578,8 +580,8 @@ class bitbns(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param float [params.target_rate]: *requires params.trail_rate when set, type must be 'limit'* a bracket order is placed when set
         :param float [params.trail_rate]: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -625,8 +627,10 @@ class bitbns(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
+
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/cancel-orders
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/cancel-stop-loss-orders
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -654,7 +658,9 @@ class bitbns(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-1/order-status
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -704,8 +710,10 @@ class bitbns(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
-        :see: https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
+
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit
+        https://docs.bitbns.com/bitbns/rest-endpoints/order-apis/version-2/order-status-limit/order-status-stop-limit
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve

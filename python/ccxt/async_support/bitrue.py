@@ -544,7 +544,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -568,7 +570,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -704,9 +708,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitrue
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-        :see: https://www.bitrue.com/api-docs#current-open-contract
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+        https://www.bitrue.com/api-docs#current-open-contract
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -963,9 +969,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
-        :see: https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+        https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'future', 'delivery', 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
@@ -1070,9 +1078,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
-        :see: https://www.bitrue.com/api-docs#order-book
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+        https://www.bitrue.com/api-docs#order-book
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1204,9 +1214,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-        :see: https://www.bitrue.com/api-docs#ticker
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+        https://www.bitrue.com/api-docs#ticker
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1275,9 +1287,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-        :see: https://www.bitrue.com/api-docs#kline-candlestick-data
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
+        https://www.bitrue.com/api-docs#kline-candlestick-data
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1393,9 +1407,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
-        :see: https://www.bitrue.com/api-docs#ticker
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+        https://www.bitrue.com/api-docs#ticker
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1451,9 +1467,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-        :see: https://www.bitrue.com/api-docs#ticker
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+        https://www.bitrue.com/api-docs#ticker
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1620,7 +1638,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1787,8 +1807,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
+        https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1804,9 +1826,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-        :see: https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+        https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1819,7 +1843,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str [params.timeInForce]: 'fok', 'ioc' or 'po'
         :param bool [params.postOnly]: default False
         :param bool [params.reduceOnly]: default False
-         * EXCHANGE SPECIFIC PARAMETERS
+ EXCHANGE SPECIFIC PARAMETERS
         :param decimal [params.icebergQty]:
         :param long [params.recvWindow]:
         :param float [params.cost]: *swap market buy only* the quote quantity that can be used alternative for the amount
@@ -1926,9 +1950,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-        :see: https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
+        https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2012,7 +2038,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -2064,9 +2092,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-        :see: https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
+        https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -2144,9 +2174,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
-        :see: https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+        https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2206,8 +2238,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+
+        https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
@@ -2242,9 +2276,11 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-        :see: https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
+        https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -2327,7 +2363,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -2394,7 +2432,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2583,7 +2623,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2670,7 +2712,9 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+
+        https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -2719,8 +2763,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        :see: https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+
+        https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
@@ -2768,8 +2814,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+
+        https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2801,8 +2849,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+
+        https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2853,8 +2903,10 @@ class bitrue(Exchange, ImplicitAPI):
     async def set_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-        :see: https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
-        :see: https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+
+        https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+        https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the exchange API endpoint

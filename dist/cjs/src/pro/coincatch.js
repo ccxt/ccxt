@@ -224,17 +224,17 @@ class coincatch extends coincatch$1 {
         }
         return market;
     }
+    /**
+     * @method
+     * @name coincatch#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://coincatch.github.io/github.io/en/spot/#tickers-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.instType] the type of the instrument to fetch the ticker for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://coincatch.github.io/github.io/en/spot/#tickers-channel
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.instType] the type of the instrument to fetch the ticker for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const [instType, instId] = this.getPublicInstTypeAndId(market);
@@ -247,28 +247,29 @@ class coincatch extends coincatch$1 {
         };
         return await this.watchPublic(messageHash, messageHash, args, params);
     }
+    /**
+     * @method
+     * @name coinctach#unWatchTicker
+     * @description unsubscribe from the ticker channel
+     * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
     async unWatchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinctach#unWatchTicker
-         * @description unsubscribe from the ticker channel
-         * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
-         * @param {string} symbol unified symbol of the market to unwatch the ticker for
-         * @returns {any} status of the unwatch request
-         */
         await this.loadMarkets();
         return await this.unWatchChannel(symbol, 'ticker', 'ticker', params);
     }
+    /**
+     * @method
+     * @name coincatch#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
+     * @param {string[]} symbols unified symbol of the market to watch the tickers for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
-         * @param {string[]} symbols unified symbol of the market to watch the tickers for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         if (symbols === undefined) {
             symbols = this.symbols;
@@ -408,20 +409,20 @@ class coincatch extends coincatch$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name coincatch#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://coincatch.github.io/github.io/en/spot/#candlesticks-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch (not including)
+     * @param {int} [limit] the maximum amount of candles to fetch (not including)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.instType] the type of the instrument to fetch the OHLCV data for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://coincatch.github.io/github.io/en/spot/#candlesticks-channel
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch (not including)
-         * @param {int} [limit] the maximum amount of candles to fetch (not including)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.instType] the type of the instrument to fetch the OHLCV data for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const timeframes = this.options['timeframesForWs'];
@@ -439,15 +440,17 @@ class coincatch extends coincatch$1 {
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
+    /**
+     * @method
+     * @name coincatch#unWatchOHLCV
+     * @description unsubscribe from the ohlcv channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+     * @param timeframe
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        /**
-         * @method
-         * @name coincatch#unWatchOHLCV
-         * @description unsubscribe from the ohlcv channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
-         * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const timeframes = this.options['timeframesForWs'];
         const interval = this.safeString(timeframes, timeframe);
@@ -520,29 +523,30 @@ class coincatch extends coincatch$1 {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name coincatch#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    /**
+     * @method
+     * @name coincatch#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOrderBook(symbol, params = {}) {
-        /**
-         * @method
-         * @name coincatch#unWatchOrderBook
-         * @description unsubscribe from the orderbook channel
-         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [params.limit] orderbook limit, default is undefined
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         let channel = 'books';
         const limit = this.safeInteger(params, 'limit');
@@ -552,17 +556,17 @@ class coincatch extends coincatch$1 {
         }
         return await this.unWatchChannel(symbol, channel, channel, params);
     }
+    /**
+     * @method
+     * @name coincatch#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
+     * @param symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://coincatch.github.io/github.io/en/spot/#depth-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const channel = 'books';
@@ -676,32 +680,32 @@ class coincatch extends coincatch$1 {
             this.handleDelta(bookside, deltas[i]);
         }
     }
+    /**
+     * @method
+     * @name coincatch#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
+    /**
+     * @method
+     * @name coincatch#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
+     * @param symbols
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -730,15 +734,16 @@ class coincatch extends coincatch$1 {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name coincatch#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
     async unWatchTrades(symbol, params = {}) {
-        /**
-         * @method
-         * @name coincatch#unWatchTrades
-         * @description unsubscribe from the trades channel
-         * @see https://coincatch.github.io/github.io/en/spot/#trades-channel
-         * @param {string} symbol unified symbol of the market to unwatch the trades for
-         * @returns {any} status of the unwatch request
-         */
         await this.loadMarkets();
         return await this.unWatchChannel(symbol, 'trade', 'trade', params);
     }
@@ -802,18 +807,18 @@ class coincatch extends coincatch$1 {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name coincatch#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://coincatch.github.io/github.io/en/spot/#account-channel
+     * @see https://coincatch.github.io/github.io/en/mix/#account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://coincatch.github.io/github.io/en/spot/#account-channel
-         * @see https://coincatch.github.io/github.io/en/mix/#account-channel
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {str} [params.type] 'spot' or 'swap' (default is 'spot')
-         * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         let instType = 'spbl'; // must be lower case for spot
@@ -885,23 +890,23 @@ class coincatch extends coincatch$1 {
         const messageHash = 'balance:' + instType;
         client.resolve(this.balance, messageHash);
     }
+    /**
+     * @method
+     * @name coincatch#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://coincatch.github.io/github.io/en/spot/#order-channel
+     * @see https://coincatch.github.io/github.io/en/mix/#order-channel
+     * @see https://coincatch.github.io/github.io/en/mix/#plan-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap'
+     * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
+     * @param {bool} [params.trigger] *swap only* whether to watch trigger orders (default is false)
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://coincatch.github.io/github.io/en/spot/#order-channel
-         * @see https://coincatch.github.io/github.io/en/mix/#order-channel
-         * @see https://coincatch.github.io/github.io/en/mix/#plan-order-channel
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot' or 'swap'
-         * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
-         * @param {bool} [params.trigger] *swap only* whether to watch trigger orders (default is false)
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'watchOrders';
         await this.loadMarkets();
         let market = undefined;
@@ -1143,16 +1148,18 @@ class coincatch extends coincatch$1 {
             'info': order,
         }, market);
     }
+    /**
+     * @method
+     * @name coincatch#watchPositions
+     * @description watch all open positions
+     * @see https://coincatch.github.io/github.io/en/mix/#positions-channel
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param since
+     * @param limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coincatch#watchPositions
-         * @description watch all open positions
-         * @see https://coincatch.github.io/github.io/en/mix/#positions-channel
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, 'swap');
         const messageHashes = [];

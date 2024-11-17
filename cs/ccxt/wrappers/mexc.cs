@@ -312,15 +312,15 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>marginMode</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// string : only 'isolated' is supported for spot-margin trading
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.marginMode</term>
+    /// <term>params</term>
     /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -398,15 +398,15 @@ public partial class mexc
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params</term>
+    /// <term>marginMode</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
+    /// string : only 'isolated' is supported for spot-margin trading
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.marginMode</term>
+    /// <term>params</term>
     /// <description>
-    /// string : only 'isolated' is supported for spot-margin trading
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1427,6 +1427,24 @@ public partial class mexc
     /// <term>limit</term>
     /// <description>
     /// int : the maximum amount of candles to fetch, default=1000
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// int : position type，1: long, 2: short
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.page_num</term>
+    /// <description>
+    /// int : current page number, default is 1
     /// </description>
     /// </item>
     /// </list>

@@ -476,16 +476,16 @@ public partial class bitrue : Exchange
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#test-connectivity
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.spotV1PublicGetPing(parameters);
         //
@@ -505,16 +505,16 @@ public partial class bitrue : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#check-server-time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.spotV1PublicGetTime(parameters);
         //
@@ -525,15 +525,15 @@ public partial class bitrue : Exchange
         return this.safeInteger(response, "serverTime");
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.spotV1PublicGetExchangeInfo(parameters);
         //
@@ -660,18 +660,18 @@ public partial class bitrue : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchMarkets
+     * @description retrieves data on all markets for bitrue
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @see https://www.bitrue.com/api-docs#current-open-contract
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
+     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchMarkets
-        * @description retrieves data on all markets for bitrue
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-        * @see https://www.bitrue.com/api-docs#current-open-contract
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-        * @param {object} [params] extra parameters specific to the exchange api endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object>() {};
         object fetchMarkets = this.safeValue(this.options, "fetchMarkets", new List<object>() {"spot", "linear", "inverse"});
@@ -953,20 +953,20 @@ public partial class bitrue : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
+     * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
+     * @param {string} [params.subType] 'linear', 'inverse'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-information-user_data
-        * @see https://www.bitrue.com/api-docs#account-information-v2-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-information-v2-user_data-hmac-sha256
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'future', 'delivery', 'spot', 'swap'
-        * @param {string} [params.subType] 'linear', 'inverse'
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
@@ -998,20 +998,20 @@ public partial class bitrue : Exchange
         return this.parseBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
+     * @see https://www.bitrue.com/api-docs#order-book
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-book
-        * @see https://www.bitrue.com/api-docs#order-book
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#order-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1157,19 +1157,19 @@ public partial class bitrue : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-        * @see https://www.bitrue.com/api-docs#ticker
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1240,22 +1240,22 @@ public partial class bitrue : Exchange
         return this.parseTicker(data, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
+     * @see https://www.bitrue.com/api-docs#kline-candlestick-data
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#kline-data
-        * @see https://www.bitrue.com/api-docs#kline-candlestick-data
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#kline-candlestick-data
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1372,19 +1372,19 @@ public partial class bitrue : Exchange
         return new List<object>() {timestamp, this.safeNumber2(ohlcv, "o", "open"), this.safeNumber2(ohlcv, "h", "high"), this.safeNumber2(ohlcv, "l", "low"), this.safeNumber2(ohlcv, "c", "close"), this.safeNumber2(ohlcv, "v", "vol")};
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchBidsAsks
-        * @description fetches the bid and ask price and volume for multiple markets
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#symbol-order-book-ticker
-        * @see https://www.bitrue.com/api-docs#ticker
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
@@ -1442,19 +1442,19 @@ public partial class bitrue : Exchange
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
+     * @see https://www.bitrue.com/api-docs#ticker
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#24hr-ticker-price-change-statistics
-        * @see https://www.bitrue.com/api-docs#ticker
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#ticker
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1639,19 +1639,19 @@ public partial class bitrue : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1830,19 +1830,19 @@ public partial class bitrue : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1854,33 +1854,33 @@ public partial class bitrue : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name bitrue#createOrder
+     * @description create a trade order
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
+     * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
+     * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
+     * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
+     * @param {bool} [params.postOnly] default false
+     * @param {bool} [params.reduceOnly] default false
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {decimal} [params.icebergQty]
+     * @param {long} [params.recvWindow]
+     * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#createOrder
-        * @description create a trade order
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#recent-trades-list
-        * @see https://www.bitrue.com/api-docs#new-order-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#new-order-trade-hmac-sha256
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
-        * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
-        * @param {decimal} [params.leverage] in future order, the leverage value of the order should consistent with the user contract configuration, default is 1
-        * @param {string} [params.timeInForce] 'fok', 'ioc' or 'po'
-        * @param {bool} [params.postOnly] default false
-        * @param {bool} [params.reduceOnly] default false
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {decimal} [params.icebergQty]
-        * @param {long} [params.recvWindow]
-        * @param {float} [params.cost] *swap market buy only* the quote quantity that can be used as an alternative for the amount
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2005,20 +2005,20 @@ public partial class bitrue : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
+     * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
-        * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2111,19 +2111,19 @@ public partial class bitrue : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#all-orders-user_data
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2172,21 +2172,21 @@ public partial class bitrue : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
+     * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#current-open-orders-user_data
-        * @see https://www.bitrue.com/api-docs#current-all-open-orders-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-all-open-orders-user_data-hmac-sha256
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2266,20 +2266,20 @@ public partial class bitrue : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitrue#cancelOrder
+     * @description cancels an open order
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
+     * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#cancelOrder
-        * @description cancels an open order
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#cancel-order-trade
-        * @see https://www.bitrue.com/api-docs#cancel-order-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-order-trade-hmac-sha256
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2348,19 +2348,19 @@ public partial class bitrue : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
-        * @param {string} symbol unified market symbol of the market to cancel orders in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
-        * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2395,21 +2395,21 @@ public partial class bitrue : Exchange
         return this.parseOrders(data, market);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
+     * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#account-trade-list-user_data
-        * @see https://www.bitrue.com/api-docs#account-trade-list-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#account-trade-list-user_data-hmac-sha256
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(symbol, null)))
@@ -2500,19 +2500,19 @@ public partial class bitrue : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#deposit-history--withdraw_data
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
         {
@@ -2573,19 +2573,19 @@ public partial class bitrue : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-history--withdraw_data
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
         {
@@ -2787,20 +2787,20 @@ public partial class bitrue : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitrue#withdraw
+     * @description make a withdrawal
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#withdraw
-        * @description make a withdrawal
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#withdraw-commit--withdraw_data
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2897,17 +2897,17 @@ public partial class bitrue : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.spotV1PublicGetExchangeInfo(parameters);
@@ -2955,22 +2955,22 @@ public partial class bitrue : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitrue#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
+     * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#fetchTransfers
-        * @description fetch a history of internal transfers made on an account
-        * @see https://www.bitrue.com/api-docs#get-future-account-transfer-history-list-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#get-future-account-transfer-history-list-user_data-hmac-sha256
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of transfers structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch transfers for
-        * @param {string} [params.type] transfer type wallet_to_contract or contract_to_wallet
-        * @returns {object[]} a list of [transfer structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = this.safeString2(parameters, "type", "transferType");
@@ -3019,21 +3019,21 @@ public partial class bitrue : Exchange
         return this.parseTransfers(data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitrue#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://www.bitrue.com/api-docs#new-future-account-transfer-user_data-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#user-commission-rate-user_data-hmac-sha256
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3057,19 +3057,19 @@ public partial class bitrue : Exchange
         return this.parseTransfer(data, currency);
     }
 
+    /**
+     * @method
+     * @name bitrue#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://www.bitrue.com/api-docs#change-initial-leverage-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#change-initial-leverage-trade-hmac-sha256
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3125,19 +3125,19 @@ public partial class bitrue : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitrue#setMargin
+     * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+     * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
+     * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
+     * @param {string} symbol unified market symbol of the market to set margin in
+     * @param {float} amount the amount to set the margin to
+     * @param {object} [params] parameters specific to the exchange API endpoint
+     * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
+     */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#setMargin
-        * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-        * @see https://www.bitrue.com/api-docs#modify-isolated-position-margin-trade-hmac-sha256
-        * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#modify-isolated-position-margin-trade-hmac-sha256
-        * @param {string} symbol unified market symbol of the market to set margin in
-        * @param {float} amount the amount to set the margin to
-        * @param {object} [params] parameters specific to the exchange API endpoint
-        * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
