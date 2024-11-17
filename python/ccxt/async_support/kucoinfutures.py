@@ -1212,8 +1212,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
 
         :param str[] [symbols]: list of unified market symbols
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch position history for
+        :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: closing end time
         :param int [params.pageId]: page id

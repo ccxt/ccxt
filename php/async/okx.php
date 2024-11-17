@@ -8512,8 +8512,8 @@ class okx extends Exchange {
              *
              * @param {string} [$symbol] not used by okx fetchMarginAdjustmentHistory
              * @param {string} [$type] "add" or "reduce"
-             * @param $since
-             * @param $limit
+             * @param {int} [$since] the earliest time in ms to fetch margin adjustment history for
+             * @param {int} [$limit] the maximum number of entries to retrieve
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @param {boolean} [$params->auto] true if fetching $auto margin increases
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~

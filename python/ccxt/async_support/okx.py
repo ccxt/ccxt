@@ -7933,8 +7933,8 @@ class okx(Exchange, ImplicitAPI):
 
         :param str [symbol]: not used by okx fetchMarginAdjustmentHistory
         :param str [type]: "add" or "reduce"
- @param since
- @param limit
+        :param int [since]: the earliest time in ms to fetch margin adjustment history for
+        :param int [limit]: the maximum number of entries to retrieve
         :param dict params: extra parameters specific to the exchange api endpoint
         :param boolean [params.auto]: True if fetching auto margin increases
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/#/?id=margin-loan-structure>`

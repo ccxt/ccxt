@@ -1247,7 +1247,7 @@ class kucoin extends Exchange {
     public function load_migration_status(bool $force = false) {
         return Async\async(function () use ($force) {
             /**
-             * @param $force
+             * @param {boolean} $force load account state for non hf
              * loads the migration status for the account (hf or not)
              *
              * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
@@ -5056,8 +5056,8 @@ class kucoin extends Exchange {
              *
              * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-$leverage-multiplier
              *
-             * @param $leverage
-             * @param {string} $symbol unified $market $symbol
+             * @param array(int ) [$leverage] New $leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt $leverage or greater than the system's maximum $leverage
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */

@@ -897,9 +897,9 @@ class gate extends gate$1 {
         this.options['sandboxMode'] = enable;
     }
     /**
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @method
      * @name gate#isUnifiedEnabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined

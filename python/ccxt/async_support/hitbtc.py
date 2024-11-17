@@ -1530,7 +1530,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
         https://api.hitbtc.com/#order-books
 
-        :param str[]|None symbols: list of unified market symbols, all symbols fetched if None, default is None
+        :param str[] [symbols]: list of unified market symbols, all symbols fetched if None, default is None
         :param int [limit]: max number of entries per orderbook to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
@@ -3396,8 +3396,8 @@ class hitbtc(Exchange, ImplicitAPI):
 
         https://api.hitbtc.com/#close-all-futures-margin-positions
 
- @param symbol
- @param side
+        :param str symbol: unified ccxt market symbol
+        :param str side: 'buy' or 'sell'
         :param dict [params]: extra parameters specific to the okx api endpoint
         :param str [params.symbol]: *required* unified market symbol
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'

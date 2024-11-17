@@ -2149,8 +2149,8 @@ class kraken extends Exchange {
          *
          * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
          *
-         * @param {string[]|null} $ids list of $order $id
-         * @param $symbol
+         * @param {string[]} [$ids] list of $order $id
+         * @param {string} [$symbol] unified ccxt market $symbol
          * @param {array} [$params] extra parameters specific to the kraken api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */

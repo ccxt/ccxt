@@ -154,8 +154,8 @@ export default class kucoinfutures extends kucoin {
      * @description fetches historical positions
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
      * @param {string[]} [symbols] list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] closing end time
      * @param {int} [params.pageId] page id
@@ -495,7 +495,7 @@ export default class kucoinfutures extends kucoin {
     setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<MarginMode>;
     /**
      * @method
-     * @name kucoin#fetchLeverage
+     * @name kucoinfutures#fetchLeverage
      * @description fetch the set leverage for a market
      * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
      * @param {string} symbol unified market symbol

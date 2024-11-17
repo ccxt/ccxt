@@ -1228,9 +1228,9 @@ class kucoin extends kucoin$1 {
         return result;
     }
     /**
-     * @param force
      * @method
      * @name kucoin#loadMigrationStatus
+     * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
      * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
      */
@@ -4947,8 +4947,8 @@ class kucoin extends kucoin$1 {
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
-     * @param leverage
-     * @param {string} symbol unified market symbol
+     * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

@@ -1244,7 +1244,7 @@ class kucoin(Exchange, ImplicitAPI):
 
     def load_migration_status(self, force: bool = False):
         """
- @param force
+        :param boolean force: load account state for non hf
         loads the migration status for the account(hf or not)
 
         https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
@@ -4739,8 +4739,8 @@ class kucoin(Exchange, ImplicitAPI):
 
         https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
 
- @param leverage
-        :param str symbol: unified market symbol
+        :param int [leverage]: New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """

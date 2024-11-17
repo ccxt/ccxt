@@ -848,7 +848,7 @@ class cex(Exchange, ImplicitAPI):
 
         https://trade.cex.io/docs/#rest-private-api-calls-orders
 
- @param status
+        :param str status: order status to fetch for
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

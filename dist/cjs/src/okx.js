@@ -8329,8 +8329,8 @@ class okx extends okx$1 {
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
      * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
      * @param {string} [type] "add" or "reduce"
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
