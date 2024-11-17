@@ -88,6 +88,14 @@ import gzip
 import hashlib
 import hmac
 import io
+
+# load orjson if available, otherwise default to json
+orjson = None
+try:
+    import orjson as orjson
+except ImportError:
+    pass
+
 import json
 import math
 import random
@@ -486,10 +494,10 @@ class Exchange(object):
         return response_body.strip()
 
     def on_json_response(self, response_body):
-        if self.quoteJsonNumbers:
+        if self.quoteJsonNumbers and orjson is None:
             return json.loads(response_body, parse_float=str, parse_int=str)
         else:
-            return json.loads(response_body)
+            return orjson.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
@@ -1433,6 +1441,8 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
+        if orjson:
+            return orjson.dumps(data).decode('utf-8')
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
