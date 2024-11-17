@@ -3176,7 +3176,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
      * @param {string} type 'spot', 'swap' or 'future
      * @param {string} [marginMode] 'cross' or 'isolated'
-     * @param symbol
+     * @param {string} [symbol] unified ccxt market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
      */
