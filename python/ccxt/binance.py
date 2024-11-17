@@ -1894,6 +1894,8 @@ class binance(Exchange):
                     average = float(self.price_to_precision(symbol, average))
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
+        if average is None:
+            average = self.safe_float(order, 'avgPrice')
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX')
