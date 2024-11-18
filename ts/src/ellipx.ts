@@ -670,6 +670,16 @@ export default class ellipx extends Exchange {
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name ellipx#fetchCurrencies
+         * @description fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
+         * @param {object} [params] extra parameters specific to the ellipx API endpoint
+         * @param {string} [params.Can_Deposit] filter currencies by deposit availability, Y for available
+         * @param {number} [params.results_per_page] number of results per page, default 100
+         * @param {string} [params._expand] additional fields to expand in response, default '/Crypto_Token,/Crypto_Chain'
+         * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
+         */
         const response = await this._restGetCryptoTokenInfo (this.extend ({
             'Can_Deposit': 'Y',
             'results_per_page': 100,
