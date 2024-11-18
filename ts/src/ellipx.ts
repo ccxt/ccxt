@@ -772,6 +772,17 @@ export default class ellipx extends Exchange {
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name ellipx#fetchTrades
+         * @description fetches all completed trades for a particular market/symbol
+         * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the EllipX API endpoint
+         * @param {string} [params.before] get trades before the given trade ID
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
