@@ -295,10 +295,10 @@ export default class hyperliquid extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot') {
-            return this.fetchSpotMarkets (params);
+            return await this.fetchSpotMarkets (params);
         }
         if (type === 'swap') {
-            return this.fetchSwapMarkets (params);
+            return await this.fetchSwapMarkets (params);
         }
         const rawPromises = [
             this.fetchSwapMarkets (params),
