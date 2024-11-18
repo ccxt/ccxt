@@ -30,14 +30,14 @@ export default class woo extends wooRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://wss.woo.org/ws/stream',
-                        'private': 'wss://wss.woo.org/v2/ws/private/stream',
+                        'public': 'wss://wss.woox.io/ws/stream',
+                        'private': 'wss://wss.woox.io/v2/ws/private/stream',
                     },
                 },
                 'test': {
                     'ws': {
-                        'public': 'wss://wss.staging.woo.org/ws/stream',
-                        'private': 'wss://wss.staging.woo.org/v2/ws/private/stream',
+                        'public': 'wss://wss.staging.woox.io/ws/stream',
+                        'private': 'wss://wss.staging.woox.io/v2/ws/private/stream',
                     },
                 },
             },
@@ -91,8 +91,8 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchOrderBook
-     * @see https://docs.woo.org/#orderbookupdate
-     * @see https://docs.woo.org/#orderbook
+     * @see https://docs.woox.io/#orderbookupdate
+     * @see https://docs.woox.io/#orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
@@ -350,7 +350,7 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchTickers
-     * @see https://docs.woo.org/#24h-tickers
+     * @see https://docs.woox.io/#24h-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -492,7 +492,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.woo.org/#k-line
+     * @see https://docs.woox.io/#k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -570,7 +570,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.woo.org/#trade
+     * @see https://docs.woox.io/#trade
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -766,8 +766,8 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchOrders
-     * @see https://docs.woo.org/#executionreport
-     * @see https://docs.woo.org/#algoexecutionreportv2
+     * @see https://docs.woox.io/#executionreport
+     * @see https://docs.woox.io/#algoexecutionreportv2
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -802,8 +802,8 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchMyTrades
-     * @see https://docs.woo.org/#executionreport
-     * @see https://docs.woo.org/#algoexecutionreportv2
+     * @see https://docs.woox.io/#executionreport
+     * @see https://docs.woox.io/#algoexecutionreportv2
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
@@ -1046,7 +1046,7 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchPositions
-     * @see https://docs.woo.org/#position-push
+     * @see https://docs.woox.io/#position-push
      * @description watch all open positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param since
@@ -1165,7 +1165,7 @@ export default class woo extends wooRest {
 
     /**
      * @method
-     * @see https://docs.woo.org/#balance
+     * @see https://docs.woox.io/#balance
      * @name woo#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
