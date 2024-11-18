@@ -2390,32 +2390,12 @@ export default class coinbase extends Exchange {
             return ledger;
         }
         const lastIndex = length - 1;
-        const last = this.safeDict (ledger, lastIndex);
+        const last = this.safeDict (ledger, lastIndex) as LedgerEntry;
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
-            const lastFee = this.safeDict (last, 'fee');
-            last['next_starting_after'] = cursor;
-            ledger[lastIndex] = {
-                'info': this.safeDict (last, 'info'),
-                'id': this.safeString (last, 'id'),
-                'timestamp': this.safeInteger (last, 'timestamp'),
-                'datetime': this.safeString (last, 'datetime'),
-                'direction': this.safeString (last, 'direction'),
-                'account': this.safeString (last, 'account'),
-                'referenceId': undefined,
-                'referenceAccount': undefined,
-                'type': this.safeString (last, 'type'),
-                'currency': this.safeString (last, 'currency'),
-                'amount': this.safeNumber (last, 'amount'),
-                'before': undefined,
-                'after': undefined,
-                'status': this.safeString (last, 'status'),
-                'fee': {
-                    'cost': this.safeNumber (lastFee, 'cost'),
-                    'currency': this.safeString (lastFee, 'currency'),
-                },
-            };
+            last['info']['next_starting_after'] = cursor;
+            ledger[lastIndex] = last;
         }
         return ledger;
     }
