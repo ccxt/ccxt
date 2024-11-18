@@ -1003,7 +1003,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address that made trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTrades (symbol: Str, since: Int = undefined, limit: Int = undefined, params = {}) {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchTrades', params);
         await this.loadMarkets ();
