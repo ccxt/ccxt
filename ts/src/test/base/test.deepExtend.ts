@@ -1,14 +1,17 @@
 
 // AUTO_TRANSPILE_ENABLED
-
+import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 function testDeepExtend () {
 
-    // const exchange = new ccxt.Exchange ({
-    //     'id': 'sampleexchange',
-    // });
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    assert (exchange.parseToNumeric ('1') === 1);
+    return true; // dummy for now
 
     // const obj1 = {
     //     "a": 1,
