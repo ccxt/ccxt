@@ -10,6 +10,7 @@ import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
+import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -11505,10 +11506,31 @@ export default class binance extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
+    bpaySign (path, method = 'GET', params = {}, headers = undefined, body = undefined) {
+        this.checkRequiredCredentials ();
+        const url = this.urls['api']['bpay'] + '/' + path;
+        body = this.json (params);
+        const timestamp = this.milliseconds ();
+        const nonce = this.numberToString (this.microseconds ()) + this.numberToString (this.microseconds ());
+        const payload = timestamp + '\n' + nonce + '\n' + body + '\n';
+        const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
+        headers = {
+            'content-type': 'application/json',
+            'BinancePay-Timestamp': timestamp,
+            'BinancePay-Nonce': nonce,
+            'BinancePay-Certificate-SN': this.apiKey,
+            'BinancePay-Signature': signature,
+        };
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
+        }
+        if (api === 'bpay') {
+            return this.bpaySign (path, method, params, headers, body);
         }
         let url = this.urls['api'][api];
         url += '/' + path;
@@ -11520,15 +11542,6 @@ export default class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
-        }
-        if (api === 'bpay') {
-            headers = {
-                'content-type': 'application/json',
-                'BinancePay-Timestamp': this.milliseconds (),
-                'BinancePay-Nonce': this.numberToString (this.microseconds ()) + this.numberToString (this.microseconds ()),
-                'BinancePay-Certificate-SN': 'sertificate',
-                'BinancePay-Signature': 'foobar',
-            };
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
