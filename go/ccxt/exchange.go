@@ -365,6 +365,13 @@ func (this *Exchange) Json(object interface{}) interface{} {
 }
 
 func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
+	if (v == nil) || (v == "") {
+		// return default value if exists
+		if len(a) > 0 {
+			return a[0]
+		}
+		return nil
+	}
 	f, err := ToSafeFloat(v)
 	if err == nil {
 		return f
