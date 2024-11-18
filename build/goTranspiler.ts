@@ -1382,7 +1382,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             const file = [
                 'package base',
-                testName.indexOf('tests.init') === -1 ? 'import "ccxt"' : '',
+                testName.indexOf('tests.init') === -1 ? 'import "ccxt/go/ccxt"' : '',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 content,
@@ -1429,7 +1429,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const file = [
             'package base',
-            'import "ccxt"',
+            'import "ccxt/go/ccxt"',
             '',
             this.createGeneratedHeader().join('\n'),
             contentIndentend,
@@ -1543,7 +1543,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const namespace = 'package base';
             const fileHeaders = [
                 namespace,
-                'import "ccxt"',
+                'import "ccxt/go/ccxt"',
                 '',
                 this.createGeneratedHeader().join('\n'),
                 '',
