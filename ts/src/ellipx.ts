@@ -1060,6 +1060,15 @@ export default class ellipx extends Exchange {
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name ellipx#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string} id the order ID as returned by createOrder or fetchOrders
+         * @param {string|undefined} symbol not used by ellipx.fetchOrder
+         * @param {object} [params] extra parameters specific to the EllipX API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderUuid': id,
