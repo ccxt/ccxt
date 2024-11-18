@@ -2571,7 +2571,7 @@ export default class phemex extends Exchange {
         const triggerPrice = this.safeStringN (params, [ 'stopPx', 'stopPrice', 'triggerPrice' ]);
         if (triggerPrice !== undefined) {
             if (market['settle'] === 'USDT') {
-                request['stopPxEp'] = this.priceToPrecision (symbol, triggerPrice);
+                request['stopPxRp'] = this.priceToPrecision (symbol, triggerPrice);
             } else {
                 request['stopPxEp'] = this.toEp (triggerPrice, market);
             }
