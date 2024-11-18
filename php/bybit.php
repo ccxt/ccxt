@@ -547,7 +547,7 @@ class bybit extends Exchange {
                     '10005' => '\\ccxt\\PermissionDenied', // permission denied for current apikey
                     '10006' => '\\ccxt\\RateLimitExceeded', // too many requests
                     '10007' => '\\ccxt\\AuthenticationError', // api_key not found in your request parameters
-                    '10008' => '\\ccxt\\AuthenticationError', // User had been banned
+                    '10008' => '\\ccxt\\AccountSuspended', // User had been banned
                     '10009' => '\\ccxt\\AuthenticationError', // IP had been banned
                     '10010' => '\\ccxt\\PermissionDenied', // request ip mismatch
                     '10014' => '\\ccxt\\BadRequest', // Request is duplicate

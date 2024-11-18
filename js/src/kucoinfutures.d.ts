@@ -185,7 +185,7 @@ export default class kucoinfutures extends kucoin {
      * @param {string} [params.postOnly] Post only flag, invalid when timeInForce is IOC or FOK
      * @param {float} [params.cost] the cost of the order in units of USDT
      * ----------------- Exchange Specific Parameters -----------------
-     * @param {float} [params.leverage] Leverage size of the order
+     * @param {float} [params.leverage] Leverage size of the order (mandatory param in request, default is 1)
      * @param {string} [params.clientOid] client order id, defaults to uuid if not passed
      * @param {string} [params.remark] remark for the order, length cannot exceed 100 utf8 characters
      * @param {string} [params.stop] 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.

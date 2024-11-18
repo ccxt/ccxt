@@ -494,7 +494,7 @@ public partial class bybit : Exchange
                     { "10005", typeof(PermissionDenied) },
                     { "10006", typeof(RateLimitExceeded) },
                     { "10007", typeof(AuthenticationError) },
-                    { "10008", typeof(AuthenticationError) },
+                    { "10008", typeof(AccountSuspended) },
                     { "10009", typeof(AuthenticationError) },
                     { "10010", typeof(PermissionDenied) },
                     { "10014", typeof(BadRequest) },

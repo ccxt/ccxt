@@ -551,7 +551,7 @@ class bybit extends bybit$1 {
                     '10005': errors.PermissionDenied,
                     '10006': errors.RateLimitExceeded,
                     '10007': errors.AuthenticationError,
-                    '10008': errors.AuthenticationError,
+                    '10008': errors.AccountSuspended,
                     '10009': errors.AuthenticationError,
                     '10010': errors.PermissionDenied,
                     '10014': errors.BadRequest,

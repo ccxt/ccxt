@@ -11,6 +11,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -567,7 +568,7 @@ class bybit(Exchange, ImplicitAPI):
                     '10005': PermissionDenied,  # permission denied for current apikey
                     '10006': RateLimitExceeded,  # too many requests
                     '10007': AuthenticationError,  # api_key not found in your request parameters
-                    '10008': AuthenticationError,  # User had been banned
+                    '10008': AccountSuspended,  # User had been banned
                     '10009': AuthenticationError,  # IP had been banned
                     '10010': PermissionDenied,  # request ip mismatch
                     '10014': BadRequest,  # Request is duplicate
