@@ -234,13 +234,13 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - Cayman Islands
      - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
-          :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
+          :target: https://referral.woox.io/BAJS6oNmZb3vi3RGA
           :alt: woo
      
      - woo
-     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - `WOO X <https://referral.woox.io/BAJS6oNmZb3vi3RGA>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://docs.woo.org/
+          :target: https://docs.woox.io/
           :alt: API Version 1
      
    * - Chile

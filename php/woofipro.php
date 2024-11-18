@@ -20,7 +20,7 @@ class woofipro extends Exchange {
             'certified' => true,
             'pro' => true,
             'dex' => true,
-            'hostname' => 'dex.woo.org',
+            'hostname' => 'dex.woox.io',
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -129,15 +129,15 @@ class woofipro extends Exchange {
                     'public' => 'https://testnet-api-evm.orderly.org',
                     'private' => 'https://testnet-api-evm.orderly.org',
                 ),
-                'www' => 'https://dex.woo.org',
+                'www' => 'https://dex.woox.io',
                 'doc' => array(
                     'https://orderly.network/docs/build-on-evm/building-on-evm',
                 ),
                 'fees' => array(
-                    'https://dex.woo.org/en/orderly',
+                    'https://dex.woox.io/en/orderly',
                 ),
                 'referral' => array(
-                    'url' => 'https://dex.woo.org/en/trade?ref=CCXT',
+                    'url' => 'https://dex.woox.io/en/trade?ref=CCXT',
                     'discount' => 0.05,
                 ),
             ),

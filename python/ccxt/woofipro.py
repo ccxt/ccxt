@@ -33,7 +33,7 @@ class woofipro(Exchange, ImplicitAPI):
             'certified': True,
             'pro': True,
             'dex': True,
-            'hostname': 'dex.woo.org',
+            'hostname': 'dex.woox.io',
             'has': {
                 'CORS': None,
                 'spot': False,
@@ -142,15 +142,15 @@ class woofipro(Exchange, ImplicitAPI):
                     'public': 'https://testnet-api-evm.orderly.org',
                     'private': 'https://testnet-api-evm.orderly.org',
                 },
-                'www': 'https://dex.woo.org',
+                'www': 'https://dex.woox.io',
                 'doc': [
                     'https://orderly.network/docs/build-on-evm/building-on-evm',
                 ],
                 'fees': [
-                    'https://dex.woo.org/en/orderly',
+                    'https://dex.woox.io/en/orderly',
                 ],
                 'referral': {
-                    'url': 'https://dex.woo.org/en/trade?ref=CCXT',
+                    'url': 'https://dex.woox.io/en/trade?ref=CCXT',
                     'discount': 0.05,
                 },
             },

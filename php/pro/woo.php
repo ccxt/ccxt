@@ -33,14 +33,14 @@ class woo extends \ccxt\async\woo {
             'urls' => array(
                 'api' => array(
                     'ws' => array(
-                        'public' => 'wss://wss.woo.org/ws/stream',
-                        'private' => 'wss://wss.woo.org/v2/ws/private/stream',
+                        'public' => 'wss://wss.woox.io/ws/stream',
+                        'private' => 'wss://wss.woox.io/v2/ws/private/stream',
                     ),
                 ),
                 'test' => array(
                     'ws' => array(
-                        'public' => 'wss://wss.staging.woo.org/ws/stream',
-                        'private' => 'wss://wss.staging.woo.org/v2/ws/private/stream',
+                        'public' => 'wss://wss.staging.woox.io/ws/stream',
+                        'private' => 'wss://wss.staging.woox.io/v2/ws/private/stream',
                     ),
                 ),
             ),
@@ -97,8 +97,8 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://docs.woo.org/#orderbookupdate
-             * @see https://docs.woo.org/#$orderbook
+             * @see https://docs.woox.io/#orderbookupdate
+             * @see https://docs.woox.io/#$orderbook
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -360,7 +360,7 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://docs.woo.org/#24h-$tickers
+             * @see https://docs.woox.io/#24h-$tickers
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -506,7 +506,7 @@ class woo extends \ccxt\async\woo {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://docs.woo.org/#k-line
+             * @see https://docs.woox.io/#k-line
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -586,7 +586,7 @@ class woo extends \ccxt\async\woo {
             /**
              * watches information on multiple $trades made in a $market
              *
-             * @see https://docs.woo.org/#trade
+             * @see https://docs.woox.io/#trade
              *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -790,8 +790,8 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.woo.org/#executionreport
-             * @see https://docs.woo.org/#algoexecutionreportv2
+             * @see https://docs.woox.io/#executionreport
+             * @see https://docs.woox.io/#algoexecutionreportv2
              *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
@@ -828,8 +828,8 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.woo.org/#executionreport
-             * @see https://docs.woo.org/#algoexecutionreportv2
+             * @see https://docs.woox.io/#executionreport
+             * @see https://docs.woox.io/#algoexecutionreportv2
              *
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
@@ -1074,7 +1074,7 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.woo.org/#position-push
+             * @see https://docs.woox.io/#position-push
              *
              * watch all open positions
              * @param {string[]|null} $symbols list of unified market $symbols
@@ -1198,7 +1198,7 @@ class woo extends \ccxt\async\woo {
         return Async\async(function () use ($params) {
             /**
              *
-             * @see https://docs.woo.org/#balance
+             * @see https://docs.woox.io/#balance
              *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

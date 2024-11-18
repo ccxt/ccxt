@@ -16,7 +16,7 @@ public partial class woofipro : Exchange
             { "certified", true },
             { "pro", true },
             { "dex", true },
-            { "hostname", "dex.woo.org" },
+            { "hostname", "dex.woox.io" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -125,11 +125,11 @@ public partial class woofipro : Exchange
                     { "public", "https://testnet-api-evm.orderly.org" },
                     { "private", "https://testnet-api-evm.orderly.org" },
                 } },
-                { "www", "https://dex.woo.org" },
+                { "www", "https://dex.woox.io" },
                 { "doc", new List<object>() {"https://orderly.network/docs/build-on-evm/building-on-evm"} },
-                { "fees", new List<object>() {"https://dex.woo.org/en/orderly"} },
+                { "fees", new List<object>() {"https://dex.woox.io/en/orderly"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://dex.woo.org/en/trade?ref=CCXT" },
+                    { "url", "https://dex.woox.io/en/trade?ref=CCXT" },
                     { "discount", 0.05 },
                 } },
             } },
