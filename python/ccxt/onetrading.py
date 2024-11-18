@@ -1183,7 +1183,7 @@ class onetrading(Exchange, ImplicitAPI):
         withdrawalHistory = self.safe_list(response, 'withdrawal_history', [])
         return self.parse_transactions(withdrawalHistory, currency, since, limit, {'type': 'withdrawal'})
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1450,7 +1450,9 @@ class onetrading(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.onetrading.com/#create-order
+
+        https://docs.onetrading.com/#create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'

@@ -3293,6 +3293,24 @@
                 ]
             }
         ],
+        "fetchMarginMode": [
+            {
+                "description": "linear swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://fapi.binance.com/fapi/v1/symbolConfig?timestamp=1731574341128&symbol=BTCUSDT&recvWindow=10000&signature=1413a17133ec9b4fddda726366f68c69f6b7328eef9dc40879718e24540b78b1",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://dapi.binance.com/dapi/v1/account?timestamp=1731574391030&recvWindow=10000&signature=f4a9d536dff966ecab5d3499be85bab1422fb9526db45715b38aaabb6d415000",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",

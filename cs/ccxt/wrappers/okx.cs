@@ -523,6 +523,12 @@ public partial class okx
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1578,7 +1584,7 @@ public partial class okx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.accountId</term>
+    /// <term>params.accountId</term>
     /// <description>
     /// string : if you have multiple accounts, you must specify the account id to fetch the position mode
     /// </description>
@@ -2187,6 +2193,18 @@ public partial class okx
     /// <term>type</term>
     /// <description>
     /// string : "add" or "reduce"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch margin adjustment history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
     /// </description>
     /// </item>
     /// <item>

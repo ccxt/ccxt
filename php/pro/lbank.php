@@ -68,7 +68,9 @@ class lbank extends \ccxt\async\lbank {
     public function fetch_ohlcv_ws(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -105,7 +107,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -244,7 +248,9 @@ class lbank extends \ccxt\async\lbank {
     public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the cex api endpoint
@@ -268,7 +274,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$market
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the lbank api endpoint
@@ -375,7 +383,9 @@ class lbank extends \ccxt\async\lbank {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -404,7 +414,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+             *
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -517,7 +529,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-$orders
+             *
              * get the list of trades associated with the user
              * @param {string} [$symbol] unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -684,7 +698,9 @@ class lbank extends \ccxt\async\lbank {
     public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$request-amp-subscription-instruction
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -713,7 +729,9 @@ class lbank extends \ccxt\async\lbank {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.lbank.com/en-US/docs/index.html#$market-depth
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return

@@ -118,6 +118,26 @@ public partial class hyperliquid
         return new Tickers(res);
     }
     /// <summary>
+    /// retrieves data on all swap markets for hyperliquid
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>

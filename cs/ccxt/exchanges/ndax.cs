@@ -297,16 +297,16 @@ public partial class ndax : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name ndax#signIn
+     * @description sign in, must be called prior to using other authenticated methods
+     * @see https://apidoc.ndax.io/#authenticate2fa
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns response from exchange
+     */
     public async override Task<object> signIn(object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#signIn
-        * @description sign in, must be called prior to using other authenticated methods
-        * @see https://apidoc.ndax.io/#authenticate2fa
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns response from exchange
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isTrue(isTrue(isEqual(this.login, null)) || isTrue(isEqual(this.password, null))))
@@ -358,16 +358,16 @@ public partial class ndax : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name ndax#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://apidoc.ndax.io/#getproduct
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://apidoc.ndax.io/#getproduct
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         object request = new Dictionary<string, object>() {
@@ -433,16 +433,16 @@ public partial class ndax : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name ndax#fetchMarkets
+     * @description retrieves data on all markets for ndax
+     * @see https://apidoc.ndax.io/#getinstruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchMarkets
-        * @description retrieves data on all markets for ndax
-        * @see https://apidoc.ndax.io/#getinstruments
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         object request = new Dictionary<string, object>() {
@@ -608,18 +608,18 @@ public partial class ndax : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apidoc.ndax.io/#getl2snapshot
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://apidoc.ndax.io/#getl2snapshot
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -724,17 +724,17 @@ public partial class ndax : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apidoc.ndax.io/#getlevel1
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://apidoc.ndax.io/#getlevel1
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -795,20 +795,20 @@ public partial class ndax : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apidoc.ndax.io/#gettickerhistory
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://apidoc.ndax.io/#gettickerhistory
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -1022,18 +1022,18 @@ public partial class ndax : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1057,16 +1057,16 @@ public partial class ndax : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://apidoc.ndax.io/#getuseraccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://apidoc.ndax.io/#getuseraccounts
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.login))
         {
@@ -1120,16 +1120,16 @@ public partial class ndax : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidoc.ndax.io/#getaccountpositions
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://apidoc.ndax.io/#getaccountpositions
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1258,19 +1258,19 @@ public partial class ndax : Exchange
         }, currency);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://apidoc.ndax.io/#getaccounttransactions
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://apidoc.ndax.io/#getaccounttransactions
-        * @param {string} [code] unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entries to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1422,22 +1422,22 @@ public partial class ndax : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name ndax#createOrder
+     * @description create a trade order
+     * @see https://apidoc.ndax.io/#sendorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#createOrder
-        * @description create a trade order
-        * @see https://apidoc.ndax.io/#sendorder
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1536,19 +1536,19 @@ public partial class ndax : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://apidoc.ndax.io/#gettradeshistory
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://apidoc.ndax.io/#gettradeshistory
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1621,17 +1621,17 @@ public partial class ndax : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://apidoc.ndax.io/#cancelallorders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://apidoc.ndax.io/#cancelallorders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1662,18 +1662,18 @@ public partial class ndax : Exchange
 })};
     }
 
+    /**
+     * @method
+     * @name ndax#cancelOrder
+     * @description cancels an open order
+     * @see https://apidoc.ndax.io/#cancelorder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#cancelOrder
-        * @description cancels an open order
-        * @see https://apidoc.ndax.io/#cancelorder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1706,19 +1706,19 @@ public partial class ndax : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apidoc.ndax.io/#getopenorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://apidoc.ndax.io/#getopenorders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1789,19 +1789,19 @@ public partial class ndax : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://apidoc.ndax.io/#getorderhistory
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://apidoc.ndax.io/#getorderhistory
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1881,17 +1881,18 @@ public partial class ndax : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://apidoc.ndax.io/#getorderstatus
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://apidoc.ndax.io/#getorderstatus
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -1961,20 +1962,20 @@ public partial class ndax : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://apidoc.ndax.io/#getorderhistorybyorderid
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://apidoc.ndax.io/#getorderhistorybyorderid
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -2047,16 +2048,16 @@ public partial class ndax : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -2125,16 +2126,16 @@ public partial class ndax : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name ndax#createDepositAddress
+     * @description create a currency deposit address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#createDepositAddress
-        * @description create a currency deposit address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "GenerateNewKey", true },
@@ -2142,19 +2143,19 @@ public partial class ndax : Exchange
         return await this.fetchDepositAddress(code, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name ndax#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apidoc.ndax.io/#getdeposits
+     * @param {string} code unified currency code
+     * @param {int} [since] not used by ndax fetchDeposits
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://apidoc.ndax.io/#getdeposits
-        * @param {string} code unified currency code
-        * @param {int} [since] not used by ndax fetchDeposits
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -2207,19 +2208,19 @@ public partial class ndax : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name ndax#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apidoc.ndax.io/#getwithdraws
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://apidoc.ndax.io/#getwithdraws
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         await this.loadMarkets();
@@ -2421,19 +2422,19 @@ public partial class ndax : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name ndax#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name ndax#withdraw
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];

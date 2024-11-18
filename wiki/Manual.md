@@ -83,10 +83,10 @@ The CCXT library currently supports the following 104 cryptocurrency exchange ma
 | [![binancecoinm](https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                     | binancecoinm          | [Binance COIN-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/delivery/en/)                                | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binanceus](https://github.com/user-attachments/assets/a9667919-b632-4d52-a832-df89f8a35e8c)](https://www.binance.us/?ref=35005074)                                                         | binanceus             | [Binance US](https://www.binance.us/?ref=35005074)                                           | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://github.com/binance-us/binance-official-api-docs)                            | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![binanceusdm](https://github.com/user-attachments/assets/871cbea7-eebb-4b28-b260-c1c91df0487a)](https://accounts.binance.com/en/register?ref=D7YA7CLY)                                      | binanceusdm           | [Binance USDⓈ-M](https://accounts.binance.com/en/register?ref=D7YA7CLY)                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://binance-docs.github.io/apidocs/futures/en/)                                 | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![bingx](https://github.com/user-attachments/assets/c5249c7b-03c7-47ad-96b6-3819b0ebd3be)](https://bingx.com/invite/OHETOM)                                                                  | bingx                 | [BingX](https://bingx.com/invite/OHETOM)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                                  | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![bingx](https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg)](https://bingx.com/invite/OHETOM)                          | bingx                 | [BingX](https://bingx.com/invite/OHETOM)                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://bingx-api.github.io/docs/)                                                  | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bit2c](https://github.com/user-attachments/assets/db0bce50-6842-4c09-a1d5-0c87d22118aa)](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                                     | bit2c                 | [Bit2C](https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf)                        | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://www.bit2c.co.il/home/api)                                                   | cex  |                                                                                                                             |                                                                              |
 | [![bitbank](https://github.com/user-attachments/assets/9d616de0-8a88-4468-8e38-d269acab0348)](https://bitbank.cc/)                                                                            | bitbank               | [bitbank](https://bitbank.cc/)                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitbank.cc/)                                                           | cex  |                                                                                                                             |                                                                              |
-| [![bitbns](ttps://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9)](https://ref.bitbns.com/1090961)                                                                   | bitbns                | [Bitbns](https://ref.bitbns.com/1090961)                                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                            | cex  |                                                                                                                             |                                                                              |
+| [![bitbns](https://github.com/user-attachments/assets/a5b9a562-cdd8-4bea-9fa7-fd24c1dad3d9)](https://ref.bitbns.com/1090961)                                                                  | bitbns                | [Bitbns](https://ref.bitbns.com/1090961)                                                     | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://bitbns.com/trade/#/api-trading/)                                            | cex  |                                                                                                                             |                                                                              |
 | [![bitfinex](https://github.com/user-attachments/assets/9147c6c5-7197-481e-827b-7483672bb0e9)](https://www.bitfinex.com/?refcode=P61eYxFL)                                                    | bitfinex              | [Bitfinex](https://www.bitfinex.com/?refcode=P61eYxFL)                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.bitfinex.com/v1/docs)                                                  | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitfinex2](https://github.com/user-attachments/assets/4a8e947f-ab46-481a-a8ae-8b20e9b03178)](https://www.bitfinex.com)                                                                     | bitfinex2             | [Bitfinex](https://www.bitfinex.com)                                                         | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://docs.bitfinex.com/v2/docs/)                                                 | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![bitflyer](https://github.com/user-attachments/assets/d0217747-e54d-4533-8416-0d553dca74bb)](https://bitflyer.com)                                                                          | bitflyer              | [bitFlyer](https://bitflyer.com)                                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://lightning.bitflyer.com/docs?lang=en)                                        | cex  |                                                                                                                             |                                                                              |
@@ -2526,13 +2526,9 @@ UNDER CONSTRUCTION
 
 ## OHLCV Candlestick Charts
 
-```diff
-- this is under heavy development right now, contributions appreciated
-```
-
 Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named `has['fetchOHLCV']` indicates whether the exchange supports candlestick data series or not.
 
-The `fetchOHLCV` method is declared in the following way:
+To fetch OHLCV candles/bars from an exchange, ccxt has the `fetchOHLCV` method, which is declared in the following way:
 
 ```javascript
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
@@ -2583,6 +2579,43 @@ Like with most other unified and implicit methods, the `fetchOHLCV` method accep
 The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
+
+### Get raw OHLCV response
+
+Currently, the structure CCXT uses does not include the raw response from the exchange. However, users might be able to override the return value by doing:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const ex = new ccxt.coinbase();
+const originalParser = ex.parseOHLCV.bind(ex);
+ex.parseOHLCV = ((ohlcv, market = undefined) => {
+    return {
+        'result': originalParser(ohlcv, market),
+        'raw': ohlcv,
+    };
+});
+const result = await ex.fetchOHLCV('BTC/USDT', '1m');
+console.log (result[0]);
+```
+#### **Python**
+```python
+# add raw member at last position in list
+async def test():
+    ex = ccxt.async_support.coinbase()
+    prase_ohlcv_original = ex.parse_ohlcv
+    def prase_ohlcv_custom(ohlcv, market):
+        res = prase_ohlcv_original(ohlcv, market)
+        res.append(ohlcv)
+        return res
+    ex.parse_ohlcv = prase_ohlcv_custom
+    result = await ex.fetch_ohlcv('BTC/USDT', '1m')
+    print (result[0])
+
+asyncio.run(test())
+```
+<!-- tabs:end -->
+
 
 ### Notes On Latency
 
@@ -2981,7 +3014,8 @@ Returns
 [
     {
         "tier": 1,                       // tier index
-        "notionalCurrency": "USDT",      // the currency that minNotional and maxNotional are in
+        "symbol": "BTC/USDT",            // the market symbol that the leverage tier applies to
+        "currency": "USDT",              // the currency that minNotional and maxNotional are in
         "minNotional": 0,                // the lowest amount of this tier // stake = 0.0
         "maxNotional": 10000,            // the highest amount of this tier // max stake amount at 75x leverage = 133.33333333333334
         "maintenanceMarginRate": 0.0065, // maintenance margin rate
@@ -2990,7 +3024,8 @@ Returns
     },
     {
         "tier": 2,
-        "notionalCurrency": "USDT",
+        "symbol": "BTC/USDT",
+        "currency": "USDT",
         "minNotional": 10000,            // min stake amount at 50x leverage = 200.0
         "maxNotional": 50000,            // max stake amount at 50x leverage = 1000.0
         "maintenanceMarginRate": 0.01,
@@ -3000,7 +3035,8 @@ Returns
     ...
     {
         "tier": 9,
-        "notionalCurrency": "USDT",
+        "symbol": "BTC/USDT",
+        "currency": "USDT",
         "minNotional": 20000000,
         "maxNotional": 50000000,
         "maintenanceMarginRate": 0.5,
@@ -4663,15 +4699,15 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
@@ -4685,15 +4721,15 @@ amount = 123.45  # your amount
 price = 115.321  # your price
 params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
         'price': 100.33,  # limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
         # no limit price for a market take profit order
         # 'price': 160.33,  # this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
@@ -4707,15 +4743,15 @@ $amount = 123.45; // your amount
 $price = 115.321; // your price
 $params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);

@@ -208,18 +208,19 @@ public partial class krakenfutures
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-balances"/>  <br/>
+    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders"/>  <br/>
+    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by krakenfutures watchBalance
+    /// int : not used by krakenfutures watchOrders
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by krakenfutures watchBalance
+    /// int : not used by krakenfutures watchOrders
     /// </description>
     /// </item>
     /// <item>
@@ -228,15 +229,9 @@ public partial class krakenfutures
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params.account</term>
-    /// <description>
-    /// string : can be either 'futures' or 'flex_futures'
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -278,6 +273,27 @@ public partial class krakenfutures
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
+    /// <summary>
+    /// watches information on the user's account balance
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.futures.kraken.com/#websocket-api-private-feeds-balances"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.account</term>
+    /// <description>
+    /// string : can be either 'futures' or 'flex_futures'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a object of wallet types each with a balance structure {@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
     public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBalance(parameters);

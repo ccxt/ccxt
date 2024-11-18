@@ -461,16 +461,16 @@ public partial class bitstamp : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchMarkets
+     * @description retrieves data on all markets for bitstamp
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchMarkets
-        * @description retrieves data on all markets for bitstamp
-        * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchMarketsFromCache(parameters);
         //
@@ -618,16 +618,16 @@ public partial class bitstamp : Exchange
         return this.safeValue(getValue(this.options, "fetchMarkets"), "response");
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetTradingPairsInfo
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchMarketsFromCache(parameters);
         //
@@ -677,18 +677,18 @@ public partial class bitstamp : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://www.bitstamp.net/api/#tag/Order-book/operation/GetOrderBook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -768,17 +768,17 @@ public partial class bitstamp : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetMarketTicker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -804,17 +804,17 @@ public partial class bitstamp : Exchange
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://www.bitstamp.net/api/#tag/Tickers/operation/GetCurrencyPairTickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetTicker(parameters);
@@ -1048,19 +1048,19 @@ public partial class bitstamp : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://www.bitstamp.net/api/#tag/Transactions-public/operation/GetTransactions
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1105,20 +1105,20 @@ public partial class bitstamp : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, "timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetOHLCData
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1194,16 +1194,16 @@ public partial class bitstamp : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://www.bitstamp.net/api/#tag/Account-balances/operation/GetAccountBalances
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostAccountBalances(parameters);
@@ -1221,17 +1221,17 @@ public partial class bitstamp : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetTradingFeesForCurrency
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1287,16 +1287,16 @@ public partial class bitstamp : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllTradingFees
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostFeesTrading(parameters);
@@ -1317,18 +1317,18 @@ public partial class bitstamp : Exchange
         return this.parseTradingFees(response);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchTransactionFees
+     * @deprecated
+     * @description please use fetchDepositWithdrawFees instead
+     * @see https://www.bitstamp.net/api/#tag/Fees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchTransactionFees
-        * @deprecated
-        * @description please use fetchDepositWithdrawFees instead
-        * @see https://www.bitstamp.net/api/#tag/Fees
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostFeesWithdrawal(parameters);
@@ -1368,17 +1368,17 @@ public partial class bitstamp : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://www.bitstamp.net/api/#tag/Fees/operation/GetAllWithdrawalFees
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostFeesWithdrawal(parameters);
@@ -1423,26 +1423,26 @@ public partial class bitstamp : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitstamp#createOrder
+     * @description create a trade order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#createOrder
-        * @description create a trade order
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantBuyOrder
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketBuyOrder
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitBuyOrder
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenInstantSellOrder
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenMarketSellOrder
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/OpenLimitSellOrder
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1492,18 +1492,18 @@ public partial class bitstamp : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name bitstamp#cancelOrder
+     * @description cancels an open order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#cancelOrder
-        * @description cancels an open order
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1522,18 +1522,18 @@ public partial class bitstamp : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name bitstamp#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1596,18 +1596,18 @@ public partial class bitstamp : Exchange
         return this.parseOrderStatus(this.safeString(response, "status"));
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOrderStatus
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1647,20 +1647,20 @@ public partial class bitstamp : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactionsForMarket
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1681,19 +1681,19 @@ public partial class bitstamp : Exchange
         return this.parseTrades(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1737,19 +1737,19 @@ public partial class bitstamp : Exchange
         return this.parseTransactions(transactions, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/GetWithdrawalRequests
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2144,19 +2144,19 @@ public partial class bitstamp : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
-        * @param {string} [code] unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entries to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2173,20 +2173,20 @@ public partial class bitstamp : Exchange
         return this.parseLedger(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
-        * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetOpenOrdersForMarket
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object market = null;
         await this.loadMarkets();
@@ -2230,17 +2230,17 @@ public partial class bitstamp : Exchange
         return isTrue(isTrue(isEqual(code, "USD")) || isTrue(isEqual(code, "EUR"))) || isTrue(isEqual(code, "GBP"));
     }
 
+    /**
+     * @method
+     * @name bitstamp#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://www.bitstamp.net/api/#tag/Deposits/operation/GetCryptoDepositAddress
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.isFiat(code)))
         {
@@ -2261,21 +2261,21 @@ public partial class bitstamp : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitstamp#withdraw
+     * @description make a withdrawal
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
+     * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#withdraw
-        * @description make a withdrawal
-        * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestFiatWithdrawal
-        * @see https://www.bitstamp.net/api/#tag/Withdrawals/operation/RequestCryptoWithdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         parameters ??= new Dictionary<string, object>();
@@ -2318,21 +2318,21 @@ public partial class bitstamp : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name bitstamp#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
+     * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitstamp#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromMainToSub
-        * @see https://www.bitstamp.net/api/#tag/Sub-account/operation/TransferFromSubToMain
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);

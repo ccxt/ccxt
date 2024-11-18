@@ -7,6 +7,32 @@
     "methods": {
         "createOrder": [
             {
+                "description": "swap +marginMode +stopLoss +takeProfit +triggerLimitPrices",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    192,
+                    {
+                        "marginMode": "isolated",
+                        "stopLoss": {
+                            "triggerPrice": 190,
+                            "price": 189,
+                            "triggerPriceType": "mark"
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 277,
+                            "price": 278,
+                            "triggerPriceType": "last"
+                        }
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456efbeec36d415aadf\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"stopLossRp\":\"190\",\"slTrigger\":\"ByMarkPrice\",\"slPxRp\":\"189\",\"takeProfitRp\":\"277\",\"tpTrigger\":\"ByLastPrice\",\"tpPxRp\":\"278\",\"priceRp\":\"192\",\"marginMode\":\"isolated\"}"
+            },
+            {
                 "description": "Spot market buy",
                 "method": "createOrder",
                 "url": "https://testnet-api.phemex.com/spot/orders",
