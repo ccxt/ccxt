@@ -581,6 +581,12 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
@@ -670,6 +676,12 @@ public partial class coinex
     /// <term>limit</term>
     /// <description>
     /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1277,12 +1289,12 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
     /// <summary>
     /// fetch the fee for deposits and withdrawals

@@ -279,7 +279,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -297,7 +299,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             *
              * @see https://docs.api.testnet.paradex.trade/#get-system-state
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
@@ -322,7 +326,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bitget
+             *
              * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
@@ -463,7 +469,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-$symbol
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -542,7 +550,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -590,7 +600,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -684,7 +696,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.api.testnet.paradex.trade/#get-$market-$orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -727,7 +741,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.api.testnet.paradex.trade/#trade-tape
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -848,7 +864,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open $interest of a contract trading pair
+             *
              * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/#/?id=open-$interest-structure)
@@ -1049,17 +1067,21 @@ class paradex extends Exchange {
     public function authenticate_rest($params = array ()) {
         return Async\async(function () use ($params) {
             $cachedToken = $this->safe_string($this->options, 'authToken');
+            $now = $this->nonce();
             if ($cachedToken !== null) {
-                return $cachedToken;
+                $cachedExpires = $this->safe_integer($this->options, 'expires');
+                if ($now < $cachedExpires) {
+                    return $cachedToken;
+                }
             }
             $account = Async\await($this->retrieve_account());
-            $now = $this->nonce();
+            $expires = $now + 86400 * 7;
             $req = array(
                 'method' => 'POST',
                 'path' => '/v1/auth',
                 'body' => '',
                 'timestamp' => $now,
-                'expiration' => $now + 86400 * 7,
+                'expiration' => $expires,
             );
             $domain = Async\await($this->prepare_paradex_domain());
             $messageTypes = array(
@@ -1085,6 +1107,7 @@ class paradex extends Exchange {
             //
             $token = $this->safe_string($response, 'jwt_token');
             $this->options['authToken'] = $token;
+            $this->options['expires'] = $expires;
             return $token;
         }) ();
     }
@@ -1211,7 +1234,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://docs.api.prod.paradex.trade/#create-$order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1333,8 +1358,10 @@ class paradex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.api.prod.paradex.trade/#cancel-order
              * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-$id
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1364,7 +1391,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
+             *
              * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1390,8 +1419,10 @@ class paradex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://docs.api.prod.paradex.trade/#get-order
              * @see https://docs.api.prod.paradex.trade/#get-order-by-client-$id
+             *
              * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1445,7 +1476,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://docs.api.prod.paradex.trade/#get-$orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1526,7 +1559,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-$orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1583,7 +1618,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.api.prod.paradex.trade/#list-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1623,7 +1660,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://docs.api.prod.paradex.trade/#list-fills
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
@@ -1688,7 +1727,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
+             *
              * @see https://docs.api.prod.paradex.trade/#list-open-$positions
+             *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1705,7 +1746,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://docs.api.prod.paradex.trade/#list-open-positions
+             *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -1806,7 +1849,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the public liquidations of a trading pair
+             *
              * @see https://docs.api.prod.paradex.trade/#list-liquidations
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -1864,7 +1909,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all $deposits made to an account
+             *
              * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of $deposits structures to retrieve
@@ -1926,7 +1973,9 @@ class paradex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve

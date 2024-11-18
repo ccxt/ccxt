@@ -186,7 +186,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular symbol
-             * @param {string} symbol unified symbol of the market to fetch $trades for
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

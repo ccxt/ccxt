@@ -173,6 +173,15 @@
                     "type": "swap"
                   }
                 ]
+            },
+            {
+                "description": "swap balance with defaultType = swap",
+                "method": "fetchBalance",
+                "options": {
+                    "defaultType": "swap"
+                },
+                "url": "https://api.coincatch.com/api/mix/v1/account/accounts?productType=umcbl",
+                "input": []
             }
         ],
         "fetchDepositAddress": [

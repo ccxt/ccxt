@@ -2207,15 +2207,6 @@
                 },
                 "parsedResponse": [
                     {
-                        "account": "cross",
-                        "symbol": null,
-                        "marginMode": "cross",
-                        "currency": "USDT",
-                        "interest": 1e-8,
-                        "interestRate": 0.00089489,
-                        "amountBorrowed": 0.00011146,
-                        "timestamp": 1707562800000,
-                        "datetime": "2024-02-10T11:00:00.000Z",
                         "info": {
                             "txId": "1656373250307228092",
                             "interestAccuredTime": "1707562800000",
@@ -2225,7 +2216,15 @@
                             "interest": "0.000000010",
                             "interestRate": "0.00089489",
                             "type": "PERIODIC"
-                        }
+                        },
+                        "symbol": null,
+                        "currency": "USDT",
+                        "interest": 1e-8,
+                        "interestRate": 0.00089489,
+                        "amountBorrowed": 0.00011146,
+                        "marginMode": "cross",
+                        "timestamp": 1707562800000,
+                        "datetime": "2024-02-10T11:00:00.000Z"
                     }
                 ]
             }
@@ -2819,6 +2818,174 @@
                   "toAmount": 4.99675625,
                   "price": null,
                   "fee": null
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "linear swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                  {
+                    "symbol": "BTCUSDT",
+                    "marginType": "CROSSED",
+                    "isAutoAddMargin": false,
+                    "leverage": "20",
+                    "maxNotionalValue": "100000000"
+                  }
+                ],
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSDT",
+                    "marginType": "CROSSED",
+                    "isAutoAddMargin": false,
+                    "leverage": "20",
+                    "maxNotionalValue": "100000000"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "cross"
+                }
+            },
+            {
+                "description": "inverse swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "feeTier": "0",
+                  "canTrade": true,
+                  "canDeposit": true,
+                  "canWithdraw": true,
+                  "updateTime": "0",
+                  "assets": [
+                    {
+                      "asset": "BTC",
+                      "walletBalance": "0.00000000",
+                      "unrealizedProfit": "0.00000000",
+                      "marginBalance": "0.00000000",
+                      "maintMargin": "0.00000000",
+                      "initialMargin": "0.00000000",
+                      "positionInitialMargin": "0.00000000",
+                      "openOrderInitialMargin": "0.00000000",
+                      "maxWithdrawAmount": "0.00000000",
+                      "crossWalletBalance": "0.00000000",
+                      "crossUnPnl": "0.00000000",
+                      "availableBalance": "0.00000000",
+                      "updateTime": "0"
+                    },
+                    {
+                      "asset": "XLM",
+                      "walletBalance": "0.00000000",
+                      "unrealizedProfit": "0.00000000",
+                      "marginBalance": "0.00000000",
+                      "maintMargin": "0.00000000",
+                      "initialMargin": "0.00000000",
+                      "positionInitialMargin": "0.00000000",
+                      "openOrderInitialMargin": "0.00000000",
+                      "maxWithdrawAmount": "0.00000000",
+                      "crossWalletBalance": "0.00000000",
+                      "crossUnPnl": "0.00000000",
+                      "availableBalance": "0.00000000",
+                      "updateTime": "0"
+                    },
+                    {
+                      "asset": "CRV",
+                      "walletBalance": "0.00000000",
+                      "unrealizedProfit": "0.00000000",
+                      "marginBalance": "0.00000000",
+                      "maintMargin": "0.00000000",
+                      "initialMargin": "0.00000000",
+                      "positionInitialMargin": "0.00000000",
+                      "openOrderInitialMargin": "0.00000000",
+                      "maxWithdrawAmount": "0.00000000",
+                      "crossWalletBalance": "0.00000000",
+                      "crossUnPnl": "0.00000000",
+                      "availableBalance": "0.00000000",
+                      "updateTime": "0"
+                    }
+                  ],
+                  "positions": [
+                    {
+                      "symbol": "XLMUSD_PERP",
+                      "initialMargin": "0",
+                      "maintMargin": "0",
+                      "unrealizedProfit": "0.00000000",
+                      "positionInitialMargin": "0",
+                      "openOrderInitialMargin": "0",
+                      "leverage": "20",
+                      "isolated": false,
+                      "positionSide": "BOTH",
+                      "entryPrice": "0.00000000",
+                      "maxQty": "200000",
+                      "notionalValue": "0",
+                      "isolatedWallet": "0",
+                      "updateTime": "0",
+                      "positionAmt": "0",
+                      "breakEvenPrice": "0.00000000"
+                    },
+                    {
+                      "symbol": "BTCUSD_PERP",
+                      "initialMargin": "0",
+                      "maintMargin": "0",
+                      "unrealizedProfit": "0.00000000",
+                      "positionInitialMargin": "0",
+                      "openOrderInitialMargin": "0",
+                      "leverage": "20",
+                      "isolated": false,
+                      "positionSide": "BOTH",
+                      "entryPrice": "0.00000000",
+                      "maxQty": "150",
+                      "notionalValue": "0",
+                      "isolatedWallet": "0",
+                      "updateTime": "0",
+                      "positionAmt": "0",
+                      "breakEvenPrice": "0.00000000"
+                    },
+                    {
+                      "symbol": "LTCUSD_241227",
+                      "initialMargin": "0",
+                      "maintMargin": "0",
+                      "unrealizedProfit": "0.00000000",
+                      "positionInitialMargin": "0",
+                      "openOrderInitialMargin": "0",
+                      "leverage": "20",
+                      "isolated": false,
+                      "positionSide": "BOTH",
+                      "entryPrice": "0.00000000",
+                      "maxQty": "2500",
+                      "notionalValue": "0",
+                      "isolatedWallet": "0",
+                      "updateTime": "0",
+                      "positionAmt": "0",
+                      "breakEvenPrice": "0.00000000"
+                    }
+                  ]
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "BTCUSD_PERP",
+                    "initialMargin": "0",
+                    "maintMargin": "0",
+                    "unrealizedProfit": "0.00000000",
+                    "positionInitialMargin": "0",
+                    "openOrderInitialMargin": "0",
+                    "leverage": "20",
+                    "isolated": false,
+                    "positionSide": "BOTH",
+                    "entryPrice": "0.00000000",
+                    "maxQty": "150",
+                    "notionalValue": "0",
+                    "isolatedWallet": "0",
+                    "updateTime": "0",
+                    "positionAmt": "0",
+                    "breakEvenPrice": "0.00000000"
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "cross"
                 }
             }
         ]

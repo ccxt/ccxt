@@ -636,9 +636,10 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         stored_string = json_stringify(stored_output)
-        error_message = message + ' computed ' + stored_string + ' stored: ' + calculated_string
+        error_message = message
         if key is not None:
-            error_message = ' | ' + key + ' | ' + 'computed value: ' + stored_string + ' stored value: ' + calculated_string
+            error_message = '[' + key + ']'
+        error_message += ' computed: ' + stored_string + ' stored: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -749,9 +750,17 @@ class testMainClass:
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output, asserting_key)
             else:
-                is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
-                is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
-                is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
+                is_computed_bool = (isinstance(sanitized_new_output, bool))
+                is_stored_bool = (isinstance(sanitized_stored_output, bool))
+                is_computed_string = (isinstance(sanitized_new_output, str))
+                is_stored_string = (isinstance(sanitized_stored_output, str))
+                is_computed_undefined = (sanitized_new_output is None)
+                is_stored_undefined = (sanitized_stored_output is None)
+                should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
+                self.assert_static_error(should_be_same, 'output type mismatch', stored_output, new_output, asserting_key)
+                is_boolean = is_computed_bool or is_stored_bool
+                is_string = is_computed_string or is_stored_string
+                is_undefined = is_computed_undefined or is_stored_undefined  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
                     if self.lang == 'C#':
                         # tmp c# number comparsion

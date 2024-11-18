@@ -91,7 +91,9 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-bar-data
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-bar-data
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -152,7 +154,9 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -164,7 +168,9 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -229,7 +235,9 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-level-2-order-book-updates
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -377,7 +385,9 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -490,7 +500,9 @@ class ascendex(ccxt.async_support.ascendex):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+
+        https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
