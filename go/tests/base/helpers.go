@@ -1,7 +1,7 @@
 package base
 
 import (
-	"ccxt"
+	"ccxt/go/ccxt"
 	"fmt"
 	"reflect"
 )

@@ -1,7 +1,7 @@
 package base
 
 import (
-	"ccxt"
+	"ccxt/go/ccxt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -217,11 +217,13 @@ func CallMethodSync(testFiles2 interface{}, methodName2 interface{}, exchange in
 // }
 
 func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
-	// Cast parameters to their expected types
-	ch := make(chan interface{})
+	// Create the return channel
+	ch := make(chan interface{}, 1)
+
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
+
 		testFiles := testFiles2.(map[string]interface{})
 		methodName := methodName2.(string)
 
@@ -237,6 +239,7 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 		method, exists := testFiles[methodName]
 		if !exists {
 			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+			return
 		}
 
 		// Convert the method to a reflect.Value
@@ -244,6 +247,7 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 		if methodVal.Kind() != reflect.Func {
 			// Return an error if the item is not a function
 			ch <- fmt.Errorf("%s is not a function", methodName)
+			return
 		}
 
 		// Prepare the input arguments, starting with exchange and skippedProperties
@@ -255,23 +259,89 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 		// Check if the number of arguments matches the function's requirements
 		if methodVal.Type().NumIn() != len(in) {
 			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+			return
 		}
 
 		// Call the method and capture the results
-		result := methodVal.Call(in)
+		res := methodVal.Call(in)
 
-		// Create a channel to return the single result
-		if len(result) > 0 {
-			// Send the first result if available
-			ch <- result[0].Interface()
+		if len(res) > 0 && res[0].Kind() == reflect.Chan {
+			resultChan := res[0]
+			for {
+				val, ok := resultChan.Recv()
+				if !ok {
+					break // result channel is closed
+				}
+				ch <- val.Interface() // pass the value to the output channel
+			}
+			// close(ch) // close the output channel after all values are received
+			return
+		} else if len(res) > 0 {
+			ch <- res[0].Interface()
 		} else {
-			// Send nil if no result is returned
 			ch <- nil
 		}
 	}()
 
 	return ch
 }
+
+// func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
+// 	// Cast parameters to their expected types
+// 	ch := make(chan interface{})
+// 	go func() {
+// 		defer close(ch)
+// 		defer ReturnPanicError(ch)
+// 		testFiles := testFiles2.(map[string]interface{})
+// 		methodName := methodName2.(string)
+
+// 		// Assert args2 to []interface{}, or default to an empty slice if nil
+// 		var args []interface{}
+// 		if args2 != nil {
+// 			args = args2.([]interface{})
+// 		} else {
+// 			args = []interface{}{}
+// 		}
+
+// 		// Retrieve the function from testFiles
+// 		method, exists := testFiles[methodName]
+// 		if !exists {
+// 			ch <- fmt.Errorf("panic:method %s not found in testFiles", methodName)
+// 		}
+
+// 		// Convert the method to a reflect.Value
+// 		methodVal := reflect.ValueOf(method)
+// 		if methodVal.Kind() != reflect.Func {
+// 			// Return an error if the item is not a function
+// 			ch <- fmt.Errorf("%s is not a function", methodName)
+// 		}
+
+// 		// Prepare the input arguments, starting with exchange and skippedProperties
+// 		in := []reflect.Value{reflect.ValueOf(exchange), reflect.ValueOf(skippedProperties)}
+// 		for _, arg := range args {
+// 			in = append(in, reflect.ValueOf(arg))
+// 		}
+
+// 		// Check if the number of arguments matches the function's requirements
+// 		if methodVal.Type().NumIn() != len(in) {
+// 			ch <- fmt.Errorf("panic:method %s requires %d arguments, but %d were provided", methodName, methodVal.Type().NumIn(), len(in))
+// 		}
+
+// 		// Call the method and capture the results
+// 		result := methodVal.Call(in)
+
+// 		// Create a channel to return the single result
+// 		if len(result) > 0 {
+// 			// Send the first result if available
+// 			ch <- result[0].Interface()
+// 		} else {
+// 			// Send nil if no result is returned
+// 			ch <- nil
+// 		}
+// 	}()
+
+// 	return ch
+// }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
 func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}, args2 interface{}) <-chan interface{} {
@@ -449,6 +519,9 @@ func GetRootDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		return ""
+	}
+	if strings.HasSuffix(dir, "/ccxt") {
+		return dir + "/"
 	}
 	res := dir + ROOT_DIR
 	return res
