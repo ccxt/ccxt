@@ -499,6 +499,7 @@ class FundingRate(TypedDict):
 
 class LeverageTier:
     tier: Num
+    symbol: Str
     currency: Str
     minNotional: Num
     maxNotional: Num

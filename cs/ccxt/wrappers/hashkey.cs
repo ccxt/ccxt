@@ -468,6 +468,12 @@ public partial class hashkey
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -483,12 +489,6 @@ public partial class hashkey
     /// <term>params.platform</term>
     /// <description>
     /// string : the platform to withdraw to (hashkey, HashKey HK)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -1024,6 +1024,12 @@ public partial class hashkey
     /// <term>symbol</term>
     /// <description>
     /// string : unified market symbol (not used by hashkey)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

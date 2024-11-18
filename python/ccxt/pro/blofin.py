@@ -74,7 +74,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.blofin.com/index.html#ws-trades-channel
+
+        https://docs.blofin.com/index.html#ws-trades-channel
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -87,7 +89,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://docs.blofin.com/index.html#ws-trades-channel
+
+        https://docs.blofin.com/index.html#ws-trades-channel
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -139,7 +143,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.blofin.com/index.html#ws-order-book-channel
+
+        https://docs.blofin.com/index.html#ws-order-book-channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -151,7 +157,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.blofin.com/index.html#ws-order-book-channel
+
+        https://docs.blofin.com/index.html#ws-order-book-channel
+
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -215,7 +223,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.blofin.com/index.html#ws-tickers-channel
+
+        https://docs.blofin.com/index.html#ws-tickers-channel
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -229,7 +239,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-        :see: https://docs.blofin.com/index.html#ws-tickers-channel
+
+        https://docs.blofin.com/index.html#ws-tickers-channel
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -274,7 +286,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
-        :see: https://docs.blofin.com/index.html#ws-tickers-channel
+
+        https://docs.blofin.com/index.html#ws-tickers-channel
+
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -345,7 +359,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.blofin.com/index.html#ws-candlesticks-channel
+
+        https://docs.blofin.com/index.html#ws-candlesticks-channel
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
@@ -401,7 +417,9 @@ class blofin(ccxt.async_support.blofin):
     async def watch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.blofin.com/index.html#ws-account-channel
+
+        https://docs.blofin.com/index.html#ws-account-channel
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -454,8 +472,10 @@ class blofin(ccxt.async_support.blofin):
     async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user across multiple symbols
-        :see: https://docs.blofin.com/index.html#ws-order-channel
-        :param str symbol: unified market symbol of the market orders were made in
+
+        https://docs.blofin.com/index.html#ws-order-channel
+
+        :param str[] symbols:
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -500,9 +520,13 @@ class blofin(ccxt.async_support.blofin):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://docs.blofin.com/index.html#ws-positions-channel
+
+        https://docs.blofin.com/index.html#ws-positions-channel
+
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch positions for
+        :param int [limit]: the maximum number of positions to retrieve
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """

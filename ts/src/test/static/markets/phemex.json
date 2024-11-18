@@ -1481,5 +1481,88 @@
         "percentage": true,
         "priceScale": 0,
         "ratioScale": 0
+    },
+    "SOL/USDT:USDT": {
+        "id": "SOLUSDT",
+        "symbol": "SOL/USDT:USDT",
+        "base": "SOL",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "SOL",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "symbol": "SOLUSDT",
+            "code": "41941",
+            "type": "PerpetualV2",
+            "displaySymbol": "SOL / USDT",
+            "indexSymbol": ".SOLUSDT",
+            "markSymbol": ".MSOLUSDT",
+            "fundingRateSymbol": ".SOLUSDTFR",
+            "fundingRate8hSymbol": ".SOLUSDTFR8H",
+            "contractUnderlyingAssets": "SOL",
+            "settleCurrency": "USDT",
+            "quoteCurrency": "USDT",
+            "tickSize": "0.001",
+            "priceScale": "0",
+            "ratioScale": "0",
+            "pricePrecision": "3",
+            "baseCurrency": "SOL",
+            "description": "SOL/USDT perpetual contracts are priced on the .SOLUSDT Index. Each contract is worth 1 SOL. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+            "status": "Listed",
+            "tipOrderQty": "0",
+            "listTime": "1670839200000",
+            "majorSymbol": false,
+            "defaultLeverage": "-10",
+            "fundingInterval": "28800",
+            "maxLeverage": "50",
+            "leverageMargin": "1005",
+            "maxOrderQtyRq": "35000",
+            "maxPriceRp": "2000000",
+            "minOrderValueRv": "1",
+            "minPriceRp": "10.0",
+            "qtyPrecision": "2",
+            "qtyStepSize": "0.01",
+            "tipOrderQtyRq": "7000",
+            "maxOpenPosLeverage": "50.0",
+            "steps": "0K",
+            "riskLimits": [
+                {
+                    "limit": "5600000",
+                    "initialMarginRr": "0.02",
+                    "maintenanceMarginRr": "0.01"
+                }
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "priceScale": 0,
+        "ratioScale": 0
     }
 }

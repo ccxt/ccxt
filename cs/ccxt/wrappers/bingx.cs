@@ -1389,7 +1389,7 @@ public partial class bingx
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :          * @param {object} [params] extra parameters specific to the exchange API endpoint
+    /// string :      * @param {object} [params] extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

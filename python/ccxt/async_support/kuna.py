@@ -411,7 +411,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://docs.kuna.io/docs/get-time-on-the-server
+
+        https://docs.kuna.io/docs/get-time-on-the-server
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -430,7 +432,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.kuna.io/docs/get-information-about-available-currencies
+
+        https://docs.kuna.io/docs/get-information-about-available-currencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -514,7 +518,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kuna
-        :see: https://docs.kuna.io/docs/get-all-traded-markets
+
+        https://docs.kuna.io/docs/get-all-traded-markets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -604,7 +610,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.kuna.io/docs/get-public-orders-book
+
+        https://docs.kuna.io/docs/get-public-orders-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: 5, 10, 20, 50, 100, 500, or 1000(default)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -688,7 +696,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market. The average is not returned in the response, but the median can be accessed via response['info']['price']
-        :see: https://docs.kuna.io/docs/get-market-info-by-tickers
+
+        https://docs.kuna.io/docs/get-market-info-by-tickers
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -728,7 +738,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.kuna.io/docs/get-market-info-by-tickers
+
+        https://docs.kuna.io/docs/get-market-info-by-tickers
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -765,7 +777,7 @@ class kuna(Exchange, ImplicitAPI):
 
     async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
         """
-         * TODO: double check
+ TODO: double check
         fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified market symbol
         :param int [limit]: max number of orders to return, default is None
@@ -777,7 +789,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.kuna.io/docs/get-public-trades-book
+
+        https://docs.kuna.io/docs/get-public-trades-book
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: between 1 and 100, 25 by default
@@ -912,7 +926,9 @@ class kuna(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.kuna.io/docs/create-a-new-order-private
+
+        https://docs.kuna.io/docs/create-a-new-order-private
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -920,8 +936,8 @@ class kuna(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.id]: id must be a UUID format, if you do not specify id, it will be generated automatically.
         :param float [params.quoteQuantity]: the max quantity of the quote asset to use for selling/buying
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1110,11 +1126,14 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.kuna.io/docs/get-order-details-by-id
+
+        https://docs.kuna.io/docs/get-order-details-by-id
+
+        :param str id: order id
         :param str symbol: not used by kuna fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.withTrades]: default is True, specify if the response should include trades associated with the order
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1164,14 +1183,16 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.kuna.io/docs/get-active-client-orders-private
+
+        https://docs.kuna.io/docs/get-active-client-orders-private
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: 1-100, the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest timestamp(ms) to fetch orders for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1218,14 +1239,16 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.kuna.io/docs/get-private-orders-history
+
+        https://docs.kuna.io/docs/get-private-orders-history
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1234,15 +1257,17 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a list of orders
-        :see: https://docs.kuna.io/docs/get-private-orders-history
+
+        https://docs.kuna.io/docs/get-private-orders-history
+
         :param str status: canceled, closed, expired, open, pending, rejected, or waitStop
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: 1-100, the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest timestamp(ms) to fetch orders for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1293,13 +1318,15 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.kuna.io/docs/get-private-trades-history
+
+        https://docs.kuna.io/docs/get-private-trades-history
+
         :param str symbol: unified market symbol
         :param int [since]: not used by kuna fetchMyTrades
         :param int [limit]: not used by kuna fetchMyTrades
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.orderId]: UUID of an order, to receive trades for self order only
         :param str [params.sort]: asc(oldest-on-top) or desc(newest-on-top)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
@@ -1336,15 +1363,17 @@ class kuna(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.kuna.io/docs/create-a-withdraw
+
+        https://docs.kuna.io/docs/create-a-withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.chain]: the chain to withdraw to
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.id]: id must be a uuid format, if you do not specify id, it will be generated automatically
         :param boolean [params.withdrawAll]: self field says that the amount should also include a fee
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
@@ -1383,14 +1412,16 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made to an account
-        :see: https://docs.kuna.io/docs/get-withdraw-history
+
+        https://docs.kuna.io/docs/get-withdraw-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.status]: Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
         :param str [params.sortField]: amount(sorting by time), createdAt(sorting by date)
         :param str [params.sortOrder]: asc(oldest-on-top), or desc(newest-on-top, default)
@@ -1444,7 +1475,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency withdrawal via the withdrawal id
-        :see: https://docs.kuna.io/docs/get-withdraw-details-by-id
+
+        https://docs.kuna.io/docs/get-withdraw-details-by-id
+
         :param str id: withdrawal id
         :param str code: not used by kuna.fetchWithdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1482,7 +1515,9 @@ class kuna(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        :see: https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
+
+        https://docs.kuna.io/docs/generate-a-constant-crypto-address-for-deposit
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1508,7 +1543,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.kuna.io/docs/find-crypto-address-for-deposit
+
+        https://docs.kuna.io/docs/find-crypto-address-for-deposit
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1564,14 +1601,16 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.kuna.io/docs/get-deposit-history
+
+        https://docs.kuna.io/docs/get-deposit-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.status]: Created, Canceled, PartiallyProcessed, Processing, Processed, WaitForConfirmation, Pending, AmlChecking
         :param str [params.sortField]: amount(sorting by time), createdAt(sorting by date)
         :param str [params.sortOrder]: asc(oldest-on-top), or desc(newest-on-top, default)
@@ -1625,7 +1664,9 @@ class kuna(Exchange, ImplicitAPI):
     async def fetch_deposit(self, id: str, code: Str = None, params={}):
         """
         fetch data on a currency deposit via the deposit id
-        :see: https://docs.kuna.io/docs/get-deposit-details-by-id
+
+        https://docs.kuna.io/docs/get-deposit-details-by-id
+
         :param str id: deposit id
         :param str code: filter by currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint

@@ -348,7 +348,7 @@ public partial class blofin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.positionSide</term>
+    /// <term>params.positionSide</term>
     /// <description>
     /// string : *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
     /// </description>
@@ -420,6 +420,12 @@ public partial class blofin
     /// <remarks>
     /// See <see href="https://blofin.com/docs#place-multiple-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>

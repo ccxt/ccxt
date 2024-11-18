@@ -205,15 +205,15 @@ export default class coinone extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name coinone#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.coinone.co.kr/reference/currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://docs.coinone.co.kr/reference/currencies
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const response = await this.v2PublicGetCurrencies(params);
         //
         //     {
@@ -271,15 +271,15 @@ export default class coinone extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name coinone#fetchMarkets
+     * @description retrieves data on all markets for coinone
+     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchMarkets
-         * @description retrieves data on all markets for coinone
-         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const request = {
             'quote_currency': 'KRW',
         };
@@ -398,30 +398,30 @@ export default class coinone extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name coinone#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.coinone.co.kr/v1.0/reference/v21
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.coinone.co.kr/v1.0/reference/v21
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const response = await this.v2PrivatePostAccountBalance(params);
         return this.parseBalance(response);
     }
+    /**
+     * @method
+     * @name coinone#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -458,17 +458,17 @@ export default class coinone extends Exchange {
         const timestamp = this.safeInteger(response, 'timestamp');
         return this.parseOrderBook(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'qty');
     }
+    /**
+     * @method
+     * @name coinone#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {
@@ -522,16 +522,16 @@ export default class coinone extends Exchange {
         const data = this.safeList(response, 'tickers', []);
         return this.parseTickers(data, symbols);
     }
+    /**
+     * @method
+     * @name coinone#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs.coinone.co.kr/v1.0/reference/ticker
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -697,18 +697,18 @@ export default class coinone extends Exchange {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name coinone#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -740,21 +740,21 @@ export default class coinone extends Exchange {
         const data = this.safeList(response, 'transactions', []);
         return this.parseTrades(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinone#createOrder
+     * @description create a trade order
+     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#createOrder
-         * @description create a trade order
-         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type must be 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (type !== 'limit') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
@@ -776,15 +776,16 @@ export default class coinone extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name coinone#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -944,17 +945,17 @@ export default class coinone extends Exchange {
             'trades': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name coinone#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if (symbol === undefined) {
@@ -986,17 +987,17 @@ export default class coinone extends Exchange {
         const limitOrders = this.safeList(response, 'limitOrders', []);
         return this.parseOrders(limitOrders, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinone#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1029,16 +1030,16 @@ export default class coinone extends Exchange {
         const completeOrders = this.safeList(response, 'completeOrders', []);
         return this.parseTrades(completeOrders, market, since, limit);
     }
+    /**
+     * @method
+     * @name coinone#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             // eslint-disable-next-line quotes
             throw new ArgumentsRequired(this.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.");
@@ -1067,15 +1068,15 @@ export default class coinone extends Exchange {
         //
         return this.safeOrder(response);
     }
+    /**
+     * @method
+     * @name coinone#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name coinone#fetchDepositAddresses
-         * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const response = await this.v2PrivatePostAccountDepositAddress(params);
         //

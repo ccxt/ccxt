@@ -433,6 +433,24 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function sapi_get_eth_staking_eth_history_wbethrewardshistory($params = array()) {
         return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function sapi_get_sol_staking_sol_history_stakinghistory($params = array()) {
+        return $this->request('sol-staking/sol/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_redemptionhistory($params = array()) {
+        return $this->request('sol-staking/sol/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_bnsolrewardshistory($params = array()) {
+        return $this->request('sol-staking/sol/history/bnsolRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_history_ratehistory($params = array()) {
+        return $this->request('sol-staking/sol/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_account($params = array()) {
+        return $this->request('sol-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_get_sol_staking_sol_quota($params = array()) {
+        return $this->request('sol-staking/sol/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapi_get_mining_pub_algolist($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -994,6 +1012,12 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function sapi_post_eth_staking_wbeth_wrap($params = array()) {
         return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function sapi_post_sol_staking_sol_stake($params = array()) {
+        return $this->request('sol-staking/sol/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_sol_staking_sol_redeem($params = array()) {
+        return $this->request('sol-staking/sol/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
     public function sapi_post_mining_hash_transfer_config($params = array()) {
         return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
     }
@@ -1089,6 +1113,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function sapi_post_simple_earn_locked_setautosubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapi_post_simple_earn_locked_setredeemoption($params = array()) {
+        return $this->request('simple-earn/locked/setRedeemOption', 'sapi', 'POST', $params, null, null, array("cost" => 5));
     }
     public function sapi_post_dci_product_subscribe($params = array()) {
         return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -2677,6 +2704,24 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function sapiGetEthStakingEthHistoryWbethRewardsHistory($params = array()) {
         return $this->request('eth-staking/eth/history/wbethRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
     }
+    public function sapiGetSolStakingSolHistoryStakingHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/stakingHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryRedemptionHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/redemptionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryBnsolRewardsHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/bnsolRewardsHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolHistoryRateHistory($params = array()) {
+        return $this->request('sol-staking/sol/history/rateHistory', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingAccount($params = array()) {
+        return $this->request('sol-staking/account', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function sapiGetSolStakingSolQuota($params = array()) {
+        return $this->request('sol-staking/sol/quota', 'sapi', 'GET', $params, null, null, array("cost" => 15));
+    }
     public function sapiGetMiningPubAlgoList($params = array()) {
         return $this->request('mining/pub/algoList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3238,6 +3283,12 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function sapiPostEthStakingWbethWrap($params = array()) {
         return $this->request('eth-staking/wbeth/wrap', 'sapi', 'POST', $params, null, null, array("cost" => 15));
     }
+    public function sapiPostSolStakingSolStake($params = array()) {
+        return $this->request('sol-staking/sol/stake', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostSolStakingSolRedeem($params = array()) {
+        return $this->request('sol-staking/sol/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
     public function sapiPostMiningHashTransferConfig($params = array()) {
         return $this->request('mining/hash-transfer/config', 'sapi', 'POST', $params, null, null, array("cost" => 0.5));
     }
@@ -3333,6 +3384,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function sapiPostSimpleEarnLockedSetAutoSubscribe($params = array()) {
         return $this->request('simple-earn/locked/setAutoSubscribe', 'sapi', 'POST', $params, null, null, array("cost" => 15));
+    }
+    public function sapiPostSimpleEarnLockedSetRedeemOption($params = array()) {
+        return $this->request('simple-earn/locked/setRedeemOption', 'sapi', 'POST', $params, null, null, array("cost" => 5));
     }
     public function sapiPostDciProductSubscribe($params = array()) {
         return $this->request('dci/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));

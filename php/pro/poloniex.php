@@ -87,7 +87,9 @@ class poloniex extends \ccxt\async\poloniex {
             /**
              * @ignore
              * authenticates the user to access private web socket channels
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/authentication
+             *
              * @return {array} response from exchange
              */
             $this->check_required_credentials();
@@ -145,8 +147,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
+             * @param {string} $messageHash unique identifier for the message
              * @param {boolean} $isPrivate true for the authenticated $url, false for the public $url
-             * @param {string[]|null} $symbols CCXT market $symbols
+             * @param {string[]} [$symbols] CCXT market $symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -179,7 +182,6 @@ class poloniex extends \ccxt\async\poloniex {
              * @ignore
              * Connects to a websocket channel
              * @param {string} $name name of the channel
-             * @param {string[]|null} symbols CCXT market symbols
              * @param {array} [$params] extra parameters specific to the poloniex api
              * @return {array} data from the websocket stream
              */
@@ -197,7 +199,9 @@ class poloniex extends \ccxt\async\poloniex {
     public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#create-order
+             *
              * create a trade order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -264,7 +268,9 @@ class poloniex extends \ccxt\async\poloniex {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+             *
              * cancel multiple orders
              * @param {string} $id order $id
              * @param {string} [$symbol] unified market $symbol
@@ -284,7 +290,9 @@ class poloniex extends \ccxt\async\poloniex {
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/trade-$request#cancel-multiple-orders
+             *
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
@@ -304,7 +312,9 @@ class poloniex extends \ccxt\async\poloniex {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+             *
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
@@ -343,7 +353,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -369,7 +381,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -385,8 +399,10 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             *
+             * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
@@ -405,7 +421,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -420,7 +438,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#$trades
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -460,7 +480,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -479,7 +501,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/order
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] not used by poloniex watchOrders
              * @param {int} [$limit] not used by poloniex watchOrders
@@ -505,7 +529,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user using orders stream
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/order
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] not used by poloniex watchMyTrades
              * @param {int} [$limit] not used by poloniex watchMyTrades
@@ -532,7 +558,9 @@ class poloniex extends \ccxt\async\poloniex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://api-docs.poloniex.com/spot/websocket/balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */

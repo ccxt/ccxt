@@ -541,6 +541,12 @@ public partial class kraken
     /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified ccxt market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the kraken api endpoint
@@ -972,6 +978,21 @@ public partial class kraken
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    /// <summary>
+    /// transfer from spot wallet to futures wallet
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// dict : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>undefined</term> undefined.</returns>
     public async Task<TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transferOut(code, amount, parameters);
