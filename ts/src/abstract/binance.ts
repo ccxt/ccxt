@@ -766,6 +766,44 @@ interface Exchange {
     papiDeleteMarginAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     papiDeleteMarginOrderList (params?: {}): Promise<implicitReturnType>;
     papiDeleteListenKey (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiV3Order (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiV2OrderQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOrderClose (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOrderRefund (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOrderRefundQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOrderPayerVerification (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiWalletTransfer (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiWalletTransferQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiSubmerchantAdd (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiSubmerchantModify (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiBalance (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiV2Balance (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiDirectDebitContract (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiDirectDebitContractQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiDirectDebitContractTermination (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiPayNotify (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiPayApply (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiPayoutTransfer (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiPayoutReceiverCheck (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiPayoutQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOtcPortalGetToSelector (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOtcPortalGetQuote (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOtcPortalExecuteQuote (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiOtcPortalQueryTradeOrder (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiReportGetFile (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiBalanceReport (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiBalanceReportQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1AddReceiver (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1QueryReceiver (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1DelReceiver (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1SubmitSplit (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1QuerySplit (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiProfitsharingV1Return (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiShareinfoAccountId (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiServiceProviderCreate (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiServiceProviderRecordGet (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiServiceProviderConfigQuery (params?: {}): Promise<implicitReturnType>;
+    bpayPostBinancepayOpenapiServiceProviderRecord (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
