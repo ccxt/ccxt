@@ -574,6 +574,8 @@ export default class kucoin extends Exchange {
                     '400303': PermissionDenied,
                     '500000': ExchangeNotAvailable,
                     '260220': InvalidAddress,
+                    '600100': InsufficientFunds,
+                    '600101': InvalidOrder,
                     '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                 },
                 'broad': {

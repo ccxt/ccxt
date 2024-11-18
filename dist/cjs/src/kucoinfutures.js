@@ -2477,8 +2477,8 @@ class kucoinfutures extends kucoinfutures$1 {
             //     }
             //
         }
-        else if (toAccount === 'future' || toAccount === 'swap') {
-            request['payAccountType'] = 'MAIN';
+        else if (toAccount === 'future' || toAccount === 'swap' || toAccount === 'contract') {
+            request['payAccountType'] = this.parseTransferType(fromAccount);
             response = await this.futuresPrivatePostTransferIn(this.extend(request, params));
             //
             //    {

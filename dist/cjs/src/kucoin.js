@@ -571,6 +571,8 @@ class kucoin extends kucoin$1 {
                     '400303': errors.PermissionDenied,
                     '500000': errors.ExchangeNotAvailable,
                     '260220': errors.InvalidAddress,
+                    '600100': errors.InsufficientFunds,
+                    '600101': errors.InvalidOrder,
                     '900014': errors.BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                 },
                 'broad': {

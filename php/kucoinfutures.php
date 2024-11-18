@@ -2487,8 +2487,8 @@ class kucoinfutures extends kucoin {
             //         }
             //     }
             //
-        } elseif ($toAccount === 'future' || $toAccount === 'swap') {
-            $request['payAccountType'] = 'MAIN';
+        } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
+            $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
             $response = $this->futuresPrivatePostTransferIn ($this->extend($request, $params));
             //
             //    {

@@ -531,6 +531,8 @@ public partial class kucoin : Exchange
                     { "400303", typeof(PermissionDenied) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "260220", typeof(InvalidAddress) },
+                    { "600100", typeof(InsufficientFunds) },
+                    { "600101", typeof(InvalidOrder) },
                     { "900014", typeof(BadRequest) },
                 } },
                 { "broad", new Dictionary<string, object>() {

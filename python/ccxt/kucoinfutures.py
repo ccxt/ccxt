@@ -2401,8 +2401,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
             #         }
             #     }
             #
-        elif toAccount == 'future' or toAccount == 'swap':
-            request['payAccountType'] = 'MAIN'
+        elif toAccount == 'future' or toAccount == 'swap' or toAccount == 'contract':
+            request['payAccountType'] = self.parse_transfer_type(fromAccount)
             response = self.futuresPrivatePostTransferIn(self.extend(request, params))
             #
             #    {
