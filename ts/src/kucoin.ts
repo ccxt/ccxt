@@ -573,6 +573,8 @@ export default class kucoin extends Exchange {
                     '400303': PermissionDenied, // {"msg":"To enjoy the full range of our products and services, we kindly request you complete the identity verification process.","code":"400303"}
                     '500000': ExchangeNotAvailable, // {"code":"500000","msg":"Internal Server Error"}
                     '260220': InvalidAddress, // { "code": "260220", "msg": "deposit.address.not.exists" }
+                    '600100': InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}
+                    '600101': InvalidOrder, // {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
                     '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
                 },
                 'broad': {
