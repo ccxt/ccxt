@@ -7,7 +7,7 @@
     ],
     "outputType": "json",
     "options": {
-        "hfMigrated": false  
+        "hf": false  
     },
     "methods": {
         "createOrder": [
@@ -850,6 +850,30 @@
                 "method": "fetchCurrencies",
                 "url": "https://api.kucoin.com/api/v3/currencies",
                 "input": []
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "cross fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.kucoin.com/api/v3/margin/accounts?quoteCurrency=USDT",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "isolated fetch the borrow interest",
+                "method": "fetchBorrowInterest",
+                "url": "https://api.kucoin.com/api/v3/isolated/accounts?balanceCurrency=USDT",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ]
             }
         ]
     }

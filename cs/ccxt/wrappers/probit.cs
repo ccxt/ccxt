@@ -521,15 +521,15 @@ public partial class probit
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.until</term>
-    /// <description>
-    /// int : the latest time in ms to fetch transactions for
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch transactions for
     /// </description>
     /// </item>
     /// </list>

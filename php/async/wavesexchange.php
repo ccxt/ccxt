@@ -131,7 +131,13 @@ class wavesexchange extends Exchange {
                     'forward' => 'https://wx.network/api/v1/forward/matcher',
                     'market' => 'https://wx.network/api/v1/forward/marketdata/api/v1',
                 ),
-                'doc' => 'https://docs.wx.network',
+                'doc' => array(
+                    'https://docs.wx.network',
+                    'https://docs.waves.tech',
+                    'https://api.wavesplatform.com/v0/docs/',
+                    'https://nodes.wavesnodes.com/api-docs/index.html',
+                    'https://matcher.waves.exchange/api-docs/index.html',
+                ),
                 'www' => 'https://wx.network',
             ),
             'api' => array(
@@ -614,6 +620,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -758,6 +767,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * sign in, must be called prior to using other authenticated methods
+             *
+             * @see https://docs.wx.network/en/api/auth/oauth2-token
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return $response from exchange
              */
@@ -873,6 +885,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
+             * @see https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -917,7 +932,7 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -959,6 +974,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the $open, high, low, and close price, and the volume of a $market
+             *
+             * @see https://api.wavesplatform.com/v0/docs/#/candles/getCandles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the $length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1304,6 +1322,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
+             * @see https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1489,6 +1510,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
+             * @see https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1538,6 +1562,10 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
+             * @see https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+             *
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2010,6 +2038,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
+             * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2103,6 +2134,9 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
+             * @see https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -2360,8 +2394,10 @@ class wavesexchange extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://docs.wx.network/en/api/gateways/deposit/currencies
              * @see https://docs.wx.network/en/api/gateways/withdraw/currencies
+             *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2454,7 +2490,7 @@ class wavesexchange extends Exchange {
         return null;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal

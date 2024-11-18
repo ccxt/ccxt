@@ -69,7 +69,9 @@ parser.add_argument('--static', action='store_true', help='run static tests')
 parser.add_argument('--useProxy', action='store_true', help='run static tests')
 parser.add_argument('--idTests', action='store_true', help='run brokerId tests')
 parser.add_argument('--responseTests', action='store_true', help='run response tests')
-parser.add_argument('--requestTests', action='store_true', help='run response tests')
+parser.add_argument('--response', action='store_true', help='run response tests')
+parser.add_argument('--requestTests', action='store_true', help='run request tests')
+parser.add_argument('--request', action='store_true', help='run request tests')
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
@@ -235,8 +237,8 @@ def get_test_files_sync(properties, ws=False):
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/exchange/'
+            module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
