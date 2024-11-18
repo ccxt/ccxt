@@ -425,7 +425,9 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+
         retrieves data on all markets for cryptocom
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -613,8 +615,10 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
-        :see: https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+        https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -664,7 +668,9 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -678,7 +684,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for, max date range is one day
         :param int [limit]: the maximum number of order structures to retrieve, default 100 max 100
@@ -752,7 +760,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get a list of the most recent trades for a particular symbol
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch, maximum date range is one day
         :param int [limit]: the maximum number of trades to fetch
@@ -806,7 +816,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -871,7 +883,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the number of order book entries to return, max 50
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -927,7 +941,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -981,7 +997,10 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1115,7 +1134,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
         :param str side: 'buy' or 'sell'
@@ -1150,9 +1171,12 @@ class cryptocom(Exchange, ImplicitAPI):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1320,7 +1344,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure:
@@ -1336,7 +1362,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+
         :param str id: the order id of the order to cancel
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1368,7 +1396,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1397,7 +1427,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+
         :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1425,7 +1457,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
@@ -1483,7 +1517,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for, maximum date range is one day
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -1559,7 +1595,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1605,7 +1643,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
@@ -1662,7 +1702,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1679,7 +1721,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1732,7 +1776,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -2144,7 +2190,7 @@ class cryptocom(Exchange, ImplicitAPI):
 
     def custom_handle_margin_mode_and_params(self, methodName, params={}):
         """
-         * @ignore
+ @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Array: the marginMode in lowercase
@@ -2211,7 +2257,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -2225,7 +2273,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
@@ -2362,7 +2412,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -2441,7 +2493,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -2523,7 +2577,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rates
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
@@ -2591,7 +2647,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2631,7 +2689,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2763,13 +2823,14 @@ class cryptocom(Exchange, ImplicitAPI):
     async def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
         closes open positions for a market
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+
         :param str symbol: Unified CCXT market symbol
-        :param str [marginMode]: not used by cryptocom.closePositions
         :param str [side]: not used by cryptocom.closePositions
         :param dict [params]: extra parameters specific to the okx api endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str [params.type]: LIMIT or MARKET
         :param number [params.price]: for limit orders only
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
@@ -2804,7 +2865,9 @@ class cryptocom(Exchange, ImplicitAPI):
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -2835,7 +2898,9 @@ class cryptocom(Exchange, ImplicitAPI):
 
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
-        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols

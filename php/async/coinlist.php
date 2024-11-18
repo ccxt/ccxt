@@ -319,7 +319,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-system-time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -339,7 +341,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-supported-assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -404,7 +408,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for coinlist
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-symbols
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -503,7 +509,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-symbol-summaries
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -541,7 +549,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$market-summary
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -634,7 +644,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-order-book-level-2
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -674,7 +686,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-$candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -760,7 +774,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$auctions
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -894,7 +910,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fees
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?$id=fee-structure fee structures~ indexed by $market symbols
              */
@@ -1079,7 +1097,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$accounts
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
@@ -1119,7 +1139,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1166,7 +1188,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$fills
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve (default 200, max 500)
@@ -1230,7 +1254,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fills
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1249,7 +1275,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$orders
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve (default 200, max 500)
@@ -1318,7 +1346,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-specific-order-by-$id
+             *
              * @param {int|string} $id order $id
              * @param {string} $symbol not used by coinlist fetchOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1361,7 +1391,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of open order structures to retrieve (default 200, max 500)
@@ -1381,7 +1413,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of closed order structures to retrieve (default 200, max 500)
@@ -1401,7 +1435,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-orders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of canceled order structures to retrieve (default 200, max 500)
@@ -1421,7 +1457,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel open $orders of $market
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-all-$orders
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -1449,7 +1487,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-order-by-$id
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinlist cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1475,7 +1515,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#cancel-specific-$orders
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by coinlist cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1511,7 +1553,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#create-new-$order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1586,7 +1630,10 @@ class coinlist extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#modify-existing-order
+             *
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1768,9 +1815,11 @@ class coinlist extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-between-entities
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-from-wallet-to-pro
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#$transfer-funds-from-pro-to-wallet
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount account to $transfer from
@@ -1820,7 +1869,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers between CoinList.co and CoinList Pro. It does not return external deposits or withdrawals
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-$transfers
+             *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 200, max 500)
@@ -1942,7 +1993,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-coinlist-wallet-ledger
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal
              * @param {int} [$limit] max number of deposit/withdrawals to return (default 200, max 500)
@@ -2020,7 +2073,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * $request a withdrawal from CoinList wallet. (Disabled by default. Contact CoinList to apply for an exception.)
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#$request-withdrawal-from-wallet
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2121,7 +2176,9 @@ class coinlist extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://trade-docs.coinlist.co/?javascript--nodejs#get-account-history
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entries to return (default 200, max 500)
