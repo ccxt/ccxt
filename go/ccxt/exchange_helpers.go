@@ -1108,12 +1108,14 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 
 type Task func() interface{}
 
-func PromiseAll(tasksInterface interface{}) <-chan []interface{} {
+func PromiseAll(tasksInterface interface{}) <-chan interface{} {
 	return promiseAll(tasksInterface)
 }
 
-func promiseAll(tasksInterface interface{}) <-chan []interface{} {
-	ch := make(chan []interface{})
+func promiseAll(tasksInterface interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	panicChan := make(chan interface{}, 1) // Separate channel for panics
+	var once sync.Once                     // Ensure only one message is sent to ch
 
 	go func() {
 		defer close(ch)
@@ -1133,6 +1135,15 @@ func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 			go func(i int, task interface{}) {
 				defer wg.Done()
 
+				// Capture panic and send to panicChan directly
+				defer func() {
+					if r := recover(); r != nil {
+						if r != "break" {
+							once.Do(func() { ch <- "panic:" + ToString(r) })
+						}
+					}
+				}()
+
 				// Assert the task is a channel
 				if chanTask, ok := task.(<-chan interface{}); ok {
 					// Receive the result from the channel
@@ -1146,13 +1157,185 @@ func promiseAll(tasksInterface interface{}) <-chan []interface{} {
 
 		// Wait for all tasks to complete
 		wg.Wait()
+		close(panicChan)
 
-		// Once all tasks are done, send the results
-		ch <- results
+		// If no panics occurred, send the results
+		once.Do(func() { ch <- results })
 	}()
 
 	return ch
 }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+// 	panicChan := make(chan interface{}, 1) // Separate channel for panics
+
+// 	go func() {
+// 		defer close(ch)
+
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer ReturnPanicError(panicChan)
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+// 		close(panicChan)
+
+// 		// Check if any panics occurred and report the first one
+// 		select {
+// 		case panicMsg := <-panicChan:
+// 			ch <- panicMsg // Send the panic message
+// 		default:
+// 			ch <- results // No panics, send results
+// 		}
+// 	}()
+
+// 	return ch
+// }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer close(ch)
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				if r != "break" {
+// 					ch <- "panic:" + ToString(r)
+// 				}
+// 			}
+// 		}()
+
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		// A separate channel to capture panics
+// 		panicChan := make(chan string, len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer func() {
+// 					if r := recover(); r != nil {
+// 						if r != "break" {
+// 							panicChan <- "panic:" + ToString(r)
+// 						}
+// 					}
+// 				}()
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+// 		close(panicChan)
+
+// 		// Check if any panics occurred and report the first one
+// 		select {
+// 		case panicMsg := <-panicChan:
+// 			ch <- panicMsg // Send the panic message
+// 		default:
+// 			ch <- results // No panics, send results
+// 		}
+// 	}()
+
+// 	return ch
+// }
+
+// func promiseAll(tasksInterface interface{}) <-chan interface{} {
+// 	ch := make(chan interface{})
+
+// 	go func() {
+// 		defer close(ch)
+// 		defer func() {
+// 			if r := recover(); r != nil {
+// 				if r != "break" {
+// 					ch <- "panic:" + ToString(r)
+// 				}
+// 			}
+// 		}()
+// 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
+// 		tasks, ok := tasksInterface.([]interface{})
+// 		if !ok {
+// 			ch <- nil // Return nil if the input is not a slice of interfaces
+// 			return
+// 		}
+
+// 		results := make([]interface{}, len(tasks))
+// 		var wg sync.WaitGroup
+// 		wg.Add(len(tasks))
+
+// 		for i, task := range tasks {
+// 			go func(i int, task interface{}) {
+// 				defer wg.Done()
+// 				defer func() {
+// 					if r := recover(); r != nil {
+// 						if r != "break" {
+// 							ch <- "panic:" + ToString(r)
+// 						}
+// 					}
+// 				}()
+
+// 				// Assert the task is a channel
+// 				if chanTask, ok := task.(<-chan interface{}); ok {
+// 					// Receive the result from the channel
+// 					results[i] = <-chanTask
+// 				} else {
+// 					// If the task is not a channel, set the result to nil
+// 					results[i] = nil
+// 				}
+// 			}(i, task)
+// 		}
+
+// 		// Wait for all tasks to complete
+// 		wg.Wait()
+
+// 		// Once all tasks are done, send the results
+// 		ch <- results
+// 	}()
+
+// 	return ch
+// }
+
 func ParseInt(number interface{}) int64 {
 	switch v := number.(type) {
 	case int:
