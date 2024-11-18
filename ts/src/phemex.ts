@@ -2574,7 +2574,6 @@ export default class phemex extends Exchange {
             } else {
                 request['stopPxEp'] = this.toEp (triggerPrice, market);
             }
-            
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice', 'stopLoss', 'takeProfit', 'triggerPrice' ]);
         if (market['spot']) {
