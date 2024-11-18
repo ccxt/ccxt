@@ -649,33 +649,57 @@ func GetIndexOf(str interface{}, target interface{}) int {
 
 // IsBool checks if the input is a boolean
 func IsBool(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	_, ok := v.(bool)
 	return ok
 }
 
 // IsDictionary checks if the input is a map (dictionary in Python)
 func IsDictionary(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	return reflect.TypeOf(v).Kind() == reflect.Map
 }
 
 // IsString checks if the input is a string
 func IsString(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	_, ok := v.(string)
 	return ok
 }
 
 // IsInt checks if the input is an integer
 func IsInt(v interface{}) bool {
-	_, ok := v.(int)
-	return ok
+	if v == nil {
+		return false
+	}
+	switch v.(type) {
+	case int, int8, int16, int32, int64:
+		return true
+	case uint, uint8, uint16, uint32, uint64:
+		return true
+	default:
+		return false
+	}
 }
 
 // IsFunction checks if the input is a function
 func IsFunction(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	return reflect.TypeOf(v).Kind() == reflect.Func
 }
 
 func IsNumber(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	switch v.(type) {
 	case int, int8, int16, int32, int64:
 		return true
@@ -689,6 +713,9 @@ func IsNumber(v interface{}) bool {
 }
 
 func IsObject(v interface{}) bool {
+	if v == nil {
+		return false
+	}
 	kind := reflect.TypeOf(v).Kind()
 	switch kind {
 	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
