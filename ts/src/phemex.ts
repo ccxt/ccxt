@@ -514,7 +514,7 @@ export default class phemex extends Exchange {
     parseSwapMarket (market: Dict) {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -565,7 +565,8 @@ export default class phemex extends Exchange {
         const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const settleId = this.safeString (market, 'settleCurrency');
-        const base = this.safeCurrencyCode (baseId);
+        let base = this.safeCurrencyCode (baseId);
+        base = base.replace (' ', ''); // replace space for junction codes, eg. `1000 SHIB`
         const quote = this.safeCurrencyCode (quoteId);
         const settle = this.safeCurrencyCode (settleId);
         let inverse = false;
