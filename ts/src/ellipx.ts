@@ -1204,6 +1204,21 @@ export default class ellipx extends Exchange {
     }
 
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        /**
+         * @method
+         * @name ellipx#fetchDepositAddress
+         * @description fetches a crypto deposit address for a specific currency
+         * @param {string} code unified currency code (e.g. "BTC", "ETH", "USDT")
+         * @param {object} [params] extra parameters specific to the EllipX API endpoint
+         * @returns {object} an address structure {
+         *     'currency': string, // unified currency code
+         *     'address': string, // the address for deposits
+         *     'tag': string|undefined, // tag/memo for deposits if needed
+         *     'network': object, // network object from currency info
+         *     'info': object // raw response from exchange
+         * }
+         * @throws {ExchangeError} if currency does not support deposits
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeValue (currency['info'], 'Crypto_Chain', undefined);
