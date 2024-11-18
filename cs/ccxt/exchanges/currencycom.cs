@@ -289,16 +289,16 @@ public partial class currencycom : Exchange
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/timeUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/timeUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV2Time(parameters);
         //
@@ -309,16 +309,16 @@ public partial class currencycom : Exchange
         return this.safeInteger(response, "serverTime");
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getCurrenciesUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         // requires authentication
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
@@ -387,16 +387,16 @@ public partial class currencycom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchMarkets
+     * @description retrieves data on all markets for currencycom
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchMarkets
-        * @description retrieves data on all markets for currencycom
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/exchangeInfoUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetV2ExchangeInfo(parameters);
         //
@@ -587,16 +587,16 @@ public partial class currencycom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.privateGetV2Account(parameters);
         //
@@ -648,16 +648,16 @@ public partial class currencycom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetV2Account(parameters);
@@ -734,16 +734,16 @@ public partial class currencycom : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/accountUsingGET
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetV2Account(parameters);
@@ -781,18 +781,18 @@ public partial class currencycom : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/depthUsingGET
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/depthUsingGET
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -904,17 +904,17 @@ public partial class currencycom : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -945,17 +945,17 @@ public partial class currencycom : Exchange
         return this.parseTicker(response, market);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/ticker_24hrUsingGET
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.publicGetV2Ticker24hr(parameters);
@@ -995,20 +995,20 @@ public partial class currencycom : Exchange
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 5)};
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/klinesUsingGET
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/klinesUsingGET
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1118,19 +1118,19 @@ public partial class currencycom : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/aggTradesUsingGET
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/aggTradesUsingGET
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1311,21 +1311,21 @@ public partial class currencycom : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name currencycom#createOrder
+     * @description create a trade order
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#createOrder
-        * @description create a trade order
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/orderUsingPOST
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1411,17 +1411,18 @@ public partial class currencycom : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getOrderUsingGET
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1459,19 +1460,19 @@ public partial class currencycom : Exchange
         return this.parseOrder(response);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/openOrdersUsingGET
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/openOrdersUsingGET
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1510,18 +1511,18 @@ public partial class currencycom : Exchange
         return this.parseOrders(response, market, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name currencycom#cancelOrder
+     * @description cancels an open order
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/cancelOrderUsingDELETE
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#cancelOrder
-        * @description cancels an open order
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/cancelOrderUsingDELETE
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1557,19 +1558,19 @@ public partial class currencycom : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/myTradesUsingGET
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/myTradesUsingGET
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1606,53 +1607,53 @@ public partial class currencycom : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositsUsingGET
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositsUsingGET
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByMethod("privateGetV2Deposits", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getWithdrawalsUsingGET
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getWithdrawalsUsingGET
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByMethod("privateGetV2Withdrawals", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getTransactionsUsingGET
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getTransactionsUsingGET
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByMethod("privateGetV2Transactions", code, since, limit, parameters);
     }
@@ -1780,19 +1781,19 @@ public partial class currencycom : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getLedgerUsingGET
-        * @param {string} [code] unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entries to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1898,17 +1899,17 @@ public partial class currencycom : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/leverageSettingsUsingGET
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1937,17 +1938,17 @@ public partial class currencycom : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/getDepositAddressUsingGET
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2023,17 +2024,17 @@ public partial class currencycom : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name currencycom#fetchPositions
+     * @description fetch all open positions
+     * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/tradingPositionsUsingGET
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name currencycom#fetchPositions
-        * @description fetch all open positions
-        * @see https://apitradedoc.currency.com/swagger-ui.html#/rest-api/tradingPositionsUsingGET
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetV2TradingPositions(parameters);

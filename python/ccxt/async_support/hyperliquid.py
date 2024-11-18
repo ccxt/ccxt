@@ -6,7 +6,8 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+import math
+from ccxt.base.types import Balances, Currencies, Currency, Int, LedgerEntry, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -75,7 +76,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -131,12 +132,12 @@ class hyperliquid(Exchange, ImplicitAPI):
                 '1h': '1h',
                 '2h': '2h',
                 '4h': '4h',
-                '6h': '6h',
+                '8h': '8h',
                 '12h': '12h',
                 '1d': '1d',
                 '3d': '3d',
                 '1w': '1w',
-                '1M': '1m',
+                '1M': '1M',
             },
             'hostname': 'hyperliquid.xyz',
             'urls': {
@@ -157,7 +158,17 @@ class hyperliquid(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'post': {
-                        'info': 1,
+                        'info': {
+                            'cost': 20,
+                            'byType': {
+                                'l2Book': 2,
+                                'allMids': 2,
+                                'clearinghouseState': 2,
+                                'orderStatus': 2,
+                                'spotClearinghouseState': 2,
+                                'exchangeStatus': 2,
+                            },
+                        },
                     },
                 },
                 'private': {
@@ -218,7 +229,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-metadata
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -274,8 +287,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for hyperliquid
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -291,7 +306,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_swap_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all swap markets for hyperliquid
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -346,7 +363,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_spot_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all spot markets for hyperliquid
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -405,7 +424,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
-            extraData = self.safe_dict(second, i, {})
+            index = self.safe_integer(market, 'index')
+            extraData = self.safe_dict(second, index, {})
             marketName = self.safe_string(market, 'name')
             # if marketName.find('/') < 0:
             #     # there are some weird spot markets in testnet, eg @2
@@ -578,8 +598,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-a-users-token-balances
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :param str [params.type]: wallet type, ['spot', 'swap'], defaults to swap
@@ -660,7 +682,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#l2-book-snapshot
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -706,8 +730,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -725,6 +751,113 @@ class hyperliquid(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        retrieves data on all swap markets for hyperliquid
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
+        request: dict = {
+            'type': 'metaAndAssetCtxs',
+        }
+        response = await self.publicPostInfo(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "universe": [
+        #                 {
+        #                     "maxLeverage": 50,
+        #                     "name": "SOL",
+        #                     "onlyIsolated": False,
+        #                     "szDecimals": 2
+        #                 }
+        #             ]
+        #         },
+        #         [
+        #             {
+        #                 "dayNtlVlm": "9450588.2273",
+        #                 "funding": "0.0000198",
+        #                 "impactPxs": [
+        #                     "108.04",
+        #                     "108.06"
+        #                 ],
+        #                 "markPx": "108.04",
+        #                 "midPx": "108.05",
+        #                 "openInterest": "10764.48",
+        #                 "oraclePx": "107.99",
+        #                 "premium": "0.00055561",
+        #                 "prevDayPx": "111.81"
+        #             }
+        #         ]
+        #     ]
+        #
+        #
+        meta = self.safe_dict(response, 0, {})
+        universe = self.safe_list(meta, 'universe', [])
+        assetCtxs = self.safe_list(response, 1, [])
+        result = []
+        for i in range(0, len(universe)):
+            data = self.extend(
+                self.safe_dict(universe, i, {}),
+                self.safe_dict(assetCtxs, i, {})
+            )
+            result.append(data)
+        funding_rates = self.parse_funding_rates(result)
+        return self.filter_by_array(funding_rates, 'symbol', symbols)
+
+    def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "maxLeverage": "50",
+        #         "name": "ETH",
+        #         "onlyIsolated": False,
+        #         "szDecimals": "4",
+        #         "dayNtlVlm": "1709813.11535",
+        #         "funding": "0.00004807",
+        #         "impactPxs": [
+        #             "2369.3",
+        #             "2369.6"
+        #         ],
+        #         "markPx": "2369.6",
+        #         "midPx": "2369.45",
+        #         "openInterest": "1815.4712",
+        #         "oraclePx": "2367.3",
+        #         "premium": "0.00090821",
+        #         "prevDayPx": "2381.5"
+        #     }
+        #
+        base = self.safe_string(info, 'name')
+        marketId = self.coin_to_market_id(base)
+        symbol = self.safe_symbol(marketId, market)
+        funding = self.safe_number(info, 'funding')
+        markPx = self.safe_number(info, 'markPx')
+        oraclePx = self.safe_number(info, 'oraclePx')
+        fundingTimestamp = (int(math.floor(self.milliseconds()) / 60 / 60 / 1000) + 1) * 60 * 60 * 1000
+        return {
+            'info': info,
+            'symbol': symbol,
+            'markPrice': markPx,
+            'indexPrice': oraclePx,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': funding,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': '1h',
+        }
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -758,7 +891,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#candle-snapshot
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents, support '1m', '15m', '1h', '1d'
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -770,15 +905,22 @@ class hyperliquid(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until', self.milliseconds())
-        useTail = (since is None)
+        useTail = since is None
+        originalSince = since
         if since is None:
-            since = 0
+            if limit is not None:
+                # optimization if limit is provided
+                timeframeInMilliseconds = self.parse_timeframe(timeframe) * 1000
+                since = self.sum(until, timeframeInMilliseconds * limit * -1)
+                useTail = False
+            else:
+                since = 0
         params = self.omit(params, ['until'])
         request: dict = {
             'type': 'candleSnapshot',
             'req': {
                 'coin': market['base'] if market['swap'] else market['id'],
-                'interval': timeframe,
+                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
             },
@@ -800,7 +942,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit, useTail)
+        return self.parse_ohlcvs(response, market, timeframe, originalSince, limit, useTail)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -829,8 +971,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         get the list of most recent trades for a particular symbol
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1005,7 +1149,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1029,8 +1175,11 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1061,7 +1210,7 @@ class hyperliquid(Exchange, ImplicitAPI):
     def create_orders_request(self, orders, params={}) -> dict:
         """
         create a list of trade orders
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1173,8 +1322,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1188,8 +1339,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1268,8 +1421,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
+
         :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
@@ -1452,8 +1607,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1517,7 +1674,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-historical-funding-rates
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -1534,7 +1693,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         else:
-            request['startTime'] = self.milliseconds() - 100 * 60 * 60 * 1000
+            maxLimit = 500 if (limit is None) else limit
+            request['startTime'] = self.milliseconds() - maxLimit * 60 * 60 * 1000
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is not None:
@@ -1567,7 +1727,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-open-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -1691,7 +1853,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-order-status-by-oid-or-cloid
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
@@ -1897,8 +2062,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-a-users-fills-by-time
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -2000,7 +2167,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on an open position
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
@@ -2012,7 +2181,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
@@ -2139,7 +2310,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'notional': self.safe_number(entry, 'positionValue'),
             'leverage': self.safe_number(leverage, 'value'),
             'collateral': self.safe_number(entry, 'marginUsed'),
-            'initialMargin': initialMargin,
+            'initialMargin': self.parse_number(initialMargin),
             'maintenanceMargin': None,
             'initialMarginPercentage': None,
             'maintenanceMarginPercentage': None,
@@ -2249,7 +2420,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2259,7 +2432,9 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin
+
         remove margin from a position
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
@@ -2328,7 +2503,9 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#l1-usdc-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from *spot, swap*
@@ -2396,8 +2573,10 @@ class hyperliquid(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal(only support USDC)
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2843,6 +3022,14 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+        if ('byType' in config) and ('type' in params):
+            type = params['type']
+            byType = config['byType']
+            if type in byType:
+                return byType[type]
+        return self.safe_value(config, 'cost', 1)
 
     def parse_create_order_args(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)

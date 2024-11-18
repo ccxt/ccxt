@@ -823,6 +823,8 @@ public partial class Exchange
             {
                 throw new NotSupported ((string)add(this.id, " does not have a sandbox URL")) ;
             }
+            // set flag
+            this.isSandboxModeEnabled = true;
         } else if (isTrue(inOp(this.urls, "apiBackup")))
         {
             if (isTrue((getValue(this.urls, "api") is string)))
@@ -834,6 +836,8 @@ public partial class Exchange
             }
             object newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
+            // set flag
+            this.isSandboxModeEnabled = false;
         }
     }
 
@@ -901,10 +905,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTrades() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTradesForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTradesForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -925,10 +941,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
@@ -941,6 +969,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderBookWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMarginMode(object symbol, object parameters = null)
@@ -987,6 +1021,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOrderBook() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTime(object parameters = null)
@@ -1739,9 +1779,10 @@ public partial class Exchange
         if (isTrue(isTrue(isTrue(parseFilled) || isTrue(parseCost)) || isTrue(shouldParseFees)))
         {
             object rawTrades = this.safeValue(order, "trades", trades);
-            object oldNumber = this.number;
+            // const oldNumber = this.number;
             // we parse trades as strings here!
-            this.number = typeof(String);
+            // i don't think this is needed anymore
+            // (this as any).number = String;
             object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
             object tradesAreParsed = (isTrue(isTrue((!isEqual(firstTrade, null))) && isTrue((inOp(firstTrade, "info")))) && isTrue((inOp(firstTrade, "id"))));
@@ -1752,7 +1793,7 @@ public partial class Exchange
             {
                 trades = rawTrades;
             }
-            this.number = oldNumber;
+            // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             object tradesLength = 0;
             object isArray = ((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isTrue(isArray))
@@ -4202,6 +4243,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTickers() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

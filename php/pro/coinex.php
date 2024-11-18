@@ -253,8 +253,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
              * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -409,8 +411,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://docs.coinex.com/api/v2/spot/deal/ws/user-deals
              * @see https://docs.coinex.com/api/v2/futures/deal/ws/user-deals
+             *
              * @param {string} [$symbol] unified $symbol of the $market the $trades were made in
              * @param {int} [$since] the earliest time in ms to watch $trades
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -630,8 +634,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -647,8 +653,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
+             *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -688,8 +696,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -705,8 +715,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the most recent $trades for a list of $symbols
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
+             *
              * @param {string[]} $symbols unified $symbols of the markets to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -751,8 +763,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -812,8 +826,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -900,8 +916,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://docs.coinex.com/api/v2/spot/order/ws/user-order
              * @see https://docs.coinex.com/api/v2/futures/order/ws/user-order
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1232,8 +1250,10 @@ class coinex extends \ccxt\async\coinex {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
              * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+             *
              * @param {string[]} [$symbols] unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~

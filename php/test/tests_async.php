@@ -801,10 +801,11 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         $calculated_string = json_stringify($calculated_output);
         $stored_string = json_stringify($stored_output);
-        $error_message = $message . ' computed ' . $stored_string . ' stored: ' . $calculated_string;
+        $error_message = $message;
         if ($key !== null) {
-            $error_message = ' | ' . $key . ' | ' . 'computed value: ' . $stored_string . ' stored value: ' . $calculated_string;
+            $error_message = '[' . $key . ']';
         }
+        $error_message .= ' computed: ' . $stored_string . ' stored: ' . $calculated_string;
         assert($cond, $error_message);
     }
 
@@ -937,9 +938,17 @@ class testMainClass {
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
             } else {
-                $is_boolean = (is_bool($sanitized_new_output)) || (is_bool($sanitized_stored_output));
-                $is_string = (is_string($sanitized_new_output)) || (is_string($sanitized_stored_output));
-                $is_undefined = ($sanitized_new_output === null) || ($sanitized_stored_output === null); // undefined is a perfetly valid value
+                $is_computed_bool = (is_bool($sanitized_new_output));
+                $is_stored_bool = (is_bool($sanitized_stored_output));
+                $is_computed_string = (is_string($sanitized_new_output));
+                $is_stored_string = (is_string($sanitized_stored_output));
+                $is_computed_undefined = ($sanitized_new_output === null);
+                $is_stored_undefined = ($sanitized_stored_output === null);
+                $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
+                $this->assert_static_error($should_be_same, 'output type mismatch', $stored_output, $new_output, $asserting_key);
+                $is_boolean = $is_computed_bool || $is_stored_bool;
+                $is_string = $is_computed_string || $is_stored_string;
+                $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
                     if ($this->lang === 'C#') {
                         // tmp c# number comparsion

@@ -1215,7 +1215,7 @@ class onetrading extends Exchange {
         return $this->parse_transactions($withdrawalHistory, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -1491,7 +1491,9 @@ class onetrading extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://docs.onetrading.com/#create-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'

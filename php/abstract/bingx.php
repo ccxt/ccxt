@@ -109,6 +109,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function swap_v1_private_get_trade_fullorder($params = array()) {
         return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function swap_v1_private_get_positionmargin_history($params = array()) {
+        return $this->request('positionMargin/history', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function swap_v1_private_post_trade_cancelreplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -504,6 +507,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV1PrivateGetTradeFullOrder($params = array()) {
         return $this->request('trade/fullOrder', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function swapV1PrivateGetPositionMarginHistory($params = array()) {
+        return $this->request('positionMargin/history', array('swap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
     public function swapV1PrivatePostTradeCancelReplace($params = array()) {
         return $this->request('trade/cancelReplace', array('swap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));

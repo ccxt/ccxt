@@ -76,9 +76,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
 
     async def subscribe(self, name: str, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         subscribes to a websocket channel
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+
         :param str name: the name of the channel
         :param str[] [symbols]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -127,11 +129,13 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
 
     async def subscribe_multiple(self, name: str, symbols: Strings = None, params={}):
         """
-         * @ignore
+ @ignore
         subscribes to a websocket channel using watchMultiple
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
+
         :param str name: the name of the channel
-        :param string|str[] [symbol]: unified market symbol
+        :param string|str[] [symbols]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: subscription to a websocket channel
         """
@@ -168,7 +172,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         watch the current funding rate
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -179,7 +185,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexe by market symbols
@@ -196,7 +204,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+
         :param str [symbol]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
@@ -220,7 +230,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.channel]: the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
@@ -418,7 +430,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-        :see: https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+
+        https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -475,7 +489,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -564,7 +580,9 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -575,8 +593,10 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
-        :param str symbol: unified symbol of the market to fetch the order book for
+
+        https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+
+        :param str[] symbols:
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols

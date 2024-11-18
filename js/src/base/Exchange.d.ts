@@ -15,6 +15,7 @@ export default class Exchange {
     options: {
         [key: string]: any;
     };
+    isSandboxModeEnabled: boolean;
     throttleProp: any;
     sleep: (ms: any) => Promise<unknown>;
     api: any;
@@ -742,17 +743,23 @@ export default class Exchange {
     watchMyLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     watchMyTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<Dictionary<Dictionary<OHLCV[]>>>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
     fetchMarginModes(symbols?: Strings, params?: {}): Promise<MarginModes>;
     fetchRestOrderBookSafe(symbol: any, limit?: any, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     fetchTime(params?: {}): Promise<Int>;
     fetchTradingLimits(symbols?: Strings, params?: {}): Promise<{}>;
     parseCurrency(rawCurrency: Dict): Currency;
@@ -864,13 +871,13 @@ export default class Exchange {
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
     safeTicker(ticker: Dict, market?: Market): Ticker;
-    fetchBorrowRate(code: string, amount: any, params?: {}): Promise<{}>;
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{}>;
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{}>;
+    fetchBorrowRate(code: string, amount: number, params?: {}): Promise<{}>;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{}>;
     borrowIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{}>;
-    borrowMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{}>;
-    repayMargin(code: string, amount: any, symbol?: Str, params?: {}): Promise<{}>;
+    borrowMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
+    repayMargin(code: string, amount: number, symbol?: Str, params?: {}): Promise<{}>;
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
@@ -984,6 +991,7 @@ export default class Exchange {
     fetchOrderBooks(symbols?: Strings, limit?: Int, params?: {}): Promise<Dictionary<OrderBook>>;
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
@@ -1097,7 +1105,7 @@ export default class Exchange {
     parseLastPrices(pricesData: any, symbols?: string[], params?: {}): LastPrices;
     parseTickers(tickers: any, symbols?: Strings, params?: {}): Tickers;
     parseDepositAddresses(addresses: any, codes?: Strings, indexed?: boolean, params?: {}): DepositAddress[];
-    parseBorrowInterests(response: any, market?: Market): any[];
+    parseBorrowInterests(response: any, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;
     parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any;
     parseIsolatedBorrowRates(info: any): IsolatedBorrowRates;

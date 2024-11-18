@@ -10,6 +10,7 @@ public partial class phemex
     /// retrieves data on all markets for phemex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-product-information-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -610,7 +611,7 @@ public partial class phemex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.method</term>
+    /// <term>params.method</term>
     /// <description>
     /// string : *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
     /// </description>

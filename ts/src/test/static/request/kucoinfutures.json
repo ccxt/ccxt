@@ -2,7 +2,8 @@
     "exchange": "kucoinfutures",
     "skipKeys": [
         "clientOid",
-        "to"
+        "to",
+        "bizNo"
     ],
     "outputType": "json",
     "methods": {
@@ -133,6 +134,22 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"be4eeb70-2371-46de-9afa-88fec3070f1f\",\"side\":\"buy\",\"symbol\":\"ADAUSDTM\",\"type\":\"market\",\"size\":4,\"leverage\":1,\"triggerStopDownPrice\":\"0.2\",\"stopPriceType\":\"MP\"}"
+            },
+            {
+                "description": "linear swap create order with a cost param",
+                "method": "createOrder",
+                "url": "https://api-futures.kucoin.com/api/v1/orders",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "limit",
+                  "buy",
+                  25,
+                  25000,
+                  {
+                    "cost": "25"
+                  }
+                ],
+                "output": "{\"clientOid\":\"dab82652-e3a0-44b7-a118-b37a54233141\",\"side\":\"buy\",\"symbol\":\"XBTUSDTM\",\"type\":\"limit\",\"leverage\":1,\"valueQty\":\"25\",\"price\":\"25000\"}"
             }
         ],
         "createOrders": [
@@ -591,6 +608,157 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetch the exchange status",
+                "method": "fetchStatus",
+                "url": "https://api-futures.kucoin.com/api/v1/status",
+                "input": []
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetch the mark price",
+                "method": "fetchMarkPrice",
+                "url": "https://api-futures.kucoin.com/api/v1/mark-price/XBTUSDTM/current",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch bids asks for multiple symbols at once",
+                "method": "fetchBidsAsks",
+                "url": "https://api-futures.kucoin.com/api/v1/allTickers",
+                "input": [
+                  [
+                    "BTC/USDT:USDT",
+                    "ETH/USDT:USDT"
+                  ]
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history for a linear swap symbol with a limit argument",
+                "method": "fetchFundingHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-history?symbol=XBTUSDTM&maxCount=3",
+                "input": [
+                  "BTC/USDT:USDT",
+                  null,
+                  3
+                ]
+            },
+            {
+                "description": "fetch funding history for an inverse swap symbol with a limit argument",
+                "method": "fetchFundingHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-history?symbol=XBTUSDM&maxCount=3",
+                "input": [
+                  "BTC/USD:BTC",
+                  null,
+                  3
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch inverse swap position",
+                "method": "fetchPosition",
+                "url": "https://api-futures.kucoin.com/api/v1/position?symbol=XBTUSDM",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "fetch linear swap position",
+                "method": "fetchPosition",
+                "url": "https://api-futures.kucoin.com/api/v1/position?symbol=XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch linear swap market leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/risk-limit/XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch inverse swap market leverage tiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/risk-limit/XBTUSDM",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to a linear swap position",
+                "method": "addMargin",
+                "url": "https://api-futures.kucoin.com/api/v1/position/margin/deposit-margin",
+                "input": [
+                  "ETH/USDT:USDT",
+                  1
+                ],
+                "output": "{\"symbol\":\"ETHUSDTM\",\"margin\":\"1\",\"bizNo\":\"0091c851-35bd-4fbd-8abd-40a7dad05645\"}"
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer from future to spot account",
+                "method": "transfer",
+                "url": "https://api-futures.kucoin.com/api/v2/transfer-out",
+                "input": [
+                  "USDT",
+                  5,
+                  "future",
+                  "spot"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"recAccountType\":\"TRADE\"}"
+            },
+            {
+                "description": "transfer from future to funding account",
+                "method": "transfer",
+                "url": "https://api-futures.kucoin.com/api/v2/transfer-out",
+                "input": [
+                  "USDT",
+                  5,
+                  "future",
+                  "funding"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"recAccountType\":\"MAIN\"}"
+            },
+            {
+                "description": "transfer from spot to future account",
+                "method": "transfer",
+                "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
+                "input": [
+                  "USDT",
+                  5,
+                  "spot",
+                  "future"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"MAIN\"}"
+            },
+            {
+                "description": "transfer from spot to swap account",
+                "method": "transfer",
+                "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
+                "input": [
+                  "USDT",
+                  5,
+                  "spot",
+                  "swap"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"MAIN\"}"
             }
         ]
     }

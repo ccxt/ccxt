@@ -566,7 +566,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>
@@ -696,7 +696,7 @@ public partial class kuna
     /// <item>
     /// <term>params.address</term>
     /// <description>
-    /// string :          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+    /// string :      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     /// </description>
     /// </item>
     /// </list>

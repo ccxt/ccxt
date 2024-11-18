@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import LongShortRatio, Balances, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, LongShortRatio, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -173,7 +173,7 @@ class bybit(Exchange, ImplicitAPI):
                     'public': 'https://api-testnet.{hostname}',
                     'private': 'https://api-testnet.{hostname}',
                 },
-                'logo': 'https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg',
+                'logo': 'https://github.com/user-attachments/assets/97a5d0b3-de10-423d-90e1-6620960025ed',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'futures': 'https://api.{hostname}',
@@ -409,21 +409,6 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
                     },
                     'post': {
-                        # Legacy option USDC
-                        'option/usdc/openapi/private/v1/place-order': 2.5,
-                        'option/usdc/openapi/private/v1/replace-order': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'option/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'option/usdc/openapi/private/v1/query-active-orders': 2.5,
-                        'option/usdc/openapi/private/v1/query-order-history': 2.5,
-                        'option/usdc/openapi/private/v1/execution-list': 2.5,
-                        'option/usdc/openapi/private/v1/query-position': 2.5,
-                        # Legacy perpetual swap USDC
-                        'perpetual/usdc/openapi/private/v1/place-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/replace-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-order': 2.5,
-                        'perpetual/usdc/openapi/private/v1/cancel-all': 2.5,
-                        'perpetual/usdc/openapi/private/v1/position/leverage/save': 2.5,
                         # spot
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/cancel-order': 2.5,
@@ -1018,7 +1003,6 @@ class bybit(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'usePrivateInstrumentsInfo': False,
-                'sandboxMode': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'createOrder': {
@@ -1026,6 +1010,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
+                'unifiedMarginStatus': None,
                 'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
@@ -1103,21 +1088,13 @@ class bybit(Exchange, ImplicitAPI):
             },
         })
 
-    def set_sandbox_mode(self, enable: bool):
-        """
-        enables or disables sandbox mode
-        :param boolean [enable]: True if demo trading should be enabled, False otherwise
-        """
-        super(bybit, self).set_sandbox_mode(enable)
-        self.options['sandboxMode'] = enable
-
     def enable_demo_trading(self, enable: bool):
         """
         enables or disables demo trading mode
-        :see: https://bybit-exchange.github.io/docs/v5/demo
+        https://bybit-exchange.github.io/docs/v5/demo
         :param boolean [enable]: True if demo trading should be enabled, False otherwise
         """
-        if self.options['sandboxMode']:
+        if self.isSandboxModeEnabled:
             raise NotSupported(self.id + ' demo trading does not support in sandbox environment')
         # enable demo trading in bybit, see: https://bybit-exchange.github.io/docs/v5/demo
         if enable:
@@ -1145,7 +1122,13 @@ class bybit(Exchange, ImplicitAPI):
 
     def is_unified_enabled(self, params={}):
         """
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+
+        https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
+        https://bybit-exchange.github.io/docs/v5/account/account-info
+
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
         # SUB UID: "Account Transfer"
@@ -1158,8 +1141,12 @@ class bybit(Exchange, ImplicitAPI):
                 # so we're assuming UTA is enabled
                 self.options['enableUnifiedMargin'] = False
                 self.options['enableUnifiedAccount'] = True
+                self.options['unifiedMarginStatus'] = 3
                 return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
-            response = self.privateGetV5UserQueryApi(params)
+            rawPromises = [self.privateGetV5UserQueryApi(params), self.privateGetV5AccountInfo(params)]
+            promises = rawPromises
+            response = promises[0]
+            accountInfo = promises[1]
             #
             #     {
             #         "retCode": 0,
@@ -1199,13 +1186,38 @@ class bybit(Exchange, ImplicitAPI):
             #         "retExtInfo": {},
             #         "time": 1676891757649
             #     }
+            # account info
+            #     {
+            #         "retCode": 0,
+            #         "retMsg": "OK",
+            #         "result": {
+            #             "marginMode": "REGULAR_MARGIN",
+            #             "updatedTime": "1697078946000",
+            #             "unifiedMarginStatus": 4,
+            #             "dcpStatus": "OFF",
+            #             "timeWindow": 10,
+            #             "smpGroup": 0,
+            #             "isMasterTrader": False,
+            #             "spotHedgingStatus": "OFF"
+            #         }
+            #     }
             #
             result = self.safe_dict(response, 'result', {})
+            accountResult = self.safe_dict(accountInfo, 'result', {})
             self.options['enableUnifiedMargin'] = self.safe_integer(result, 'unified') == 1
             self.options['enableUnifiedAccount'] = self.safe_integer(result, 'uta') == 1
+            self.options['unifiedMarginStatus'] = self.safe_integer(accountResult, 'unifiedMarginStatus', 3)  # default to uta.1 if not found
         return [self.options['enableUnifiedMargin'], self.options['enableUnifiedAccount']]
 
     def upgrade_unified_trade_account(self, params={}):
+        """
+        upgrades the account to unified trade account *warning* self is irreversible
+
+        https://bybit-exchange.github.io/docs/v5/account/upgrade-unified-account
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: nothing
+        """
         return self.privatePostV5AccountUpgradeToUta(params)
 
     def create_expired_option_market(self, symbol: str):
@@ -1326,7 +1338,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://bybit-exchange.github.io/docs/v5/market/time
+
+        https://bybit-exchange.github.io/docs/v5/market/time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1348,7 +1362,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+        https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -1473,7 +1489,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bybit
-        :see: https://bybit-exchange.github.io/docs/v5/market/instrument
+
+        https://bybit-exchange.github.io/docs/v5/market/instrument
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -2064,7 +2082,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2134,7 +2154,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
@@ -2251,10 +2273,12 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://bybit-exchange.github.io/docs/v5/market/kline
-        :see: https://bybit-exchange.github.io/docs/v5/market/mark-kline
-        :see: https://bybit-exchange.github.io/docs/v5/market/index-kline
-        :see: https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
+
+        https://bybit-exchange.github.io/docs/v5/market/kline
+        https://bybit-exchange.github.io/docs/v5/market/mark-kline
+        https://bybit-exchange.github.io/docs/v5/market/index-kline
+        https://bybit-exchange.github.io/docs/v5/market/preimum-index-kline
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -2383,6 +2407,12 @@ class bybit(Exchange, ImplicitAPI):
         fundingTimestamp = self.safe_integer(ticker, 'nextFundingTime')
         markPrice = self.safe_number(ticker, 'markPrice')
         indexPrice = self.safe_number(ticker, 'indexPrice')
+        info = self.safe_dict(self.safe_market(marketId, market, None, 'swap'), 'info')
+        fundingInterval = self.safe_integer(info, 'fundingInterval')
+        intervalString = None
+        if fundingInterval is not None:
+            interval = self.parse_to_int(fundingInterval / 60)
+            intervalString = str(interval) + 'h'
         return {
             'info': ticker,
             'symbol': symbol,
@@ -2401,13 +2431,15 @@ class bybit(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
-            'interval': None,
+            'interval': intervalString,
         }
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetches funding rates for multiple markets
-        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
         :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2468,13 +2500,18 @@ class bybit(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(data, 'list', [])
+        timestamp = self.safe_integer(response, 'time')
+        for i in range(0, len(tickerList)):
+            tickerList[i]['timestamp'] = timestamp  # will be removed inside the parser
         result = self.parse_funding_rates(tickerList)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+
+        https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -2726,7 +2763,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://bybit-exchange.github.io/docs/v5/market/recent-trade
+
+        https://bybit-exchange.github.io/docs/v5/market/recent-trade
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2781,7 +2820,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://bybit-exchange.github.io/docs/v5/market/orderbook
+
+        https://bybit-exchange.github.io/docs/v5/market/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2994,9 +3035,11 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
-        :see: https://bybit-exchange.github.io/docs/v5/asset/all-balance
-        :see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+
+        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
+        https://bybit-exchange.github.io/docs/v5/asset/all-balance
+        https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: wallet type, ['spot', 'swap', 'funding']
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -3018,10 +3061,15 @@ class bybit(Exchange, ImplicitAPI):
         isInverse = (type == 'inverse')
         isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
-            if isInverse:
-                type = 'contract'
+            unifiedMarginStatus = self.safe_integer(self.options, 'unifiedMarginStatus', 3)
+            if unifiedMarginStatus < 5:
+                # it's not uta.20 where inverse are unified
+                if isInverse:
+                    type = 'contract'
+                else:
+                    type = 'unified'
             else:
-                type = 'unified'
+                type = 'unified'  # uta.20 where inverse are unified
         else:
             if isLinear or isInverse:
                 type = 'contract'
@@ -3389,8 +3437,10 @@ class bybit(Exchange, ImplicitAPI):
 
     def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
-        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market buy order by providing the symbol and cost
+
+        https://bybit-exchange.github.io/docs/v5/order/create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3404,8 +3454,10 @@ class bybit(Exchange, ImplicitAPI):
 
     def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
         """
-        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
         create a market sell order by providing the symbol and cost
+
+        https://bybit-exchange.github.io/docs/v5/order/create-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3424,8 +3476,10 @@ class bybit(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://bybit-exchange.github.io/docs/v5/order/create-order
-        :see: https://bybit-exchange.github.io/docs/v5/position/trading-stop
+
+        https://bybit-exchange.github.io/docs/v5/order/create-order
+        https://bybit-exchange.github.io/docs/v5/position/trading-stop
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -3454,11 +3508,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
-        if isUsdcSettled and not isUnifiedAccount:
-            return self.create_usdc_order(symbol, type, side, amount, price, params)
+        parts = self.is_unified_enabled()
+        enableUnifiedAccount = parts[1]
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'trailingStop')
         isTrailingAmountOrder = trailingAmount is not None
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params, enableUnifiedAccount)
@@ -3679,8 +3730,11 @@ class bybit(Exchange, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://bybit-exchange.github.io/docs/v5/order/batch-place
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-place
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -3759,165 +3813,6 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data)
 
-    def create_usdc_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        if type == 'market':
-            raise NotSupported(self.id + ' createOrder does not allow market orders for ' + symbol + ' markets')
-        lowerCaseType = type.lower()
-        if (price is None) and (lowerCaseType == 'limit'):
-            raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        request: dict = {
-            'symbol': market['id'],
-            'side': self.capitalize(side),
-            'orderType': self.capitalize(lowerCaseType),  # limit or market
-            'timeInForce': 'GoodTillCancel',  # ImmediateOrCancel, FillOrKill, PostOnly
-            'orderQty': self.get_amount(symbol, amount),
-            # 'takeProfit': 123.45,  # take profit price, only take effect upon opening the position
-            # 'stopLoss': 123.45,  # stop loss price, only take effect upon opening the position
-            # 'reduceOnly': False,  # reduce only, required for linear orders
-            # when creating a closing order, bybit recommends a True value for
-            #  closeOnTrigger to avoid failing due to insufficient available margin
-            # 'closeOnTrigger': False, required for linear orders
-            # 'orderLinkId': 'string',  # unique client order id, max 36 characters
-            # 'triggerPrice': 123.45,  # trigger price, required for conditional orders
-            # 'trigger_by': 'MarkPrice',  # IndexPrice, MarkPrice
-            # 'tptriggerby': 'MarkPrice',  # IndexPrice, MarkPrice
-            # 'slTriggerBy': 'MarkPrice',  # IndexPrice, MarkPrice
-            # 'orderFilter': 'Order' or 'StopOrder'
-            # 'mmp': False  # market maker protection
-        }
-        isMarket = lowerCaseType == 'market'
-        isLimit = lowerCaseType == 'limit'
-        if isLimit is not None:
-            request['orderPrice'] = self.get_price(symbol, self.number_to_string(price))
-        exchangeSpecificParam = self.safe_string(params, 'time_in_force')
-        timeInForce = self.safe_string_lower(params, 'timeInForce')
-        postOnly = self.is_post_only(isMarket, exchangeSpecificParam == 'PostOnly', params)
-        if postOnly:
-            request['time_in_force'] = 'PostOnly'
-        elif timeInForce == 'gtc':
-            request['time_in_force'] = 'GoodTillCancel'
-        elif timeInForce == 'fok':
-            request['time_in_force'] = 'FillOrKill'
-        elif timeInForce == 'ioc':
-            request['time_in_force'] = 'ImmediateOrCancel'
-        if market['swap']:
-            triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            stopLossTriggerPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
-            takeProfitTriggerPrice = self.safe_value(params, 'takeProfitPrice')
-            stopLoss = self.safe_value(params, 'stopLoss')
-            takeProfit = self.safe_value(params, 'takeProfit')
-            isStopLossTriggerOrder = stopLossTriggerPrice is not None
-            isTakeProfitTriggerOrder = takeProfitTriggerPrice is not None
-            isStopLoss = stopLoss is not None
-            isTakeProfit = takeProfit is not None
-            isStopOrder = isStopLossTriggerOrder or isTakeProfitTriggerOrder
-            if isStopOrder:
-                request['orderFilter'] = 'StopOrder'
-                request['trigger_by'] = 'LastPrice'
-                stopPx = stopLossTriggerPrice if isStopLossTriggerOrder else takeProfitTriggerPrice
-                preciseStopPrice = self.get_price(symbol, stopPx)
-                request['triggerPrice'] = preciseStopPrice
-                delta = self.number_to_string(market['precision']['price'])
-                request['basePrice'] = Precise.string_sub(preciseStopPrice, delta) if isStopLossTriggerOrder else Precise.string_add(preciseStopPrice, delta)
-            elif isStopLoss or isTakeProfit:
-                if isStopLoss:
-                    slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice', stopLoss)
-                    request['stopLoss'] = self.get_price(symbol, slTriggerPrice)
-                if isTakeProfit:
-                    tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice', takeProfit)
-                    request['takeProfit'] = self.get_price(symbol, tpTriggerPrice)
-            else:
-                request['orderFilter'] = 'Order'
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is not None:
-            request['orderLinkId'] = clientOrderId
-        elif market['option']:
-            # mandatory field for options
-            request['orderLinkId'] = self.uuid16()
-        params = self.omit(params, ['stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId'])
-        response = None
-        if market['option']:
-            response = self.privatePostOptionUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
-        else:
-            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder(self.extend(request, params))
-        #
-        #     {
-        #         "retCode":0,
-        #         "retMsg":"",
-        #         "result":{
-        #            "orderId":"34450a59-325e-4296-8af0-63c7c524ae33",
-        #            "orderLinkId":"",
-        #            "mmp":false,
-        #            "symbol":"BTCPERP",
-        #            "orderType":"Limit",
-        #            "side":"Buy",
-        #            "orderQty":"0.00100000",
-        #            "orderPrice":"20000.00",
-        #            "iv":"0",
-        #            "timeInForce":"GoodTillCancel",
-        #            "orderStatus":"Created",
-        #            "createdAt":"1652261746007873",
-        #            "basePrice":"0.00",
-        #            "triggerPrice":"0.00",
-        #            "takeProfit":"0.00",
-        #            "stopLoss":"0.00",
-        #            "slTriggerBy":"UNKNOWN",
-        #            "tpTriggerBy":"UNKNOWN"
-        #     }
-        #
-        order = self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
-
-    def edit_usdc_order(self, id, symbol, type, side, amount=None, price=None, params={}):
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-            'orderId': id,
-        }
-        if amount is not None:
-            request['orderQty'] = self.get_amount(symbol, amount)
-        if price is not None:
-            request['orderPrice'] = self.get_price(symbol, price)
-        response = None
-        if market['option']:
-            response = self.privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
-        else:
-            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
-            triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-            stopLossPrice = self.safe_value(params, 'stopLossPrice')
-            isStopLossOrder = stopLossPrice is not None
-            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-            isTakeProfitOrder = takeProfitPrice is not None
-            isStopOrder = isStopLossOrder or isTakeProfitOrder or isStop
-            if isStopOrder:
-                request['orderFilter'] = 'StopOrder' if isStop else 'Order'
-                if triggerPrice is not None:
-                    request['triggerPrice'] = self.get_price(symbol, triggerPrice)
-                if stopLossPrice is not None:
-                    request['stopLoss'] = self.get_price(symbol, stopLossPrice)
-                if takeProfitPrice is not None:
-                    request['takeProfit'] = self.get_price(symbol, takeProfitPrice)
-            params = self.omit(params, ['stop', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-            response = self.privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder(self.extend(request, params))
-        #
-        #    {
-        #        "retCode": 0,
-        #        "retMsg": "OK",
-        #        "result": {
-        #            "outRequestId": "",
-        #            "symbol": "BTC-13MAY22-40000-C",
-        #            "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        #            "orderLinkId": "AAAAA41133"
-        #        },
-        #        "retExtMap": {}
-        #   }
-        #
-        result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
-
     def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         request: dict = {
@@ -3983,9 +3878,11 @@ class bybit(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://bybit-exchange.github.io/docs/v5/order/amend-order
-        :see: https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
-        :see: https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+
+        https://bybit-exchange.github.io/docs/v5/order/amend-order
+        https://bybit-exchange.github.io/docs/derivatives/unified/replace-order
+        https://bybit-exchange.github.io/docs/api-explorer/derivatives/trade/contract/replace-order
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -4006,14 +3903,8 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
-        market = self.market(symbol)
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
-        if isUsdcSettled and not isUnifiedAccount:
-            return self.edit_usdc_order(id, symbol, type, side, amount, price, params)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = self.privatePostV5OrderAmend(self.extend(request, params))
         #
@@ -4034,42 +3925,6 @@ class bybit(Exchange, ImplicitAPI):
             'id': self.safe_string(result, 'orderId'),
         })
 
-    def cancel_usdc_order(self, id, symbol: Str = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelUsdcOrder() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-            # 'orderLinkId': 'string',  # one of order_id, stop_order_id or order_link_id is required
-            # 'orderId': id,
-        }
-        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, ['stop', 'trigger'])
-        if id is not None:  # The user can also use argument params["order_link_id"]
-            request['orderId'] = id
-        response = None
-        if market['option']:
-            response = self.privatePostOptionUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
-        else:
-            request['orderFilter'] = 'StopOrder' if isStop else 'Order'
-            response = self.privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder(self.extend(request, params))
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "result": {
-        #             "outRequestId": "",
-        #             "symbol": "BTC-13MAY22-40000-C",
-        #             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
-        #             "orderLinkId": ""
-        #         },
-        #         "retExtMap": {}
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
-
     def cancel_order_request(self, id: str, symbol: Str = None, params={}):
         market = self.market(symbol)
         request: dict = {
@@ -4081,9 +3936,9 @@ class bybit(Exchange, ImplicitAPI):
         }
         if market['spot']:
             # only works for spot market
-            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
+            isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
             params = self.omit(params, ['stop', 'trigger'])
-            request['orderFilter'] = 'StopOrder' if isStop else 'Order'
+            request['orderFilter'] = 'StopOrder' if isTrigger else 'Order'
         if id is not None:  # The user can also use argument params["orderLinkId"]
             request['orderId'] = id
         if market['spot']:
@@ -4099,11 +3954,14 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://bybit-exchange.github.io/docs/v5/order/cancel-order
+
+        https://bybit-exchange.github.io/docs/v5/order/cancel-order
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: *spot only* whether the order is a stop order
+        :param boolean [params.trigger]: *spot only* whether the order is a trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.orderFilter]: *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4111,11 +3969,6 @@ class bybit(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
-        if isUsdcSettled and not isUnifiedAccount:
-            return self.cancel_usdc_order(id, symbol, params)
         requestExtended = self.cancel_order_request(id, symbol, params)
         response = self.privatePostV5OrderCancel(requestExtended)
         #
@@ -4136,7 +3989,9 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
         :param str[] ids: order ids
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4215,7 +4070,9 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
         dead man's switch, cancel all orders after the given timeout
-        :see: https://bybit-exchange.github.io/docs/v5/order/dcp
+
+        https://bybit-exchange.github.io/docs/v5/order/dcp
+
         :param number timeout: time in milliseconds
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.product]: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
@@ -4246,7 +4103,9 @@ class bybit(Exchange, ImplicitAPI):
     def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
-        :see: https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
+        https://bybit-exchange.github.io/docs/v5/order/batch-cancel
+
         :param CancellationRequest[] orders: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4323,54 +4182,16 @@ class bybit(Exchange, ImplicitAPI):
         row = self.safe_list(result, 'list', [])
         return self.parse_orders(row, None)
 
-    def cancel_all_usdc_orders(self, symbol: Str = None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelAllUsdcOrders() requires a symbol argument')
-        self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-        }
-        response = None
-        if market['option']:
-            response = self.privatePostOptionUsdcOpenapiPrivateV1CancelAll(self.extend(request, params))
-        else:
-            isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
-            if isStop:
-                request['orderFilter'] = 'StopOrder'
-            else:
-                request['orderFilter'] = 'Order'
-            params = self.omit(params, ['stop', 'trigger'])
-            response = self.privatePostPerpetualUsdcOpenapiPrivateV1CancelAll(self.extend(request, params))
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "retExtMap": {},
-        #         "result": [
-        #             {
-        #                 "outRequestId": "cancelAll-290119-1652176443114-0",
-        #                 "symbol": "BTC-13MAY22-40000-C",
-        #                 "orderId": "fa6cd740-56ed-477d-9385-90ccbfee49ca",
-        #                 "orderLinkId": "",
-        #                 "errorCode": 0,
-        #                 "errorDesc": ""
-        #             }
-        #         ]
-        #     }
-        #
-        result = self.safe_value(response, 'result', [])
-        if not isinstance(result, list):
-            return response
-        return self.parse_orders(result, market)
-
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://bybit-exchange.github.io/docs/v5/order/cancel-all
+
+        https://bybit-exchange.github.io/docs/v5/order/cancel-all
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.trigger]: True if trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
@@ -4384,9 +4205,6 @@ class bybit(Exchange, ImplicitAPI):
         request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
-            if isUsdcSettled and not isUnifiedAccount:
-                return self.cancel_all_usdc_orders(symbol, params)
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('cancelAllOrders', market, params)
@@ -4398,9 +4216,9 @@ class bybit(Exchange, ImplicitAPI):
             if symbol is None and baseCoin is None:
                 defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                 request['settleCoin'] = self.safe_string(params, 'settleCoin', defaultSettle)
-        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if isStop:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         response = self.privatePostV5OrderCancelAll(self.extend(request, params))
         #
@@ -4437,92 +4255,12 @@ class bybit(Exchange, ImplicitAPI):
             return response
         return self.parse_orders(orders, market)
 
-    def fetch_usdc_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
-        market = None
-        request: dict = {
-            # 'category': '',  # Type. PERPETUAL, OPTION
-            # 'symbol': '',  # Contract name
-            # 'baseCoin': '',  # Base currency
-            # 'orderId': '',  # Order ID
-            # 'orderLinkId': '',  # Custom ID used for cross-platform strategy remarks; a max. of 32 characters
-            # 'orderStatus': '',  # Order status
-            # 'orderFilter': '',  # refer to Order Filter
-            # 'direction': '',  # prev: prev page, next: next page.
-            # 'limit': 0,  # Limit for data size per page, max size is 50. Default 20 pieces of data per page
-            # 'cursor': '',  # API pass-through
-        }
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        type = None
-        type, params = self.handle_market_type_and_params('fetchOrders', market, params)
-        if type == 'swap':
-            request['category'] = 'PERPETUAL'
-        else:
-            request['category'] = 'OPTION'
-        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
-        params = self.omit(params, ['stop', 'trigger'])
-        if isStop:
-            request['orderFilter'] = 'StopOrder'
-        if limit is not None:
-            request['limit'] = limit
-        response = self.privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory(self.extend(request, params))
-        #
-        #     {
-        #         "result": {
-        #         "cursor": "640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675%2C640034d1-97ec-4382-9983-694898c03ba3%3A1640854950675",
-        #             "resultTotalSize": 1,
-        #             "dataList": [
-        #             {
-        #                 "symbol": "ETHPERP",
-        #                 "orderType": "Limit",
-        #                 "orderLinkId": "",
-        #                 "orderId": "c04ad17d-ca85-45d1-859e-561e7236f6db",
-        #                 "cancelType": "UNKNOWN",
-        #                 "stopOrderType": "UNKNOWN",
-        #                 "orderStatus": "Filled",
-        #                 "updateTimeStamp": "1666178097006",
-        #                 "takeProfit": "0.0000",
-        #                 "cumExecValue": "12.9825",
-        #                 "createdAt": "1666178096996",
-        #                 "blockTradeId": "",
-        #                 "orderPnl": "",
-        #                 "price": "1300.0",
-        #                 "tpTriggerBy": "UNKNOWN",
-        #                 "timeInForce": "GoodTillCancel",
-        #                 "updatedAt": "1666178097006",
-        #                 "basePrice": "",
-        #                 "realisedPnl": "0.0000",
-        #                 "side": "Buy",
-        #                 "triggerPrice": "0.0",
-        #                 "cumExecFee": "0.0078",
-        #                 "leavesQty": "0.000",
-        #                 "cashFlow": "",
-        #                 "slTriggerBy": "UNKNOWN",
-        #                 "iv": "",
-        #                 "closeOnTrigger": "UNKNOWN",
-        #                 "cumExecQty": "0.010",
-        #                 "reduceOnly": 0,
-        #                 "qty": "0.010",
-        #                 "stopLoss": "0.0000",
-        #                 "triggerBy": "UNKNOWN",
-        #                 "orderIM": ""
-        #             }
-        #         ]
-        #         },
-        #         "retCode": 0,
-        #         "retMsg": "Success."
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        data = self.safe_list(result, 'dataList', [])
-        return self.parse_orders(data, market, since, limit)
-
     def fetch_order_classic(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user *classic accounts only*
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4549,8 +4287,10 @@ class bybit(Exchange, ImplicitAPI):
 
     def fetch_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
-         *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4640,12 +4380,13 @@ class bybit(Exchange, ImplicitAPI):
         res = self.is_unified_enabled()
         """
         *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+        https://bybit-exchange.github.io/docs/v5/order/order-list
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.trigger]: True if trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4661,12 +4402,15 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user *classic accounts only*
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.trigger]: True if trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4679,25 +4423,19 @@ class bybit(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {}
         market = None
-        isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('fetchOrders', market, params)
-        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
-            return self.fetch_usdc_orders(symbol, since, limit, params)
         if type == 'spot':
             raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
         request['category'] = type
-        isStop = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
-        if isStop:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -4765,11 +4503,14 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_closed_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on a closed order made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set to True for fetching a closed stop order
+        :param boolean [params.trigger]: set to True for fetching a closed trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4792,11 +4533,14 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an open order made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+        https://bybit-exchange.github.io/docs/v5/order/open-order
+
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set to True for fetching an open stop order
+        :param boolean [params.trigger]: set to True for fetching an open trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
@@ -4821,12 +4565,15 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set to True for fetching stop orders
+        :param boolean [params.trigger]: set to True for fetching trigger orders
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4839,23 +4586,17 @@ class bybit(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchCanceledAndClosedOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {}
         market = None
-        isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('fetchCanceledAndClosedOrders', market, params)
-        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
-            return self.fetch_usdc_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_bool_n(params, ['trigger', 'stop'], False)
+        isTrigger = self.safe_bool_n(params, ['trigger', 'stop'], False)
         params = self.omit(params, ['trigger', 'stop'])
-        if isStop:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -4923,12 +4664,15 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set to True for fetching closed stop orders
+        :param boolean [params.trigger]: set to True for fetching closed trigger orders
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4945,12 +4689,15 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches information on multiple canceled orders made by the user
-        :see: https://bybit-exchange.github.io/docs/v5/order/order-list
+
+        https://bybit-exchange.github.io/docs/v5/order/order-list
+
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: timestamp in ms of the earliest order, default is None
         :param int [limit]: max number of orders to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: True if stop order
+        :param boolean [params.trigger]: True if trigger order
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
@@ -4964,56 +4711,18 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    def fetch_usdc_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
-        request: dict = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        type = None
-        type, params = self.handle_market_type_and_params('fetchUsdcOpenOrders', market, params)
-        request['category'] = 'perpetual' if (type == 'swap') else 'option'
-        response = self.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders(self.extend(request, params))
-        result = self.safe_dict(response, 'result', {})
-        orders = self.safe_list(result, 'dataList', [])
-        #
-        #     {
-        #         "retCode": 0,
-        #         "retMsg": "OK",
-        #         "result": {
-        #             "resultTotalSize": 1,
-        #             "cursor": "id%3D1662019818569%23df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        #             "dataList": [
-        #                 {
-        #                     "orderId": "df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
-        #                     "orderLinkId": "",
-        #                     "symbol": "BTC-2SEP22-18000-C",
-        #                     "orderStatus": "New",
-        #                     "orderPrice": "500",
-        #                     "side": "Buy",
-        #                     "remainingQty": "0.1",
-        #                     "orderType": "Limit",
-        #                     "qty": "0.1",
-        #                     "iv": "0.0000",
-        #                     "cancelType": "",
-        #                     "updateTimestamp": "1662019818579"
-        #                 }
-        #             ]
-        #         }
-        #     }
-        #
-        return self.parse_orders(orders, market, since, limit)
-
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://bybit-exchange.github.io/docs/v5/order/open-order
+
+        https://bybit-exchange.github.io/docs/v5/order/open-order
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.stop]: set to True for fetching open stop orders
+        :param boolean [params.trigger]: set to True for fetching open trigger orders
+        :param boolean [params.stop]: alias for trigger
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :param str [params.baseCoin]: Base coin. Supports linear, inverse & option
@@ -5027,14 +4736,10 @@ class bybit(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchOpenOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {}
         market = None
-        isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('fetchOpenOrders', market, params)
@@ -5044,13 +4749,10 @@ class bybit(Exchange, ImplicitAPI):
                 defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                 settleCoin = self.safe_string(params, 'settleCoin', defaultSettle)
                 request['settleCoin'] = settleCoin
-                isUsdcSettled = (settleCoin == 'USDC')
-        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
-            return self.fetch_usdc_open_orders(symbol, since, limit, params)
         request['category'] = type
-        isStop = self.safe_bool_2(params, 'stop', 'trigger', False)
+        isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
-        if isStop:
+        if isTrigger:
             request['orderFilter'] = 'StopOrder'
         if limit is not None:
             request['limit'] = limit
@@ -5110,7 +4812,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all the trades made from a single order
-        :see: https://bybit-exchange.github.io/docs/v5/position/execution
+
+        https://bybit-exchange.github.io/docs/v5/position/execution
+
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -5127,53 +4831,12 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    def fetch_my_usdc_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
-        market = None
-        request: dict = {}
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-            request['category'] = 'OPTION' if market['option'] else 'PERPETUAL'
-        else:
-            request['category'] = 'PERPETUAL'
-        response = self.privatePostOptionUsdcOpenapiPrivateV1ExecutionList(self.extend(request, params))
-        #
-        #     {
-        #       "result": {
-        #         "cursor": "29%3A1%2C28%3A1",
-        #         "resultTotalSize": 2,
-        #         "dataList": [
-        #           {
-        #             "symbol": "ETHPERP",
-        #             "orderLinkId": "",
-        #             "side": "Sell",
-        #             "orderId": "d83f8b4d-2f60-4e04-a64a-a3f207989dc6",
-        #             "execFee": "0.0210",
-        #             "feeRate": "0.000600",
-        #             "blockTradeId": "",
-        #             "tradeTime": "1669196423581",
-        #             "execPrice": "1161.45",
-        #             "lastLiquidityInd": "TAKER",
-        #             "execValue": "34.8435",
-        #             "execType": "Trade",
-        #             "execQty": "0.030",
-        #             "tradeId": "d9aa8590-9e6a-575e-a1be-d6261e6ed2e5"
-        #           }, ...
-        #         ]
-        #       },
-        #       "retCode": 0,
-        #       "retMsg": "Success."
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        dataList = self.safe_list(result, 'dataList', [])
-        return self.parse_trades(dataList, market, since, limit)
-
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+        https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -5188,21 +4851,15 @@ class bybit(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 100)
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {
             'execType': 'Trade',
         }
         market = None
-        isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
-            isUsdcSettled = market['settle'] == 'USDC'
             request['symbol'] = market['id']
         type = None
         type, params = self.get_bybit_type('fetchMyTrades', market, params)
-        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
-            return self.fetch_my_usdc_trades(symbol, since, limit, params)
         request['category'] = type
         if limit is not None:
             request['limit'] = limit
@@ -5278,7 +4935,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
-        :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+        https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
@@ -5320,7 +4979,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
+        https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -5364,13 +5025,15 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://bybit-exchange.github.io/docs/v5/asset/deposit-record
+
+        https://bybit-exchange.github.io/docs/v5/asset/deposit-record
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for, default = 30 days before the current time
         :param int [limit]: the maximum number of deposits structures to retrieve, default = 50, max = 50
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch deposits for, default = 30 days after since
-         * EXCHANGE SPECIFIC PARAMETERS
+ EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
@@ -5428,7 +5091,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
+
+        https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -5601,14 +5266,16 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
-        :see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
+
+        https://bybit-exchange.github.io/docs/v5/account/transaction-log
+        https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
+
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
-        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
@@ -5866,10 +5533,12 @@ class bybit(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://bybit-exchange.github.io/docs/v5/asset/withdraw
+
+        https://bybit-exchange.github.io/docs/v5/asset/withdraw
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -5914,7 +5583,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://bybit-exchange.github.io/docs/v5/position
+
+        https://bybit-exchange.github.io/docs/v5/position
+
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -5926,18 +5597,11 @@ class bybit(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
         response = None
         type = None
         type, params = self.get_bybit_type('fetchPosition', market, params)
-        if (type == 'option' or isUsdcSettled) and not isUnifiedAccount:
-            request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
-            response = self.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(self.extend(request, params))
-        else:
-            request['category'] = type
-            response = self.privateGetV5PositionList(self.extend(request, params))
+        request['category'] = type
+        response = self.privateGetV5PositionList(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -5987,80 +5651,12 @@ class bybit(Exchange, ImplicitAPI):
         position['datetime'] = self.iso8601(timestamp)
         return position
 
-    def fetch_usdc_positions(self, symbols: Strings = None, params={}):
-        self.load_markets()
-        request: dict = {}
-        market = None
-        if isinstance(symbols, list):
-            length = len(symbols)
-            if length != 1:
-                raise ArgumentsRequired(self.id + ' fetchUsdcPositions() takes an array with exactly one symbol')
-            symbol = self.safe_string(symbols, 0)
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        elif symbols is not None:
-            market = self.market(symbols)
-            request['symbol'] = market['id']
-        type = None
-        type, params = self.get_bybit_type('fetchUsdcPositions', market, params)
-        request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
-        response = self.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(self.extend(request, params))
-        #
-        #     {
-        #         "result": {
-        #             "cursor": "BTC-31DEC21-24000-P%3A1640834421431%2CBTC-31DEC21-24000-P%3A1640834421431",
-        #             "resultTotalSize": 1,
-        #             "dataList": [
-        #                 {
-        #                 "symbol": "BTC-31DEC21-24000-P",
-        #                 "leverage": "",
-        #                 "occClosingFee": "",
-        #                 "liqPrice": "",
-        #                 "positionValue": "",
-        #                 "takeProfit": "",
-        #                 "riskId": "",
-        #                 "trailingStop": "",
-        #                 "unrealisedPnl": "",
-        #                 "createdAt": "1640834421431",
-        #                 "markPrice": "0.00",
-        #                 "cumRealisedPnl": "",
-        #                 "positionMM": "359.5271",
-        #                 "positionIM": "467.0633",
-        #                 "updatedAt": "1640834421431",
-        #                 "tpSLMode": "",
-        #                 "side": "Sell",
-        #                 "bustPrice": "",
-        #                 "deleverageIndicator": 0,
-        #                 "entryPrice": "1.4",
-        #                 "size": "-0.100",
-        #                 "sessionRPL": "",
-        #                 "positionStatus": "",
-        #                 "sessionUPL": "",
-        #                 "stopLoss": "",
-        #                 "orderMargin": "",
-        #                 "sessionAvgPrice": "1.5"
-        #                 }
-        #             ]
-        #         },
-        #         "retCode": 0,
-        #         "retMsg": "Success."
-        #     }
-        #
-        result = self.safe_dict(response, 'result', {})
-        positions = self.safe_list(result, 'dataList', [])
-        results = []
-        for i in range(0, len(positions)):
-            rawPosition = positions[i]
-            if ('data' in rawPosition) and ('is_valid' in rawPosition):
-                # futures only
-                rawPosition = self.safe_dict(rawPosition, 'data')
-            results.append(self.parse_position(rawPosition, market))
-        return self.filter_by_array_positions(results, 'symbol', symbols, False)
-
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://bybit-exchange.github.io/docs/v5/position
+
+        https://bybit-exchange.github.io/docs/v5/position
+
         :param str[] symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: market type, ['swap', 'option', 'spot']
@@ -6081,16 +5677,12 @@ class bybit(Exchange, ImplicitAPI):
         elif symbols is not None:
             symbol = symbols
             symbols = [self.symbol(symbol)]
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         request: dict = {}
         market = None
-        isUsdcSettled = False
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             request['symbol'] = market['id']
-            isUsdcSettled = market['settle'] == 'USDC'
         type = None
         type, params = self.get_bybit_type('fetchPositions', market, params)
         if type == 'linear' or type == 'inverse':
@@ -6100,13 +5692,10 @@ class bybit(Exchange, ImplicitAPI):
                     defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                     settleCoin = self.safe_string(params, 'settleCoin', defaultSettle)
                     request['settleCoin'] = settleCoin
-                    isUsdcSettled = (settleCoin == 'USDC')
             else:
                 # inverse
                 if symbol is None and baseCoin is None:
                     request['category'] = 'inverse'
-        if ((type == 'option') or isUsdcSettled) and not isUnifiedAccount:
-            return self.fetch_usdc_positions(symbols, params)
         params = self.omit(params, ['type'])
         request['category'] = type
         response = self.privateGetV5PositionList(self.extend(request, params))
@@ -6388,7 +5977,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://bybit-exchange.github.io/docs/v5/position
+
+        https://bybit-exchange.github.io/docs/v5/position
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -6412,8 +6003,10 @@ class bybit(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode(account) or trade mode(symbol)
-        :see: https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
-        :see: https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+
+        https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
+        https://bybit-exchange.github.io/docs/v5/position/cross-isolate
+
         :param str marginMode: account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6494,7 +6087,9 @@ class bybit(Exchange, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://bybit-exchange.github.io/docs/v5/position/leverage
+
+        https://bybit-exchange.github.io/docs/v5/position/leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6508,9 +6103,6 @@ class bybit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
-        isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        isUsdcSettled = market['settle'] == 'USDC'
         # engage in leverage setting
         # we reuse the code here instead of having two methods
         leverageString = self.number_to_string(leverage)
@@ -6519,26 +6111,23 @@ class bybit(Exchange, ImplicitAPI):
             'buyLeverage': leverageString,
             'sellLeverage': leverageString,
         }
-        response = None
-        if isUsdcSettled and not isUnifiedAccount:
-            request['leverage'] = leverageString
-            response = self.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave(self.extend(request, params))
+        request['buyLeverage'] = leverageString
+        request['sellLeverage'] = leverageString
+        if market['linear']:
+            request['category'] = 'linear'
+        elif market['inverse']:
+            request['category'] = 'inverse'
         else:
-            request['buyLeverage'] = leverageString
-            request['sellLeverage'] = leverageString
-            if market['linear']:
-                request['category'] = 'linear'
-            elif market['inverse']:
-                request['category'] = 'inverse'
-            else:
-                raise NotSupported(self.id + ' setLeverage() only support linear and inverse market')
-            response = self.privatePostV5PositionSetLeverage(self.extend(request, params))
+            raise NotSupported(self.id + ' setLeverage() only support linear and inverse market')
+        response = self.privatePostV5PositionSetLeverage(self.extend(request, params))
         return response
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
         set hedged to True or False for a market
-        :see: https://bybit-exchange.github.io/docs/v5/position/position-mode
+
+        https://bybit-exchange.github.io/docs/v5/position/position-mode
+
         :param bool hedged:
         :param str symbol: used for unified account with inverse market
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6634,7 +6223,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a derivative trading pair
-        :see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+        https://bybit-exchange.github.io/docs/v5/market/open-interest
+
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :param str [params.interval]: 5m, 15m, 30m, 1h, 4h, 1d
@@ -6690,7 +6281,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
         """
         Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
-        :see: https://bybit-exchange.github.io/docs/v5/market/open-interest
+
+        https://bybit-exchange.github.io/docs/v5/market/open-interest
+
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
         :param int [since]: Not used by Bybit
@@ -6738,7 +6331,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_cross_borrow_rate(self, code: str, params={}) -> CrossBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
-        :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+
+        https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/#/?id=borrow-rate-structure>`
@@ -6799,10 +6394,12 @@ class bybit(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        :see: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+
+        https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/account-info
+
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param number [since]: the earliest time in ms to fetch borrrow interest for
@@ -6846,7 +6443,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
-        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+
+        https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
+
         :param str code: unified currency code
         :param int [since]: timestamp for the earliest borrow rate
         :param int [limit]: the maximum number of `borrow rate structures <https://docs.ccxt.com/#/?id=borrow-rate-structure>` to retrieve
@@ -6890,7 +6489,7 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'list', [])
         return self.parse_borrow_rate_history(rows, code, since, limit)
 
-    def parse_borrow_interest(self, info: dict, market: Market = None):
+    def parse_borrow_interest(self, info: dict, market: Market = None) -> BorrowInterest:
         #
         #     {
         #         "tokenId": "BTC",
@@ -6902,21 +6501,23 @@ class bybit(Exchange, ImplicitAPI):
         #     },
         #
         return {
+            'info': info,
             'symbol': None,
-            'marginMode': 'cross',
             'currency': self.safe_currency_code(self.safe_string(info, 'tokenId')),
             'interest': self.safe_number(info, 'interest'),
             'interestRate': None,
             'amountBorrowed': self.safe_number(info, 'loan'),
+            'marginMode': 'cross',
             'timestamp': None,
             'datetime': None,
-            'info': info,
         }
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
+
+        https://bybit-exchange.github.io/docs/v5/asset/create-inter-transfer
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -6967,7 +6568,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
-        :see: https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
+
+        https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfer structures to retrieve
@@ -7020,7 +6623,9 @@ class bybit(Exchange, ImplicitAPI):
     def borrow_cross_margin(self, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+
+        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7054,7 +6659,9 @@ class bybit(Exchange, ImplicitAPI):
     def repay_cross_margin(self, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+
+        https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -7156,7 +6763,7 @@ class bybit(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}):
+    def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         self.load_markets()
         market = self.market(symbol)
         request: dict = {
@@ -7197,7 +6804,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
+        https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -7234,7 +6843,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+        https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -7280,7 +6891,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
+        https://bybit-exchange.github.io/docs/v5/account/fee-rate
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -7370,7 +6983,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
+        https://bybit-exchange.github.io/docs/v5/asset/coin-info
+
         :param str[] codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -7415,7 +7030,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records
-        :see: https://bybit-exchange.github.io/docs/v5/market/delivery-price
+
+        https://bybit-exchange.github.io/docs/v5/market/delivery-price
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -7466,7 +7083,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical settlement records of the user
-        :see: https://bybit-exchange.github.io/docs/v5/asset/delivery
+
+        https://bybit-exchange.github.io/docs/v5/asset/delivery
+
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
@@ -7587,7 +7206,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_volatility_history(self, code: str, params={}):
         """
         fetch the historical volatility of an option market based on an underlying asset
-        :see: https://bybit-exchange.github.io/docs/v5/market/iv
+
+        https://bybit-exchange.github.io/docs/v5/market/iv
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
@@ -7640,7 +7261,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_greeks(self, symbol: str, params={}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
+        https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
+
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
@@ -7758,7 +7381,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
-        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+        https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -7909,8 +7534,10 @@ class bybit(Exchange, ImplicitAPI):
 
     def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
-        :see: https://bybit-exchange.github.io/docs/v5/market/risk-limit
         retrieve information on the maximum leverage, for different trade sizes
+
+        https://bybit-exchange.github.io/docs/v5/market/risk-limit
+
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: market subType, ['linear', 'inverse'], default is 'linear'
@@ -7929,7 +7556,7 @@ class bybit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None):
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
         #
         #  [
         #      {
@@ -7983,6 +7610,7 @@ class bybit(Exchange, ImplicitAPI):
                 minNotional = self.safe_number(info[i - 1], 'riskLimitValue')
             tiers.append({
                 'tier': self.safe_integer(tier, 'id'),
+                'symbol': self.safe_symbol(marketId, market),
                 'currency': market['settle'],
                 'minNotional': minNotional,
                 'maxNotional': self.safe_number(tier, 'riskLimitValue'),
@@ -7995,7 +7623,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
+        https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
+
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -8086,7 +7716,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_option(self, symbol: str, params={}) -> Option:
         """
         fetches option data that is commonly found in an option chain
-        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
@@ -8146,8 +7778,10 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_option_chain(self, code: str, params={}) -> OptionChain:
         """
         fetches data for an underlying asset that is commonly found in an option chain
-        :see: https://bybit-exchange.github.io/docs/v5/market/tickers
-        :param str currency: base currency to fetch an option chain for
+
+        https://bybit-exchange.github.io/docs/v5/market/tickers
+
+        :param str code: base currency to fetch an option chain for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/#/?id=option-chain-structure>`
         """
@@ -8257,8 +7891,10 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         fetches historical positions
-        :see: https://bybit-exchange.github.io/docs/v5/position/close-pnl
-        :param str [symbol]: unified market symbols, symbols must have the same subType(must all be linear or all be inverse)
+
+        https://bybit-exchange.github.io/docs/v5/position/close-pnl
+
+        :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch, default=50, max=100
         :param dict params: extra parameters specific to the exchange api endpoint
@@ -8330,7 +7966,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_convert_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies that can be converted
-        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+
+        https://bybit-exchange.github.io/docs/v5/asset/convert/convert-coin-list
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: an associative dictionary of currencies
@@ -8421,7 +8059,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         fetch a quote for converting from one currency to another
-        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+
+        https://bybit-exchange.github.io/docs/v5/asset/convert/apply-quote
+
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
         :param float [amount]: how much you want to trade in units of the from currency
@@ -8473,7 +8113,9 @@ class bybit(Exchange, ImplicitAPI):
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
         """
         convert from one currency to another
-        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+
+        https://bybit-exchange.github.io/docs/v5/asset/convert/confirm-quote
+
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -8504,7 +8146,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_convert_trade(self, id: str, code: Str = None, params={}) -> Conversion:
         """
         fetch the data for a conversion trade
-        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+
+        https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-result
+
         :param str id: the id of the trade that you want to fetch
         :param str [code]: the unified currency code of the conversion trade
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -8562,7 +8206,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
         """
         fetch the users history of conversion trades
-        :see: https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+
+        https://bybit-exchange.github.io/docs/v5/asset/convert/get-convert-history
+
         :param str [code]: the unified currency code
         :param int [since]: the earliest time in ms to fetch conversions for
         :param int [limit]: the maximum number of conversion structures to retrieve
@@ -8669,7 +8315,9 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
         """
         fetches the long short ratio history for a unified market symbol
-        :see: https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+
+        https://bybit-exchange.github.io/docs/v5/market/long-short-ratio
+
         :param str symbol: unified symbol of the market to fetch the long short ratio for
         :param str [timeframe]: the period for the ratio, default is 24 hours
         :param int [since]: the earliest time in ms to fetch ratios for
