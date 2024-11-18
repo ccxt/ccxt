@@ -963,6 +963,20 @@ export default class ellipx extends Exchange {
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name ellipx#createOrder
+         * @description create a new order in a market
+         * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
+         * @param {string} type order type - the exchange automatically sets type to 'limit' if price defined, 'market' if undefined
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount amount of base currency to trade (can be undefined if using Spend_Limit)
+         * @param {float|undefined} price price per unit of base currency for limit orders
+         * @param {object} [params] extra parameters specific to the EllipX API endpoint
+         * @param {float} [params.Spend_Limit] maximum amount to spend in quote currency (required for market orders if amount undefined)
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @throws {ArgumentsRequired} if neither amount nor Spend_Limit is provided
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
@@ -991,6 +1005,56 @@ export default class ellipx extends Exchange {
         }
         const query = this.omit (params, [ 'currencyPair' ]);
         const response = await this.privatePostMarketCurrencyPairOrder (this.extend (request, query));
+        // {
+        //     "result": "success",
+        //     "data": {
+        //         "Market_Order__": "mktor-x2grmu-zwo5-fyxc-4gue-vd4ouvsa",
+        //         "Market__": "mkt-lrnp2e-eaor-eobj-ua73-75j6sjxe",
+        //         "User__": "usr-...",
+        //         "Uniq": "order:1728719021:583795548:0",
+        //         "Type": "bid",
+        //         "Status": "pending",
+        //         "Flags": {},
+        //         "Amount": {
+        //             "v": "100000000",
+        //             "e": 8,
+        //             "f": 1
+        //         },
+        //         "Price": null,
+        //         "Spend_Limit": {
+        //             "v": "1000000",
+        //             "e": 6,
+        //             "f": 1
+        //         },
+        //         "Executed": {
+        //             "v": "0",
+        //             "e": 0,
+        //             "f": 0
+        //         },
+        //         "Secured": {
+        //             "v": "1000000",
+        //             "e": 6,
+        //             "f": 1
+        //         },
+        //         "Version": "0",
+        //         "Created": {
+        //             "unix": 1728719020,
+        //             "us": 315195,
+        //             "iso": "2024-10-12 07:43:40.315195",
+        //             "tz": "UTC",
+        //             "full": "1728719020315195",
+        //             "unixms": "1728719020315"
+        //         },
+        //         "Updated": {
+        //             "unix": 1728719020,
+        //             "us": 315195,
+        //             "iso": "2024-10-12 07:43:40.315195",
+        //             "tz": "UTC",
+        //             "full": "1728719020315195",
+        //             "unixms": "1728719020315"
+        //         }
+        //     }
+        // }
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order, market);
     }
