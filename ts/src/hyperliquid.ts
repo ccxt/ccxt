@@ -292,6 +292,14 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot') {
+            return this.fetchSpotMarkets (params);
+        }
+        if (type === 'swap') {
+            return this.fetchSwapMarkets (params);
+        }
         const rawPromises = [
             this.fetchSwapMarkets (params),
             this.fetchSpotMarkets (params),
