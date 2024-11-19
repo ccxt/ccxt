@@ -2431,8 +2431,8 @@ export default class coinex extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeString (rawOrder, 'amount');
-            const price = this.safeString (rawOrder, 'price');
+            const amount = this.safeValue (rawOrder, 'amount');
+            const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted');
