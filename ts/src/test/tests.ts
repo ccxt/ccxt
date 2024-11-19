@@ -125,6 +125,7 @@ class testMainClass {
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
+        return true; // required for c#
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {
