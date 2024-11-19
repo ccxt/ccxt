@@ -936,7 +936,7 @@ public partial class bybit : Exchange
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
                 { "unifiedMarginStatus", null },
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "createMarketBuyOrderRequiresPrice", false },
                 { "createUnifiedMarginAccount", false },
                 { "defaultType", "swap" },
                 { "defaultSubType", "linear" },
@@ -4029,7 +4029,7 @@ public partial class bybit : Exchange
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             object createMarketBuyOrderRequiresPrice = true;
-            var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice");
             createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
             parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];
             if (isTrue(createMarketBuyOrderRequiresPrice))
@@ -4045,7 +4045,16 @@ public partial class bybit : Exchange
                 }
             } else
             {
-                ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, this.numberToString(amount));
+                if (isTrue(!isEqual(cost, null)))
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, this.numberToString(cost));
+                } else if (isTrue(!isEqual(price, null)))
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, Precise.stringMul(amountString, priceString));
+                } else
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.getCost(symbol, this.numberToString(amount));
+                }
             }
         } else
         {

@@ -481,7 +481,7 @@ public partial class phemex : Exchange
     {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -489,7 +489,7 @@ public partial class phemex : Exchange
         //         "markSymbol":".MBTC",
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
-        //         "contractUnderlyingAssets":"USD",
+        //         "contractUnderlyingAssets":"USD", // or eg. `1000 SHIB`
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
@@ -533,6 +533,7 @@ public partial class phemex : Exchange
         object quoteId = this.safeString(market, "quoteCurrency");
         object settleId = this.safeString(market, "settleCurrency");
         object bs = this.safeCurrencyCode(baseId);
+        bs = ((string)bs).Replace((string)" ", (string)""); // replace space for junction codes, eg. `1000 SHIB`
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object inverse = false;
@@ -2751,7 +2752,7 @@ public partial class phemex : Exchange
                     object stopLossTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(stopLossTriggerPrice, null)))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"] for a stop loss order")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")) ;
                     }
                     if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
                     {
@@ -2776,7 +2777,7 @@ public partial class phemex : Exchange
                     object takeProfitTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
                     if (isTrue(isEqual(takeProfitTriggerPrice, null)))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"] for a take profit order")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")) ;
                     }
                     if (isTrue(isEqual(getValue(market, "settle"), "USDT")))
                     {
@@ -2984,7 +2985,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["baseQtyEV"] = this.toEv(amount, market);
             }
         }
-        object stopPrice = this.safeString2(parameters, "stopPx", "stopPrice");
+        object stopPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (isTrue(!isEqual(stopPrice, null)))
         {
             if (isTrue(isUSDTSettled))
@@ -2995,7 +2996,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)request)["stopPxEp"] = this.toEp(stopPrice, market);
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"stopPx", "stopPrice"});
+        parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         object response = null;
         if (isTrue(isUSDTSettled))
         {
@@ -4434,6 +4435,7 @@ public partial class phemex : Exchange
      * @method
      * @name phemex#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
+     * @see https://phemex-docs.github.io/#set-leverage
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4768,6 +4770,8 @@ public partial class phemex : Exchange
      * @method
      * @name phemex#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://phemex-docs.github.io/#transfer-between-spot-and-futures
+     * @see https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -4865,6 +4869,7 @@ public partial class phemex : Exchange
      * @method
      * @name phemex#fetchTransfers
      * @description fetch a history of internal transfers made on an account
+     * @see https://phemex-docs.github.io/#query-transfer-history
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve

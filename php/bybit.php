@@ -991,7 +991,7 @@ class bybit extends Exchange {
                 'enableUnifiedMargin' => null,
                 'enableUnifiedAccount' => null,
                 'unifiedMarginStatus' => null,
-                'createMarketBuyOrderRequiresPrice' => true, // only true for classic accounts
+                'createMarketBuyOrderRequiresPrice' => false, // only true for classic accounts
                 'createUnifiedMarginAccount' => false,
                 'defaultType' => 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType' => 'linear',  // 'linear', 'inverse'
@@ -3821,7 +3821,7 @@ class bybit extends Exchange {
             // classic accounts
             // for $market buy it requires the $amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
-            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
             if ($createMarketBuyOrderRequiresPrice) {
                 if (($price === null) && ($cost === null)) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
@@ -3831,7 +3831,13 @@ class bybit extends Exchange {
                     $request['qty'] = $this->get_cost($symbol, $costRequest);
                 }
             } else {
-                $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                if ($cost !== null) {
+                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($cost));
+                } elseif ($price !== null) {
+                    $request['qty'] = $this->get_cost($symbol, Precise::string_mul($amountString, $priceString));
+                } else {
+                    $request['qty'] = $this->get_cost($symbol, $this->number_to_string($amount));
+                }
             }
         } else {
             if (!$isTrailingAmountOrder && !$isAlternativeEndpoint) {

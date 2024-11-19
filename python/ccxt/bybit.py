@@ -1012,7 +1012,7 @@ class bybit(Exchange, ImplicitAPI):
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
-                'createMarketBuyOrderRequiresPrice': True,  # only True for classic accounts
+                'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
@@ -3666,7 +3666,7 @@ class bybit(Exchange, ImplicitAPI):
             # classic accounts
             # for market buy it requires the amount of quote currency to spend
             createMarketBuyOrderRequiresPrice = True
-            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
+            createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice')
             if createMarketBuyOrderRequiresPrice:
                 if (price is None) and (cost is None):
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
@@ -3675,7 +3675,12 @@ class bybit(Exchange, ImplicitAPI):
                     costRequest = cost if (cost is not None) else quoteAmount
                     request['qty'] = self.get_cost(symbol, costRequest)
             else:
-                request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
+                if cost is not None:
+                    request['qty'] = self.get_cost(symbol, self.number_to_string(cost))
+                elif price is not None:
+                    request['qty'] = self.get_cost(symbol, Precise.string_mul(amountString, priceString))
+                else:
+                    request['qty'] = self.get_cost(symbol, self.number_to_string(amount))
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
                 request['qty'] = amountString
