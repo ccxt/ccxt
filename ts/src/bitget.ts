@@ -3757,7 +3757,7 @@ export default class bitget extends Exchange {
         //         "symbol": "BTCUSDT",
         //         "orderId": "1111499608327360513",
         //         "clientOid": "d0d4dad5-18d0-4869-a074-ec40bb47cba6",
-        //         "size": "0.0002000000000000", // COST for 'buy market' order! AMOUNT in all other cases      
+        //         "size": "0.0002000000000000", // COST for 'buy market' order! AMOUNT in all other cases
         //         "price": "0", // in fetchOrder: 0 for market order, otherwise limit price (field not present in fetchOpenOrders
         //         "orderType": "limit",
         //         "side": "buy",
@@ -3850,8 +3850,9 @@ export default class bitget extends Exchange {
         //         "reduceOnly": "NO",
         //         "cTime": "1700719887120",
         //         "uTime": "1700719887120"
-        //         
+        //
         //     for swap trigger order, the additional below fields are present:
+        //
         //         "planType": "normal_plan",
         //         "callbackRatio": "",
         //         "triggerPrice": "24000",
@@ -3952,7 +3953,7 @@ export default class bitget extends Exchange {
         }
         const orderType = this.safeString (order, 'orderType');
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
-        if (isBuyMarket) {
+        if (market['spot'] && isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = undefined;
         }
