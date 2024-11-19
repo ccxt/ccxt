@@ -598,6 +598,10 @@ func InOp(dict interface{}, key interface{}) bool {
 	if key == nil {
 		return false
 	}
+
+	if IsNumber(key) {
+		return false
+	}
 	dictVal := reflect.ValueOf(dict)
 
 	// Ensure that the provided dict is a map
@@ -1146,6 +1150,7 @@ func promiseAll(tasksInterface interface{}) <-chan interface{} {
 
 	go func() {
 		defer close(ch)
+		defer ReturnPanicError(ch)
 
 		// Ensure tasksInterface is a slice of channels (<-chan interface{})
 		tasks, ok := tasksInterface.([]interface{})
