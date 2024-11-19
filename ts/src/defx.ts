@@ -1783,7 +1783,7 @@ export default class defx extends Exchange {
         if (access === 'public') {
             url += 'open/' + pathWithParams;
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                url += '?' + this.rawencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
@@ -1794,7 +1794,7 @@ export default class defx extends Exchange {
             if (method === 'GET' || path === 'api/order/{orderId}') {
                 payload += this.rawencode (params);
                 if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
+                    url += '?' + this.rawencode (params);
                 }
             } else {
                 if (params !== undefined) {
