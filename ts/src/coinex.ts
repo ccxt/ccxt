@@ -2431,13 +2431,13 @@ export default class coinex extends Exchange {
             }
             const type = this.safeString (rawOrder, 'type');
             const side = this.safeString (rawOrder, 'side');
-            const amount = this.safeValue (rawOrder, 'amount');
-            const price = this.safeValue (rawOrder, 'price');
-            const orderParams = this.safeValue (rawOrder, 'params', {});
+            const amount = this.safeString (rawOrder, 'amount');
+            const price = this.safeString (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() does not support ' + type + ' orders, only limit orders are accepted');
             }
-            reduceOnly = this.safeValue (orderParams, 'reduceOnly');
+            reduceOnly = this.safeBool (orderParams, 'reduceOnly');
             const triggerPrice = this.safeNumber2 (orderParams, 'stopPrice', 'triggerPrice');
             const stopLossTriggerPrice = this.safeNumber (orderParams, 'stopLossPrice');
             const takeProfitTriggerPrice = this.safeNumber (orderParams, 'takeProfitPrice');
@@ -5012,7 +5012,7 @@ export default class coinex extends Exchange {
         const currencyId = this.safeString (transfer, 'ccy');
         const fromId = this.safeString (transfer, 'from_account_type');
         const toId = this.safeString (transfer, 'to_account_type');
-        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
         return {
             'id': undefined,
             'timestamp': timestamp,
@@ -5325,7 +5325,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const rows = this.safeValue (response, 'data', []);
+        const rows = this.safeList (response, 'data', []);
         const interest = this.parseBorrowInterests (rows, market);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
