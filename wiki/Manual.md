@@ -268,6 +268,94 @@ $exchange = new $exchange_class(array(
 ```
 <!-- tabs:end -->
 
+### Features
+
+Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
+
+*this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
+
+```Javascript
+const exchange = new ccxt.binance()
+console.log(exchange.features);
+
+// outputs like:
+{
+  spot: {
+    sandbox: true, // whether testnet is supported
+    createOrder: {
+      triggerPrice: true,          // if trigger order is supported
+      triggerPriceType: undefined, // if trigger price type is supported (last, mark, index)
+      triggerDirection: false,     // if trigger direction is supported (up, down)
+      stopLossPrice: true,         // if stop-loss order is supported (read "Stop Loss Orders" paragraph) 
+      takeProfitPrice: true,       // if take-profit order is supported
+      attachedStopLossTakeProfit: undefined,  // if embedded orders are supported inside entry orders
+      marginMode: true,            // if `marginMode` param is supported (cross, isolated)
+      timeInForce: {               // supported TIF types
+        GTC: true,
+        IOC: true,
+        FOK: true,
+        PO: true,
+        GTD: false
+      },
+      hedged: undefined,          // if `hedged` param is supported (true, false)
+      selfTradePrevention: true,  // if `selfTradePrevention` param is supported (true, false)
+      trailing: true,             // if trailing order is supported
+      twap: false,                // if twap order is supported
+      iceberg: true,              // if iceberg order is supported
+      oco: false                  // if One-Cancels-the-Other order is supported
+    },
+    createOrders: undefined,      // if batch order creation is supported
+    fetchMyTrades: {
+      limit: 1000,              // max limit per call
+      daysBack: undefined,      // max historical period that can be accessed
+      untilDays: 1              // if `until` param is supported, then this is permitted distance from `since`
+    },
+    fetchOrder: {
+      marginMode: true,         // when supported, margin order should be fetched with this flag
+      trigger: false,           // similar as above
+      trailing: false           // similar as above
+    },
+    // other methods have similar properties
+    fetchOpenOrders: {
+      limit: undefined,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchOrders: {
+      limit: 1000,
+      daysBack: undefined,
+      untilDays: 10000,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchClosedOrders: {
+      limit: 1000,
+      daysBackClosed: undefined, // max days-back for closed orders
+      daysBackCanceled: undefined, // max days-back for canceled orders
+      untilDays: 10000,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchOHLCV: {
+      paginate: true,
+      limit: 1000
+    }
+  },
+  swap: {
+    linear: { ... }, // similar to above dict
+    inverse: { ... }, // similar to above dict
+  }
+  future: {
+    linear: { ... }, // similar to above dict
+    inverse: { ... }, // similar to above dict
+  }
+}
+```
+
+
 ### Overriding Exchange Properties Upon Instantiation
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:
@@ -2526,13 +2614,9 @@ UNDER CONSTRUCTION
 
 ## OHLCV Candlestick Charts
 
-```diff
-- this is under heavy development right now, contributions appreciated
-```
-
 Most exchanges have endpoints for fetching OHLCV data, but some of them don't. The exchange boolean (true/false) property named `has['fetchOHLCV']` indicates whether the exchange supports candlestick data series or not.
 
-The `fetchOHLCV` method is declared in the following way:
+To fetch OHLCV candles/bars from an exchange, ccxt has the `fetchOHLCV` method, which is declared in the following way:
 
 ```javascript
 fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {})
@@ -2583,6 +2667,43 @@ Like with most other unified and implicit methods, the `fetchOHLCV` method accep
 The `since` argument is an integer UTC timestamp **in milliseconds** (everywhere throughout the library with all unified methods).
 
 If `since` is not specified the `fetchOHLCV` method will return the time range as is the default from the exchange itself.  This is not a bug. Some exchanges will return candles from the beginning of time, others will return most recent candles only, the exchanges' default behaviour is expected. Thus, without specifying `since` the range of returned candles will be exchange-specific. One should pass  the `since` argument to ensure getting precisely the history range needed.
+
+### Get raw OHLCV response
+
+Currently, the structure CCXT uses does not include the raw response from the exchange. However, users might be able to override the return value by doing:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const ex = new ccxt.coinbase();
+const originalParser = ex.parseOHLCV.bind(ex);
+ex.parseOHLCV = ((ohlcv, market = undefined) => {
+    return {
+        'result': originalParser(ohlcv, market),
+        'raw': ohlcv,
+    };
+});
+const result = await ex.fetchOHLCV('BTC/USDT', '1m');
+console.log (result[0]);
+```
+#### **Python**
+```python
+# add raw member at last position in list
+async def test():
+    ex = ccxt.async_support.coinbase()
+    prase_ohlcv_original = ex.parse_ohlcv
+    def prase_ohlcv_custom(ohlcv, market):
+        res = prase_ohlcv_original(ohlcv, market)
+        res.append(ohlcv)
+        return res
+    ex.parse_ohlcv = prase_ohlcv_custom
+    result = await ex.fetch_ohlcv('BTC/USDT', '1m')
+    print (result[0])
+
+asyncio.run(test())
+```
+<!-- tabs:end -->
+
 
 ### Notes On Latency
 
@@ -4666,15 +4787,15 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```javascript
 const params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 const order = await exchange.createOrder (symbol, type, side, amount, price, params)
@@ -4688,15 +4809,15 @@ amount = 123.45  # your amount
 price = 115.321  # your price
 params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit',  # or 'market', this field is not necessary if limit price is specified
         'price': 100.33,  # limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market',  # or 'limit', this field is not necessary if limit price is specified
         # no limit price for a market take profit order
         # 'price': 160.33,  # this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 order = exchange.create_order (symbol, type, side, amount, price, params)
@@ -4710,15 +4831,15 @@ $amount = 123.45; // your amount
 $price = 115.321; // your price
 $params = {
     'stopLoss': {
+        'triggerPrice': 101.25,
         'type': 'limit', // or 'market', this field is not necessary if limit price is specified
         'price': 100.33, // limit price for a limit stop loss order
-        'triggerPrice': 101.25,
     },
     'takeProfit': {
+        'triggerPrice': 150.75,
         'type': 'market', // or 'limit', this field is not necessary if limit price is specified
         // no limit price for a market take profit order
         // 'price': 160.33, // this field is not necessary for a market take profit order
-        'triggerPrice': 150.75,
     }
 }
 $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $params);

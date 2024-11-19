@@ -251,7 +251,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getcurrencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -319,7 +321,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinbaseexchange
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -437,7 +441,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_accounts(self, params={}) -> List[Account]:
         """
         fetch all the accounts associated with a profile
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
         """
@@ -500,7 +506,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -510,7 +518,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductbook
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -627,7 +637,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -670,7 +682,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductticker
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -779,7 +793,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfills
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -813,7 +829,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproducttrades
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -845,7 +863,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -895,7 +915,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproductcandles
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1048,7 +1070,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
+
         fetches information on an order made by the user
         :param str id: the order id
         :param str symbol: not used by coinbaseexchange fetchOrder
@@ -1091,7 +1115,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1107,7 +1133,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1140,7 +1168,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorders
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1156,7 +1186,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postorders
+
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1239,7 +1271,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorder
+
         cancels an open order
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -1267,7 +1301,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
+
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1287,8 +1323,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawpaymentmethod
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postwithdrawcoinbaseaccount
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1402,7 +1440,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccountledger
+
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
@@ -1445,8 +1485,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1542,8 +1584,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
@@ -1555,8 +1599,10 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
+
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
@@ -1658,7 +1704,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     async def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        :see: https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+
+        https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`

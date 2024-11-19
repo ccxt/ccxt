@@ -680,7 +680,9 @@ class xt extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the xt server
+         *
          * @see https://doc.xt.com/#market1serverInfo
+         *
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {int} the current integer timestamp in milliseconds from the xt server
          */
@@ -702,7 +704,9 @@ class xt extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+         *
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -854,8 +858,10 @@ class xt extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for xt
+         *
          * @see https://doc.xt.com/#market2symbol
          * @see https://doc.xt.com/#futures_quotesgetSymbols
+         *
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1266,8 +1272,10 @@ class xt extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
          * @see https://doc.xt.com/#market4kline
          * @see https://doc.xt.com/#futures_quotesgetKLine
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1381,8 +1389,10 @@ class xt extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://doc.xt.com/#market3depth
          * @see https://doc.xt.com/#futures_quotesgetDepth
+         *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $market $symbol to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1473,8 +1483,10 @@ class xt extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://doc.xt.com/#market10ticker24h
          * @see https://doc.xt.com/#futures_quotesgetAggTicker
+         *
          * @param {string} $symbol unified $market $symbol to fetch the $ticker for
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
@@ -1548,8 +1560,10 @@ class xt extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         *
          * @see https://doc.xt.com/#market10ticker24h
          * @see https://doc.xt.com/#futures_quotesgetAggTickers
+         *
          * @param {string} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
@@ -1634,7 +1648,9 @@ class xt extends Exchange {
     public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
+         *
          * @see https://doc.xt.com/#market9tickerBook
+         *
          * @param {string} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
@@ -1759,8 +1775,10 @@ class xt extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
+         *
          * @see https://doc.xt.com/#market5tradeRecent
          * @see https://doc.xt.com/#futures_quotesgetDeal
+         *
          * @param {string} $symbol unified $market $symbol to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1831,8 +1849,10 @@ class xt extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
+         *
          * @see https://doc.xt.com/#tradetradeGet
          * @see https://doc.xt.com/#futures_ordergetTrades
+         *
          * @param {string} [$symbol] unified $market $symbol to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -2112,8 +2132,10 @@ class xt extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://doc.xt.com/#balancebalancesGet
          * @see https://doc.xt.com/#futures_usergetBalances
+         *
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
@@ -2235,7 +2257,9 @@ class xt extends Exchange {
 
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
+         *
          * @see https://doc.xt.com/#orderorderPost
+         *
          * create a $market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -2253,10 +2277,12 @@ class xt extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://doc.xt.com/#orderorderPost
          * @see https://doc.xt.com/#futures_ordercreate
          * @see https://doc.xt.com/#futures_entrustcreatePlan
          * @see https://doc.xt.com/#futures_entrustcreateProfit
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -2421,10 +2447,12 @@ class xt extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         *
          * @see https://doc.xt.com/#orderorderGet
          * @see https://doc.xt.com/#futures_ordergetById
          * @see https://doc.xt.com/#futures_entrustgetPlanById
          * @see https://doc.xt.com/#futures_entrustgetProfitById
+         *
          * @param {string} $id $order $id
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -2597,9 +2625,11 @@ class xt extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple $orders made by the user
+         *
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetHistory
          * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3027,10 +3057,12 @@ class xt extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://doc.xt.com/#orderopenOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
          * @see https://doc.xt.com/#futures_entrustgetPlan
          * @see https://doc.xt.com/#futures_entrustgetProfit
+         *
          * @param {string} [$symbol] unified market $symbol of the market the orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -3045,10 +3077,12 @@ class xt extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
          * @see https://doc.xt.com/#futures_entrustgetPlan
          * @see https://doc.xt.com/#futures_entrustgetProfit
+         *
          * @param {string} [$symbol] unified market $symbol of the market the orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3063,10 +3097,12 @@ class xt extends Exchange {
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
+         *
          * @see https://doc.xt.com/#orderhistoryOrderGet
          * @see https://doc.xt.com/#futures_ordergetOrders
          * @see https://doc.xt.com/#futures_entrustgetPlan
          * @see https://doc.xt.com/#futures_entrustgetProfit
+         *
          * @param {string} [$symbol] unified market $symbol of the market the orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3081,10 +3117,12 @@ class xt extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open $order
+         *
          * @see https://doc.xt.com/#orderorderDel
          * @see https://doc.xt.com/#futures_ordercancel
          * @see https://doc.xt.com/#futures_entrustcancelPlan
          * @see https://doc.xt.com/#futures_entrustcancelProfit
+         *
          * @param {string} $id $order $id
          * @param {string} [$symbol] unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -3162,10 +3200,12 @@ class xt extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
+         *
          * @see https://doc.xt.com/#orderopenOrderDel
          * @see https://doc.xt.com/#futures_ordercancelBatch
          * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
          * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+         *
          * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {bool} [$params->stop] if the order is a $stop trigger order or not
@@ -3238,7 +3278,9 @@ class xt extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()): array {
         /**
          * cancel multiple orders
+         *
          * @see https://doc.xt.com/#orderbatchOrderDel
+         *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -3455,7 +3497,9 @@ class xt extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://doc.xt.com/#futures_usergetBalanceBill
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry
          * @param {int} [$limit] max number of $ledger entries to return
@@ -3571,7 +3615,9 @@ class xt extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a $currency associated with this account
+         *
          * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+         *
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @param {string} $params->network required network id
@@ -3624,7 +3670,9 @@ class xt extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
+         *
          * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $deposits for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
@@ -3679,7 +3727,9 @@ class xt extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all $withdrawals made from an account
+         *
          * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
@@ -3734,7 +3784,9 @@ class xt extends Exchange {
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -3866,7 +3918,9 @@ class xt extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://doc.xt.com/#futures_useradjustLeverage
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -3913,7 +3967,9 @@ class xt extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()) {
         /**
          * add margin to a position
+         *
          * @see https://doc.xt.com/#futures_useradjustMargin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -3926,7 +3982,9 @@ class xt extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()) {
         /**
          * remove margin from a position
+         *
          * @see https://doc.xt.com/#futures_useradjustMargin
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} $params extra parameters specific to the xt api endpoint
@@ -3984,7 +4042,9 @@ class xt extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage for different trade sizes
+         *
          * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+         *
          * @param {string} [$symbols] a list of unified market $symbols
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~
@@ -4065,7 +4125,9 @@ class xt extends Exchange {
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage for different trade sizes of a single $market
+         *
          * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -4150,7 +4212,9 @@ class xt extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding $rates
+         *
          * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+         *
          * @param {string} [$symbol] unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
@@ -4222,7 +4286,9 @@ class xt extends Exchange {
     public function fetch_funding_interval(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate interval
+         *
          * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4233,7 +4299,9 @@ class xt extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://doc.xt.com/#futures_quotesgetFundingRate
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4309,7 +4377,9 @@ class xt extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the funding history
+         *
          * @see https://doc.xt.com/#futures_usergetFunding
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the starting timestamp in milliseconds
          * @param {int} [$limit] the number of entries to return
@@ -4400,7 +4470,9 @@ class xt extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade position
+         *
          * @see https://doc.xt.com/#futures_usergetPosition
+         *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4459,7 +4531,9 @@ class xt extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open $positions
+         *
          * @see https://doc.xt.com/#futures_usergetPosition
+         *
          * @param {string} [$symbols] list of unified market $symbols, not supported with xt
          * @param {array} $params extra parameters specific to the xt api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4564,7 +4638,9 @@ class xt extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://doc.xt.com/#transfersubTransferPost
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance

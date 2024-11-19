@@ -290,7 +290,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple currencies
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+
         :param dict [params]: exchange specific params
         :returns: An array of market structures
         """
@@ -455,7 +457,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-orderbook
+
         Fetches a list of open orders in a market
         :param str symbol: Unified market symbol
         :param int [limit]: Not used by krakenfutures
@@ -504,7 +508,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -618,7 +624,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.futures.kraken.com/#http-api-charts-candles
+
+        https://docs.futures.kraken.com/#http-api-charts-candles
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -695,8 +703,10 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
-        :see: https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-trade-history
+        https://docs.futures.kraken.com/#http-api-history-market-history-get-public-execution-events
+
         Fetch a history of filled trades that self account has made
         :param str symbol: Unified CCXT market symbol
         :param int [since]: Timestamp in ms of earliest trade. Not used by krakenfutures except in combination with params.until
@@ -998,12 +1008,15 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-send-order
+
         :param str symbol: unified market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: number of contracts
         :param float [price]: limit order price
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: set if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is False
         :param bool [params.postOnly]: set if you wish to make a postOnly order, default is False
         :param str [params.clientOrderId]: UUID The order identity that is specified from the user, It must be globally unique
@@ -1011,6 +1024,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.triggerSignal]: for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1054,8 +1068,11 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
@@ -1100,7 +1117,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-edit-order
+
         Edit an open order on the exchange
         :param str id: order id
         :param str symbol: Not used by Krakenfutures
@@ -1128,7 +1147,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-order
+
         Cancel an open order on the exchange
         :param str id: Order id
         :param str symbol: Not used by Krakenfutures
@@ -1147,12 +1168,14 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-batch-order-management
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
+
+ EXCHANGE SPECIFIC PARAMETERS
         :param str[] [params.clientOrderIds]: max length 10 e.g. ["my_id_1","my_id_2"]
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1204,7 +1227,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-cancel-all-orders
+
         Cancels all orders on the exchange, including trigger orders
         :param str symbol: Unified market symbol
         :param dict [params]: Exchange specific params
@@ -1257,7 +1282,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
         dead man's switch, cancel all orders after the given timeout
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-dead-man-39-s-switch
+
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
@@ -1281,7 +1308,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-order-management-get-open-orders
+
         Gets all open orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
         :param int [since]: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
@@ -1299,7 +1328,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+
+        https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+
         Gets all closed orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
         :param int [since]: Timestamp(ms) of earliest order.
@@ -1333,7 +1364,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+
+        https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+
         Gets all canceled orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
         :param int [since]: Timestamp(ms) of earliest order.
@@ -1785,7 +1818,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-data-get-your-fills
+
         :param str symbol: unified market symbol
         :param int [since]: *not used by the  api* the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1822,7 +1857,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-wallets
+
         Fetch the balance for a sub-account, all sub-account balances are inside 'info' in the response
         :param dict [params]: Exchange specific parameters
         :param str [params.type]: The sub-account type to query the balance of, possible values include 'flex', 'cash'/'main'/'funding', or a market symbol * defaults to 'flex' *
@@ -2035,7 +2072,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetch the current funding rates for multiple markets
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-market-data-get-tickers
+
         :param str[] symbols: unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2116,7 +2155,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-historical-funding-rates-historical-funding-rates
+
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
@@ -2162,7 +2203,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-account-information-get-open-positions
+
         Fetches current contract trading positions
         :param str[] symbols: List of unified symbols
         :param dict [params]: Not used by krakenfutures
@@ -2255,7 +2298,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-instrument-details-get-instruments
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
@@ -2311,9 +2356,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         """
-         * @ignore
-         * @param info Exchange market response for 1 market
-         * @param market CCXT market
+ @ignore
+ @param info Exchange market response for 1 market
+ @param market CCXT market
         """
         #
         #    {
@@ -2430,8 +2475,10 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-wallet-transfer
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-transfers-initiate-withdrawal-to-spot-wallet
+
         transfers currencies between sub-accounts
         :param str code: Unified currency code
         :param float amount: Size of the transfer
@@ -2474,7 +2521,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-set-the-leverage-setting-for-a-market
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2495,7 +2544,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_leverages(self, symbols: Strings = None, params={}) -> Leverages:
         """
         fetch the set leverage for all contract and margin markets
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -2520,7 +2571,9 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+
+        https://docs.futures.kraken.com/#http-api-trading-v3-api-multi-collateral-get-the-leverage-setting-for-a-market
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`

@@ -588,15 +588,15 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemTime(parameters);
         //
@@ -613,15 +613,15 @@ public partial class bitmart : Exchange
         return this.safeInteger(data, "server_time");
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object options = this.safeDict(this.options, "fetchStatus", new Dictionary<string, object>() {});
         object defaultType = this.safeString(this.options, "defaultType");
@@ -905,31 +905,31 @@ public partial class bitmart : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMarkets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @description retrieves data on all markets for bitmart
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMarkets
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
-        * @description retrieves data on all markets for bitmart
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object spot = await this.fetchSpotMarkets(parameters);
         object contract = await this.fetchContractMarkets(parameters);
         return this.arrayConcat(spot, contract);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSpotV1Currencies(parameters);
         //
@@ -983,17 +983,17 @@ public partial class bitmart : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTransactionFee
+     * @deprecated
+     * @description please use fetchDepositWithdrawFee instead
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTransactionFee(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTransactionFee
-        * @deprecated
-        * @description please use fetchDepositWithdrawFee instead
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1048,16 +1048,16 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDepositWithdrawFee
+     * @description fetch the fee for deposits and withdrawals
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDepositWithdrawFee
-        * @description fetch the fee for deposits and withdrawals
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1250,18 +1250,18 @@ public partial class bitmart : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1294,18 +1294,18 @@ public partial class bitmart : Exchange
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1358,20 +1358,20 @@ public partial class bitmart : Exchange
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+     * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-        * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1554,19 +1554,19 @@ public partial class bitmart : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTrades
+     * @description get a list of the most recent trades for a particular symbol
+     * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTrades
-        * @description get a list of the most recent trades for a particular symbol
-        * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum number of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1655,23 +1655,23 @@ public partial class bitmart : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp of the latest candle in ms
+     * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp of the latest candle in ms
-        * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1779,22 +1779,22 @@ public partial class bitmart : Exchange
         return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMyTrades
+     * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+     * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMyTrades
-        * @see https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
-        * @description fetch all trades made by the user
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch trades for
-        * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1911,20 +1911,20 @@ public partial class bitmart : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrderTrades
+     * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrderTrades
-        * @see https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
-        * @description fetch all the trades made from a single order
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1998,20 +1998,20 @@ public partial class bitmart : Exchange
         return account;
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
+     * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
+     * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
+     * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-        * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-        * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
-        * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object marketType = null;
@@ -2160,16 +2160,16 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2370,18 +2370,18 @@ public partial class bitmart : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bitmart#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2393,40 +2393,40 @@ public partial class bitmart : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#createOrder
+     * @description create a trade order
+     * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {string} [params.leverage] *swap only* leverage level
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @param {boolean} [params.reduceOnly] *swap only* reduce only
+     * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
+     * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+     * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+     * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
+     * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
+     * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
+     * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
+     * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+     * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+     * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#createOrder
-        * @description create a trade order
-        * @see https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'cross' or 'isolated'
-        * @param {string} [params.leverage] *swap only* leverage level
-        * @param {string} [params.clientOrderId] client order id of the order
-        * @param {boolean} [params.reduceOnly] *swap only* reduce only
-        * @param {boolean} [params.postOnly] make sure the order is posted to the order book and not matched immediately
-        * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
-        * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
-        * @param {int} [params.price_way] *swap only* 1: price way long, 2: price way short
-        * @param {int} [params.activation_price_type] *swap trailing order only* 1: last price, 2: fair price, default is 1
-        * @param {string} [params.trailingPercent] *swap only* the percent to trail away from the current market price, min 0.1 max 5
-        * @param {string} [params.trailingTriggerPrice] *swap only* the price to trigger a trailing order, default uses the price argument
-        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
-        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
-        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2487,17 +2487,17 @@ public partial class bitmart : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name bitmart#createOrders
+     * @description create a list of trade orders
+     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params]  extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#createOrders
-        * @description create a list of trade orders
-        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @param {object} [params]  extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
@@ -2835,25 +2835,25 @@ public partial class bitmart : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#cancelOrder
+     * @description cancels an open order
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
+     * @param {boolean} [params.stop] *swap only* whether the order is a stop order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#cancelOrder
-        * @description cancels an open order
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
-        * @param {boolean} [params.stop] *swap only* whether the order is a stop order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2947,19 +2947,19 @@ public partial class bitmart : Exchange
         return order;
     }
 
+    /**
+     * @method
+     * @name bitmart#cancelOrders
+     * @description cancel multiple orders
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#cancelOrders
-        * @description cancel multiple orders
-        * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3023,21 +3023,21 @@ public partial class bitmart : Exchange
         return allOrders;
     }
 
+    /**
+     * @method
+     * @name bitmart#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+     * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] *spot only* 'buy' or 'sell'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-        * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
-        * @param {string} symbol unified market symbol of the market to cancel orders in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] *spot only* 'buy' or 'sell'
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3149,28 +3149,28 @@ public partial class bitmart : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOpenOrders
+     * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
+     * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
+     * @param {string} [params.type] *swap* order type, 'limit' or 'market'
+     * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
+     * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
+     * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
+     * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOpenOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
-        * @param {int} [params.until] *spot* the latest time in ms to fetch orders for
-        * @param {string} [params.type] *swap* order type, 'limit' or 'market'
-        * @param {string} [params.order_state] *swap* the order state, 'all' or 'partially_filled', default is 'all'
-        * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
-        * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
-        * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3294,23 +3294,23 @@ public partial class bitmart : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchClosedOrders
+     * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+     * @description fetches information on multiple closed orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchClosedOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
-        * @description fetches information on multiple closed orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest entry
-        * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3363,40 +3363,40 @@ public partial class bitmart : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchCanceledOrders
-        * @description fetches information on multiple canceled orders made by the user
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-        * @param {int} [limit] max number of orders to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
+     * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+     * @param {string} id the id of the order
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
+     * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
+     * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
-        * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
-        * @param {string} id the id of the order
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
-        * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
-        * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3499,17 +3499,17 @@ public partial class bitmart : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3585,19 +3585,19 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#withdraw
+     * @description make a withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#withdraw
-        * @description make a withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -3711,17 +3711,17 @@ public partial class bitmart : Exchange
         return this.parseTransactions(records, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDeposit
+     * @description fetch information on a deposit
+     * @param {string} id deposit id
+     * @param {string} code not used by bitmart fetchDeposit ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDeposit
-        * @description fetch information on a deposit
-        * @param {string} id deposit id
-        * @param {string} code not used by bitmart fetchDeposit ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3755,33 +3755,33 @@ public partial class bitmart : Exchange
         return this.parseTransaction(record);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByType("deposit", code, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @param {string} id withdrawal id
+     * @param {string} code not used by bitmart.fetchWithdrawal
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchWithdrawal
-        * @description fetch data on a currency withdrawal via the withdrawal id
-        * @param {string} id withdrawal id
-        * @param {string} code not used by bitmart.fetchWithdrawal
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3815,18 +3815,18 @@ public partial class bitmart : Exchange
         return this.parseTransaction(record);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchTransactionsByType("withdraw", code, since, limit, parameters);
     }
@@ -3923,19 +3923,19 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#repayIsolatedMargin
+     * @description repay borrowed margin and interest
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to repay
+     * @param {string} amount the amount to repay
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#repayIsolatedMargin
-        * @description repay borrowed margin and interest
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
-        * @param {string} symbol unified market symbol
-        * @param {string} code unified currency code of the currency to repay
-        * @param {string} amount the amount to repay
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3964,19 +3964,19 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#borrowIsolatedMargin
+     * @description create a loan to borrow margin
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+     * @param {string} symbol unified market symbol
+     * @param {string} code unified currency code of the currency to borrow
+     * @param {string} amount the amount to borrow
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#borrowIsolatedMargin
-        * @description create a loan to borrow margin
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
-        * @param {string} symbol unified market symbol
-        * @param {string} code unified currency code of the currency to borrow
-        * @param {string} amount the amount to borrow
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4031,17 +4031,17 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchIsolatedBorrowRate
+     * @description fetch the rate of interest to borrow a currency for margin trading
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+     * @param {string} symbol unified symbol of the market to fetch the borrow rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
+     */
     public async override Task<object> fetchIsolatedBorrowRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchIsolatedBorrowRate
-        * @description fetch the rate of interest to borrow a currency for margin trading
-        * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        * @param {string} symbol unified symbol of the market to fetch the borrow rate for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [isolated borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4131,16 +4131,16 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchIsolatedBorrowRates
+     * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
+     * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+     */
     public async override Task<object> fetchIsolatedBorrowRates(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchIsolatedBorrowRates
-        * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
-        * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetSpotV1MarginIsolatedPairs(parameters);
@@ -4181,22 +4181,22 @@ public partial class bitmart : Exchange
         return this.parseIsolatedBorrowRates(symbols);
     }
 
+    /**
+     * @method
+     * @name bitmart#transfer
+     * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
+     * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+     * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#transfer
-        * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-        * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -4338,21 +4338,21 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchTransfers
+     * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
+     * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.page] the required number of pages, default is 1, max is 1000
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchTransfers
-        * @description fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-        * @see https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of transfer structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.page] the required number of pages, default is 1, max is 1000
-        * @param {int} [params.until] the latest time in ms to fetch transfers for
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(isEqual(limit, null)))
@@ -4409,20 +4409,20 @@ public partial class bitmart : Exchange
         return this.parseTransfers(records, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchBorrowInterest
+     * @description fetch the interest owed by the user for borrowing currency for margin trading
+     * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+     * @param {string} code unified currency code
+     * @param {string} symbol unified market symbol when fetch interest in isolated markets
+     * @param {int} [since] the earliest time in ms to fetch borrrow interest for
+     * @param {int} [limit] the maximum number of structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchBorrowInterest
-        * @description fetch the interest owed by the user for borrowing currency for margin trading
-        * @see https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
-        * @param {string} code unified currency code
-        * @param {string} symbol unified market symbol when fetch interest in isolated markets
-        * @param {int} [since] the earliest time in ms to fetch borrrow interest for
-        * @param {int} [limit] the maximum number of structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4499,17 +4499,17 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchOpenInterest
+     * @description Retrieves the open interest of a currency
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchOpenInterest
-        * @description Retrieves the open interest of a currency
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {object} [params] exchange specific parameters
-        * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4560,20 +4560,20 @@ public partial class bitmart : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'isolated' or 'cross'
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] 'isolated' or 'cross'
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4598,17 +4598,17 @@ public partial class bitmart : Exchange
         return await this.privatePostContractPrivateSubmitLeverage(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4671,18 +4671,18 @@ public partial class bitmart : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4724,18 +4724,18 @@ public partial class bitmart : Exchange
         return this.parsePosition(first, market);
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchPositions
+     * @description fetch all open contract positions
+     * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchPositions
-        * @description fetch all open contract positions
-        * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -4858,20 +4858,20 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#fetchMyLiquidations
+     * @description retrieves the users liquidated positions
+     * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+     * @param {string} symbol unified CCXT market symbol
+     * @param {int} [since] the earliest time in ms to fetch liquidations for
+     * @param {int} [limit] the maximum number of liquidation structures to retrieve
+     * @param {object} [params] exchange specific parameters for the bitmart api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest liquidation
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#fetchMyLiquidations
-        * @description retrieves the users liquidated positions
-        * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-        * @param {string} symbol unified CCXT market symbol
-        * @param {int} [since] the earliest time in ms to fetch liquidations for
-        * @param {int} [limit] the maximum number of liquidation structures to retrieve
-        * @param {object} [params] exchange specific parameters for the bitmart api endpoint
-        * @param {int} [params.until] timestamp in ms of the latest liquidation
-        * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4973,32 +4973,32 @@ public partial class bitmart : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name bitmart#editOrder
+     * @description edits an open order
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much you want to trade in units of the base currency
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
+     * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
+     * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
+     * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
+     * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
+     * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitmart#editOrder
-        * @description edits an open order
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
-        * @see https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to edit an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} [amount] how much you want to trade in units of the base currency
-        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.triggerPrice] *swap only* the price to trigger a stop order
-        * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
-        * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
-        * @param {string} [params.stopLoss.triggerPrice] *swap only* the price to trigger a preset stop-loss order
-        * @param {string} [params.takeProfit.triggerPrice] *swap only* the price to trigger a preset take-profit order
-        * @param {string} [params.clientOrderId] client order id of the order
-        * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
-        * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);

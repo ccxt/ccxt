@@ -111,17 +111,17 @@ export default class bitget extends bitgetRest {
         return [ instType, params ];
     }
 
+    /**
+     * @method
+     * @name bitget#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @param {string} symbol unified symbol of the market to watch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name bitget#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-         * @param {string} symbol unified symbol of the market to watch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -136,31 +136,32 @@ export default class bitget extends bitgetRest {
         return await this.watchPublic (messageHash, args, params);
     }
 
+    /**
+     * @method
+     * @name bitget#unWatchTicker
+     * @description unsubscribe from the ticker channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @param {string} symbol unified symbol of the market to unwatch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name bitget#unWatchTicker
-         * @description unsubscribe from the ticker channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-         * @param {string} symbol unified symbol of the market to unwatch the ticker for
-         * @returns {any} status of the unwatch request
-         */
         await this.loadMarkets ();
         return await this.unWatchChannel (symbol, 'ticker', 'ticker', params);
     }
 
+    /**
+     * @method
+     * @name bitget#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @param {string[]} symbols unified symbol of the market to watch the tickers for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name bitget#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-         * @param {string[]} symbols unified symbol of the market to watch the tickers for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
@@ -333,17 +334,17 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitget#watchBidsAsks
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
+     * @description watches best bid & ask for symbols
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name bitget#watchBidsAsks
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Tickers-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Tickers-Channel
-         * @description watches best bid & ask for symbols
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const market = this.market (symbols[0]);
@@ -400,20 +401,20 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitget#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name bitget#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -434,16 +435,18 @@ export default class bitget extends bitgetRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name bitget#unWatchOHLCV
+     * @description unsubscribe from the ohlcv channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
+     * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
+     * @param {string} [timeframe] the period for the ratio, default is 1 minute
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
-        /**
-         * @method
-         * @name bitget#unWatchOHLCV
-         * @description unsubscribe from the ohlcv channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Candlesticks-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Candlesticks-Channel
-         * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const timeframes = this.safeDict (this.options, 'timeframes');
         const interval = this.safeString (timeframes, timeframe);
@@ -535,32 +538,33 @@ export default class bitget extends bitgetRest {
         ];
     }
 
+    /**
+     * @method
+     * @name bitget#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitget#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    /**
+     * @method
+     * @name bitget#unWatchOrderBook
+     * @description unsubscribe from the orderbook channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.limit] orderbook limit, default is undefined
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name bitget#unWatchOrderBook
-         * @description unsubscribe from the orderbook channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [params.limit] orderbook limit, default is undefined
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         let channel = 'books';
         const limit = this.safeInteger (params, 'limit');
@@ -585,18 +589,18 @@ export default class bitget extends bitgetRest {
         return await this.unWatchPublic (messageHash, args, params);
     }
 
+    /**
+     * @method
+     * @name bitget#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name bitget#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let channel = 'books';
@@ -686,7 +690,7 @@ export default class bitget extends bitgetRest {
             this.handleDeltas (storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
-            const checksum = this.safeBool (this.options, 'checksum', true);
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             const isSnapshot = this.safeString (message, 'action') === 'snapshot'; // snapshot does not have a checksum
             if (!isSnapshot && checksum) {
                 const storedAsks = storedOrderBook['asks'];
@@ -745,35 +749,35 @@ export default class bitget extends bitgetRest {
         }
     }
 
+    /**
+     * @method
+     * @name bitget#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitget#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    /**
+     * @method
+     * @name bitget#watchTradesForSymbols
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitget#watchTradesForSymbols
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -804,16 +808,17 @@ export default class bitget extends bitgetRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name bitget#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name bitget#unWatchTrades
-         * @description unsubscribe from the trades channel
-         * @see https://www.bitget.com/api-doc/spot/websocket/public/Trades-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/public/New-Trades-Channel
-         * @param {string} symbol unified symbol of the market to unwatch the trades for
-         * @returns {any} status of the unwatch request
-         */
         await this.loadMarkets ();
         return await this.unWatchChannel (symbol, 'trade', 'trade', params);
     }
@@ -953,17 +958,19 @@ export default class bitget extends bitgetRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name bitget#watchPositions
+     * @description watch all open positions
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name bitget#watchPositions
-         * @description watch all open positions
-         * @see https://www.bitget.com/api-doc/contract/websocket/private/Positions-Channel
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {string} [params.instType] one of 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES', default is 'USDT-FUTURES'
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = '';
@@ -1130,26 +1137,26 @@ export default class bitget extends bitgetRest {
         });
     }
 
+    /**
+     * @method
+     * @name bitget#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
+     * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
+     * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
+     * @param {string} [params.type] 'spot', 'swap'
+     * @param {string} [params.subType] 'linear', 'inverse'
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitget#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://www.bitget.com/api-doc/spot/websocket/private/Order-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/private/Plan-Order-Channel
-         * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Cross-Orders
-         * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Isolate-Orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
-         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
-         * @param {string} [params.type] 'spot', 'swap'
-         * @param {string} [params.subType] 'linear', 'inverse'
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
@@ -1535,18 +1542,18 @@ export default class bitget extends bitgetRest {
         return this.safeString (statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name bitget#watchMyTrades
+     * @description watches trades made by the user
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
+     * @param {str} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name bitget#watchMyTrades
-         * @description watches trades made by the user
-         * @see https://www.bitget.com/api-doc/contract/websocket/private/Order-Channel
-         * @param {str} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = 'myTrades';
@@ -1667,21 +1674,21 @@ export default class bitget extends bitgetRest {
         client.resolve (stored, messageHash);
     }
 
+    /**
+     * @method
+     * @name bitget#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
+     * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
+     * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
+     * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+     * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name bitget#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.bitget.com/api-doc/spot/websocket/private/Account-Channel
-         * @see https://www.bitget.com/api-doc/contract/websocket/private/Account-Channel
-         * @see https://www.bitget.com/api-doc/margin/cross/websocket/private/Margin-Cross-Account-Assets
-         * @see https://www.bitget.com/api-doc/margin/isolated/websocket/private/Margin-isolated-account-assets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-         * @param {string} [params.instType] one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
-         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin balances
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let marginMode = undefined;

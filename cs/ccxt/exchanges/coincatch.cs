@@ -486,16 +486,16 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://coincatch.github.io/github.io/en/spot/#get-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://coincatch.github.io/github.io/en/spot/#get-server-time
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiSpotV1PublicTime(parameters);
         //
@@ -509,16 +509,16 @@ public partial class coincatch : Exchange
         return this.safeInteger(response, "data");
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiSpotV1PublicCurrencies(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
@@ -636,17 +636,17 @@ public partial class coincatch : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchMarkets
+     * @description retrieves data on all markets for the exchange
+     * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+     * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchMarkets
-        * @description retrieves data on all markets for the exchange
-        * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
-        * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiSpotV1MarketTickers(parameters);
         //
@@ -970,18 +970,18 @@ public partial class coincatch : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://coincatch.github.io/github.io/en/spot/#get-single-ticker
+     * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://coincatch.github.io/github.io/en/spot/#get-single-ticker
-        * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1003,20 +1003,20 @@ public partial class coincatch : Exchange
         return this.parseTicker(data, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+     * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
+     * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
-        * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
-        * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
-        * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchTickers";
         await this.loadMarkets();
@@ -1129,20 +1129,20 @@ public partial class coincatch : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://coincatch.github.io/github.io/en/spot/#get-merged-depth-data
+     * @see https://coincatch.github.io/github.io/en/mix/#get-merged-depth-data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://coincatch.github.io/github.io/en/spot/#get-merged-depth-data
-        * @see https://coincatch.github.io/github.io/en/mix/#get-merged-depth-data
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchOrderBook";
@@ -1178,23 +1178,23 @@ public partial class coincatch : Exchange
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchOHLCV
+     * @see https://coincatch.github.io/github.io/en/spot/#get-candle-data
+     * @see https://coincatch.github.io/github.io/en/mix/#get-candle-data
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "mark" for mark price candles
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchOHLCV
-        * @see https://coincatch.github.io/github.io/en/spot/#get-candle-data
-        * @see https://coincatch.github.io/github.io/en/mix/#get-candle-data
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-        * @param {string} [params.price] "mark" for mark price candles
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOHLCV";
@@ -1304,21 +1304,21 @@ public partial class coincatch : Exchange
         return new List<object> {this.safeInteger2(ohlcv, "ts", 0), this.safeNumber2(ohlcv, "open", 1), this.safeNumber2(ohlcv, "high", 2), this.safeNumber2(ohlcv, "low", 3), this.safeNumber2(ohlcv, "close", 4), this.safeNumber2(ohlcv, "baseVol", 5)};
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://coincatch.github.io/github.io/en/spot/#get-recent-trades
+     * @see https://coincatch.github.io/github.io/en/mix/#get-fills
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://coincatch.github.io/github.io/en/spot/#get-recent-trades
-        * @see https://coincatch.github.io/github.io/en/mix/#get-fills
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest entry to fetch
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchTrades";
         await this.loadMarkets();
@@ -1456,17 +1456,17 @@ public partial class coincatch : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1530,21 +1530,21 @@ public partial class coincatch : Exchange
         return new List<object>() {request, paramsOmited};
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of entries to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.pageNo] the page number to fetch
+     * @param {bool} [params.nextPage] whether to query the next page (default false)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of entries to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.pageNo] the page number to fetch
-        * @param {bool} [params.nextPage] whether to query the next page (default false)
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1598,18 +1598,18 @@ public partial class coincatch : Exchange
         return this.filterBySinceLimit(sorted, since, limit);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
+     * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
-        * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchBalance";
@@ -1735,21 +1735,21 @@ public partial class coincatch : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name coincatch#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://coincatch.github.io/github.io/en/spot/#transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer from
+     * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the transfer
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://coincatch.github.io/github.io/en/spot/#transfer
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer from
-        * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the transfer
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1824,18 +1824,18 @@ public partial class coincatch : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
-        * @param {string} code unified currency code
-        * @param {string} [params.network] network for fetch deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1900,22 +1900,22 @@ public partial class coincatch : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://coincatch.github.io/github.io/en/spot/#get-deposit-list
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (not used by exchange)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @param {int} [params.pageNo] pageNo default 1
+     * @param {int} [params.pageSize] pageSize (default 20, max 100)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://coincatch.github.io/github.io/en/spot/#get-deposit-list
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-        * @param {int} [limit] the maximum number of transfer structures to retrieve (not used by exchange)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-        * @param {int} [params.pageNo] pageNo default 1
-        * @param {int} [params.pageSize] pageSize (default 20, max 100)
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchDeposits";
         await this.loadMarkets();
@@ -1970,23 +1970,23 @@ public partial class coincatch : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @param {string} [params.clientOid] clientOid
+     * @param {string} [params.orderId] The response orderId
+     * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-        * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-        * @param {string} [params.clientOid] clientOid
-        * @param {string} [params.orderId] The response orderId
-        * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchWithdrawals";
         await this.loadMarkets();
@@ -2020,23 +2020,23 @@ public partial class coincatch : Exchange
         return this.parseTransactions(data, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name coincatch#withdraw
+     * @description make a withdrawal
+     * @see https://coincatch.github.io/github.io/en/spot/#withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.network network for withdraw (mandatory)
+     * @param {string} [params.remark] remark
+     * @param {string} [params.clientOid] custom id
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#withdraw
-        * @description make a withdrawal
-        * @see https://coincatch.github.io/github.io/en/spot/#withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} [tag]
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} params.network network for withdraw (mandatory)
-        * @param {string} [params.remark] remark
-        * @param {string} [params.clientOid] custom id
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2159,18 +2159,18 @@ public partial class coincatch : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coincatch#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://coincatch.github.io/github.io/en/spot/#place-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://coincatch.github.io/github.io/en/spot/#place-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "createMarketBuyOrderWithCost";
@@ -2184,29 +2184,29 @@ public partial class coincatch : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name coincatch#createOrder
+     * @description create a trade order
+     * @see https://coincatch.github.io/github.io/en/spot/#place-order
+     * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
+     * @see https://coincatch.github.io/github.io/en/mix/#place-order
+     * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.triggerPrice] the price that the order is to be triggered
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+     * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createOrder
-        * @description create a trade order
-        * @see https://coincatch.github.io/github.io/en/spot/#place-order
-        * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
-        * @see https://coincatch.github.io/github.io/en/mix/#place-order
-        * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {float} [params.triggerPrice] the price that the order is to be triggered
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-        * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         ((IDictionary<string,object>)parameters)["methodName"] = this.safeString(parameters, "methodName", "createOrder");
@@ -2223,27 +2223,27 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name coincatch#createSpotOrder
+     * @description create a trade order on spot market
+     * @see https://coincatch.github.io/github.io/en/spot/#place-order
+     * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {float} [params.triggerPrice] the price that the order is to be triggered at
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+     * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> createSpotOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createSpotOrder
-        * @description create a trade order on spot market
-        * @see https://coincatch.github.io/github.io/en/spot/#place-order
-        * @see https://coincatch.github.io/github.io/en/spot/#place-plan-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {float} [params.triggerPrice] the price that the order is to be triggered at
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-        * @param {string} [params.clientOrderId] a unique id for the order (max length 40)
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         ((IDictionary<string,object>)parameters)["methodName"] = this.safeString(parameters, "methodName", "createSpotOrder");
@@ -2278,7 +2278,7 @@ public partial class coincatch : Exchange
         /**
         * @method
         * @ignore
-        * @name hashkey#createSpotOrderRequest
+        * @name coincatch#createSpotOrderRequest
         * @description helper function to build request
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -2433,34 +2433,34 @@ public partial class coincatch : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coincatch#createSwapOrder
+     * @description create a trade order on swap market
+     * @see https://coincatch.github.io/github.io/en/mix/#place-order
+     * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
+     * @see https://coincatch.github.io/github.io/en/mix/#place-stop-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+     * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {float} [params.triggerPrice] the price that the order is to be triggered at
+     * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> createSwapOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createSwapOrder
-        * @description create a trade order on swap market
-        * @see https://coincatch.github.io/github.io/en/mix/#place-order
-        * @see https://coincatch.github.io/github.io/en/mix/#place-plan-order
-        * @see https://coincatch.github.io/github.io/en/mix/#place-stop-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.postOnly] *non-trigger orders only* if true, the order will only be posted to the order book and not executed immediately
-        * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
-        * @param {string} [params.timeInForce] *non-trigger orders only* 'GTC', 'FOK', 'IOC' or 'PO'
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @param {float} [params.triggerPrice] the price that the order is to be triggered at
-        * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["methodName"] = this.safeString(parameters, "methodName", "createSwapOrder");
         await this.loadMarkets();
@@ -2500,7 +2500,7 @@ public partial class coincatch : Exchange
         /**
         * @method
         * @ignore
-        * @name hashkey#createSwapOrderRequest
+        * @name coincatch#createSwapOrderRequest
         * @description helper function to build request
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -2696,22 +2696,22 @@ public partial class coincatch : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name coincatch#createOrderWithTakeProfitAndStopLoss
+     * @description *swap markets only* create an order with a stop loss or take profit attached (type 3)
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+     * @param {float} [takeProfit] the take profit price, in units of the quote currency
+     * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrderWithTakeProfitAndStopLoss(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createOrderWithTakeProfitAndStopLoss
-        * @description *swap markets only* create an order with a stop loss or take profit attached (type 3)
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
-        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
-        * @param {float} [takeProfit] the take profit price, in units of the quote currency
-        * @param {float} [stopLoss] the stop loss price, in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "createOrderWithTakeProfitAndStopLoss";
         await this.loadMarkets();
@@ -2735,18 +2735,18 @@ public partial class coincatch : Exchange
         return this.safeString(timeInForceMap, timeInForce, timeInForce);
     }
 
+    /**
+     * @method
+     * @name coincatch#createOrders
+     * @description create a list of trade orders (all orders should be of the same symbol)
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#createOrders
-        * @description create a list of trade orders (all orders should be of the same symbol)
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
-        * @param {object} [params] extra parameters specific to the api endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // same symbol for all orders
@@ -2883,22 +2883,22 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name coincatch#editOrder
+     * @description edit a trade trigger, stop-looss or take-profit order
+     * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#editOrder
-        * @description edit a trade trigger, stop-looss or take-profit order
-        * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "editOrder";
         // only trigger, stop-looss or take-profit orders can be edited
@@ -2914,26 +2914,26 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name coincatch#editSpotOrder
+     * @ignore
+     * @description edit a trade order
+     * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+     * @param {string} params.triggerPrice *mandatory* the price that the order is to be triggered at
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> editSpotOrder(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#editSpotOrder
-        * @ignore
-        * @description edit a trade order
-        * @see https://coincatch.github.io/github.io/en/spot/#modify-plan-order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-        * @param {string} params.triggerPrice *mandatory* the price that the order is to be triggered at
-        * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "editSpotOrder";
@@ -3004,21 +3004,21 @@ public partial class coincatch : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchOrder
+     * @description fetches information on an order made by the user (non-trigger orders only)
+     * @see https://coincatch.github.io/github.io/en/spot/#get-order-details
+     * @see https://coincatch.github.io/github.io/en/mix/#get-order-details
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in (is mandatory for swap)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+     * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchOrder
-        * @description fetches information on an order made by the user (non-trigger orders only)
-        * @see https://coincatch.github.io/github.io/en/spot/#get-order-details
-        * @see https://coincatch.github.io/github.io/en/mix/#get-order-details
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in (is mandatory for swap)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
-        * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOrder";
         // for non-trigger orders only
@@ -3147,28 +3147,28 @@ public partial class coincatch : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+     * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
+     * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+     * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+     * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
+     * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
+     * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
-        * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
-        * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-        * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
-        * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-        * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
-        * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOpenOrders";
         await this.loadMarkets();
@@ -3194,23 +3194,23 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name coincatch#fetchOpenSpotOrders
+     * @description fetch all unfilled currently open orders for spot markets
+     * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+     * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOpenSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name coincatch#fetchOpenSpotOrders
-        * @description fetch all unfilled currently open orders for spot markets
-        * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
-        * @see https://coincatch.github.io/github.io/en/spot/#get-current-plan-orders
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchOpenSpotOrders";
@@ -3307,26 +3307,26 @@ public partial class coincatch : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name coincatch#fetchOpenSwapOrders
+     * @description fetch all unfilled currently open orders for swap markets
+     * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
+     * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
+     * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
+     * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
+     * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOpenSwapOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name coincatch#fetchOpenSwapOrders
-        * @description fetch all unfilled currently open orders for swap markets
-        * @see https://coincatch.github.io/github.io/en/mix/#get-open-order
-        * @see https://coincatch.github.io/github.io/en/mix/#get-all-open-order
-        * @see https://coincatch.github.io/github.io/en/mix/#get-plan-order-tpsl-list
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-        * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-        * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object methodName = "fetchOpenSwapOrders";
@@ -3456,28 +3456,28 @@ public partial class coincatch : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+     * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+     * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+     * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchCanceledAndClosedOrders
-        * @description fetches information on multiple canceled and closed orders made by the user
-        * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
-        * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
-        * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
-        * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchCanceledAndClosedOrders";
         await this.loadMarkets();
@@ -3503,24 +3503,24 @@ public partial class coincatch : Exchange
         }
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name coincatch#fetchCanceledAndClosedSpotOrders
+     * @description fetches information on multiple canceled and closed orders made by the user on spot markets
+     * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
+     * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
+     * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledAndClosedSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name coincatch#fetchCanceledAndClosedSpotOrders
-        * @description fetches information on multiple canceled and closed orders made by the user on spot markets
-        * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
-        * @see https://coincatch.github.io/github.io/en/spot/#get-history-plan-orders
-        * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchCanceledAndClosedSpotOrders";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -3664,26 +3664,26 @@ public partial class coincatch : Exchange
         return this.parseOrders(result, market, since, limit);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name coincatch#fetchCanceledAndClosedSwapOrders
+     * @description fetches information on multiple canceled and closed orders made by the user on swap markets
+     * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
+     * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
+     * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledAndClosedSwapOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name coincatch#fetchCanceledAndClosedSwapOrders
-        * @description fetches information on multiple canceled and closed orders made by the user on swap markets
-        * @see https://coincatch.github.io/github.io/en/mix/#get-history-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-history-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#get-history-plan-orders-tpsl
-        * @param {string} [symbol] unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch orders for
-        * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
-        * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
-        * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchCanceledAndClosedSwapOrders";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -3843,25 +3843,25 @@ public partial class coincatch : Exchange
         return this.parseOrders(result, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#cancelOrder
+     * @description cancels an open order
+     * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
+     * @see https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
+     * @see https://coincatch.github.io/github.io/en/mix/#cancel-order
+     * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+     * @param {bool} [params.trigger] true for canceling a trigger order (default false)
+     * @param {bool} [params.stop] *swap only* an alternative for trigger param
+     * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#cancelOrder
-        * @description cancels an open order
-        * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
-        * @see https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
-        * @see https://coincatch.github.io/github.io/en/mix/#cancel-order
-        * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-        * @param {bool} [params.trigger] true for canceling a trigger order (default false)
-        * @param {bool} [params.stop] *swap only* an alternative for trigger param
-        * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrder";
         if (isTrue(isEqual(symbol, null)))
@@ -3932,27 +3932,27 @@ public partial class coincatch : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#cancelAllOrders
+     * @description cancels all open orders
+     * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
+     * @see https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
+     * @see https://coincatch.github.io/github.io/en/mix/#batch-cancel-order
+     * @see https://coincatch.github.io/github.io/en/mix/#cancel-order-by-symbol
+     * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl-by-symbol
+     * @see https://coincatch.github.io/github.io/en/mix/#cancel-all-trigger-order-tpsl
+     * @param {string} [symbol] unified symbol of the market the orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to cancel orders for (default 'spot')
+     * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
+     * @param {string} [params.productType] *swap only (if symbol is not provided* 'umcbl' or 'dmcbl' - the product type of the market to cancel orders for (default 'umcbl')
+     * @param {string} [params.marginCoin] *mandatory for swap non-trigger dmcb (if symbol is not provided)* the margin coin of the market to cancel orders for
+     * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#cancelAllOrders
-        * @description cancels all open orders
-        * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
-        * @see https://coincatch.github.io/github.io/en/spot/#batch-cancel-plan-orders
-        * @see https://coincatch.github.io/github.io/en/mix/#batch-cancel-order
-        * @see https://coincatch.github.io/github.io/en/mix/#cancel-order-by-symbol
-        * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl-by-symbol
-        * @see https://coincatch.github.io/github.io/en/mix/#cancel-all-trigger-order-tpsl
-        * @param {string} [symbol] unified symbol of the market the orders were made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] 'spot' or 'swap' - the type of the market to cancel orders for (default 'spot')
-        * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
-        * @param {string} [params.productType] *swap only (if symbol is not provided* 'umcbl' or 'dmcbl' - the product type of the market to cancel orders for (default 'umcbl')
-        * @param {string} [params.marginCoin] *mandatory for swap non-trigger dmcb (if symbol is not provided)* the margin coin of the market to cancel orders for
-        * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelAllOrders";
         await this.loadMarkets();
@@ -4089,19 +4089,19 @@ public partial class coincatch : Exchange
         return new List<object>() {order};
     }
 
+    /**
+     * @method
+     * @name coincatch#cancelOrders
+     * @description cancel multiple non-trigger orders
+     * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
+     * @param {string[]} ids order ids
+     * @param {string} symbol *is mandatory* unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#cancelOrders
-        * @description cancel multiple non-trigger orders
-        * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-in-batch-v2-single-instruments
-        * @param {string[]} ids order ids
-        * @param {string} symbol *is mandatory* unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrders";
         // only non-trigger and not tp/sl orders can be canceled via cancelOrders
@@ -4498,23 +4498,23 @@ public partial class coincatch : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+     * @see https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
+     * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
+     * @param {string} symbol *is mandatory* unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] *swap markets only* the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+     * @param {string} [params.lastEndId] *swap markets only* query the data after this tradeId
+     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
-        * @see https://coincatch.github.io/github.io/en/mix/#get-order-fill-detail
-        * @see https://coincatch.github.io/github.io/en/mix/#get-producttype-order-fill-detail
-        * @param {string} symbol *is mandatory* unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] *swap markets only* the latest time in ms to fetch trades for, only supports the last 30 days timeframe
-        * @param {string} [params.lastEndId] *swap markets only* query the data after this tradeId
-        * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchMyTrades";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -4667,20 +4667,20 @@ public partial class coincatch : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://coincatch.github.io/github.io/en/spot/#get-transaction-details
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOrderTrades";
         if (isTrue(isEqual(symbol, null)))
@@ -4694,17 +4694,17 @@ public partial class coincatch : Exchange
         return await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchMarginMode
-        * @description fetches the margin mode of the trading pair
-        * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
-        * @param {string} symbol unified symbol of the market to fetch the margin mode for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4764,18 +4764,18 @@ public partial class coincatch : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name coincatch#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://coincatch.github.io/github.io/en/mix/#change-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#setMarginMode
-        * @description set margin mode to 'cross' or 'isolated'
-        * @see https://coincatch.github.io/github.io/en/mix/#change-margin-mode
-        * @param {string} marginMode 'cross' or 'isolated'
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4821,17 +4821,17 @@ public partial class coincatch : Exchange
         return this.safeString(types, type, type);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+     * @param {string} symbol unified symbol of the market to fetch entry for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
     public async virtual Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchPositionMode
-        * @description fetchs the position mode, hedged or one way
-        * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
-        * @param {string} symbol unified symbol of the market to fetch entry for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an object detailing whether the market is in hedged or one-way mode
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4856,19 +4856,19 @@ public partial class coincatch : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coincatch#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+     * @param {bool} hedged set to true to use dualSidePosition
+     * @param {string} symbol unified symbol of the market to fetch entry for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbol is not provided)
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#setPositionMode
-        * @description set hedged to true or false for a market
-        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
-        * @param {bool} hedged set to true to use dualSidePosition
-        * @param {string} symbol unified symbol of the market to fetch entry for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbol is not provided)
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "setPositionMode";
         object defaultProductType = "umcbl";
@@ -4909,17 +4909,17 @@ public partial class coincatch : Exchange
         return await this.privatePostApiMixV1AccountSetPositionMode(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4936,19 +4936,19 @@ public partial class coincatch : Exchange
         return this.parseLeverage(data, market);
     }
 
+    /**
+     * @method
+     * @name coincatch#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hashkey#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "setLeverage";
         if (isTrue(isEqual(symbol, null)))
@@ -5112,54 +5112,54 @@ public partial class coincatch : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name coincatch#reduceMargin
+     * @description remove margin from a position
+     * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#reduceMargin
-        * @description remove margin from a position
-        * @see https://coincatch.github.io/github.io/en/mix/#change-margin
-        * @param {string} symbol unified market symbol
-        * @param {float} amount the amount of margin to remove
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["methodName"] = "reduceMargin";
         return await this.modifyMarginHelper(symbol, prefixUnaryNeg(ref amount), "reduce", parameters);
     }
 
+    /**
+     * @method
+     * @name coincatch#addMargin
+     * @description add margin
+     * @see https://coincatch.github.io/github.io/en/mix/#change-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#addMargin
-        * @description add margin
-        * @see https://coincatch.github.io/github.io/en/mix/#change-margin
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["methodName"] = "addMargin";
         return await this.modifyMarginHelper(symbol, amount, "add", parameters);
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
-        * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string}  [parmas.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchPosition";
         object side = "long";
@@ -5182,18 +5182,18 @@ public partial class coincatch : Exchange
         return getValue(positions, 0);
     }
 
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name coincatch#fetchPositionsForSymbol
+     * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @description fetch open positions for a single market
-        * @name coincatch#fetchPositionsForSymbol
-        * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-position
-        * @description fetch all open positions for specific symbol
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -5237,19 +5237,19 @@ public partial class coincatch : Exchange
         return this.parsePositions(data, new List<object>() {symbol});
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchPositions
+     * @description fetch all open positions
+     * @see https://coincatch.github.io/github.io/en/mix/#get-all-position
+     * @param {string[]} [symbols] list of unified market symbols (all symbols must belong to the same product type)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
+     * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchPositions
-        * @description fetch all open positions
-        * @see https://coincatch.github.io/github.io/en/mix/#get-all-position
-        * @param {string[]} [symbols] list of unified market symbols (all symbols must belong to the same product type)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
-        * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchPositions";
         await this.loadMarkets();
@@ -5436,30 +5436,30 @@ public partial class coincatch : Exchange
         return market;
     }
 
+    /**
+     * @method
+     * @name coincatch#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+     * @see https://coincatch.github.io/github.io/en/spot/#get-bills
+     * @see https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entrys to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] *swap only* the latest time in ms to fetch entries for
+     * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
+     * @param {string} [params.after] *spot only* billId, return the data less than this billId
+     * @param {string} [params.before] *spot only* billId, return the data greater than or equals to this billId
+     * @param {string} [params.groupType] *spot only*
+     * @param {string} [params.bizType] *spot only*
+     * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl' or 'dmcbl' if code is provided and code is not equal to 'USDT')
+     * @param {string} [params.business] *swap only*
+     * @param {string} [params.lastEndId] *swap only*
+     * @param {bool} [params.next] *swap only*
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name coincatch#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://coincatch.github.io/github.io/en/spot/#get-bills
-        * @see https://coincatch.github.io/github.io/en/mix/#get-business-account-bill
-        * @param {string} [code] unified currency code
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] *swap only* the latest time in ms to fetch entries for
-        * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
-        * @param {string} [params.after] *spot only* billId, return the data less than this billId
-        * @param {string} [params.before] *spot only* billId, return the data greater than or equals to this billId
-        * @param {string} [params.groupType] *spot only*
-        * @param {string} [params.bizType] *spot only*
-        * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl' or 'dmcbl' if code is provided and code is not equal to 'USDT')
-        * @param {string} [params.business] *swap only*
-        * @param {string} [params.lastEndId] *swap only*
-        * @param {bool} [params.next] *swap only*
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchLedger";
         await this.loadMarkets();

@@ -384,7 +384,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-time#http-request
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'v2PublicGetTime' or 'v3PublicGetBrokerageTime' default is 'v2PublicGetTime'
              * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -422,8 +424,10 @@ class coinbase extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
@@ -566,7 +570,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $portfolios
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getportfolios
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
@@ -661,7 +667,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a currency deposit $address
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-addresses#create-$address
+             *
              * @param {string} $code unified currency $code of the currency for the deposit $address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -738,7 +746,9 @@ class coinbase extends Exchange {
             /**
              * @ignore
              * fetch $sells
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$sells#list-$sells
+             *
              * @param {string} $symbol not used by coinbase fetchMySells ()
              * @param {int} [$since] timestamp in ms of the earliest sell, default is null
              * @param {int} [$limit] max number of $sells to return, default is null
@@ -759,7 +769,9 @@ class coinbase extends Exchange {
             /**
              * @ignore
              * fetch $buys
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$buys#list-$buys
+             *
              * @param {string} $symbol not used by coinbase fetchMyBuys ()
              * @param {int} [$since] timestamp in ms of the earliest buy, default is null
              * @param {int} [$limit] max number of $buys to return, default is null
@@ -789,7 +801,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+             *
              * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-withdrawals#list-withdrawals
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -811,7 +825,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+             *
              * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-deposits#list-deposits
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -833,7 +849,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions
+             *
              * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default = 50, Min => 1, Max => 100
@@ -1206,9 +1224,11 @@ class coinbase extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproducts
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-currencies#get-fiat-currencies
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+             *
              * retrieves data on all markets for coinbase
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->usePrivate] use private endpoint for fetching markets
@@ -1790,8 +1810,10 @@ class coinbase extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-$currencies#get-fiat-$currencies
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -1883,8 +1905,10 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getproducts
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-exchange-rates#get-exchange-rates
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->usePrivate] use private endpoint for fetching tickers
@@ -2010,10 +2034,12 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getmarkettrades
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-spot-price
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-buy-price
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-prices#get-sell-price
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->usePrivate] whether to use the private endpoint for fetching the ticker
@@ -2277,9 +2303,11 @@ class coinbase extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getaccounts
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-accounts#list-accounts
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
              * @param {array} [$params->type] "spot" (default) or "swap" or "future"
@@ -2382,7 +2410,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+             *
              * @see https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entries to return, default is null
@@ -2416,28 +2446,8 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
-                $lastFee = $this->safe_dict($last, 'fee');
-                $last['next_starting_after'] = $cursor;
-                $ledger[$lastIndex] = array(
-                    'info' => $this->safe_dict($last, 'info'),
-                    'id' => $this->safe_string($last, 'id'),
-                    'timestamp' => $this->safe_integer($last, 'timestamp'),
-                    'datetime' => $this->safe_string($last, 'datetime'),
-                    'direction' => $this->safe_string($last, 'direction'),
-                    'account' => $this->safe_string($last, 'account'),
-                    'referenceId' => null,
-                    'referenceAccount' => null,
-                    'type' => $this->safe_string($last, 'type'),
-                    'currency' => $this->safe_string($last, 'currency'),
-                    'amount' => $this->safe_number($last, 'amount'),
-                    'before' => null,
-                    'after' => null,
-                    'status' => $this->safe_string($last, 'status'),
-                    'fee' => array(
-                        'cost' => $this->safe_number($lastFee, 'cost'),
-                        'currency' => $this->safe_string($lastFee, 'currency'),
-                    ),
-                );
+                $last['info']['next_starting_after'] = $cursor;
+                $ledger[$lastIndex] = $last;
             }
             return $ledger;
         }) ();
@@ -2830,7 +2840,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2850,7 +2862,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_postorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -3263,7 +3277,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by coinbase cancelOrder()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3279,7 +3295,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_cancelorders
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by coinbase cancelOrders()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3320,7 +3338,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_editorder
+             *
              * @param {string} $id cancel order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -3367,7 +3387,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorder
+             *
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $market $symbol that the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3430,7 +3452,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+             *
              * @param {string} $symbol unified $market $symbol that the $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -3601,7 +3625,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on all currently open orders
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+             *
              * @param {string} $symbol unified market $symbol of the orders
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of open order structures to retrieve
@@ -3624,7 +3650,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+             *
              * @param {string} $symbol unified market $symbol of the orders
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of closed order structures to retrieve
@@ -3647,7 +3675,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple canceled orders made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_gethistoricalorders
+             *
              * @param {string} $symbol unified market $symbol of the orders
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of canceled order structures to retrieve
@@ -3662,7 +3692,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpubliccandles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -3758,7 +3790,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicmarkettrades
+             *
              * @param {string} $symbol unified $market $symbol of the $trades
              * @param {int} [$since] not used by coinbase fetchTrades
              * @param {int} [$limit] the maximum number of trade structures to fetch
@@ -3817,7 +3851,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfills
+             *
              * @param {string} $symbol unified $market $symbol of the $trades
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
              * @param {int} [$limit] the maximum number of trade structures to fetch
@@ -3890,7 +3926,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getpublicproductbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3944,7 +3982,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getbestbidask
+             *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -3987,7 +4027,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -4082,7 +4124,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -4218,7 +4262,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($code, $amount, $id, $params) {
             /**
              * make a deposit
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#deposit-funds
+             *
              * @param {string} $code unified currency $code
              * @param {float} $amount the $amount to deposit
              * @param {string} $id the payment method $id to be used for the deposit, can be retrieved from v2PrivateGetPaymentMethods
@@ -4290,7 +4336,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+             *
              * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-deposits#show-deposit
+             *
              * @param {string} $id deposit $id
              * @param {string} [$code] unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4359,7 +4407,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($fromCode, $toCode, $amount, $params) {
             /**
              * fetch a quote for converting from one currency to another
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_createconvertquote
+             *
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
              * @param {float} [$amount] how much you want to trade in units of the from currency
@@ -4385,7 +4435,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $fromCode, $toCode, $amount, $params) {
             /**
              * convert from one currency to another
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_commitconverttrade
+             *
              * @param {string} $id the $id of the trade that you want to make
              * @param {string} $fromCode the currency that you want to sell and convert from
              * @param {string} $toCode the currency that you want to buy and convert into
@@ -4409,7 +4461,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($id, $code, $params) {
             /**
              * fetch the $data for a conversion trade
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getconverttrade
+             *
              * @param {string} $id the $id of the trade that you want to commit
              * @param {string} $code the unified currency $code that was converted from
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4462,7 +4516,9 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * *futures only* closes open positions for a $market
+             *
              * @see https://coinbase-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+             *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by coinbase
              * @param {array} [$params] extra parameters specific to the coinbase api endpoint
@@ -4494,8 +4550,10 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmpositions
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxpositions
+             *
              * @param {string[]} [$symbols] list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->portfolio] the $portfolio UUID to fetch $positions for
@@ -4532,8 +4590,10 @@ class coinbase extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade $position
+             *
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getintxposition
              * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmposition
+             *
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->product_id] *futures only* the product id of the $position to fetch, required for futures markets only
@@ -4709,7 +4769,9 @@ class coinbase extends Exchange {
     public function fetch_trading_fees($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.cdp.coinbase.com/advanced-trade/reference/retailbrokerageapi_gettransactionsummary/
+             *
              * fetch the trading fees for multiple markets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap'

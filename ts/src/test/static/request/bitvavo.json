@@ -48,7 +48,7 @@
                     "buy",
                     0.0002
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.0002\", \"clientOrderId\": \"sdadas\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.0002\"}"
             },
             {
                 "description": "Limit Buy Order",
@@ -61,7 +61,7 @@
                     0.0002,
                     33000
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33000\",\"amount\":\"0.0002\", \"clientOrderId\": \"sdadas\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33000\",\"amount\":\"0.0002\"}"
             },
             {
                 "description": "Spot Market Buy with Trigger Price",
@@ -77,7 +77,7 @@
                         "triggerPrice": 30000
                     }
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\",  \"clientOrderId\": \"sdadas\"}"
+                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\"}"
             },
             {
                 "description": "Create order with clientOrderId",

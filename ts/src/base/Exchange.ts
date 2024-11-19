@@ -307,7 +307,7 @@ export default class Exchange {
 
     markets: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>;
-
+    features: Dictionary<Dictionary<any>> = undefined;
     status: {
         status: Str,
         updated: Num,
@@ -2732,6 +2732,94 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        this.featuresGenerator ();
+    }
+
+    featuresGenerator () {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : {
+        //             'createOrder' : {...},
+        //             'fetchOrders' : {...},
+        //         },
+        //         'swap': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         },
+        //         'future': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot": {
+        //             "createOrder": undefined,
+        //             "fetchBalance": undefined,
+        //             ...
+        //         },
+        //         "swap": {
+        //             ...
+        //         }
+        //     }
+        //
+        if (this.features === undefined) {
+            return;
+        }
+        // reconstruct
+        const initialFeatures = this.features;
+        this.features = {};
+        const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
+        const subTypes = [ 'linear', 'inverse' ];
+        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for (let i = 0; i < unifiedMarketTypes.length; i++) {
+            const marketType = unifiedMarketTypes[i];
+            // if marketType is not filled for this exchange, don't add that in `features`
+            if (!(marketType in initialFeatures)) {
+                this.features[marketType] = undefined;
+            } else {
+                if (marketType === 'spot') {
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                } else {
+                    this.features[marketType] = {};
+                    for (let j = 0; j < subTypes.length; j++) {
+                        const subType = subTypes[j];
+                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+                    }
+                }
+            }
+        }
+    }
+
+    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        const extendsStr: Str = this.safeString (featuresObj, 'extends');
+        if (extendsStr !== undefined) {
+            featuresObj = this.omit (featuresObj, 'extends');
+            const extendObj = initialFeatures[extendsStr];
+            featuresObj = this.extend (extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+        }
+        //
+        // corrections
+        //
+        if ('createOrder' in featuresObj) {
+            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if (value !== undefined) {
+                featuresObj['createOrder']['stopLoss'] = value;
+                featuresObj['createOrder']['takeProfit'] = value;
+            }
+            // omit 'hedged' from spot
+            if (marketType === 'spot') {
+                featuresObj['createOrder']['hedged'] = undefined;
+            }
+        }
+        return featuresObj;
     }
 
     orderbookChecksumMessage (symbol:Str) {
