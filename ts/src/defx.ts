@@ -221,7 +221,7 @@ export default class defx extends Exchange {
                             'api/users/apikeys': 1,
                             'api/users/profile/wallets': 1,
                             'api/transfers/withdrawal': 1,
-                            'api/transfers/bridge/withdrawa': 1,
+                            'api/transfers/bridge/withdrawal': 1,
                         },
                         'put': {
                             'api/position/updatePositionMargin': 1,
@@ -783,21 +783,21 @@ export default class defx extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        let request: Dict = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
-        const timeframeInSeconds = this.parseTimeframe (timeframe);
-        const timeframeInMilliseconds = timeframeInSeconds * 1000;
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'until', 'till' ]);
+        request['endTime'] = (until === undefined) ? this.milliseconds () : until;
         if (since === undefined) {
-            const end = this.milliseconds ();
-            request['startTime'] = end - (limit * timeframeInMilliseconds);
-            request['endTime'] = end;
+            request['startTime'] = 0;
         } else {
             request['startTime'] = since;
-            if (request['endTime'] === undefined) {
+            if (until === undefined) {
+                const timeframeInSeconds = this.parseTimeframe (timeframe);
+                const timeframeInMilliseconds = timeframeInSeconds * 1000;
                 request['endTime'] = since + (limit * timeframeInMilliseconds);
             }
         }
