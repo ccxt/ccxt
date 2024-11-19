@@ -257,7 +257,7 @@ export default class coinmate extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
@@ -321,7 +321,7 @@ export default class coinmate extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const balances = this.safeValue (response, 'data', {});
+        const balances = this.safeDict (response, 'data', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -443,7 +443,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const keys = Object.keys (data);
         const result: Dict = {};
         for (let i = 0; i < keys.length; i++) {
@@ -632,8 +632,8 @@ export default class coinmate extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        const methods = this.safeValue (withdrawOptions, 'methods', {});
+        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
+        const methods = this.safeDict (withdrawOptions, 'methods', {});
         const method = this.safeString (methods, code);
         if (method === undefined) {
             const allowedCurrencies = Object.keys (methods);
@@ -656,7 +656,7 @@ export default class coinmate extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         const transaction = this.parseTransaction (data, currency);
         const fillResponseFromRequest = this.safeBool (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
@@ -827,7 +827,7 @@ export default class coinmate extends Exchange {
         //         "data": { maker: '0.3', taker: "0.35", timestamp: "1646253217815" }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const makerString = this.safeString (data, 'maker');
         const takerString = this.safeString (data, 'taker');
         const maker = this.parseNumber (Precise.stringDiv (makerString, '100'));
