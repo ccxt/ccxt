@@ -1124,7 +1124,6 @@ export default class bybit extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'paginate': true,
                         'limit': 1000,
                     },
                 },

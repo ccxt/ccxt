@@ -1619,7 +1619,6 @@ export default class binance extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'paginate': true,
                         'limit': 1000,
                     },
                 },
@@ -1689,7 +1688,6 @@ export default class binance extends Exchange {
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'paginate': true,
                         'limit': 1500,
                     },
                 },

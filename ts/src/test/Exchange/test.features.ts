@@ -105,7 +105,6 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
             'trailing': false,
         },
         'fetchOHLCV': {
-            'paginate': false,
             'limit': 0,
         },
     };

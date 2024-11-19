@@ -1243,7 +1243,6 @@ export default class okx extends Exchange {
                         'trailing': true,
                     },
                     'fetchOHLCV': {
-                        'paginate': true,
                         'limit': 300,
                     },
                 },
