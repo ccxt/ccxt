@@ -752,7 +752,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        let response: List = [];
+        let response = [];
         const type = this.safeString (params, 'type');
         params = this.omit (params, 'type');
         if (type === 'spot') {
