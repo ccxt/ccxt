@@ -99,6 +99,7 @@
                     "type": "StopLimit",
                     "timeInForce": "GTC",
                     "postOnly": false,
+                    "reduceOnly": null,
                     "side": "buy",
                     "price": 395,
                     "stopPrice": 400,
@@ -109,9 +110,12 @@
                     "filled": 0,
                     "remaining": 0,
                     "cost": 0,
+                    "average": null,
                     "status": "open",
+                    "fee": null,
                     "trades": [],
-                    "fees": []
+                    "fees": [],
+                    "lastUpdateTimestamp": null
                 }
             },
             {
@@ -209,7 +213,9 @@
                     "type": "Stop",
                     "timeInForce": "IOC",
                     "postOnly": false,
+                    "reduceOnly": null,
                     "side": "buy",
+                    "price": null,
                     "stopPrice": 400,
                     "triggerPrice": 400,
                     "takeProfitPrice": 0,
@@ -218,9 +224,12 @@
                     "filled": 0,
                     "remaining": 0,
                     "cost": 0,
+                    "average": null,
                     "status": "open",
+                    "fee": null,
                     "trades": [],
-                    "fees": []
+                    "fees": [],
+                    "lastUpdateTimestamp": null
                 }
             },
             {
@@ -318,7 +327,9 @@
                     "type": "MarketIfTouched",
                     "timeInForce": "IOC",
                     "postOnly": false,
+                    "reduceOnly": null,
                     "side": "sell",
+                    "price": null,
                     "stopPrice": 400,
                     "triggerPrice": 400,
                     "takeProfitPrice": 0,
@@ -327,9 +338,12 @@
                     "filled": 0,
                     "remaining": 0,
                     "cost": 0,
+                    "average": null,
                     "status": "open",
+                    "fee": null,
                     "trades": [],
-                    "fees": []
+                    "fees": [],
+                    "lastUpdateTimestamp": null
                 }
             },
             {
@@ -427,7 +441,9 @@
                     "type": "MarketIfTouched",
                     "timeInForce": "IOC",
                     "postOnly": false,
+                    "reduceOnly": null,
                     "side": "buy",
+                    "price": null,
                     "stopPrice": 200,
                     "triggerPrice": 200,
                     "takeProfitPrice": 0,
@@ -436,9 +452,12 @@
                     "filled": 0,
                     "remaining": 0,
                     "cost": 0,
+                    "average": null,
                     "status": "open",
+                    "fee": null,
                     "trades": [],
-                    "fees": []
+                    "fees": [],
+                    "lastUpdateTimestamp": null
                 }
             },
             {
