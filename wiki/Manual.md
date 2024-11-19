@@ -268,6 +268,94 @@ $exchange = new $exchange_class(array(
 ```
 <!-- tabs:end -->
 
+### Features
+
+Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
+
+*this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
+
+```Javascript
+const exchange = new ccxt.binance()
+console.log(exchange.features);
+
+// outputs like:
+{
+  spot: {
+    sandbox: true, // whether testnet is supported
+    createOrder: {
+      triggerPrice: true,          // if trigger order is supported
+      triggerPriceType: undefined, // if trigger price type is supported (last, mark, index)
+      triggerDirection: false,     // if trigger direction is supported (up, down)
+      stopLossPrice: true,         // if stop-loss order is supported (read "Stop Loss Orders" paragraph) 
+      takeProfitPrice: true,       // if take-profit order is supported
+      attachedStopLossTakeProfit: undefined,  // if embedded orders are supported inside entry orders
+      marginMode: true,            // if `marginMode` param is supported (cross, isolated)
+      timeInForce: {               // supported TIF types
+        GTC: true,
+        IOC: true,
+        FOK: true,
+        PO: true,
+        GTD: false
+      },
+      hedged: undefined,          // if `hedged` param is supported (true, false)
+      selfTradePrevention: true,  // if `selfTradePrevention` param is supported (true, false)
+      trailing: true,             // if trailing order is supported
+      twap: false,                // if twap order is supported
+      iceberg: true,              // if iceberg order is supported
+      oco: false                  // if One-Cancels-the-Other order is supported
+    },
+    createOrders: undefined,      // if batch order creation is supported
+    fetchMyTrades: {
+      limit: 1000,              // max limit per call
+      daysBack: undefined,      // max historical period that can be accessed
+      untilDays: 1              // if `until` param is supported, then this is permitted distance from `since`
+    },
+    fetchOrder: {
+      marginMode: true,         // when supported, margin order should be fetched with this flag
+      trigger: false,           // similar as above
+      trailing: false           // similar as above
+    },
+    // other methods have similar properties
+    fetchOpenOrders: {
+      limit: undefined,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchOrders: {
+      limit: 1000,
+      daysBack: undefined,
+      untilDays: 10000,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchClosedOrders: {
+      limit: 1000,
+      daysBackClosed: undefined, // max days-back for closed orders
+      daysBackCanceled: undefined, // max days-back for canceled orders
+      untilDays: 10000,
+      marginMode: true,
+      trigger: false,
+      trailing: false
+    },
+    fetchOHLCV: {
+      paginate: true,
+      limit: 1000
+    }
+  },
+  swap: {
+    linear: { ... }, // similar to above dict
+    inverse: { ... }, // similar to above dict
+  }
+  future: {
+    linear: { ... }, // similar to above dict
+    inverse: { ... }, // similar to above dict
+  }
+}
+```
+
+
 ### Overriding Exchange Properties Upon Instantiation
 
 Most of exchange properties as well as specific options can be overrided upon exchange class instantiation or afterwards, like shown below:

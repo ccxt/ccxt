@@ -287,6 +287,7 @@ class Exchange {
 
     // API methods metainfo
     public $has = array();
+    public $features = array();
 
     public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;

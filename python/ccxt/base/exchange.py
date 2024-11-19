@@ -325,6 +325,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {}
+    features = {}
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
