@@ -831,6 +831,7 @@ class testMainClass {
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
         await this.runTests (exchange, tests, false);
+        return true; // required in c#
     }
 
     async testProxies (exchange) {
@@ -1421,6 +1422,7 @@ class testMainClass {
             const successMessage = '[' + this.lang + ']' + prefix + '[TEST_SUCCESS] ' + sum.toString () + ' static ' + type + ' tests passed.';
             dump ('[INFO]' + successMessage);
         }
+        return true; // required in c#
     }
 
     async runStaticResponseTests (exchangeName = undefined, test = undefined) {
