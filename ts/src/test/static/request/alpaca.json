@@ -150,6 +150,22 @@
                 "output": "{\"symbol\":\"BTC/USD\",\"qty\":\"0.001\",\"side\":\"buy\",\"type\":\"limit\",\"limit_price\":\"20000\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_0b7a535d63a745659e6cc4ffe97e0b7b\"}"
             }
         ],
+        "editOrder": [
+            {
+                "description": "edit order",
+                "method": "editOrder",
+                "url": "https://paper-api.alpaca.markets/v2/orders/5951bf3a-1b42-42da-a8d0-a86bad815f33",
+                "input": [
+                  "5951bf3a-1b42-42da-a8d0-a86bad815f33",
+                  "LTC/USD",
+                  "limit",
+                  "buy",
+                  0.2,
+                  56
+                ],
+                "output": "{\"qty\":\"0.2\",\"limit_price\":\"56\",\"time_in_force\":\"gtc\",\"client_order_id\":\"ccxt_ced70043a38849718597ebad4846d007\"}"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "Cancel order",
@@ -230,6 +246,49 @@
                 "input": [
                   "BTC"
                 ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDT deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch USDT withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch USDT deposits and withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT"
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw 20 USDT to a whitelisted address",
+                "method": "withdraw",
+                "url": "https://api.alpaca.markets/v2/wallets/transfers",
+                "input": [
+                  "USDT",
+                  20,
+                  "0x49a2c0925196e4dcf05945f67f690153190fbaab"
+                ],
+                "output": "{\"asset\":\"USDT\",\"address\":\"0x49a2c0925196e4dcf05945f67f690153190fbaab\",\"amount\":\"20\"}"
             }
         ]
     }

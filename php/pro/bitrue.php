@@ -61,7 +61,9 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -176,8 +178,10 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on user $orders
+             *
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-             * @param {string[]} symbols unified symbols of the $market to watch the $orders for
+             *
+             * @param {string} $symbol
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum amount of $orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

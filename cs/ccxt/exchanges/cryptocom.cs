@@ -375,16 +375,16 @@ public partial class cryptocom : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchMarkets
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
+     * @description retrieves data on all markets for cryptocom
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchMarkets
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-instruments
-        * @description retrieves data on all markets for cryptocom
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetPublicGetInstruments(parameters);
         //
@@ -574,18 +574,18 @@ public partial class cryptocom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+     * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
-        * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -638,17 +638,17 @@ public partial class cryptocom : Exchange
         return this.parseTickers(data, symbols);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchTicker
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchTicker
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -656,21 +656,21 @@ public partial class cryptocom : Exchange
         return this.safeValue(tickers, symbol);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for, max date range is one day
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history
-        * @param {string} symbol unified market symbol of the market the orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for, max date range is one day
-        * @param {int} [limit] the maximum number of order structures to retrieve, default 100 max 100
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -747,21 +747,21 @@ public partial class cryptocom : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchTrades
+     * @description get a list of the most recent trades for a particular symbol
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchTrades
-        * @description get a list of the most recent trades for a particular symbol
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch, maximum date range is one day
-        * @param {int} [limit] the maximum number of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -816,22 +816,22 @@ public partial class cryptocom : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-candlestick
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -901,18 +901,18 @@ public partial class cryptocom : Exchange
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the number of order book entries to return, max 50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the number of order book entries to return, max 50
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -970,16 +970,16 @@ public partial class cryptocom : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1PrivatePostPrivateUserBalance(parameters);
@@ -1029,17 +1029,18 @@ public partial class cryptocom : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1223,26 +1224,26 @@ public partial class cryptocom : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name cryptocom#createOrder
+     * @description create a trade order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
+     * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
+     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
+     * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#createOrder
-        * @description create a trade order
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
-        * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-        * @param {float} [params.stopPrice] price to trigger a stop order
-        * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
-        * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1263,17 +1264,18 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name cryptocom#createOrders
+     * @description create a list of trade orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#createOrders
-        * @description create a list of trade orders
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-list
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
-        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object ordersRequests = new List<object>() {};
@@ -1502,17 +1504,17 @@ public partial class cryptocom : Exchange
         return this.extend(request, parameters);
     }
 
+    /**
+     * @method
+     * @name cryptocom#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
+     * @param {string} symbol unified market symbol of the orders to cancel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
-        * @param {string} symbol unified market symbol of the orders to cancel
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1525,18 +1527,18 @@ public partial class cryptocom : Exchange
         return await this.v1PrivatePostPrivateCancelAllOrders(this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name cryptocom#cancelOrder
+     * @description cancels an open order
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
+     * @param {string} id the order id of the order to cancel
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#cancelOrder
-        * @description cancels an open order
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order
-        * @param {string} id the order id of the order to cancel
-        * @param {string} [symbol] unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1564,18 +1566,18 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name cryptocom#cancelOrders
+     * @description cancel multiple orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#cancelOrders
-        * @description cancel multiple orders
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1602,17 +1604,17 @@ public partial class cryptocom : Exchange
         return this.parseOrders(result, market, null, null, parameters);
     }
 
+    /**
+     * @method
+     * @name cryptocom#cancelOrdersForSymbols
+     * @description cancel multiple orders for multiple symbols
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
+     * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#cancelOrdersForSymbols
-        * @description cancel multiple orders for multiple symbols
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object orderRequests = new List<object>() {};
@@ -1637,19 +1639,19 @@ public partial class cryptocom : Exchange
         return this.parseOrders(result, null, null, null, parameters);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1702,21 +1704,21 @@ public partial class cryptocom : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for, maximum date range is one day
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for, maximum date range is one day
-        * @param {int} [limit] the maximum number of trade structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1802,20 +1804,20 @@ public partial class cryptocom : Exchange
         return new List<object>() {address, tag};
     }
 
+    /**
+     * @method
+     * @name cryptocom#withdraw
+     * @description make a withdrawal
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#withdraw
-        * @description make a withdrawal
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1861,17 +1863,17 @@ public partial class cryptocom : Exchange
         return this.parseTransaction(result, currency);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchDepositAddressesByNetwork
+     * @description fetch a dictionary of addresses for a currency, indexed by network
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchDepositAddressesByNetwork
-        * @description fetch a dictionary of addresses for a currency, indexed by network
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.safeCurrency(code);
@@ -1929,17 +1931,17 @@ public partial class cryptocom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
@@ -1954,20 +1956,20 @@ public partial class cryptocom : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -2020,20 +2022,20 @@ public partial class cryptocom : Exchange
         return this.parseTransactions(depositList, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = null;
@@ -2568,17 +2570,17 @@ public partial class cryptocom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchDepositWithdrawFees
-        * @description fetch deposit and withdraw fees
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
-        * @param {string[]|undefined} codes list of unified currency codes
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1PrivatePostPrivateGetCurrencyNetworks(parameters);
@@ -2587,20 +2589,20 @@ public partial class cryptocom : Exchange
         return this.parseDepositWithdrawFees(currencyMap, codes, "full_name");
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions
-        * @param {string} [code] unified currency code
-        * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2744,16 +2746,16 @@ public partial class cryptocom : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1PrivatePostPrivateGetAccounts(parameters);
@@ -2830,20 +2832,20 @@ public partial class cryptocom : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.type] 'future', 'option'
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
     public async virtual Task<object> fetchSettlementHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchSettlementHistory
-        * @description fetches historical settlement records
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price
-        * @param {string} symbol unified market symbol of the settlement history
-        * @param {int} [since] timestamp in ms
-        * @param {int} [limit] number of records
-        * @param {object} [params] exchange specific params
-        * @param {int} [params.type] 'future', 'option'
-        * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2929,21 +2931,21 @@ public partial class cryptocom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchFundingRateHistory
+     * @description fetches historical funding rates
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchFundingRateHistory
-        * @description fetches historical funding rates
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -3018,17 +3020,17 @@ public partial class cryptocom : Exchange
         return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3063,17 +3065,17 @@ public partial class cryptocom : Exchange
         return this.parsePosition(this.safeDict(data, 0), market);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchPositions
+     * @description fetch all open positions
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchPositions
-        * @description fetch all open positions
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3230,23 +3232,22 @@ public partial class cryptocom : Exchange
         return returnString;
     }
 
+    /**
+     * @method
+     * @name cryptocom#closePositions
+     * @description closes open positions for a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] not used by cryptocom.closePositions
+     * @param {object} [params] extra parameters specific to the okx api endpoint
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.type] LIMIT or MARKET
+     * @param {number} [params.price] for limit orders only
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#closePositions
-        * @description closes open positions for a market
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
-        * @param {string} symbol Unified CCXT market symbol
-        * @param {string} [marginMode] not used by cryptocom.closePositions
-        * @param {string} [side] not used by cryptocom.closePositions
-        * @param {object} [params] extra parameters specific to the okx api endpoint
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {string} [params.type] LIMIT or MARKET
-        * @param {number} [params.price] for limit orders only
-        * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3280,17 +3281,17 @@ public partial class cryptocom : Exchange
         return this.parseOrder(result, market);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3317,16 +3318,16 @@ public partial class cryptocom : Exchange
         return this.parseTradingFee(data, market);
     }
 
+    /**
+     * @method
+     * @name cryptocom#fetchTradingFees
+     * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name cryptocom#fetchTradingFees
-        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
-        * @description fetch the trading fees for multiple markets
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v1PrivatePostPrivateGetFeeRate(parameters);

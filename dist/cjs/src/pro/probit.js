@@ -47,15 +47,15 @@ class probit extends probit$1 {
             'streaming': {},
         });
     }
+    /**
+     * @method
+     * @name probit#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs-en.probit.com/reference/balance-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name probit#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs-en.probit.com/reference/balance-1
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.authenticate(params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
@@ -113,17 +113,17 @@ class probit extends probit$1 {
         }
         this.balance = this.safeBalance(this.balance);
     }
+    /**
+     * @method
+     * @name probit#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name probit#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://docs-en.probit.com/reference/marketdata
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTicker', 'filter', 'ticker');
         return await this.subscribeOrderBook(symbol, 'ticker', filter, params);
@@ -156,19 +156,19 @@ class probit extends probit$1 {
         this.tickers[symbol] = parsedTicker;
         client.resolve(parsedTicker, messageHash);
     }
+    /**
+     * @method
+     * @name probit#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name probit#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://docs-en.probit.com/reference/trade_history
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
         const trades = await this.subscribeOrderBook(symbol, 'trades', filter, params);
@@ -218,18 +218,18 @@ class probit extends probit$1 {
         this.trades[symbol] = stored;
         client.resolve(this.trades[symbol], messageHash);
     }
+    /**
+     * @method
+     * @name probit#watchMyTrades
+     * @description get the list of trades associated with the user
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name probit#watchMyTrades
-         * @description get the list of trades associated with the user
-         * @see https://docs-en.probit.com/reference/trade_history
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         await this.authenticate(params);
         let messageHash = 'myTrades';
@@ -299,19 +299,19 @@ class probit extends probit$1 {
         }
         client.resolve(stored, messageHash);
     }
+    /**
+     * @method
+     * @name probit#watchOrders
+     * @description watches information on an order made by the user
+     * @see https://docs-en.probit.com/reference/open_order
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum amount of orders to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name probit#watchOrders
-         * @description watches information on an order made by the user
-         * @see https://docs-en.probit.com/reference/open_order
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {int} [since] timestamp in ms of the earliest order to watch
-         * @param {int} [limit] the maximum amount of orders to watch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.authenticate(params);
         const url = this.urls['api']['ws'];
         let messageHash = 'orders';
@@ -386,17 +386,17 @@ class probit extends probit$1 {
         }
         client.resolve(stored, messageHash);
     }
+    /**
+     * @method
+     * @name probit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name probit#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://docs-en.probit.com/reference/marketdata
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'filter', 'order_books');
         const orderbook = await this.subscribeOrderBook(symbol, 'orderbook', filter, params);
