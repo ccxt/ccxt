@@ -3839,7 +3839,13 @@ export default class bybit extends Exchange {
                     request['qty'] = this.getCost (symbol, costRequest);
                 }
             } else {
-                request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                if (cost !== undefined) {
+                    request['qty'] = this.getCost (symbol, this.numberToString (cost));
+                } else if (price !== undefined) {
+                    request['qty'] = this.getCost (symbol, Precise.stringMul (amountString, priceString));
+                } else {
+                    request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                }
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
