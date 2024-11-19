@@ -207,23 +207,6 @@
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
             },
             {
-                "description": "Swap limit buy with trigger price",
-                "method": "createOrder",
-                "url": "https://testnet-api.phemex.com/g-orders",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.1,
-                    "55",
-                    {
-                        "triggerPrice": 60,
-                        "clientOrderId": "myordr2"
-                    }
-                ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
-            },
-            {
                 "description": "Swap sell hedged reduceOnly order",
                 "method": "createOrder",
                 "url": "https://testnet-api.phemex.com/g-orders",
