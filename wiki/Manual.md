@@ -270,9 +270,11 @@ $exchange = new $exchange_class(array(
 
 ### Features
 
-Major exchanges have `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods:
+Major exchanges have the `.features` property available, where you can see what methods are supported for each market type and what kind of functionalities are supported by those methods programatically.
 
-```
+*this feature is currently a work in progress and might be incomplete, feel free to report any issues you find in it*
+
+```Javascript
 const exchange = new ccxt.binance()
 console.log(exchange.features);
 
