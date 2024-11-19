@@ -995,12 +995,12 @@ export default class defx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 10;
+            limit = 10; // limit must be one of [5, 10, 20]
         }
         const request: Dict = {
             'symbol': market['id'],
             'level': limit,
-            'slab': 1,
+            'slab': 0.001,
         };
         const response = await this.v1PublicGetSymbolsSymbolDepthLevelSlab (this.extend (request, params));
         //
