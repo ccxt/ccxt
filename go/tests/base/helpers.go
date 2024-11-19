@@ -3,6 +3,7 @@ package base
 import (
 	"ccxt/go/ccxt"
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -36,7 +37,15 @@ func Assert(condition2 interface{}, message2 ...interface{}) {
 		if c, ok := condition2.(bool); ok {
 			condition = c
 		} else {
-			condition = false
+			var intCondition = ParseInt(condition2)
+			var stringCondition = ToString(condition2)
+			if intCondition != math.MinInt64 {
+				condition = intCondition != 0
+			} else if stringCondition != "" {
+				condition = len(stringCondition) > 0
+			} else {
+				condition = false
+			}
 		}
 	}
 
