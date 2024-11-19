@@ -29,6 +29,7 @@ type Exchange struct {
 	RequiredCredentials map[string]interface{}
 	MarketsById         map[string]interface{}
 	Timeframes          map[string]interface{}
+	Features            map[string]interface{}
 	Exceptions          map[string]interface{}
 	Precision           map[string]interface{}
 	Urls                interface{}

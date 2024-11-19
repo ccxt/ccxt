@@ -364,6 +364,7 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 
 	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
 	this.Timeframes = SafeValue(extendedProperties, "timeframes", map[string]interface{}{}).(map[string]interface{})
+	this.Features = SafeValue(extendedProperties, "features", map[string]interface{}{}).(map[string]interface{})
 	this.Fees = SafeValue(extendedProperties, "fees", map[string]interface{}{}).(map[string]interface{})
 	this.Has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]interface{}{}).(map[string]interface{})
