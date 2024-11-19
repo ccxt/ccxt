@@ -4773,6 +4773,7 @@ export default class coinex extends Exchange {
             'not_pass': 'failed',
             'cancel': 'canceled',
             'finish': 'ok',
+            'finished': 'ok',
             'fail': 'failed',
         };
         return this.safeString(statuses, status, status);

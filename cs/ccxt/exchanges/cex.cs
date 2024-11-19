@@ -109,6 +109,7 @@ public partial class cex : Exchange
                     { "Insufficient funds", typeof(InsufficientFunds) },
                     { "Get deposit address for main account is not allowed", typeof(PermissionDenied) },
                     { "Market Trigger orders are not allowed", typeof(BadRequest) },
+                    { "key not passed or incorrect", typeof(AuthenticationError) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {

@@ -4852,6 +4852,7 @@ class coinex extends Exchange {
             'not_pass' => 'failed',
             'cancel' => 'canceled',
             'finish' => 'ok',
+            'finished' => 'ok',
             'fail' => 'failed',
         );
         return $this->safe_string($statuses, $status, $status);

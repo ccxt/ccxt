@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -126,6 +127,7 @@ class cex(Exchange, ImplicitAPI):
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
                     'Market Trigger orders are not allowed': BadRequest,  # for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect': AuthenticationError,
                 },
             },
             'timeframes': {

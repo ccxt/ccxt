@@ -118,7 +118,8 @@ class cex extends cex$1 {
                     'check failed': errors.BadRequest,
                     'Insufficient funds': errors.InsufficientFunds,
                     'Get deposit address for main account is not allowed': errors.PermissionDenied,
-                    'Market Trigger orders are not allowed': errors.BadRequest, // for some reason, triggerPrice does not work for market orders
+                    'Market Trigger orders are not allowed': errors.BadRequest,
+                    'key not passed or incorrect': errors.AuthenticationError,
                 },
             },
             'timeframes': {

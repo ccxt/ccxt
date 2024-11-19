@@ -4770,6 +4770,7 @@ class coinex extends coinex$1 {
             'not_pass': 'failed',
             'cancel': 'canceled',
             'finish': 'ok',
+            'finished': 'ok',
             'fail': 'failed',
         };
         return this.safeString(statuses, status, status);
