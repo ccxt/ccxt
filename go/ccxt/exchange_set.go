@@ -12,6 +12,10 @@ func (this *Exchange) GetTimeframes() map[string]interface{} {
 	return this.Timeframes
 }
 
+func (this *Exchange) GetFeatures() map[string]interface{} {
+	return this.Features
+}
+
 func (this *Exchange) GetLast_request_url() interface{} {
 	return this.Last_request_url
 }

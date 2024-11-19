@@ -8,6 +8,7 @@ type IExchange interface {
 	SetWsProxy(wsProxy interface{})
 	GetAlias() interface{}
 	GetTimeframes() map[string]interface{}
+	GetFeatures() map[string]interface{}
 	SetTimeout(timeout interface{})
 	SetHttpsProxy(httpsProxy interface{})
 	SetHttpProxy(httpProxy interface{})
