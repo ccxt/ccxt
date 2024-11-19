@@ -499,6 +499,99 @@ export default class bingx extends Exchange {
                     'MATIC': 'POLYGON',
                 },
             },
+            
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'marginMode': false,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': false,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    // 'fetchMyTrades': {
+                    //     'limit': 100,
+                    //     'daysBack': 365 * 2, // 2 years
+                    //     'untilDays': 7, // days between start-end
+                    // },
+                    // 'fetchOrder': {
+                    //     'marginMode': false,
+                    //     'trigger': true,
+                    //     'trailing': false,
+                    // },
+                    // 'fetchOpenOrders': {
+                    //     'limit': 50,
+                    //     'marginMode': false,
+                    //     'trigger': true,
+                    //     'trailing': false,
+                    // },
+                    // 'fetchOrders': undefined,
+                    // 'fetchClosedOrders': {
+                    //     'limit': 50,
+                    //     'daysBackClosed': 365 * 2, // 2 years
+                    //     'daysBackCanceled': 1,
+                    //     'untilDays': 7,
+                    //     'marginMode': false,
+                    //     'trigger': true,
+                    //     'trailing': false,
+                    // },
+                    // 'fetchOHLCV': {
+                    //     'limit': 1000,
+                    // },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'attachedStopLossTakeProfit': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
         });
     }
 
