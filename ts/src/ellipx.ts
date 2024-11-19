@@ -306,7 +306,7 @@ export default class ellipx extends Exchange {
     /**
      * Fetches market information from the exchange.
      * @see https://docs.ccxt.com/en/latest/manual.html#markets
-     * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
+     * @param {object} [params] - Extra parameters specific to the exchange API endpoint
      * @returns {Promise<object[]>} An array of market structures, each containing:
      *    - {string} id - The market ID in the exchange-specific format
      *    - {string} symbol - The unified market symbol (e.g., 'BTC/USD')
@@ -333,15 +333,9 @@ export default class ellipx extends Exchange {
         const quote = this.safeString (market['Secondary'], 'Key');
         const status = this.safeString (market, 'Status') === 'active';
         const created = this.safeTimestamp (market['Created'], 'unix');
-        let amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
-        let pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
-        if (amountPrecision === undefined) {
-            amountPrecision = undefined;
-        }
-        if (pricePrecision === undefined) {
-            pricePrecision = undefined;
-        }
-        return {
+        const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
+        const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -385,7 +379,7 @@ export default class ellipx extends Exchange {
             },
             'info': market,
             'created': created,
-        };
+        });
     }
 
     /**
