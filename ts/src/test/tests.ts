@@ -894,6 +894,7 @@ class testMainClass {
             }
             throw e;
         }
+        return true; // required in c#
     }
 
     assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {
