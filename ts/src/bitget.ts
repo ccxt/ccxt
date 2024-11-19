@@ -3954,7 +3954,7 @@ export default class bitget extends Exchange {
         const isBuyMarket = (side === 'buy') && (orderType === 'market');
         if (isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
-            size = filled;
+            size = undefined;
         }
         return this.safeOrder ({
             'info': order,
