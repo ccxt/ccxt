@@ -3950,6 +3950,12 @@ export default class bitget extends Exchange {
             // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
             // so the side of the reduceOnly order is inversed
         }
+        const orderType = this.safeString (order, 'orderType');
+        const isBuyMarket = (side === 'buy') && (orderType === 'market');
+        if (isBuyMarket) {
+            // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
+            size = filled;
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString2 (order, 'orderId', 'data'),
@@ -3959,7 +3965,7 @@ export default class bitget extends Exchange {
             'lastTradeTimestamp': updateTimestamp,
             'lastUpdateTimestamp': updateTimestamp,
             'symbol': market['symbol'],
-            'type': this.safeString (order, 'orderType'),
+            'type': orderType,
             'side': side,
             'price': price,
             'amount': size,
