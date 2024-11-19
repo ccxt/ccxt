@@ -1181,6 +1181,97 @@ class okx extends Exchange {
                 ),
                 'brokerId' => 'e847386590ce4dBC',
             ),
+            'features' => array(
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'marginMode' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'limitPrice' => true,
+                        ),
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention' => true,
+                        'trailing' => true,
+                        'twap' => true,
+                        'iceberg' => true,
+                        'oco' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'daysBack' => 90,
+                        'limit' => 100,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'limit' => 100,
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOrders' => null, // not supported
+                    'fetchClosedOrders' => array(
+                        'limit' => 100,
+                        'daysBackClosed' => 90, // 3 months
+                        'daysBackCanceled' => 1 / 12, // 2 hour
+                        'untilDays' => null,
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981

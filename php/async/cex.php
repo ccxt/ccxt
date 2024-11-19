@@ -123,6 +123,7 @@ class cex extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'timeframes' => array(

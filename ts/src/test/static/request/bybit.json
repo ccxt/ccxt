@@ -9,6 +9,18 @@
     "methods": {
         "createOrder": [
             {
+                "description": "spot market buy order",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                    "XRP/USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "{\"symbol\":\"XRPUSDT\",\"side\":\"Buy\",\"orderType\":\"Market\",\"category\":\"spot\",\"marketUnit\":\"baseCoin\",\"qty\":\"10\"}"
+            },
+            {
                 "description": "spot market order with stopPrice",
                 "method": "createOrder",
                 "url": "https://api-testnet.bybit.com/v5/order/create",

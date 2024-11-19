@@ -179,6 +179,7 @@ class kraken extends kraken$1 {
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
                         'AddExport': 3,
+                        'AmendOrder': 0,
                         'Balance': 3,
                         'CancelAll': 3,
                         'CancelAllOrdersAfter': 3,

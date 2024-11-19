@@ -434,7 +434,7 @@ public partial class kucoinfutures
     /// <item>
     /// <term>params.leverage</term>
     /// <description>
-    /// float : Leverage size of the order
+    /// float : Leverage size of the order (mandatory param in request, default is 1)
     /// </description>
     /// </item>
     /// <item>

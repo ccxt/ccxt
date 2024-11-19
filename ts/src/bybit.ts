@@ -997,7 +997,7 @@ export default class bybit extends Exchange {
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': true, // only true for classic accounts
+                'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  // 'linear', 'inverse'
@@ -1055,6 +1055,122 @@ export default class bybit extends Exchange {
                     '1h': '1h',
                     '4h': '4h',
                     '1d': '1d',
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'marginMode': false,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                        'daysBack': 365 * 2, // 2 years
+                        'untilDays': 7, // days between start-end
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 50,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'limit': 50,
+                        'daysBackClosed': 365 * 2, // 2 years
+                        'daysBackCanceled': 1,
+                        'untilDays': 7,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': undefined,
+                            'limitPrice': true,
+                        },
+                        'marginMode': false,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // exchange-supported features
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': false,
+                        'iceberg': false,
+                        'oco': false,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
                 },
             },
             'fees': {
@@ -3832,7 +3948,7 @@ export default class bybit extends Exchange {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
+            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
@@ -3842,7 +3958,13 @@ export default class bybit extends Exchange {
                     request['qty'] = this.getCost (symbol, costRequest);
                 }
             } else {
-                request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                if (cost !== undefined) {
+                    request['qty'] = this.getCost (symbol, this.numberToString (cost));
+                } else if (price !== undefined) {
+                    request['qty'] = this.getCost (symbol, Precise.stringMul (amountString, priceString));
+                } else {
+                    request['qty'] = this.getCost (symbol, this.numberToString (amount));
+                }
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {

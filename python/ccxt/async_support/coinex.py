@@ -4575,6 +4575,7 @@ class coinex(Exchange, ImplicitAPI):
             'not_pass': 'failed',
             'cancel': 'canceled',
             'finish': 'ok',
+            'finished': 'ok',
             'fail': 'failed',
         }
         return self.safe_string(statuses, status, status)
