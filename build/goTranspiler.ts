@@ -110,6 +110,7 @@ const VIRTUAL_BASE_METHODS = [
     "fetchLeverageTiers",
     "fetchDepositsWithdrawals",
     "fetchMarginModes",
+    "fetchMarginMode",
     "fetchFundingRates",
     "fetchDepositWithdrawFees",
     "parseMarginModification",
