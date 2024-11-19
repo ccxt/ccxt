@@ -1952,6 +1952,8 @@ export default class binance extends Exchange {
                         '-4088': PermissionDenied, // User can not place order currently
                         '-4114': BadRequest, // INVALID_CLIENT_TRAN_ID_LEN
                         '-4115': BadRequest, // DUPLICATED_CLIENT_TRAN_ID
+                        '-4116': BadRequest, // DUPLICATED_CLIENT_ORDER_ID
+                        '-4117': OperationRejected, // STOP_ORDER_TRIGGERING
                         '-4118': OperationRejected, // REDUCE_ONLY_MARGIN_CHECK_FAILED
                         '-4131': OperationRejected, // The counterparty's best price does not meet the PERCENT_PRICE filter limit
                         '-4140': BadRequest, // Invalid symbol status for opening position
