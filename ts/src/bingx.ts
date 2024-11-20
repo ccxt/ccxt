@@ -529,12 +529,7 @@ export default class bingx extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        // exchange-supported features
-                        // 'selfTradePrevention': false,
-                        // 'trailing': true,
-                        // 'iceberg': false,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'trailing': true,
                     },
                     'createOrders': {
                         'max': 5,
@@ -603,11 +598,7 @@ export default class bingx extends Exchange {
                     'createOrder': {
                         'triggerPriceType': undefined,
                         'attachedStopLossTakeProfit': undefined,
-                        // exchange-supported features
-                        // 'trailing': false,
-                        // 'iceberg': false,
-                        // 'twap': false,
-                        // 'oco': false,
+                        'trailing': false,
                     },
                     'fetchMyTrades': {
                         'limit': 1000,
