@@ -847,8 +847,9 @@ export default class ellipx extends Exchange {
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketId = market['id'];
         const request = {
-            'currencyPair': market['symbol'].replace ('/', '_'),
+            'currencyPair': marketId,
         };
         // endpoint support before trade id.
         // The actual endpoint URL will be: https://data.ellipx.com/Market/{currencyPair}:getTrades
@@ -1044,7 +1045,7 @@ export default class ellipx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
-        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const marketId = market['id'];
         let Type = 'bid';
         if (side === 'buy') {
             Type = 'bid';
@@ -1052,7 +1053,7 @@ export default class ellipx extends Exchange {
             Type = 'ask';
         }
         const request: any = {
-            'currencyPair': marketSymbol,
+            'currencyPair': marketId,
             'Type': Type,
         };
         if (amount === undefined && params['Spend_Limit'] === undefined) {
@@ -1160,7 +1161,8 @@ export default class ellipx extends Exchange {
         const request: any = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['currencyPair'] = market['symbol'].replace ('/', '_');
+            const marketId = market['id'];
+            request['currencyPair'] = marketId;
         }
         if (status !== undefined) {
             request['Status'] = status;
