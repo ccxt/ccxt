@@ -115,7 +115,7 @@ function testFeaturesInner (exchange: Exchange, skippedProperties: object, featu
         testSharedMethods.assertInArray (exchange, skippedProperties, 'features', featureKeys, i, allMethods);
         testSharedMethods.assertStructure (exchange, skippedProperties, 'features', featureObj, format, undefined, true); // deep structure check
     }
-    return true;
+    // return true;
 }
 
 export default testFeatures;
