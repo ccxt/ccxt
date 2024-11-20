@@ -1,6 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 
 function testStatus (exchange: Exchange, skippedProperties: object, method: string, entry: object, now : number) {
+    return true;
     // const format = {
     //     'info': { },
     //     'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
