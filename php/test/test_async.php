@@ -1204,7 +1204,7 @@ class testMainClass extends baseMainTestClass {
                 $new_value = $new_output[$key];
                 $this->assert_new_and_stored_output($exchange, $skip_keys, $new_value, $stored_value, $strict_type_check, $key);
             }
-        } elseif (gettype($stored_output) === 'array' && array_keys($stored_output) === array_keys(array_keys($stored_output)) && (gettype($new_output) === 'array' && array_keys($new_output) === array_keys(array_keys($new_output)))) {
+        } elseif (gettype($stored_output) === 'array' && array_is_list($stored_output) && (gettype($new_output) === 'array' && array_is_list($new_output))) {
             $stored_array_length = count($stored_output);
             $new_array_length = count($new_output);
             $this->assert_static_error($stored_array_length === $new_array_length, 'output length mismatch', $stored_output, $new_output);
