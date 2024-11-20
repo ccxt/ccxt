@@ -126,7 +126,7 @@ export default class twox extends Exchange {
         const result = [];
         const quotes = [ 'IRT', 'USDT' ];
         for (let i = 0; i < response.length; i++) {
-            const marketData = { ...response[i] };
+            const marketData = this.extend ({}, response[i]);
             const base = this.safeString (marketData, 'symbol');
             for (let index = 0; index < quotes.length; index++) {
                 const quote = quotes[index];
