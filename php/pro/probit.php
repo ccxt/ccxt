@@ -59,7 +59,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs-en.probit.com/reference/balance-1
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -128,7 +130,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs-en.probit.com/reference/marketdata
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->interval] Unit time to synchronize market information (ms). Available units => 100, 500
@@ -173,7 +177,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs-en.probit.com/reference/trade_history
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -237,7 +243,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
+             *
              * @see https://docs-en.probit.com/reference/trade_history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -320,7 +328,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on an order made by the user
+             *
              * @see https://docs-en.probit.com/reference/open_order
+             *
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {int} [$since] timestamp in ms of the earliest order to watch
              * @param {int} [$limit] the maximum amount of $orders to watch
@@ -409,7 +419,9 @@ class probit extends \ccxt\async\probit {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs-en.probit.com/reference/marketdata
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

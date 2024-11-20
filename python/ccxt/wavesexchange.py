@@ -607,7 +607,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
+
+        https://matcher.waves.exchange/api-docs/index.html#/markets/getOrderBook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -728,7 +730,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def sign_in(self, params={}):
         """
         sign in, must be called prior to using other authenticated methods
-        :see: https://docs.wx.network/en/api/auth/oauth2-token
+
+        https://docs.wx.network/en/api/auth/oauth2-token
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
@@ -839,7 +843,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
+
+        https://api.wavesplatform.com/v0/docs/#/pairs/getPairsListAll
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -920,7 +926,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://api.wavesplatform.com/v0/docs/#/candles/getCandles
+
+        https://api.wavesplatform.com/v0/docs/#/candles/getCandles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1226,7 +1234,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
+
+        https://matcher.waves.exchange/api-docs/index.html#/serialize/serializeOrder
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1396,6 +1406,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
+
+        https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1442,7 +1455,10 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+
+        https://matcher.waves.exchange/api-docs/index.html#/status/getOrderStatusByPKAndIdWithSig
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1873,6 +1889,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
+
+        https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1962,6 +1981,9 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2203,8 +2225,10 @@ class wavesexchange(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://docs.wx.network/en/api/gateways/deposit/currencies
-        :see: https://docs.wx.network/en/api/gateways/withdraw/currencies
+
+        https://docs.wx.network/en/api/gateways/deposit/currencies
+        https://docs.wx.network/en/api/gateways/withdraw/currencies
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`

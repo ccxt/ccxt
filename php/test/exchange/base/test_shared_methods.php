@@ -53,7 +53,7 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
 }
 
 
-function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = []) {
+function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = null, $deep = false) {
     $log_text = log_template($exchange, $method, $entry);
     assert($entry, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -63,7 +63,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         $expected_length = count($format);
         assert($real_length === $expected_length, 'entry length is not equal to expected length of ' . ((string) $expected_length) . $log_text);
         for ($i = 0; $i < count($format); $i++) {
-            $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
             if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
                 continue;
@@ -91,7 +91,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -105,6 +105,11 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                if ($deep) {
+                    if (is_array($value)) {
+                        assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
+                    }
+                }
             }
         }
     }

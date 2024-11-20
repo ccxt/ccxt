@@ -64,6 +64,7 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
+    public Dictionary<string, object> features { get; set; } = new dict();
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
@@ -278,5 +279,6 @@ public partial class Exchange
         this.httpProxy = SafeString(extendedProperties, "httpProxy");
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
+        this.features = SafeValue(extendedProperties, "features", features) as dict;
     }
 }
