@@ -529,9 +529,9 @@ export default class bingx extends Exchange {
                         },
                         'hedged': true,
                         // exchange-supported features
-                        'selfTradePrevention': false,
-                        'trailing': true,
-                        'iceberg': false,
+                        // 'selfTradePrevention': false,
+                        // 'trailing': true,
+                        // 'iceberg': false,
                         // 'twap': false,
                         // 'oco': false,
                     },
@@ -600,11 +600,11 @@ export default class bingx extends Exchange {
                 'spot': {
                     'extends': 'defaultForLinear',
                     'createOrder': {
-                        'triggerPriceType': undefined,'attachedStopLossTakeProfit': undefined,
-                        'hedged': false,
+                        'triggerPriceType': undefined,
+                        'attachedStopLossTakeProfit': undefined,
                         // exchange-supported features
-                        'trailing': false,
-                        'iceberg': false,
+                        // 'trailing': false,
+                        // 'iceberg': false,
                         // 'twap': false,
                         // 'oco': false,
                     },
