@@ -133,7 +133,9 @@ class paymium extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
@@ -145,7 +147,9 @@ class paymium extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1depth/get
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -212,7 +216,9 @@ class paymium extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1ticker/get
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -272,7 +278,9 @@ class paymium extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/{1data}1%7Bcurrency%7D~1trades/get
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -291,7 +299,9 @@ class paymium extends Exchange {
     public function create_deposit_address(string $code, $params = array ()) {
         /**
          * create a currency deposit address
+         *
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/post
+         *
          * @param {string} $code unified currency $code of the currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -312,7 +322,9 @@ class paymium extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit address for a currency associated with this account
+         *
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses~1%7Baddress%7D/get
+         *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -336,7 +348,9 @@ class paymium extends Exchange {
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
          * fetch deposit addresses for multiple currencies and chain types
+         *
          * @see https://paymium.github.io/api-documentation/#tag/User/paths/{1user}1addresses/get
+         *
          * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
@@ -379,7 +393,9 @@ class paymium extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade order
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders/post
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -409,8 +425,10 @@ class paymium extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D/delete
          * @see https://paymium.github.io/api-documentation/#tag/Order/paths/{1user}1orders~1%7Buuid%7D~1cancel/delete
+         *
          * @param {string} $id order $id
          * @param {string} $symbol not used by paymium cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -428,7 +446,9 @@ class paymium extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/{1user}1email_transfers/post
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
          * @param {string} $fromAccount account to transfer from

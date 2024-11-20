@@ -934,6 +934,59 @@
                   "takeProfitPrice": null
                 }
             }
+        ],
+        "fetchBorrowInterest": [
+          {
+            "description": "isolated borrow interest",
+            "method": "fetchBorrowInterest",
+            "input": [
+              "USDT",
+              "ETH/USDT",
+              null,
+              1
+            ],
+            "httpResponse": {
+              "message": "OK",
+              "code": "1000",
+              "trace": "d56d6fe2db344bbeb979604275343640.85.17314814975034218",
+              "data": {
+                "records": [
+                  {
+                    "borrow_id": "17314813190079LvqkGNtHZ0QSBPT",
+                    "symbol": "ETH_USDT",
+                    "currency": "USDT",
+                    "borrow_amount": "10.20000000",
+                    "daily_interest": "0.00055000",
+                    "hourly_interest": "0.00002291",
+                    "interest_amount": null,
+                    "create_time": "1731481319634"
+                  }
+                ]
+              }
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "borrow_id": "17314813190079LvqkGNtHZ0QSBPT",
+                  "symbol": "ETH_USDT",
+                  "currency": "USDT",
+                  "borrow_amount": "10.20000000",
+                  "daily_interest": "0.00055000",
+                  "hourly_interest": "0.00002291",
+                  "interest_amount": null,
+                  "create_time": "1731481319634"
+                },
+                "symbol": "ETH/USDT",
+                "currency": "USDT",
+                "interest": null,
+                "interestRate": 0.00002291,
+                "amountBorrowed": 10.2,
+                "marginMode": "isolated",
+                "timestamp": 1731481319634,
+                "datetime": "2024-11-13T07:01:59.634Z"
+              }
+            ]
+          }
         ]
     }
 }

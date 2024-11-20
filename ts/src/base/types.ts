@@ -353,6 +353,7 @@ export interface BorrowInterest {
 
 export interface LeverageTier {
     tier?: number;
+    symbol?: Str;
     currency?: Str;
     minNotional?: number;
     maxNotional?: number;

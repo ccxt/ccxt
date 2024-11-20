@@ -74,15 +74,15 @@ public partial class poloniex : ccxt.poloniex
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description authenticates the user to access private web socket channels
+     * @see https://api-docs.poloniex.com/spot/websocket/authentication
+     * @returns {object} response from exchange
+     */
     public async virtual Task<object> authenticate(object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description authenticates the user to access private web socket channels
-        * @see https://api-docs.poloniex.com/spot/websocket/authentication
-        * @returns {object} response from exchange
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object timestamp = this.numberToString(this.milliseconds());
@@ -133,18 +133,19 @@ public partial class poloniex : ccxt.poloniex
         return future;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash unique identifier for the message
+     * @param {boolean} isPrivate true for the authenticated url, false for the public url
+     * @param {string[]} [symbols] CCXT market symbols
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> subscribe(object name, object messageHash, object isPrivate, object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @param {string} name name of the channel
-        * @param {boolean} isPrivate true for the authenticated url, false for the public url
-        * @param {string[]|undefined} symbols CCXT market symbols
-        * @param {object} [params] extra parameters specific to the poloniex api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         object publicOrPrivate = ((bool) isTrue(isPrivate)) ? "private" : "public";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), publicOrPrivate);
@@ -169,17 +170,16 @@ public partial class poloniex : ccxt.poloniex
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> tradeRequest(object name, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @param {string} name name of the channel
-        * @param {string[]|undefined} symbols CCXT market symbols
-        * @param {object} [params] extra parameters specific to the poloniex api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object messageHash = ((object)this.nonce()).ToString();
@@ -191,30 +191,30 @@ public partial class poloniex : ccxt.poloniex
         return await this.watch(url, messageHash, subscribe, messageHash);
     }
 
+    /**
+     * @method
+     * @name poloniex#createOrderWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {string} [params.timeInForce] GTC (default), IOC, FOK
+     * @param {string} [params.clientOrderId] Maximum 64-character length.*
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.amount] quote units for the order
+     * @param {boolean} [params.allowBorrow] allow order to be placed by borrowing funds (Default: false)
+     * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
+     * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
+     * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#createOrderWs
-        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#create-order
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the poloniex api endpoint
-        * @param {string} [params.timeInForce] GTC (default), IOC, FOK
-        * @param {string} [params.clientOrderId] Maximum 64-character length.*
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        *
-        * EXCHANGE SPECIFIC PARAMETERS
-        * @param {string} [params.amount] quote units for the order
-        * @param {boolean} [params.allowBorrow] allow order to be placed by borrowing funds (Default: false)
-        * @param {string} [params.stpMode] self-trade prevention, defaults to expire_taker, none: enable self-trade; expire_taker: taker order will be canceled when self-trade happens
-        * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
-        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -271,19 +271,19 @@ public partial class poloniex : ccxt.poloniex
         return await this.tradeRequest("createOrder", this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name poloniex#cancelOrderWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+     * @description cancel multiple orders
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {string} [params.clientOrderId] client order id
+     * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#cancelOrderWs
-        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
-        * @description cancel multiple orders
-        * @param {string} id order id
-        * @param {string} [symbol] unified market symbol
-        * @param {object} [params] extra parameters specific to the poloniex api endpoint
-        * @param {string} [params.clientOrderId] client order id
-        * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -294,19 +294,19 @@ public partial class poloniex : ccxt.poloniex
         return await this.cancelOrdersWs(new List<object>() {id}, symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name poloniex#cancelOrdersWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
+     * @description cancel multiple orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol, default is undefined
+     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#cancelOrdersWs
-        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-multiple-orders
-        * @description cancel multiple orders
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified market symbol, default is undefined
-        * @param {object} [params] extra parameters specific to the poloniex api endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
-        * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -316,17 +316,17 @@ public partial class poloniex : ccxt.poloniex
         return await this.tradeRequest("cancelOrders", this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name poloniex#cancelAllOrdersWs
+     * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
+     * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+     */
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#cancelAllOrdersWs
-        * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
-        * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the poloniex api endpoint
-        * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -358,20 +358,20 @@ public partial class poloniex : ccxt.poloniex
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
     }
 
+    /**
+     * @method
+     * @name poloniex#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -389,17 +389,17 @@ public partial class poloniex : ccxt.poloniex
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbol = this.symbol(symbol);
@@ -407,17 +407,17 @@ public partial class poloniex : ccxt.poloniex
         return this.safeValue(tickers, symbol);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
+     * @param {string[]} symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "ticker";
@@ -430,36 +430,36 @@ public partial class poloniex : ccxt.poloniex
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchTradesForSymbols
-        * @description get the list of most recent trades for a list of symbols
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
-        * @param {string[]} symbols unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false, true, true);
@@ -490,18 +490,18 @@ public partial class poloniex : ccxt.poloniex
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by poloniex watchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] not used by poloniex watchOrderBook
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
@@ -513,19 +513,19 @@ public partial class poloniex : ccxt.poloniex
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name poloniex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://api-docs.poloniex.com/spot/websocket/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] not used by poloniex watchOrders
+     * @param {int} [limit] not used by poloniex watchOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://api-docs.poloniex.com/spot/websocket/order
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] not used by poloniex watchOrders
-        * @param {int} [limit] not used by poloniex watchOrders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "orders";
@@ -543,19 +543,19 @@ public partial class poloniex : ccxt.poloniex
         return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchMyTrades
+     * @description watches information on multiple trades made by the user using orders stream
+     * @see https://api-docs.poloniex.com/spot/websocket/order
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] not used by poloniex watchMyTrades
+     * @param {int} [limit] not used by poloniex watchMyTrades
+     * @param {object} [params] extra parameters specific to the poloniex strean
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchMyTrades
-        * @description watches information on multiple trades made by the user using orders stream
-        * @see https://api-docs.poloniex.com/spot/websocket/order
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] not used by poloniex watchMyTrades
-        * @param {int} [limit] not used by poloniex watchMyTrades
-        * @param {object} [params] extra parameters specific to the poloniex strean
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "orders";
@@ -574,16 +574,16 @@ public partial class poloniex : ccxt.poloniex
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
+    /**
+     * @method
+     * @name poloniex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.poloniex.com/spot/websocket/balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name poloniex#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://api-docs.poloniex.com/spot/websocket/balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "balances";

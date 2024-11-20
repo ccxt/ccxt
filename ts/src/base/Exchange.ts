@@ -394,6 +394,7 @@ export default class Exchange {
     enableLastResponseHeaders: boolean = true;
     enableRateLimit: boolean = undefined;
     exceptions: Dictionary<string> = {};
+    features: Dictionary<Dictionary<any>> = undefined;
     fees: {
         trading: {
             tierBased: Bool,
@@ -2485,8 +2486,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchTrades() is not supported yet');
+    }
+
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchTradesForSymbols() is not supported yet');
     }
 
     async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -2501,8 +2510,16 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchOHLCVForSymbols() is not supported yet');
     }
 
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchOHLCVForSymbols() is not supported yet');
+    }
+
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchOrderBookForSymbols() is not supported yet');
     }
 
     async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
@@ -2511,6 +2528,10 @@ export default class Exchange {
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
+    }
+
+    async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' fetchOrderBookWs() is not supported yet');
     }
 
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
@@ -2543,6 +2564,10 @@ export default class Exchange {
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchOrderBook() is not supported yet');
     }
 
     async fetchTime (params = {}): Promise<Int> {
@@ -2809,6 +2834,94 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+        this.featuresGenerator ();
+    }
+
+    featuresGenerator () {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : {
+        //             'createOrder' : {...},
+        //             'fetchOrders' : {...},
+        //         },
+        //         'swap': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         },
+        //         'future': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot": {
+        //             "createOrder": undefined,
+        //             "fetchBalance": undefined,
+        //             ...
+        //         },
+        //         "swap": {
+        //             ...
+        //         }
+        //     }
+        //
+        if (this.features === undefined) {
+            return;
+        }
+        // reconstruct
+        const initialFeatures = this.features;
+        this.features = {};
+        const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
+        const subTypes = [ 'linear', 'inverse' ];
+        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for (let i = 0; i < unifiedMarketTypes.length; i++) {
+            const marketType = unifiedMarketTypes[i];
+            // if marketType is not filled for this exchange, don't add that in `features`
+            if (!(marketType in initialFeatures)) {
+                this.features[marketType] = undefined;
+            } else {
+                if (marketType === 'spot') {
+                    this.features[marketType] = this.featuresMapper (initialFeatures, marketType, undefined);
+                } else {
+                    this.features[marketType] = {};
+                    for (let j = 0; j < subTypes.length; j++) {
+                        const subType = subTypes[j];
+                        this.features[marketType][subType] = this.featuresMapper (initialFeatures, marketType, subType);
+                    }
+                }
+            }
+        }
+    }
+
+    featuresMapper (initialFeatures: any, marketType: Str, subType: Str = undefined) {
+        let featuresObj = (subType !== undefined) ? initialFeatures[marketType][subType] : initialFeatures[marketType];
+        const extendsStr: Str = this.safeString (featuresObj, 'extends');
+        if (extendsStr !== undefined) {
+            featuresObj = this.omit (featuresObj, 'extends');
+            const extendObj = initialFeatures[extendsStr];
+            featuresObj = this.extend (extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+        }
+        //
+        // corrections
+        //
+        if ('createOrder' in featuresObj) {
+            const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if (value !== undefined) {
+                featuresObj['createOrder']['stopLoss'] = value;
+                featuresObj['createOrder']['takeProfit'] = value;
+            }
+            // omit 'hedged' from spot
+            if (marketType === 'spot') {
+                featuresObj['createOrder']['hedged'] = undefined;
+            }
+        }
+        return featuresObj;
     }
 
     orderbookChecksumMessage (symbol:Str) {
@@ -5107,6 +5220,10 @@ export default class Exchange {
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' watchTickers() is not supported yet');
+    }
+
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchTickers() is not supported yet');
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {

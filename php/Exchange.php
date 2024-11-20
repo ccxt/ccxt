@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.26';
+$version = '4.4.32';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.26';
+    const VERSION = '4.4.32';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -287,6 +287,7 @@ class Exchange {
 
     // API methods metainfo
     public $has = array();
+    public $features = array();
 
     public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;
@@ -3014,8 +3015,16 @@ class Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
+    public function un_watch_trades(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTrades() is not supported yet');
+    }
+
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTradesForSymbols() is not supported yet');
     }
 
     public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3030,8 +3039,16 @@ class Exchange {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
 
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchOHLCVForSymbols() is not supported yet');
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchOrderBookForSymbols() is not supported yet');
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -3040,6 +3057,10 @@ class Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBookWs() is not supported yet');
     }
 
     public function fetch_margin_mode(string $symbol, $params = array ()) {
@@ -3072,6 +3093,10 @@ class Exchange {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function un_watch_order_book(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchOrderBook() is not supported yet');
     }
 
     public function fetch_time($params = array ()) {
@@ -3336,6 +3361,94 @@ class Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->features_generator();
+    }
+
+    public function features_generator() {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : array(
+        //             'createOrder' : array(...),
+        //             'fetchOrders' : array(...),
+        //         ),
+        //         'swap' => array(
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         ),
+        //         'future' => {
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot" => array(
+        //             "createOrder" => null,
+        //             "fetchBalance" => null,
+        //             ...
+        //         ),
+        //         "swap" => {
+        //             ...
+        //         }
+        //     }
+        //
+        if ($this->features === null) {
+            return;
+        }
+        // reconstruct
+        $initialFeatures = $this->features;
+        $this->features = array();
+        $unifiedMarketTypes = array( 'spot', 'swap', 'future', 'option' );
+        $subTypes = array( 'linear', 'inverse' );
+        // atm only support basic methods to avoid to be able to maintain, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
+            $marketType = $unifiedMarketTypes[$i];
+            // if $marketType is not filled for this exchange, don't add that in `features`
+            if (!(is_array($initialFeatures) && array_key_exists($marketType, $initialFeatures))) {
+                $this->features[$marketType] = null;
+            } else {
+                if ($marketType === 'spot') {
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                } else {
+                    $this->features[$marketType] = array();
+                    for ($j = 0; $j < count($subTypes); $j++) {
+                        $subType = $subTypes[$j];
+                        $this->features[$marketType][$subType] = $this->features_mapper($initialFeatures, $marketType, $subType);
+                    }
+                }
+            }
+        }
+    }
+
+    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+        $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        $extendsStr = $this->safe_string($featuresObj, 'extends');
+        if ($extendsStr !== null) {
+            $featuresObj = $this->omit($featuresObj, 'extends');
+            $extendObj = $initialFeatures[$extendsStr];
+            $featuresObj = $this->extend($extendObj, $featuresObj); // Warning, do not use deepExtend here, because we override only one level
+        }
+        //
+        // corrections
+        //
+        if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
+            $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if ($value !== null) {
+                $featuresObj['createOrder']['stopLoss'] = $value;
+                $featuresObj['createOrder']['takeProfit'] = $value;
+            }
+            // omit 'hedged' from spot
+            if ($marketType === 'spot') {
+                $featuresObj['createOrder']['hedged'] = null;
+            }
+        }
+        return $featuresObj;
     }
 
     public function orderbook_checksum_message(?string $symbol) {
@@ -5621,6 +5734,10 @@ class Exchange {
 
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
+    }
+
+    public function un_watch_tickers(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' unWatchTickers() is not supported yet');
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

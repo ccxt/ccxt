@@ -327,16 +327,16 @@ public partial class woo : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name woo#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.woo.org/#get-system-maintenance-status-public
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.woo.org/#get-system-maintenance-status-public
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetSystemInfo(parameters);
         //
@@ -370,16 +370,16 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.woo.org/#get-system-maintenance-status-public
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.woo.org/#get-system-maintenance-status-public
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetSystemInfo(parameters);
         //
@@ -395,16 +395,16 @@ public partial class woo : Exchange
         return this.safeInteger(response, "timestamp");
     }
 
+    /**
+     * @method
+     * @name woo#fetchMarkets
+     * @description retrieves data on all markets for woo
+     * @see https://docs.woo.org/#exchange-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchMarkets
-        * @description retrieves data on all markets for woo
-        * @see https://docs.woo.org/#exchange-information
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PublicGetInfo(parameters);
         //
@@ -520,19 +520,19 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.woo.org/#market-trades-public
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.woo.org/#market-trades-public
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -662,16 +662,16 @@ public partial class woo : Exchange
         return fee;
     }
 
+    /**
+     * @method
+     * @name woo#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://docs.woo.org/#get-account-information-new
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://docs.woo.org/#get-account-information-new
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v3PrivateGetAccountinfo(parameters);
@@ -722,16 +722,16 @@ public partial class woo : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name woo#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.woo.org/#available-token-public
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.woo.org/#available-token-public
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
         object tokenResponse = await this.v1PublicGetToken(parameters);
@@ -865,18 +865,18 @@ public partial class woo : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name woo#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://docs.woo.org/#send-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol and cost
-        * @see https://docs.woo.org/#send-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -887,18 +887,18 @@ public partial class woo : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://docs.woo.org/#send-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createMarketSellOrderWithCost
-        * @description create a market sell order by providing the symbol and cost
-        * @see https://docs.woo.org/#send-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -909,23 +909,23 @@ public partial class woo : Exchange
         return await this.createOrder(symbol, "market", "sell", cost, 1, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#createTrailingAmountOrder
+     * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+     * @see https://docs.woo.org/#send-algo-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+     * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+     * @param {float} trailingAmount the quote amount to trail away from the current market price
+     * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createTrailingAmountOrder
-        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
-        * @see https://docs.woo.org/#send-algo-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-        * @param {float} trailingAmount the quote amount to trail away from the current market price
-        * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingAmount, null)))
         {
@@ -940,23 +940,23 @@ public partial class woo : Exchange
         return await this.createOrder(symbol, type, side, amount, price, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#createTrailingPercentOrder
+     * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+     * @see https://docs.woo.org/#send-algo-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+     * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+     * @param {float} trailingPercent the percent to trail away from the current market price
+     * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createTrailingPercentOrder(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createTrailingPercentOrder
-        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
-        * @see https://docs.woo.org/#send-algo-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
-        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
-        * @param {float} trailingPercent the percent to trail away from the current market price
-        * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(trailingPercent, null)))
         {
@@ -971,34 +971,34 @@ public partial class woo : Exchange
         return await this.createOrder(symbol, type, side, amount, price, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#createOrder
+     * @description create a trade order
+     * @see https://docs.woo.org/#send-order
+     * @see https://docs.woo.org/#send-algo-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createOrder
-        * @description create a trade order
-        * @see https://docs.woo.org/#send-order
-        * @see https://docs.woo.org/#send-algo-order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {float} [params.algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-        * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
-        * @param {string} [params.trailingPercent] the percent to trail away from the current market price
-        * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-        * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only"});
@@ -1205,31 +1205,31 @@ public partial class woo : Exchange
         return this.safeString(modes, mode, mode);
     }
 
+    /**
+     * @method
+     * @name woo#editOrder
+     * @description edit a trade order
+     * @see https://docs.woo.org/#edit-order
+     * @see https://docs.woo.org/#edit-order-by-client_order_id
+     * @see https://docs.woo.org/#edit-algo-order
+     * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] the percent to trail away from the current market price
+     * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#editOrder
-        * @description edit a trade order
-        * @see https://docs.woo.org/#edit-order
-        * @see https://docs.woo.org/#edit-order-by-client_order_id
-        * @see https://docs.woo.org/#edit-algo-order
-        * @see https://docs.woo.org/#edit-algo-order-by-client_order_id
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
-        * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-        * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
-        * @param {string} [params.trailingPercent] the percent to trail away from the current market price
-        * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1311,21 +1311,21 @@ public partial class woo : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name woo#cancelOrder
+     * @see https://docs.woo.org/#cancel-algo-order
+     * @see https://docs.woo.org/#cancel-order
+     * @see https://docs.woo.org/#cancel-order-by-client_order_id
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#cancelOrder
-        * @see https://docs.woo.org/#cancel-algo-order
-        * @see https://docs.woo.org/#cancel-order
-        * @see https://docs.woo.org/#cancel-order-by-client_order_id
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object stop = this.safeBool(parameters, "stop", false);
         parameters = this.omit(parameters, "stop");
@@ -1378,20 +1378,20 @@ public partial class woo : Exchange
         return this.extend(this.parseOrder(response), extendParams);
     }
 
+    /**
+     * @method
+     * @name woo#cancelAllOrders
+     * @see https://docs.woo.org/#cancel-all-pending-orders
+     * @see https://docs.woo.org/#cancel-orders
+     * @see https://docs.woo.org/#cancel-all-pending-algo-orders
+     * @description cancel all open orders in a market
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#cancelAllOrders
-        * @see https://docs.woo.org/#cancel-all-pending-orders
-        * @see https://docs.woo.org/#cancel-orders
-        * @see https://docs.woo.org/#cancel-all-pending-algo-orders
-        * @description cancel all open orders in a market
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object stop = this.safeBool2(parameters, "stop", "trigger");
@@ -1418,18 +1418,17 @@ public partial class woo : Exchange
         return new List<object> {this.safeOrder(response)};
     }
 
+    /**
+     * @method
+     * @name woo#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.woo.org/#cancel-all-after
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#cancelAllOrdersAfter
-        * @description dead man's switch, cancel all orders after the given timeout
-        * @see https://docs.woo.org/#cancel-all-after
-        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-        * @param {boolean} activated countdown
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} the api result
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1448,20 +1447,20 @@ public partial class woo : Exchange
         return new List<object> {this.safeOrder(response)};
     }
 
+    /**
+     * @method
+     * @name woo#fetchOrder
+     * @see https://docs.woo.org/#get-algo-order
+     * @see https://docs.woo.org/#get-order
+     * @description fetches information on an order made by the user
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOrder
-        * @see https://docs.woo.org/#get-algo-order
-        * @see https://docs.woo.org/#get-order
-        * @description fetches information on an order made by the user
-        * @param {string} id the order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = ((bool) isTrue((!isEqual(symbol, null)))) ? this.market(symbol) : null;
@@ -1522,25 +1521,25 @@ public partial class woo : Exchange
         return this.parseOrder(orders, market);
     }
 
+    /**
+     * @method
+     * @name woo#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.woo.org/#get-orders
+     * @see https://docs.woo.org/#get-algo-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+     * @param {string} [params.side] 'buy' or 'sell'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.woo.org/#get-orders
-        * @see https://docs.woo.org/#get-algo-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
-        * @param {string} [params.side] 'buy' or 'sell'
-        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -1629,25 +1628,25 @@ public partial class woo : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name woo#fetchOpenOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.woo.org/#get-orders
+     * @see https://docs.woo.org/#get-algo-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+     * @param {string} [params.side] 'buy' or 'sell'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOpenOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.woo.org/#get-orders
-        * @see https://docs.woo.org/#get-algo-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
-        * @param {string} [params.side] 'buy' or 'sell'
-        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -1656,25 +1655,25 @@ public partial class woo : Exchange
         return await this.fetchOrders(symbol, since, limit, extendedParams);
     }
 
+    /**
+     * @method
+     * @name woo#fetchClosedOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.woo.org/#get-orders
+     * @see https://docs.woo.org/#get-algo-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
+     * @param {string} [params.side] 'buy' or 'sell'
+     * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
+     * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchClosedOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://docs.woo.org/#get-orders
-        * @see https://docs.woo.org/#get-algo-orders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.stop] whether the order is a stop/algo order
-        * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
-        * @param {string} [params.side] 'buy' or 'sell'
-        * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
-        * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -1828,18 +1827,18 @@ public partial class woo : Exchange
         return status;
     }
 
+    /**
+     * @method
+     * @name woo#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.woo.org/#orderbook-snapshot-public
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.woo.org/#orderbook-snapshot-public
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1872,21 +1871,21 @@ public partial class woo : Exchange
         return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
 
+    /**
+     * @method
+     * @name woo#fetchOHLCV
+     * @see https://docs.woo.org/#kline-public
+     * @see https://docs.woo.org/#kline-historical-data-public
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOHLCV
-        * @see https://docs.woo.org/#kline-public
-        * @see https://docs.woo.org/#kline-historical-data-public
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1928,20 +1927,20 @@ public partial class woo : Exchange
         return new List<object> {this.safeInteger(ohlcv, "start_timestamp"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
+    /**
+     * @method
+     * @name woo#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.woo.org/#get-trades
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.woo.org/#get-trades
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1975,20 +1974,20 @@ public partial class woo : Exchange
         return this.parseTrades(trades, market, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.woo.org/#get-trades
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.woo.org/#get-trades
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2045,16 +2044,16 @@ public partial class woo : Exchange
         return this.parseTrades(trades, market, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://docs.woo.org/#get-assets-of-subaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchAccounts
-        * @description fetch all the accounts associated with a profile
-        * @see https://docs.woo.org/#get-assets-of-subaccounts
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.v1PrivateGetSubAccountAssets(parameters);
         //
@@ -2096,16 +2095,16 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.woo.org/#get-current-holding-get-balance-new
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.woo.org/#get-current-holding-get-balance-new
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v3PrivateGetBalances(parameters);
@@ -2154,17 +2153,17 @@ public partial class woo : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name woo#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.woo.org/#get-token-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.woo.org/#get-token-deposit-address
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         // this method is TODO because of networks unification
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2257,19 +2256,19 @@ public partial class woo : Exchange
         return new List<object>() {currency, this.safeList(response, "rows", new List<object>() {})};
     }
 
+    /**
+     * @method
+     * @name woo#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+     * @see https://docs.woo.org/#get-asset-history
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://docs.woo.org/#get-asset-history
-        * @param {string} [code] unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entries to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var currencyrowsVariable = await this.getAssetHistoryRows(code, since, limit, parameters);
         var currency = ((IList<object>) currencyrowsVariable)[0];
@@ -2336,19 +2335,19 @@ public partial class woo : Exchange
         return currency;
     }
 
+    /**
+     * @method
+     * @name woo#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.woo.org/#get-asset-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.woo.org/#get-asset-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "token_side", "DEPOSIT" },
@@ -2356,19 +2355,19 @@ public partial class woo : Exchange
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name woo#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.woo.org/#get-asset-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.woo.org/#get-asset-history
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "token_side", "WITHDRAW" },
@@ -2376,19 +2375,19 @@ public partial class woo : Exchange
         return await this.fetchDepositsWithdrawals(code, since, limit, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name woo#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://docs.woo.org/#get-asset-history
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchDepositsWithdrawals
-        * @description fetch history of deposits and withdrawals
-        * @see https://docs.woo.org/#get-asset-history
-        * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-        * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "type", "BALANCE" },
@@ -2461,20 +2460,20 @@ public partial class woo : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name woo#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://docs.woo.org/#get-transfer-history
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://docs.woo.org/#get-transfer-history
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2503,20 +2502,20 @@ public partial class woo : Exchange
         return transfer;
     }
 
+    /**
+     * @method
+     * @name woo#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://docs.woo.org/#get-transfer-history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of  transfers structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchTransfers
-        * @description fetch a history of internal transfers made on an account
-        * @see https://docs.woo.org/#get-transfer-history
-        * @param {string} code unified currency code of the currency transferred
-        * @param {int} [since] the earliest time in ms to fetch transfers for
-        * @param {int} [limit] the maximum number of  transfers structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] the latest time in ms to fetch entries for
-        * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
@@ -2620,20 +2619,20 @@ public partial class woo : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name woo#withdraw
+     * @description make a withdrawal
+     * @see https://docs.woo.org/#token-withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#withdraw
-        * @description make a withdrawal
-        * @see https://docs.woo.org/#token-withdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2670,19 +2669,19 @@ public partial class woo : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name woo#repayMargin
+     * @description repay borrowed margin and interest
+     * @see https://docs.woo.org/#repay-interest
+     * @param {string} code unified currency code of the currency to repay
+     * @param {float} amount the amount to repay
+     * @param {string} symbol not used by woo.repayMargin ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     */
     public async override Task<object> repayMargin(object code, object amount, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#repayMargin
-        * @description repay borrowed margin and interest
-        * @see https://docs.woo.org/#repay-interest
-        * @param {string} code unified currency code of the currency to repay
-        * @param {float} amount the amount to repay
-        * @param {string} symbol not used by woo.repayMargin ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2886,20 +2885,20 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://docs.woo.org/#get-funding-fee-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchFundingHistory
-        * @description fetch the history of funding payments paid and received on this account
-        * @see https://docs.woo.org/#get-funding-fee-history
-        * @param {string} [symbol] unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch funding history for
-        * @param {int} [limit] the maximum number of funding history structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3009,32 +3008,32 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchFundingInterval
-        * @description fetch the current funding rate interval
-        * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchFundingRate(symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name woo#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3059,17 +3058,17 @@ public partial class woo : Exchange
         return this.parseFundingRate(response, market);
     }
 
+    /**
+     * @method
+     * @name woo#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchFundingRates
-        * @description fetch the funding rate for multiple markets
-        * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
-        * @param {string[]|undefined} symbols list of unified market symbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -3095,21 +3094,21 @@ public partial class woo : Exchange
         return this.filterByArray(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name woo#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchFundingRateHistory
-        * @description fetches historical funding rate prices
-        * @see https://docs.woo.org/#get-funding-rate-history-for-one-market-public
-        * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest funding rate
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -3173,18 +3172,18 @@ public partial class woo : Exchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
+    /**
+     * @method
+     * @name woo#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://docs.woo.org/#update-position-mode
+     * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
+     * @param {string} symbol not used by woo setPositionMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#setPositionMode
-        * @description set hedged to true or false for a market
-        * @see https://docs.woo.org/#update-position-mode
-        * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
-        * @param {string} symbol not used by woo setPositionMode
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         object hedgeMode = null;
         if (isTrue(hedged))
@@ -3208,19 +3207,19 @@ public partial class woo : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name woo#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.woo.org/#get-account-information-new
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
+     * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchLeverage
-        * @description fetch the set leverage for a market
-        * @see https://docs.woo.org/#get-account-information-new
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
-        * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
-        * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -3282,21 +3281,21 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://docs.woo.org/#update-leverage-setting
+     * @see https://docs.woo.org/#update-futures-leverage-setting
+     * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+     * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
+     * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://docs.woo.org/#update-leverage-setting
-        * @see https://docs.woo.org/#update-futures-leverage-setting
-        * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
-        * @param {string} [symbo] unified market symbol (is mandatory for swap markets)
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
-        * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3325,36 +3324,36 @@ public partial class woo : Exchange
         }
     }
 
+    /**
+     * @method
+     * @name woo#addMargin
+     * @description add margin
+     * @see https://docs.woo.org/#update-isolated-margin-setting
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#addMargin
-        * @description add margin
-        * @see https://docs.woo.org/#update-isolated-margin-setting
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
+    /**
+     * @method
+     * @name woo#reduceMargin
+     * @description remove margin from a position
+     * @see https://docs.woo.org/#update-isolated-margin-setting
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#reduceMargin
-        * @description remove margin from a position
-        * @see https://docs.woo.org/#update-isolated-margin-setting
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to remove
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "REDUCE", parameters);
     }
@@ -3573,19 +3572,19 @@ public partial class woo : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name woo#fetchConvertQuote
+     * @description fetch a quote for converting from one currency to another
+     * @see https://docs.woo.org/#get-quote-rfq
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchConvertQuote
-        * @description fetch a quote for converting from one currency to another
-        * @see https://docs.woo.org/#get-quote-rfq
-        * @param {string} fromCode the currency that you want to sell and convert from
-        * @param {string} toCode the currency that you want to buy and convert into
-        * @param {float} [amount] how much you want to trade in units of the from currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3618,20 +3617,20 @@ public partial class woo : Exchange
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
 
+    /**
+     * @method
+     * @name woo#createConvertTrade
+     * @description convert from one currency to another
+     * @see https://docs.woo.org/#send-quote-rft
+     * @param {string} id the id of the trade that you want to make
+     * @param {string} fromCode the currency that you want to sell and convert from
+     * @param {string} toCode the currency that you want to buy and convert into
+     * @param {float} [amount] how much you want to trade in units of the from currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
     public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#createConvertTrade
-        * @description convert from one currency to another
-        * @see https://docs.woo.org/#send-quote-rft
-        * @param {string} id the id of the trade that you want to make
-        * @param {string} fromCode the currency that you want to sell and convert from
-        * @param {string} toCode the currency that you want to buy and convert into
-        * @param {float} [amount] how much you want to trade in units of the from currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3652,18 +3651,18 @@ public partial class woo : Exchange
         return this.parseConversion(data);
     }
 
+    /**
+     * @method
+     * @name woo#fetchConvertTrade
+     * @description fetch the data for a conversion trade
+     * @see https://docs.woo.org/#get-quote-trade
+     * @param {string} id the id of the trade that you want to fetch
+     * @param {string} [code] the unified currency code of the conversion trade
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
     public async virtual Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchConvertTrade
-        * @description fetch the data for a conversion trade
-        * @see https://docs.woo.org/#get-quote-trade
-        * @param {string} id the id of the trade that you want to fetch
-        * @param {string} [code] the unified currency code of the conversion trade
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3700,20 +3699,20 @@ public partial class woo : Exchange
         return this.parseConversion(data, fromCurrency, toCurrency);
     }
 
+    /**
+     * @method
+     * @name woo#fetchConvertTradeHistory
+     * @description fetch the users history of conversion trades
+     * @see https://docs.woo.org/#get-quote-trades
+     * @param {string} [code] the unified currency code
+     * @param {int} [since] the earliest time in ms to fetch conversions for
+     * @param {int} [limit] the maximum number of conversion structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     */
     public async virtual Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchConvertTradeHistory
-        * @description fetch the users history of conversion trades
-        * @see https://docs.woo.org/#get-quote-trades
-        * @param {string} [code] the unified currency code
-        * @param {int} [since] the earliest time in ms to fetch conversions for
-        * @param {int} [limit] the maximum number of conversion structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
-        * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3810,16 +3809,16 @@ public partial class woo : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name woo#fetchConvertCurrencies
+     * @description fetches all available currencies that can be converted
+     * @see https://docs.woo.org/#get-quote-asset-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchConvertCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name woo#fetchConvertCurrencies
-        * @description fetches all available currencies that can be converted
-        * @see https://docs.woo.org/#get-quote-asset-info
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v3PrivateGetConvertAssetInfo(parameters);

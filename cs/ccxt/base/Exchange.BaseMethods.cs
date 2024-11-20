@@ -905,10 +905,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTrades() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTrades() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTradesForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTradesForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -929,10 +941,22 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchOHLCVForSymbols() is not supported yet")) ;
     }
 
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
+    }
+
     public async virtual Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOrderBookForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
@@ -945,6 +969,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderBookWs() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMarginMode(object symbol, object parameters = null)
@@ -991,6 +1021,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchOrderBook() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchTime(object parameters = null)
@@ -1337,6 +1373,107 @@ public partial class Exchange
     public virtual void afterConstruct()
     {
         this.createNetworksByIdObject();
+        this.featuresGenerator();
+    }
+
+    public virtual void featuresGenerator()
+    {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : {
+        //             'createOrder' : {...},
+        //             'fetchOrders' : {...},
+        //         },
+        //         'swap': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         },
+        //         'future': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot": {
+        //             "createOrder": undefined,
+        //             "fetchBalance": undefined,
+        //             ...
+        //         },
+        //         "swap": {
+        //             ...
+        //         }
+        //     }
+        //
+        if (isTrue(isEqual(this.features, null)))
+        {
+            return;
+        }
+        // reconstruct
+        object initialFeatures = this.features;
+        this.features = new Dictionary<string, object>() {};
+        object unifiedMarketTypes = new List<object>() {"spot", "swap", "future", "option"};
+        object subTypes = new List<object>() {"linear", "inverse"};
+        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for (object i = 0; isLessThan(i, getArrayLength(unifiedMarketTypes)); postFixIncrement(ref i))
+        {
+            object marketType = getValue(unifiedMarketTypes, i);
+            // if marketType is not filled for this exchange, don't add that in `features`
+            if (!isTrue((inOp(initialFeatures, marketType))))
+            {
+                ((IDictionary<string,object>)this.features)[(string)marketType] = null;
+            } else
+            {
+                if (isTrue(isEqual(marketType, "spot")))
+                {
+                    ((IDictionary<string,object>)this.features)[(string)marketType] = this.featuresMapper(initialFeatures, marketType, null);
+                } else
+                {
+                    ((IDictionary<string,object>)this.features)[(string)marketType] = new Dictionary<string, object>() {};
+                    for (object j = 0; isLessThan(j, getArrayLength(subTypes)); postFixIncrement(ref j))
+                    {
+                        object subType = getValue(subTypes, j);
+                        ((IDictionary<string,object>)getValue(this.features, marketType))[(string)subType] = this.featuresMapper(initialFeatures, marketType, subType);
+                    }
+                }
+            }
+        }
+    }
+
+    public virtual object featuresMapper(object initialFeatures, object marketType, object subType = null)
+    {
+        object featuresObj = ((bool) isTrue((!isEqual(subType, null)))) ? getValue(getValue(initialFeatures, marketType), subType) : getValue(initialFeatures, marketType);
+        object extendsStr = this.safeString(featuresObj, "extends");
+        if (isTrue(!isEqual(extendsStr, null)))
+        {
+            featuresObj = this.omit(featuresObj, "extends");
+            object extendObj = getValue(initialFeatures, extendsStr);
+            featuresObj = this.extend(extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+        }
+        //
+        // corrections
+        //
+        if (isTrue(inOp(featuresObj, "createOrder")))
+        {
+            object value = this.safeDict(getValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit");
+            if (isTrue(!isEqual(value, null)))
+            {
+                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
+                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
+            }
+            // omit 'hedged' from spot
+            if (isTrue(isEqual(marketType, "spot")))
+            {
+                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = null;
+            }
+        }
+        return featuresObj;
     }
 
     public virtual object orderbookChecksumMessage(object symbol)
@@ -4207,6 +4344,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " watchTickers() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " unWatchTickers() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

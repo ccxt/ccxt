@@ -1117,6 +1117,7 @@ class huobijp(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1745,7 +1746,7 @@ class huobijp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

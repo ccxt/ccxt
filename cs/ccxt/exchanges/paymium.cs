@@ -108,34 +108,34 @@ public partial class paymium : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetUser(parameters);
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -196,17 +196,17 @@ public partial class paymium : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -261,19 +261,19 @@ public partial class paymium : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -284,17 +284,17 @@ public partial class paymium : Exchange
         return this.parseTrades(response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name paymium#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostUserAddresses(parameters);
@@ -309,17 +309,17 @@ public partial class paymium : Exchange
         return this.parseDepositAddress(response);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -337,17 +337,17 @@ public partial class paymium : Exchange
         return this.parseDepositAddress(response);
     }
 
+    /**
+     * @method
+     * @name paymium#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and chain types
+     * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
+     * @param {string[]|undefined} codes list of unified currency codes, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#fetchDepositAddresses
-        * @description fetch deposit addresses for multiple currencies and chain types
-        * @see https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get
-        * @param {string[]|undefined} codes list of unified currency codes, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetUserAddresses(parameters);
@@ -385,21 +385,21 @@ public partial class paymium : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name paymium#createOrder
+     * @description create a trade order
+     * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#createOrder
-        * @description create a trade order
-        * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -420,19 +420,19 @@ public partial class paymium : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name paymium#cancelOrder
+     * @description cancels an open order
+     * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
+     * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete
+     * @param {string} id order id
+     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#cancelOrder
-        * @description cancels an open order
-        * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete
-        * @see https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete
-        * @param {string} id order id
-        * @param {string} symbol not used by paymium cancelOrder ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "uuid", id },
@@ -443,20 +443,20 @@ public partial class paymium : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name paymium#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name paymium#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from
-        * @param {string} toAccount account to transfer to
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);

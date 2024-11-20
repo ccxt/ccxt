@@ -89,6 +89,8 @@ class Transpiler {
         return [
             [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
+            [ /\.featuresGenerator/g, '.features_generator'],
+            [ /\.featuresMapper/g, '.features_mapper'],
             [ /\.safeValue2/g, '.safe_value_2'],
             [ /\.safeInteger2/g, '.safe_integer_2'],
             [ /\.safeString2/g, '.safe_string_2'],
@@ -319,7 +321,7 @@ class Transpiler {
             [ /\s+\* @method/g, '' ], // docstring @method
             [ /(\s+) \* @description (.*)/g, '$1$2' ], // docstring description
             [ /\s+\* @name .*/g, '' ], // docstring @name
-            [ /(\s+) \* @see( .*)/g, '$1:see:$2' ], // docstring @see
+            [ /(\s+)  \* @see( .*)/g, '$1$2' ], // docstring @see
             [ /(\s+ \* @(param|returns) {[^}]*)string(\[\])?([^}]*}.*)/g, '$1str$3$4' ], // docstring type conversion
             [ /(\s+ \* @(param|returns) {[^}]*)object(\[\])?([^}]*}.*)/g, '$1dict$3$4' ], // docstring type conversion
             [ /(\s+) \* @returns ([^\{])/g, '$1:returns: $2' ], // docstring return
@@ -1031,6 +1033,9 @@ class Transpiler {
             python3Body = python3Body.replace (/$\s*$/gm, '')
         }
 
+        // handle empty lines inside pydocs
+        python3Body = python3Body.replace(/         \*/g, '')
+
         const strippedPython3BodyWithoutComments = python3Body.replace (/^[\s]+#.+$/gm, '')
 
         if (!strippedPython3BodyWithoutComments.match(/[^\s]/)) {
@@ -1406,6 +1411,78 @@ class Transpiler {
 
     // ========================================================================
 
+    addPythonSpacesToDocs(docs) {
+        const fixedDocs = [];
+        for (let i = 0; i < docs.length; i++) {
+            // const previousLine = (i === 0) ? '' : docs[i - 1];
+            const currentLine = docs[i];
+            const nextLine = (i+1 === docs.length) ? '' : docs[i + 1];
+
+            const emptyCommentLine = '         *';
+
+            // const previousLineIsSee = previousLine.indexOf('@see') > -1;
+            const currentLineIsSee = currentLine.indexOf('@see') > -1;
+            const nextLineIsSee = nextLine.indexOf('@see') > -1;
+
+            if (nextLineIsSee && !currentLineIsSee) {
+                // add empty line
+                fixedDocs.push(docs[i]);
+                fixedDocs.push(emptyCommentLine);
+            } else if (currentLineIsSee && !nextLineIsSee) {
+                // add empty line
+                fixedDocs.push(docs[i]);
+                fixedDocs.push(emptyCommentLine)
+            } else {
+                fixedDocs.push(docs[i]);
+            }
+        }
+        return fixedDocs;
+    }
+    // ========================================================================
+
+    moveJsDocInside(method) {
+
+        const isOutsideJSDoc = /^\s*\/\*\*/;
+
+        if (!method.match(isOutsideJSDoc)) {
+            return method;
+        }
+
+        const newLines = [];
+        const methodSplit = method.split('\n');
+
+        // move jsdoc inside the method
+        // below the signature to simplify the docs in python/php
+        for (let i = 0; i < methodSplit.length; i++) {
+            const line = methodSplit[i];
+            if (line.match(isOutsideJSDoc)) {
+                const jsDocIden = '         ';
+                let jsdoc = '        ' + line.trim();
+                let jsDocLines = [jsdoc];
+                while (!jsdoc.match(/\*\//)) {
+                    i++;
+                    const lineTrimmed = methodSplit[i].trim();
+
+                    jsdoc += '\n' + jsDocIden + lineTrimmed;
+                    jsDocLines.push(jsDocIden + lineTrimmed);
+                }
+                newLines.push(methodSplit[i+1]);
+                i++;
+                jsDocLines = this.addPythonSpacesToDocs(jsDocLines);
+                // newLines.push(jsdoc);
+                for (let j = 0; j < jsDocLines.length; j++) {
+                    newLines.push(jsDocLines[j]);
+                }
+            } else {
+                newLines.push(line);
+            }
+        }
+        const res = newLines.join('\n');
+    return res;
+    }
+
+    // ========================================================================
+
     transpileMethodsToAllLanguages (className, methods) {
 
         let python2 = []
@@ -1416,7 +1493,8 @@ class Transpiler {
 
         for (let i = 0; i < methods.length; i++) {
             // parse the method signature
-            let part = methods[i].trim ()
+            let part = this.moveJsDocInside(methods[i].trim());
+            // let part = methods[i].trim ()
             let lines = part.split ("\n")
             let signature = lines[0].trim ()
             signature = signature.replace('function ', '')
