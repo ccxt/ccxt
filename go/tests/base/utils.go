@@ -376,12 +376,13 @@ func CallOverridenMethod(exchange interface{}, methodName string, args []interfa
 
 // exceptionMessage function to generate a formatted error message
 func ExceptionMessage(exc interface{}) string {
-	switch e := exc.(type) {
-	case error:
-		return fmt.Sprintf("[%T] %s", e, e.Error())
-	default:
-		return "[Unknown Error] No error message available"
-	}
+	// switch e := exc.(type) {
+	// case error:
+	// 	return fmt.Sprintf("[%T] %s", e, e.Error())
+	// default:
+	// 	return "[Unknown Error] No error message available"
+	// }
+	return fmt.Sprintf("%v", exc)
 }
 
 // getRootException function (stub)
