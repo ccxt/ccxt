@@ -1149,6 +1149,10 @@ class Exchange {
         $this->after_construct();
     }
 
+    public function init_throttler() {
+        // stub in sync php
+    }
+
     public static function underscore($camelcase) {
         // conversion fooBar10OHLCV2Candles → foo_bar10_ohlcv2_candles
         $underscore = preg_replace_callback('/[a-z0-9][A-Z]/m', function ($x) {
@@ -1349,10 +1353,6 @@ class Exchange {
 
     public function packb($data) {
         return MessagePack::pack($data);
-    }
-
-    public function init_throttler() {
-        // stub in sync
     }
 
     public function throttle($cost = null) {

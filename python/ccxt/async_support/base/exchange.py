@@ -79,11 +79,11 @@ class Exchange(BaseExchange):
         self.markets_loading = None
         self.reloading_markets = False
 
-    def init_throttler(self, cost=None):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
-
     def get_event_loop(self):
         return self.asyncio_loop
+
+    def init_throttler(self, cost=None):
+        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
 
     def get_session(self):
         return self.session

@@ -74,10 +74,6 @@ class Exchange extends \ccxt\Exchange {
         $this->set_request_browser($this->default_connector);
     }
 
-    public function init_throttler() {
-        $this->throttler = new Throttler($this->tokenBucket);
-    }
-
     public function set_request_browser($connector) {
         $this->browser = (new React\Http\Browser($connector, Loop::get()))->withRejectErrorResponse(false);
     }
@@ -295,6 +291,10 @@ class Exchange extends \ccxt\Exchange {
                 $resolve(null);
             });
         });
+    }
+
+    public function init_throttler() {
+        $this->throttler = new Throttler($this->tokenBucket);
     }
 
     public function throttle($cost = null) {
