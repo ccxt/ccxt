@@ -417,9 +417,11 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def fetch_transaction_fees(self, codes: Strings = None, params={}):
         """
-         * @deprecated
+ @deprecated
         please use fetchDepositWithdrawFees instead
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-fees
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -451,7 +453,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-fees
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-fees
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -489,7 +493,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-summary
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-summary
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
         """
@@ -566,8 +572,10 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for bitfinex
-        :see: https://docs.bitfinex.com/v1/reference/rest-public-symbols
-        :see: https://docs.bitfinex.com/v1/reference/rest-public-symbol-details
+
+        https://docs.bitfinex.com/v1/reference/rest-public-symbols
+        https://docs.bitfinex.com/v1/reference/rest-public-symbol-details
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -686,7 +694,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-wallet-balances
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-wallet-balances
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -738,7 +748,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-transfer-between-wallets
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-transfer-between-wallets
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -819,7 +831,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.bitfinex.com/v1/reference/rest-public-orderbook
+
+        https://docs.bitfinex.com/v1/reference/rest-public-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -856,7 +870,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.bitfinex.com/v1/reference/rest-public-ticker
+
+        https://docs.bitfinex.com/v1/reference/rest-public-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -994,7 +1010,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 50, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.bitfinex.com/v1/reference/rest-public-trades
+
+        https://docs.bitfinex.com/v1/reference/rest-public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -1027,7 +1045,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-past-trades
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-past-trades
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -1051,7 +1071,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-new-order
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-new-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1108,7 +1130,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-cancel-order
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-cancel-order
+
         :param str id: order id
         :param str symbol: not used by bitfinex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1149,7 +1173,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
+
         :param str symbol: not used by bitfinex cancelAllOrders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from exchange
@@ -1236,7 +1262,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-active-orders
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-active-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
@@ -1256,7 +1284,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-orders-history
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-orders-history
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1278,7 +1308,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+
         :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1314,7 +1346,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles
+
+        https://docs.bitfinex.com/reference/rest-public-candles#aggregate-funding-currency-candles
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1356,7 +1390,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def create_deposit_address(self, code: str, params={}):
         """
         create a currency deposit address
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-deposit
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-deposit
+
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1370,7 +1406,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-deposit
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-deposit
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -1401,7 +1439,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-deposit-withdrawal-history
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-deposit-withdrawal-history
+
         :param str code: unified currency code for the currency of the deposit/withdrawals
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
         :param int [limit]: max number of deposit/withdrawals to return, default is None
@@ -1531,7 +1571,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-withdrawal
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -1577,7 +1619,9 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.bitfinex.com/v1/reference/rest-auth-active-positions
+
+        https://docs.bitfinex.com/v1/reference/rest-auth-active-positions
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`

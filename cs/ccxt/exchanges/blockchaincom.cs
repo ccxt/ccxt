@@ -184,16 +184,16 @@ public partial class blockchaincom : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchMarkets
+     * @description retrieves data on all markets for blockchaincom
+     * @see https://api.blockchain.com/v3/#getsymbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchMarkets
-        * @description retrieves data on all markets for blockchaincom
-        * @see https://api.blockchain.com/v3/#getsymbols
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         //
         //     "USDC-GBP": {
         //         "base_currency": "USDC",
@@ -321,34 +321,34 @@ public partial class blockchaincom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.blockchain.com/v3/#getl3orderbook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchL3OrderBook(symbol, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchL3OrderBook
+     * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api.blockchain.com/v3/#getl3orderbook
+     * @param {string} symbol unified market symbol
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+     */
     public async override Task<object> fetchL3OrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchL3OrderBook
-        * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://api.blockchain.com/v3/#getl3orderbook
-        * @param {string} symbol unified market symbol
-        * @param {int} [limit] max number of orders to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -418,17 +418,17 @@ public partial class blockchaincom : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api.blockchain.com/v3/#gettickerbysymbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://api.blockchain.com/v3/#gettickerbysymbol
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -439,17 +439,17 @@ public partial class blockchaincom : Exchange
         return this.parseTicker(response, market);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api.blockchain.com/v3/#gettickers
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://api.blockchain.com/v3/#gettickers
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object tickers = await this.publicGetTickers(parameters);
@@ -527,21 +527,21 @@ public partial class blockchaincom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name blockchaincom#createOrder
+     * @description create a trade order
+     * @see https://api.blockchain.com/v3/#createorder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#createOrder
-        * @description create a trade order
-        * @see https://api.blockchain.com/v3/#createorder
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -597,18 +597,18 @@ public partial class blockchaincom : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#cancelOrder
+     * @description cancels an open order
+     * @see https://api.blockchain.com/v3/#deleteorder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#cancelOrder
-        * @description cancels an open order
-        * @see https://api.blockchain.com/v3/#deleteorder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -620,17 +620,17 @@ public partial class blockchaincom : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name blockchaincom#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api.blockchain.com/v3/#deleteallorders
+     * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://api.blockchain.com/v3/#deleteallorders
-        * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         parameters ??= new Dictionary<string, object>();
@@ -650,16 +650,16 @@ public partial class blockchaincom : Exchange
 })};
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://api.blockchain.com/v3/#getfees
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchTradingFees
-        * @description fetch the trading fees for multiple markets
-        * @see https://api.blockchain.com/v3/#getfees
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privateGetFees(parameters);
@@ -686,55 +686,55 @@ public partial class blockchaincom : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchCanceledOrders
-        * @description fetches information on multiple canceled orders made by the user
-        * @see https://api.blockchain.com/v3/#getorders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-        * @param {int} [limit] max number of orders to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object state = "CANCELED";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://api.blockchain.com/v3/#getorders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object state = "FILLED";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api.blockchain.com/v3/#getorders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://api.blockchain.com/v3/#getorders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object state = "OPEN";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
@@ -810,19 +810,19 @@ public partial class blockchaincom : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.blockchain.com/v3/#getfills
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://api.blockchain.com/v3/#getfills
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -840,17 +840,17 @@ public partial class blockchaincom : Exchange
         return this.parseTrades(trades, market, since, limit, parameters);  // need to define
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://api.blockchain.com/v3/#getdepositaddress
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://api.blockchain.com/v3/#getdepositaddress
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -967,20 +967,20 @@ public partial class blockchaincom : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name blockchaincom#withdraw
+     * @description make a withdrawal
+     * @see https://api.blockchain.com/v3/#createwithdrawal
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#withdraw
-        * @description make a withdrawal
-        * @see https://api.blockchain.com/v3/#createwithdrawal
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -1005,19 +1005,19 @@ public partial class blockchaincom : Exchange
         return this.parseTransaction(response, currency);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://api.blockchain.com/v3/#getwithdrawals
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://api.blockchain.com/v3/#getwithdrawals
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1034,18 +1034,18 @@ public partial class blockchaincom : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://api.blockchain.com/v3/#getwithdrawalbyid
+     * @param {string} id withdrawal id
+     * @param {string} code not used by blockchaincom.fetchWithdrawal
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchWithdrawal
-        * @description fetch data on a currency withdrawal via the withdrawal id
-        * @see https://api.blockchain.com/v3/#getwithdrawalbyid
-        * @param {string} id withdrawal id
-        * @param {string} code not used by blockchaincom.fetchWithdrawal
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -1055,19 +1055,19 @@ public partial class blockchaincom : Exchange
         return this.parseTransaction(response);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://api.blockchain.com/v3/#getdeposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://api.blockchain.com/v3/#getdeposits
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -1084,18 +1084,18 @@ public partial class blockchaincom : Exchange
         return this.parseTransactions(response, currency, since, limit);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://api.blockchain.com/v3/#getdepositbyid
+     * @param {string} id deposit id
+     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchDeposit
-        * @description fetch information on a deposit
-        * @see https://api.blockchain.com/v3/#getdepositbyid
-        * @param {string} id deposit id
-        * @param {string} code not used by blockchaincom fetchDeposit ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object depositId = this.safeString(parameters, "depositId", id);
@@ -1106,16 +1106,16 @@ public partial class blockchaincom : Exchange
         return this.parseTransaction(deposit);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.blockchain.com/v3/#getaccounts
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://api.blockchain.com/v3/#getaccounts
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object accountName = this.safeString(parameters, "account", "primary");
@@ -1160,18 +1160,18 @@ public partial class blockchaincom : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name blockchaincom#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.blockchain.com/v3/#getorderbyid
+     * @param {string} id the order id
+     * @param {string} symbol not used by blockchaincom fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name blockchaincom#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://api.blockchain.com/v3/#getorderbyid
-        * @param {string} id the order id
-        * @param {string} symbol not used by blockchaincom fetchOrder
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         parameters ??= new Dictionary<string, object>();

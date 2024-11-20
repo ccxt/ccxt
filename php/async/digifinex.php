@@ -829,9 +829,11 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * $query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -896,8 +898,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -973,8 +977,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#$ticker-price
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$tickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1062,8 +1068,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1399,8 +1407,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1503,8 +1513,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-$candles-$data
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1583,8 +1595,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-$order
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1642,8 +1656,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders (all $orders should be of the same $symbol)
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-multiple-order
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#batchorder
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1841,7 +1857,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1861,8 +1879,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol not used by digifinex cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2151,8 +2171,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2254,8 +2276,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -2359,8 +2383,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-$order-status
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2456,8 +2482,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#customer-39-s-trades
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historytrade
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -2611,8 +2639,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
+             *
              * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
              * @param {int} [$limit] max number of $ledger entries to return, default is null
@@ -3101,7 +3131,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the rate of interest to borrow a $currency for margin trading
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
@@ -3143,7 +3175,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
              */
@@ -3216,7 +3250,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -3251,7 +3287,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate interval
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+             *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -3377,7 +3415,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -3430,8 +3470,10 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-$positions
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$positions
+             *
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
@@ -3537,8 +3579,10 @@ class digifinex extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+             *
              * fetch $data on a single open contract trade $position
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3715,7 +3759,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3773,7 +3819,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the transfer history, only $transfers between spot and swap accounts are supported
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers to retrieve
@@ -3817,7 +3865,9 @@ class digifinex extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+             *
              * retrieve information on the maximum leverage, for different trade sizes
              * @param {string[]|null} $symbols a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3864,7 +3914,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, for different trade sizes for a single $market
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -3982,7 +4034,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+             *
              * @param {string[]|null} $codes not used by fetchDepositWithdrawFees ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -4098,7 +4152,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin to a position
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4115,7 +4171,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmargin
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4189,7 +4247,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the history of funding payments paid and received on this account
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#funding-fee
+             *
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch funding history for
              * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -4257,7 +4317,9 @@ class digifinex extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             *
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positionmode
+             *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

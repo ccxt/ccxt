@@ -615,16 +615,16 @@ public partial class xt : Exchange
         return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
+    /**
+     * @method
+     * @name xt#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the xt server
+     * @see https://doc.xt.com/#market1serverInfo
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the xt server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the xt server
-        * @see https://doc.xt.com/#market1serverInfo
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the xt server
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicSpotGetTime(parameters);
         //
@@ -641,16 +641,16 @@ public partial class xt : Exchange
         return this.safeInteger(data, "serverTime");
     }
 
+    /**
+     * @method
+     * @name xt#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object promisesRaw = new List<object> {this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)};
         var chainsResponsecurrenciesResponseVariable = await promiseAll(promisesRaw);
@@ -803,17 +803,17 @@ public partial class xt : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name xt#fetchMarkets
+     * @description retrieves data on all markets for xt
+     * @see https://doc.xt.com/#market2symbol
+     * @see https://doc.xt.com/#futures_quotesgetSymbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchMarkets
-        * @description retrieves data on all markets for xt
-        * @see https://doc.xt.com/#market2symbol
-        * @see https://doc.xt.com/#futures_quotesgetSymbols
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.options, "adjustForTimeDifference")))
         {
@@ -1237,21 +1237,21 @@ public partial class xt : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name xt#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.xt.com/#market4kline
+     * @see https://doc.xt.com/#futures_quotesgetKLine
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://doc.xt.com/#market4kline
-        * @see https://doc.xt.com/#futures_quotesgetKLine
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1357,19 +1357,19 @@ public partial class xt : Exchange
         return new List<object> {this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)};
     }
 
+    /**
+     * @method
+     * @name xt#fetchOrderBook
+     * @see https://doc.xt.com/#market3depth
+     * @see https://doc.xt.com/#futures_quotesgetDepth
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified market symbol to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchOrderBook
-        * @see https://doc.xt.com/#market3depth
-        * @see https://doc.xt.com/#futures_quotesgetDepth
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @param {string} symbol unified market symbol to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1460,18 +1460,18 @@ public partial class xt : Exchange
         return swapOb;
     }
 
+    /**
+     * @method
+     * @name xt#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#market10ticker24h
+     * @see https://doc.xt.com/#futures_quotesgetAggTicker
+     * @param {string} symbol unified market symbol to fetch the ticker for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://doc.xt.com/#market10ticker24h
-        * @see https://doc.xt.com/#futures_quotesgetAggTicker
-        * @param {string} symbol unified market symbol to fetch the ticker for
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1543,18 +1543,18 @@ public partial class xt : Exchange
         return this.parseTicker(ticker, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+     * @see https://doc.xt.com/#market10ticker24h
+     * @see https://doc.xt.com/#futures_quotesgetAggTickers
+     * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-        * @see https://doc.xt.com/#market10ticker24h
-        * @see https://doc.xt.com/#futures_quotesgetAggTickers
-        * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1642,17 +1642,17 @@ public partial class xt : Exchange
         return this.filterByArray(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name xt#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://doc.xt.com/#market9tickerBook
+     * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchBidsAsks
-        * @description fetches the bid and ask price and volume for multiple markets
-        * @see https://doc.xt.com/#market9tickerBook
-        * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1778,20 +1778,20 @@ public partial class xt : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.xt.com/#market5tradeRecent
+     * @see https://doc.xt.com/#futures_quotesgetDeal
+     * @param {string} symbol unified market symbol to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://doc.xt.com/#market5tradeRecent
-        * @see https://doc.xt.com/#futures_quotesgetDeal
-        * @param {string} symbol unified market symbol to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1860,20 +1860,20 @@ public partial class xt : Exchange
         return this.parseTrades(trades, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://doc.xt.com/#tradetradeGet
+     * @see https://doc.xt.com/#futures_ordergetTrades
+     * @param {string} [symbol] unified market symbol to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://doc.xt.com/#tradetradeGet
-        * @see https://doc.xt.com/#futures_ordergetTrades
-        * @param {string} [symbol] unified market symbol to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2173,17 +2173,17 @@ public partial class xt : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://doc.xt.com/#balancebalancesGet
+     * @see https://doc.xt.com/#futures_usergetBalances
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://doc.xt.com/#balancebalancesGet
-        * @see https://doc.xt.com/#futures_usergetBalances
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object type = null;
@@ -2315,18 +2315,18 @@ public partial class xt : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name xt#createMarketBuyOrderWithCost
+     * @see https://doc.xt.com/#orderorderPost
+     * @description create a market buy order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#createMarketBuyOrderWithCost
-        * @see https://doc.xt.com/#orderorderPost
-        * @description create a market buy order by providing the symbol and cost
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2337,30 +2337,30 @@ public partial class xt : Exchange
         return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#createOrder
+     * @description create a trade order
+     * @see https://doc.xt.com/#orderorderPost
+     * @see https://doc.xt.com/#futures_ordercreate
+     * @see https://doc.xt.com/#futures_entrustcreatePlan
+     * @see https://doc.xt.com/#futures_entrustcreateProfit
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
+     * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
+     * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
+     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.stopLoss] price to set a stop-loss on an open position
+     * @param {float} [params.takeProfit] price to set a take-profit on an open position
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#createOrder
-        * @description create a trade order
-        * @see https://doc.xt.com/#orderorderPost
-        * @see https://doc.xt.com/#futures_ordercreate
-        * @see https://doc.xt.com/#futures_entrustcreatePlan
-        * @see https://doc.xt.com/#futures_entrustcreateProfit
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
-        * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
-        * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
-        * @param {float} [params.stopPrice] price to trigger a stop order
-        * @param {float} [params.stopLoss] price to set a stop-loss on an open position
-        * @param {float} [params.takeProfit] price to set a take-profit on an open position
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2543,23 +2543,23 @@ public partial class xt : Exchange
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://doc.xt.com/#orderorderGet
+     * @see https://doc.xt.com/#futures_ordergetById
+     * @see https://doc.xt.com/#futures_entrustgetPlanById
+     * @see https://doc.xt.com/#futures_entrustgetProfitById
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://doc.xt.com/#orderorderGet
-        * @see https://doc.xt.com/#futures_ordergetById
-        * @see https://doc.xt.com/#futures_entrustgetPlanById
-        * @see https://doc.xt.com/#futures_entrustgetProfitById
-        * @param {string} id order id
-        * @param {string} [symbol] unified symbol of the market the order was made in
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -2740,22 +2740,22 @@ public partial class xt : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name xt#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetHistory
+     * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchOrders
-        * @description fetches information on multiple orders made by the user
-        * @see https://doc.xt.com/#orderhistoryOrderGet
-        * @see https://doc.xt.com/#futures_ordergetHistory
-        * @see https://doc.xt.com/#futures_entrustgetPlanHistory
-        * @param {string} [symbol] unified market symbol of the market the orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3225,89 +3225,89 @@ public partial class xt : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name xt#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://doc.xt.com/#orderopenOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://doc.xt.com/#orderopenOrderGet
-        * @see https://doc.xt.com/#futures_ordergetOrders
-        * @see https://doc.xt.com/#futures_entrustgetPlan
-        * @see https://doc.xt.com/#futures_entrustgetProfit
-        * @param {string} [symbol] unified market symbol of the market the orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum number of open order structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("open", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://doc.xt.com/#orderhistoryOrderGet
-        * @see https://doc.xt.com/#futures_ordergetOrders
-        * @see https://doc.xt.com/#futures_entrustgetPlan
-        * @see https://doc.xt.com/#futures_entrustgetProfit
-        * @param {string} [symbol] unified market symbol of the market the orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("closed", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://doc.xt.com/#orderhistoryOrderGet
+     * @see https://doc.xt.com/#futures_ordergetOrders
+     * @see https://doc.xt.com/#futures_entrustgetPlan
+     * @see https://doc.xt.com/#futures_entrustgetProfit
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchCanceledOrders
-        * @description fetches information on multiple canceled orders made by the user
-        * @see https://doc.xt.com/#orderhistoryOrderGet
-        * @see https://doc.xt.com/#futures_ordergetOrders
-        * @see https://doc.xt.com/#futures_entrustgetPlan
-        * @see https://doc.xt.com/#futures_entrustgetProfit
-        * @param {string} [symbol] unified market symbol of the market the orders were made in
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#cancelOrder
+     * @description cancels an open order
+     * @see https://doc.xt.com/#orderorderDel
+     * @see https://doc.xt.com/#futures_ordercancel
+     * @see https://doc.xt.com/#futures_entrustcancelPlan
+     * @see https://doc.xt.com/#futures_entrustcancelProfit
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#cancelOrder
-        * @description cancels an open order
-        * @see https://doc.xt.com/#orderorderDel
-        * @see https://doc.xt.com/#futures_ordercancel
-        * @see https://doc.xt.com/#futures_entrustcancelPlan
-        * @see https://doc.xt.com/#futures_entrustcancelProfit
-        * @param {string} id order id
-        * @param {string} [symbol] unified symbol of the market the order was made in
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -3393,22 +3393,22 @@ public partial class xt : Exchange
         return this.parseOrder(order, market);
     }
 
+    /**
+     * @method
+     * @name xt#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://doc.xt.com/#orderopenOrderDel
+     * @see https://doc.xt.com/#futures_ordercancelBatch
+     * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
+     * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {bool} [params.stop] if the order is a stop trigger order or not
+     * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#cancelAllOrders
-        * @description cancel all open orders in a market
-        * @see https://doc.xt.com/#orderopenOrderDel
-        * @see https://doc.xt.com/#futures_ordercancelBatch
-        * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
-        * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
-        * @param {string} [symbol] unified market symbol of the market to cancel orders in
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {bool} [params.stop] if the order is a stop trigger order or not
-        * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3487,18 +3487,18 @@ public partial class xt : Exchange
         return new List<object> {this.safeOrder(response)};
     }
 
+    /**
+     * @method
+     * @name xt#cancelOrders
+     * @description cancel multiple orders
+     * @see https://doc.xt.com/#orderbatchOrderDel
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#cancelOrders
-        * @description cancel multiple orders
-        * @see https://doc.xt.com/#orderbatchOrderDel
-        * @param {string[]} ids order ids
-        * @param {string} [symbol] unified market symbol of the market to cancel orders in
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3712,19 +3712,19 @@ public partial class xt : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name xt#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://doc.xt.com/#futures_usergetBalanceBill
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-        * @see https://doc.xt.com/#futures_usergetBalanceBill
-        * @param {string} [code] unified currency code
-        * @param {int} [since] timestamp in ms of the earliest ledger entry
-        * @param {int} [limit] max number of ledger entries to return
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3844,18 +3844,18 @@ public partial class xt : Exchange
         return this.safeString(ledgerType, type, type);
     }
 
+    /**
+     * @method
+     * @name xt#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+     * @param {string} code unified currency code
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.network required network id
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
-        * @param {string} code unified currency code
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} params.network required network id
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object networkCode = null;
@@ -3904,19 +3904,19 @@ public partial class xt : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name xt#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
-        * @param {string} [code] unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of transaction structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -3966,19 +3966,19 @@ public partial class xt : Exchange
         return this.parseTransactions(deposits, currency, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
-        * @param {string} [code] unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of transaction structures to retrieve
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -4028,20 +4028,20 @@ public partial class xt : Exchange
         return this.parseTransactions(withdrawals, currency, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#withdraw
+     * @description make a withdrawal
+     * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} [tag]
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#withdraw
-        * @description make a withdrawal
-        * @see https://doc.xt.com/#deposit_withdrawalwithdraw
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} [tag]
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
         await this.loadMarkets();
@@ -4171,19 +4171,19 @@ public partial class xt : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name xt#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://doc.xt.com/#futures_useradjustLeverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} response from the exchange
+     */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#setLeverage
-        * @description set the level of leverage for a market
-        * @see https://doc.xt.com/#futures_useradjustLeverage
-        * @param {float} leverage the rate of leverage
-        * @param {string} symbol unified market symbol
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} params.positionSide 'LONG' or 'SHORT'
-        * @returns {object} response from the exchange
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4229,36 +4229,36 @@ public partial class xt : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name xt#addMargin
+     * @description add margin to a position
+     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#addMargin
-        * @description add margin to a position
-        * @see https://doc.xt.com/#futures_useradjustMargin
-        * @param {string} symbol unified market symbol
-        * @param {float} amount amount of margin to add
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} params.positionSide 'LONG' or 'SHORT'
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "ADD", parameters);
     }
 
+    /**
+     * @method
+     * @name xt#reduceMargin
+     * @description remove margin from a position
+     * @see https://doc.xt.com/#futures_useradjustMargin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} params.positionSide 'LONG' or 'SHORT'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#reduceMargin
-        * @description remove margin from a position
-        * @see https://doc.xt.com/#futures_useradjustMargin
-        * @param {string} symbol unified market symbol
-        * @param {float} amount the amount of margin to remove
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} params.positionSide 'LONG' or 'SHORT'
-        * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, "SUB", parameters);
     }
@@ -4315,17 +4315,17 @@ public partial class xt : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name xt#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage for different trade sizes
+     * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+     * @param {string} [symbols] a list of unified market symbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchLeverageTiers
-        * @description retrieve information on the maximum leverage for different trade sizes
-        * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
-        * @param {string} [symbols] a list of unified market symbols
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object subType = null;
@@ -4409,17 +4409,17 @@ public partial class xt : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name xt#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage for different trade sizes of a single market
+     * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchMarketLeverageTiers
-        * @description retrieve information on the maximum leverage for different trade sizes of a single market
-        * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
-        * @param {string} symbol unified market symbol
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4504,19 +4504,19 @@ public partial class xt : Exchange
         return tiers;
     }
 
+    /**
+     * @method
+     * @name xt#fetchFundingRateHistory
+     * @description fetches historical funding rates
+     * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+     * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+     */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchFundingRateHistory
-        * @description fetches historical funding rates
-        * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
-        * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
-        * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-        * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -4588,32 +4588,32 @@ public partial class xt : Exchange
         return this.filterBySymbolSinceLimit(sorted, getValue(market, "symbol"), since, limit);
     }
 
+    /**
+     * @method
+     * @name xt#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingInterval(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchFundingInterval
-        * @description fetch the current funding rate interval
-        * @see https://doc.xt.com/#futures_quotesgetFundingRate
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.fetchFundingRate(symbol, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://doc.xt.com/#futures_quotesgetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchFundingRate
-        * @description fetch the current funding rate
-        * @see https://doc.xt.com/#futures_quotesgetFundingRate
-        * @param {string} symbol unified market symbol
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4689,19 +4689,19 @@ public partial class xt : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name xt#fetchFundingHistory
+     * @description fetch the funding history
+     * @see https://doc.xt.com/#futures_usergetFunding
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the starting timestamp in milliseconds
+     * @param {int} [limit] the number of entries to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchFundingHistory
-        * @description fetch the funding history
-        * @see https://doc.xt.com/#futures_usergetFunding
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the starting timestamp in milliseconds
-        * @param {int} [limit] the number of entries to return
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4793,17 +4793,17 @@ public partial class xt : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name xt#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://doc.xt.com/#futures_usergetPosition
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchPosition
-        * @description fetch data on a single open contract trade position
-        * @see https://doc.xt.com/#futures_usergetPosition
-        * @param {string} symbol unified market symbol of the market the position is held in
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -4862,17 +4862,17 @@ public partial class xt : Exchange
         return null;
     }
 
+    /**
+     * @method
+     * @name xt#fetchPositions
+     * @description fetch all open positions
+     * @see https://doc.xt.com/#futures_usergetPosition
+     * @param {string} [symbols] list of unified market symbols, not supported with xt
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#fetchPositions
-        * @description fetch all open positions
-        * @see https://doc.xt.com/#futures_usergetPosition
-        * @param {string} [symbols] list of unified market symbols, not supported with xt
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object subType = null;
@@ -4977,20 +4977,20 @@ public partial class xt : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name xt#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://doc.xt.com/#transfersubTransferPost
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
+     * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
+     * @param {object} params extra parameters specific to the whitebit api endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#transfer
-        * @description transfer currency internally between wallets on the same account
-        * @see https://doc.xt.com/#transfersubTransferPost
-        * @param {string} code unified currency code
-        * @param {float} amount amount to transfer
-        * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
-        * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
-        * @param {object} params extra parameters specific to the whitebit api endpoint
-        * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);

@@ -996,7 +996,9 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
         retrieves data on all markets for bitmart
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -1056,7 +1058,7 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_transaction_fee(self, code: str, params={}):
         """
-         * @deprecated
+ @deprecated
         please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1299,8 +1301,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
+        https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
+        https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1392,8 +1396,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
+        https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
+        https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1496,9 +1502,11 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://developer-pro.bitmart.com/en/spot/#get-depth-v3
-        :see: https://developer-pro.bitmart.com/en/futures/#get-market-depth
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
+
+        https://developer-pro.bitmart.com/en/spot/#get-depth-v3
+        https://developer-pro.bitmart.com/en/futures/#get-market-depth
+        https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1672,7 +1680,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get a list of the most recent trades for a particular symbol
-        :see: https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+
+        https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum number of trades to fetch
@@ -1773,8 +1783,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
+
+        https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
+        https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -1864,8 +1876,10 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#account-trade-list-v4-signed
+        https://developer-pro.bitmart.com/en/futures/#get-order-trade-keyed
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1967,7 +1981,9 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
+
+        https://developer-pro.bitmart.com/en/spot/#order-trade-list-v4-signed
+
         fetch all the trades made from a single order
         :param str id: order id
         :param str symbol: unified market symbol
@@ -2033,11 +2049,13 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
-        :see: https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
-        :see: https://developer-pro.bitmart.com/en/spot/#get-account-balance
-        :see: https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+
+        https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
+        https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+        https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
+        https://developer-pro.bitmart.com/en/spot/#get-account-balance
+        https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -2367,7 +2385,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol and cost
-        :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+
+        https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2383,12 +2403,14 @@ class bitmart(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
-        :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+
+        https://developer-pro.bitmart.com/en/spot/#new-order-v2-signed
+        https://developer-pro.bitmart.com/en/spot/#place-margin-order
+        https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
         :param str side: 'buy' or 'sell'
@@ -2462,7 +2484,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+
+        https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2523,12 +2547,12 @@ class bitmart(Exchange, ImplicitAPI):
 
     def create_swap_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         create a trade order
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
+        https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+        https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'trailing', 'stop_loss', or 'take_profit'
         :param str side: 'buy' or 'sell'
@@ -2643,10 +2667,10 @@ class bitmart(Exchange, ImplicitAPI):
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-         * @ignore
+ @ignore
         create a spot order request
-        :see: https://developer-pro.bitmart.com/en/spot/#place-spot-order
-        :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
+        https://developer-pro.bitmart.com/en/spot/#place-spot-order
+        https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -2709,12 +2733,14 @@ class bitmart(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        :see: https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+
+        https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+        https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
+        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+        https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
+        https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2788,7 +2814,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+
+        https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+
         :param str[] ids: order ids
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2842,10 +2870,12 @@ class bitmart(Exchange, ImplicitAPI):
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders in a market
-        :see: https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
-        :see: https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+
+        https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
+        https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
+        https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
+
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *spot only* 'buy' or 'sell'
@@ -2941,9 +2971,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
-        :see: https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#current-open-orders-v4-signed
+        https://developer-pro.bitmart.com/en/futures/#get-all-open-orders-keyed
+        https://developer-pro.bitmart.com/en/futures/#get-all-current-plan-orders-keyed
+
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -3056,9 +3088,11 @@ class bitmart(Exchange, ImplicitAPI):
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
+        https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
+
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3113,10 +3147,12 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
-        :see: https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
+        https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
+        https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
+
         :param str id: the id of the order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3210,7 +3246,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -3565,7 +3603,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
         """
         repay borrowed margin and interest
-        :see: https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+
+        https://developer-pro.bitmart.com/en/spot/#margin-repay-isolated
+
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to repay
         :param str amount: the amount to repay
@@ -3601,7 +3641,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         create a loan to borrow margin
-        :see: https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+
+        https://developer-pro.bitmart.com/en/spot/#margin-borrow-isolated
+
         :param str symbol: unified market symbol
         :param str code: unified currency code of the currency to borrow
         :param str amount: the amount to borrow
@@ -3661,7 +3703,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_isolated_borrow_rate(self, symbol: str, params={}) -> IsolatedBorrowRate:
         """
         fetch the rate of interest to borrow a currency for margin trading
-        :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+
         :param str symbol: unified symbol of the market to fetch the borrow rate for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `isolated borrow rate structure <https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure>`
@@ -3754,7 +3798,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_isolated_borrow_rates(self, params={}) -> IsolatedBorrowRates:
         """
         fetch the borrow interest rates of all currencies, currently only works for isolated margin
-        :see: https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+
+        https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
         """
@@ -3799,9 +3845,11 @@ class bitmart(Exchange, ImplicitAPI):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
-        :see: https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#transfer-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
+
+        https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
+        https://developer-pro.bitmart.com/en/futures/#transfer-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -3930,7 +3978,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
-        :see: https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+
+        https://developer-pro.bitmart.com/en/futures/#get-transfer-list-signed
+
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfer structures to retrieve
@@ -3986,7 +4036,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
-        :see: https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+
+        https://developer-pro.bitmart.com/en/spot/#get-borrow-record-isolated
+
         :param str code: unified currency code
         :param str symbol: unified market symbol when fetch interest in isolated markets
         :param int [since]: the earliest time in ms to fetch borrrow interest for
@@ -4063,7 +4115,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a currency
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
+
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -4115,8 +4169,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
+        https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4142,7 +4198,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
+
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -4206,8 +4264,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_position(self, symbol: str, params={}):
         """
         fetch data on a single open contract trade position
-        :see: https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
+        https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -4254,8 +4314,10 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open contract positions
-        :see: https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
+        https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+        https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
@@ -4375,7 +4437,9 @@ class bitmart(Exchange, ImplicitAPI):
     async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves the users liquidated positions
-        :see: https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+
+        https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -4471,9 +4535,11 @@ class bitmart(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
         edits an open order
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
-        :see: https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+
+        https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed
+        https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed
+
         :param str id: order id
         :param str symbol: unified symbol of the market to edit an order in
         :param str type: 'market' or 'limit'

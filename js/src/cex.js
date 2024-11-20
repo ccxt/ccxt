@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -121,7 +121,8 @@ export default class cex extends Exchange {
                     'check failed': BadRequest,
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
-                    'Market Trigger orders are not allowed': BadRequest, // for some reason, triggerPrice does not work for market orders
+                    'Market Trigger orders are not allowed': BadRequest,
+                    'key not passed or incorrect': AuthenticationError,
                 },
             },
             'timeframes': {
@@ -184,15 +185,15 @@ export default class cex extends Exchange {
             },
         });
     }
+    /**
+     * @method
+     * @name cex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+     * @param {dict} [params] extra parameters specific to the exchange API endpoint
+     * @returns {dict} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name cex#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
-         * @param {dict} [params] extra parameters specific to the exchange API endpoint
-         * @returns {dict} an associative dictionary of currencies
-         */
         const promises = [];
         promises.push(this.publicPostGetCurrenciesInfo(params));
         //
@@ -299,15 +300,15 @@ export default class cex extends Exchange {
             'info': rawCurrency,
         });
     }
+    /**
+     * @method
+     * @name cex#fetchMarkets
+     * @description retrieves data on all markets for ace
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name cex#fetchMarkets
-         * @description retrieves data on all markets for ace
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicPostGetPairsInfo(params);
         //
         //    {
@@ -393,14 +394,14 @@ export default class cex extends Exchange {
             'info': market,
         });
     }
+    /**
+     * @method
+     * @name cex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name cex#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.publicPostGetServerTime(params);
         //
         //    {
@@ -415,30 +416,30 @@ export default class cex extends Exchange {
         const timestamp = this.safeInteger(data, 'timestamp');
         return timestamp;
     }
+    /**
+     * @method
+     * @name cex#fetchTicker
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+     * @param {string} symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchTicker
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const response = await this.fetchTickers([symbol], params);
         return this.safeDict(response, symbol, {});
     }
+    /**
+     * @method
+     * @name cex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const request = {};
         if (symbols !== undefined) {
@@ -499,19 +500,19 @@ export default class cex extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name cex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-trade-history
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest entry
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -579,17 +580,17 @@ export default class cex extends Exchange {
             'fee': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name cex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -618,20 +619,20 @@ export default class cex extends Exchange {
         const timestamp = this.safeInteger(orderBook, 'timestamp');
         return this.parseOrderBook(orderBook, market['symbol'], timestamp);
     }
+    /**
+     * @method
+     * @name cex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest entry
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         let dataType = undefined;
         [dataType, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'dataType');
         if (dataType === undefined) {
@@ -696,15 +697,15 @@ export default class cex extends Exchange {
             this.safeNumber(ohlcv, 'volume'),
         ];
     }
+    /**
+     * @method
+     * @name cex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name cex#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privatePostGetMyCurrentFee(params);
         //
@@ -788,17 +789,17 @@ export default class cex extends Exchange {
             'info': account,
         };
     }
+    /**
+     * @method
+     * @name cex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
+     * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name cex#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
-         * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         let accountName = undefined;
         [accountName, params] = this.handleParamString(params, 'account', ''); // default is empty string
         let method = undefined;
@@ -858,19 +859,20 @@ export default class cex extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name cex#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+     * @param {string} status order status to fetch for
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest entry
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {};
         const isClosedOrders = (status === 'closed');
@@ -941,45 +943,45 @@ export default class cex extends Exchange {
         const data = this.safeValue(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name cex#fetchClosedOrders
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+     * @description fetches information on multiple canceled orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchClosedOrders
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @description fetches information on multiple canceled orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-         * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         return await this.fetchOrdersByStatus('closed', symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name cex#fetchOpenOrders
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+     * @description fetches information on multiple canceled orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] timestamp in ms of the earliest order, default is undefined
+     * @param {int} [limit] max number of orders to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchOpenOrders
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @description fetches information on multiple canceled orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] timestamp in ms of the earliest order, default is undefined
-         * @param {int} [limit] max number of orders to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
     }
+    /**
+     * @method
+     * @name cex#fetchOpenOrder
+     * @description fetches information on an open order made by the user
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchOpenOrder
-         * @description fetches information on an open order made by the user
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @param {string} id order id
-         * @param {string} [symbol] unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderId': parseInt(id),
@@ -987,17 +989,17 @@ export default class cex extends Exchange {
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         return result[0];
     }
+    /**
+     * @method
+     * @name cex#fetchClosedOrder
+     * @description fetches information on an closed order made by the user
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchClosedOrder
-         * @description fetches information on an closed order made by the user
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
-         * @param {string} id order id
-         * @param {string} [symbol] unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderId': parseInt(id),
@@ -1092,21 +1094,21 @@ export default class cex extends Exchange {
             'info': order,
         }, market);
     }
+    /**
+     * @method
+     * @name cex#createOrder
+     * @description create a trade order
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-new-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#createOrder
-         * @description create a trade order
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-new-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.accountId] account-id to use (default is empty string)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         let accountId = undefined;
         [accountId, params] = this.handleOptionAndParams(params, 'createOrder', 'accountId');
         if (accountId === undefined) {
@@ -1188,17 +1190,17 @@ export default class cex extends Exchange {
         const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name cex#cancelOrder
+     * @description cancels an open order
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#cancelOrder
-         * @description cancels an open order
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const request = {
             'orderId': parseInt(id),
@@ -1212,16 +1214,16 @@ export default class cex extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data);
     }
+    /**
+     * @method
+     * @name cex#cancelAllOrders
+     * @description cancel all open orders in a market
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
+     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#cancelAllOrders
-         * @description cancel all open orders in a market
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
-         * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const response = await this.privatePostDoCancelAllOrders(params);
         //
@@ -1243,19 +1245,19 @@ export default class cex extends Exchange {
         }
         return this.parseOrders(orders);
     }
+    /**
+     * @method
+     * @name cex#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
-         * @param {string} [code] unified currency code
-         * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         await this.loadMarkets();
         let currency = undefined;
         const request = {};
@@ -1335,18 +1337,18 @@ export default class cex extends Exchange {
         };
         return this.safeString(ledgerType, type, type);
     }
+    /**
+     * @method
+     * @name cex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
-         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let currency = undefined;
@@ -1427,19 +1429,19 @@ export default class cex extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name cex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name cex#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
-         * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         let transfer = undefined;
         if (toAccount !== '' && fromAccount !== '') {
             transfer = await this.transferBetweenSubAccounts(code, amount, fromAccount, toAccount, params);
@@ -1547,17 +1549,17 @@ export default class cex extends Exchange {
             'status': this.parseTransactionStatus(this.safeString(transfer, 'status')),
         };
     }
+    /**
+     * @method
+     * @name cex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name cex#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         let accountId = undefined;
         [accountId, params] = this.handleOptionAndParams(params, 'createOrder', 'accountId');
         if (accountId === undefined) {

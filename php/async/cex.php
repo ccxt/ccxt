@@ -123,6 +123,7 @@ class cex extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'timeframes' => array(
@@ -190,7 +191,9 @@ class cex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-currencies-info
+             *
              * @param {dict} [$params] extra parameters specific to the exchange API endpoint
              * @return {dict} an associative dictionary of currencies
              */
@@ -307,7 +310,9 @@ class cex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for ace
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-pairs-info
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market $data
              */
@@ -426,8 +431,10 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
-             * @param {string[]|null} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             *
+             * @param {string} $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
              */
@@ -441,7 +448,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -513,7 +522,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-trade-history
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -595,7 +606,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-order-book
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -635,7 +648,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -713,7 +728,9 @@ class cex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
+             *
              * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -812,7 +829,9 @@ class cex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-account-status-v3
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {array} [$params->method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
              * @param {array} [$params->account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
@@ -883,7 +902,10 @@ class cex extends Exchange {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             *
+             * @param {string} $status order $status to fetch for
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -965,7 +987,9 @@ class cex extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             *
              * fetches information on multiple canceled orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -980,7 +1004,9 @@ class cex extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             *
              * fetches information on multiple canceled orders made by the user
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order, default is null
@@ -996,7 +1022,9 @@ class cex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an open order made by the user
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             *
              * @param {string} $id order $id
              * @param {string} [$symbol] unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1015,7 +1043,9 @@ class cex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an closed order made by the user
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
+             *
              * @param {string} $id order $id
              * @param {string} [$symbol] unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1123,7 +1153,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-new-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1220,7 +1252,9 @@ class cex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1245,7 +1279,9 @@ class cex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open $orders in a market
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-$orders
+             *
              * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
@@ -1277,7 +1313,9 @@ class cex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-transaction-history
+             *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
              * @param {int} [$limit] max number of ledger entries to return
@@ -1371,7 +1409,9 @@ class cex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-funding-history
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1466,7 +1506,9 @@ class cex extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer currency internally between wallets on the same account
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-internal-$transfer
+             *
              * @param {string} $code unified currency $code
              * @param {float} $amount amount to $transfer
              * @param {string} $fromAccount 'SPOT', 'FUND', or 'CONTRACT'
@@ -1592,7 +1634,9 @@ class cex extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-deposit-address
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)

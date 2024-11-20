@@ -395,15 +395,9 @@ export default class ellipx extends Exchange {
         const quoteId = this.safeString (market['Secondary'], 'Crypto_Token__');
         const status = this.safeString (market, 'Status') === 'active';
         const created = this.safeTimestamp (market['Created'], 'unix');
-        let amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
-        let pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
-        if (amountPrecision === undefined) {
-            amountPrecision = undefined;
-        }
-        if (pricePrecision === undefined) {
-            pricePrecision = undefined;
-        }
-        return {
+        const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
+        const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -447,18 +441,18 @@ export default class ellipx extends Exchange {
             },
             'info': market,
             'created': created,
-        };
+        });
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name ellipx#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
@@ -562,16 +556,16 @@ export default class ellipx extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return the exchange not supported yet.
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name ellipx#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return the exchange not supported yet.
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
@@ -657,18 +651,18 @@ export default class ellipx extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market, default will return the last 24h period.
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the API endpoint
+     * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ellipx#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market, default will return the last 24h period.
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the API endpoint
-         * @returns {OHLCV[]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const methodName = 'fetchOHLCV';
         let paginate = false;
@@ -731,17 +725,17 @@ export default class ellipx extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchCurrencies
+     * @description fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
+     * @param {object} [params] extra parameters specific to the ellipx API endpoint
+     * @param {string} [params.Can_Deposit] filter currencies by deposit availability, Y for available
+     * @param {number} [params.results_per_page] number of results per page, default 100
+     * @param {string} [params._expand] additional fields to expand in response, default '/Crypto_Token,/Crypto_Chain'
+     * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
+     */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        /**
-         * @method
-         * @name ellipx#fetchCurrencies
-         * @description fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
-         * @param {object} [params] extra parameters specific to the ellipx API endpoint
-         * @param {string} [params.Can_Deposit] filter currencies by deposit availability, Y for available
-         * @param {number} [params.results_per_page] number of results per page, default 100
-         * @param {string} [params._expand] additional fields to expand in response, default '/Crypto_Token,/Crypto_Chain'
-         * @returns {Promise<Currencies>} An object of currency structures indexed by currency codes
-         */
         const response = await this._restGetCryptoTokenInfo (this.extend ({
             'Can_Deposit': 'Y',
             'results_per_page': 100,
@@ -833,18 +827,18 @@ export default class ellipx extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchTrades
+     * @description fetches all completed trades for a particular market/symbol
+     * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
+     * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+     * @param {int|undefined} limit the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the EllipX API endpoint
+     * @param {string} [params.before] get trades before the given trade ID
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name ellipx#fetchTrades
-         * @description fetches all completed trades for a particular market/symbol
-         * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the EllipX API endpoint
-         * @param {string} [params.before] get trades before the given trade ID
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -919,14 +913,14 @@ export default class ellipx extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name ellipx#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.privateGetUserWallet (params);
         // {
@@ -1024,21 +1018,21 @@ export default class ellipx extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name ellipx#createOrder
+     * @description create a new order in a market
+     * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
+     * @param {string} type order type - the exchange automatically sets type to 'limit' if price defined, 'market' if undefined
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount amount of base currency to trade (can be undefined if using Spend_Limit)
+     * @param {float|undefined} price price per unit of base currency for limit orders
+     * @param {object} [params] extra parameters specific to the EllipX API endpoint
+     * @param {float} [params.Spend_Limit] maximum amount to spend in quote currency (required for market orders if amount undefined)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @throws {ArgumentsRequired} if neither amount nor Spend_Limit is provided
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name ellipx#createOrder
-         * @description create a new order in a market
-         * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
-         * @param {string} type order type - the exchange automatically sets type to 'limit' if price defined, 'market' if undefined
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount amount of base currency to trade (can be undefined if using Spend_Limit)
-         * @param {float|undefined} price price per unit of base currency for limit orders
-         * @param {object} [params] extra parameters specific to the EllipX API endpoint
-         * @param {float} [params.Spend_Limit] maximum amount to spend in quote currency (required for market orders if amount undefined)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         * @throws {ArgumentsRequired} if neither amount nor Spend_Limit is provided
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
@@ -1140,18 +1134,18 @@ export default class ellipx extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOrdersByStatus
+     * @description fetches a list of orders placed on the exchange
+     * @param {string|undefined} status 'open' or 'closed', omit for all orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum amount of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ellipx#fetchOrdersByStatus
-         * @description fetches a list of orders placed on the exchange
-         * @param {string|undefined} status 'open' or 'closed', omit for all orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] timestamp in ms of the earliest order
-         * @param {int} [limit] the maximum amount of orders to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         const request: any = {};
@@ -1221,31 +1215,31 @@ export default class ellipx extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int|undefined} since timestamp in ms of the earliest order
+     * @param {int|undefined} limit the maximum amount of orders to fetch
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name ellipx#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum amount of orders to fetch
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         return await this.fetchOrdersByStatus (undefined, symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOpenOrders
+     * @description fetches information on open orders made by the user
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int|undefined} since timestamp in ms of the earliest order
+     * @param {int|undefined} limit the maximum amount of orders to fetch
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name ellipx#fetchOpenOrders
-         * @description fetches information on open orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit the maximum amount of orders to fetch
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
@@ -1349,22 +1343,22 @@ export default class ellipx extends Exchange {
         }, undefined);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchDepositAddress
+     * @description fetches a crypto deposit address for a specific currency
+     * @param {string} code unified currency code (e.g. "BTC", "ETH", "USDT")
+     * @param {object} [params] extra parameters specific to the EllipX API endpoint
+     * @returns {object} an address structure {
+     *     'currency': string, // unified currency code
+     *     'address': string, // the address for deposits
+     *     'tag': string|undefined, // tag/memo for deposits if needed
+     *     'network': object, // network object from currency info
+     *     'info': object // raw response from exchange
+     * }
+     * @throws {ExchangeError} if currency does not support deposits
+     */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        /**
-         * @method
-         * @name ellipx#fetchDepositAddress
-         * @description fetches a crypto deposit address for a specific currency
-         * @param {string} code unified currency code (e.g. "BTC", "ETH", "USDT")
-         * @param {object} [params] extra parameters specific to the EllipX API endpoint
-         * @returns {object} an address structure {
-         *     'currency': string, // unified currency code
-         *     'address': string, // the address for deposits
-         *     'tag': string|undefined, // tag/memo for deposits if needed
-         *     'network': object, // network object from currency info
-         *     'info': object // raw response from exchange
-         * }
-         * @throws {ExchangeError} if currency does not support deposits
-         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeValue (currency['info'], 'Crypto_Chain', undefined);
@@ -1390,23 +1384,23 @@ export default class ellipx extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchTradingFee
+     * @description Fetches the current trading fees (maker and taker) applicable to the user.
+     * @param {string} [symbol] Not used by EllipX as fees are not symbol-specific.
+     * @param {object} [params] Extra parameters specific to the EllipX API endpoint.
+     * @returns {Promise<object>} A promise resolving to a unified trading fee structure:
+     * {
+     *     'info': object,        // the raw response from the exchange
+     *     'symbol': undefined,   // symbol is not used for this exchange
+     *     'maker': number,       // maker fee rate in decimal form
+     *     'taker': number,       // taker fee rate in decimal form
+     *     'percentage': true,    // indicates fees are in percentage
+     *     'tierBased': false,    // indicates fees do not vary by volume tiers
+     * }
+     */
     async fetchTradingFee (symbol: string = undefined, params = {}): Promise<TradingFeeInterface> {
-        /**
-         * @method
-         * @name ellipx#fetchTradingFee
-         * @description Fetches the current trading fees (maker and taker) applicable to the user.
-         * @param {string} [symbol] Not used by EllipX as fees are not symbol-specific.
-         * @param {object} [params] Extra parameters specific to the EllipX API endpoint.
-         * @returns {Promise<object>} A promise resolving to a unified trading fee structure:
-         * {
-         *     'info': object,        // the raw response from the exchange
-         *     'symbol': undefined,   // symbol is not used for this exchange
-         *     'maker': number,       // maker fee rate in decimal form
-         *     'taker': number,       // taker fee rate in decimal form
-         *     'percentage': true,    // indicates fees are in percentage
-         *     'tierBased': false,    // indicates fees do not vary by volume tiers
-         * }
-         */
         await this.loadMarkets ();
         const response = await this.privateGetMarketTradeFeeQuery (params);
         //
@@ -1438,16 +1432,16 @@ export default class ellipx extends Exchange {
         };
     }
 
+    /**
+     * Make a withdrawal request
+     * @param {string} code Currency code
+     * @param {number} amount Amount to withdraw
+     * @param {string} address Destination wallet address
+     * @param {string|undefined} tag Additional tag/memo for currencies that require it
+     * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        /**
-         * Make a withdrawal request
-         * @param {string} code Currency code
-         * @param {number} amount Amount to withdraw
-         * @param {string} address Destination wallet address
-         * @param {string|undefined} tag Additional tag/memo for currencies that require it
-         * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

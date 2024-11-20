@@ -313,7 +313,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
+             *
              * @see https://docs.alpaca.markets/reference/get-v2-$assets
+             *
              * @param {array} [$params] extra parameters specific to the exchange api endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -442,8 +444,10 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://docs.alpaca.markets/reference/cryptotrades
              * @see https://docs.alpaca.markets/reference/cryptolatesttrades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -518,7 +522,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.alpaca.markets/reference/cryptolatestorderbooks
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -582,8 +588,10 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.alpaca.markets/reference/cryptobars
              * @see https://docs.alpaca.markets/reference/cryptolatestbars
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -701,7 +709,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
@@ -718,7 +728,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://docs.alpaca.markets/reference/cryptosnapshots-1
+             *
              * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
@@ -843,7 +855,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://docs.alpaca.markets/reference/postorder
+             *
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market', 'limit' or 'stop_limit'
              * @param {string} $side 'buy' or 'sell'
@@ -926,7 +940,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://docs.alpaca.markets/reference/deleteorderbyorderid
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -950,7 +966,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a market
+             *
              * @see https://docs.alpaca.markets/reference/deleteallorders
+             *
              * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -973,7 +991,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getorderbyorderid
+             *
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -994,7 +1014,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1071,7 +1093,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1090,7 +1114,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getallorders
+             *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1109,7 +1135,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
+             *
              * @see https://docs.alpaca.markets/reference/patchorderbyorderid-1
+             *
              * @param {string} $id order $id
              * @param {string} [$symbol] unified $symbol of the $market to create an order in
              * @param {string} [$type] 'market', 'limit' or 'stop_limit'
@@ -1263,7 +1291,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.alpaca.markets/reference/getaccountactivitiesbyactivitytype-1
+             *
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -1375,7 +1405,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://docs.alpaca.markets/reference/listcryptofundingwallets
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -1422,7 +1454,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://docs.alpaca.markets/reference/createcryptotransferforaccount
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -1507,7 +1541,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
              * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1522,7 +1558,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
              * @param {string} [$code] unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposit structures to retrieve
@@ -1537,7 +1575,9 @@ class alpaca extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://docs.alpaca.markets/reference/listcryptofundingtransfers
+             *
              * @param {string} [$code] unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawal structures to retrieve

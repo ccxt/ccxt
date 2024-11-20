@@ -181,6 +181,7 @@ public partial class wavesexchange
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://matcher.waves.exchange/api-docs/index.html#/cancel/cancelOrdersByIdsWithKeyOrSignature"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -338,6 +339,7 @@ public partial class wavesexchange
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -371,6 +373,7 @@ public partial class wavesexchange
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api.wavesplatform.com/v0/docs/#/transactions/searchTxsExchange"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

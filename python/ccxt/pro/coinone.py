@@ -55,7 +55,9 @@ class coinone(ccxt.async_support.coinone):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinone.co.kr/reference/public-websocket-orderbook
+
+        https://docs.coinone.co.kr/reference/public-websocket-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -132,7 +134,9 @@ class coinone(ccxt.async_support.coinone):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.coinone.co.kr/reference/public-websocket-ticker
+
+        https://docs.coinone.co.kr/reference/public-websocket-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -248,7 +252,9 @@ class coinone(ccxt.async_support.coinone):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://docs.coinone.co.kr/reference/public-websocket-trade
+
+        https://docs.coinone.co.kr/reference/public-websocket-trade
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve

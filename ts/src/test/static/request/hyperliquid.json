@@ -11,6 +11,32 @@
     ],
     "outputType": "json",
     "methods": {
+    "fetchTickers": [
+            {
+                "description": "fetch spot tickers only",
+                "method": "fetchTickers",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": "{\"type\":\"spotMetaAndAssetCtxs\"}"
+            },
+            {
+                "description": "fetch swap tickers only",
+                "method": "fetchTickers",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"type\":\"metaAndAssetCtxs\"}"
+            }
+    ],
         "createOrder": [
             {
                 "description": "swap limit order",

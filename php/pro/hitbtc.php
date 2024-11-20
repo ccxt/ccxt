@@ -85,7 +85,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * authenticates the user to access private web socket channels
+             *
              * @see https://api.hitbtc.com/#socket-authentication
+             *
              * @return {array} response from exchange
              */
             $this->check_required_credentials();
@@ -134,6 +136,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
+             * @param {string} $messageHashPrefix prefix for the message hash
              * @param {string[]} [$symbols] unified CCXT symbol(s)
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
@@ -189,7 +192,6 @@ class hitbtc extends \ccxt\async\hitbtc {
             /**
              * @ignore
              * @param {string} $name websocket endpoint $name
-             * @param {string} [symbol] unified CCXT symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
             Async\await($this->load_markets());
@@ -209,11 +211,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api.hitbtc.com/#subscribe-to-full-order-book
              * @see https://api.hitbtc.com/#subscribe-to-partial-order-book
              * @see https://api.hitbtc.com/#subscribe-to-partial-order-book-in-batches
              * @see https://api.hitbtc.com/#subscribe-to-top-of-book
              * @see https://api.hitbtc.com/#subscribe-to-top-of-book-in-batches
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -320,10 +324,12 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             *
              * @see https://api.hitbtc.com/#subscribe-to-$ticker
              * @see https://api.hitbtc.com/#subscribe-to-$ticker-in-batches
              * @see https://api.hitbtc.com/#subscribe-to-mini-$ticker
              * @see https://api.hitbtc.com/#subscribe-to-mini-$ticker-in-batches
+             *
              * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
@@ -339,7 +345,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} symbol unified symbol of the market to fetch the ticker for
+             * @param {string[]} [$symbols]
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->method 'ticker/{$speed}' ,'ticker/price/{$speed}', 'ticker/{$speed}/batch' (default), or 'ticker/{$speed}/price/batch''
              * @param {string} $params->speed '1s' (default), or '3s'
@@ -495,7 +501,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
+             *
              * @see https://api.hitbtc.com/#subscribe-to-top-of-book
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'orderbook/top/{$speed}' or 'orderbook/top/{$speed}/batch (default)'
@@ -578,7 +586,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://api.hitbtc.com/#subscribe-to-$trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -710,7 +720,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://api.hitbtc.com/#subscribe-to-candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} [$timeframe] the length of time each candle represents
              * @param {int} [$since] not used by hitbtc watchOHLCV
@@ -824,9 +836,11 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://api.hitbtc.com/#subscribe-to-reports
              * @see https://api.hitbtc.com/#subscribe-to-reports-2
              * @see https://api.hitbtc.com/#subscribe-to-reports-3
+             *
              * @param {string} [$symbol] unified CCXT $market $symbol
              * @param {int} [$since] timestamp in ms of the earliest order to fetch
              * @param {int} [$limit] the maximum amount of $orders to fetch
@@ -1068,8 +1082,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($params) {
             /**
              * watches balance updates, cannot subscribe to margin account balances
+             *
              * @see https://api.hitbtc.com/#subscribe-to-spot-balances
              * @see https://api.hitbtc.com/#subscribe-to-futures-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot', 'swap', or 'future'
              *
@@ -1098,9 +1114,11 @@ class hitbtc extends \ccxt\async\hitbtc {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://api.hitbtc.com/#create-new-spot-order
              * @see https://api.hitbtc.com/#create-margin-order
              * @see https://api.hitbtc.com/#create-futures-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1136,9 +1154,11 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://api.hitbtc.com/#cancel-spot-order-2
              * @see https://api.hitbtc.com/#cancel-futures-order-2
              * @see https://api.hitbtc.com/#cancel-margin-order-2
+             *
              * cancels an open order
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1172,8 +1192,10 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function cancel_all_orders_ws(?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://api.hitbtc.com/#cancel-spot-orders
              * @see https://api.hitbtc.com/#cancel-futures-order-3
+             *
              * cancel all open orders
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1203,9 +1225,11 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://api.hitbtc.com/#get-active-futures-orders-2
              * @see https://api.hitbtc.com/#get-margin-orders
              * @see https://api.hitbtc.com/#get-active-spot-orders
+             *
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for

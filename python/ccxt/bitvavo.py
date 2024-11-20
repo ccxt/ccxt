@@ -327,7 +327,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1markets/get
+
         retrieves data on all markets for bitvavo
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -419,7 +421,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_currencies(self, params={}) -> Currencies:
         """
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         fetches all available currencies on an exchange
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -561,7 +565,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get
+
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -671,7 +677,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get
+
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -810,7 +818,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1account/get
+
         fetch the trading fees for multiple markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -856,7 +866,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get
+
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -936,7 +948,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_ohlcv(self, symbol: Str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
+        https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -982,7 +996,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1081,15 +1097,14 @@ class bitvavo(Exchange, ImplicitAPI):
             request['timeInForce'] = timeInForce
         if postOnly:
             request['postOnly'] = True
-        clientOrderId = self.safe_string(params, 'clientOrderId')
-        if clientOrderId is None:
-            request['clientOrderId'] = self.uuid22()
         return self.extend(request, params)
 
     def create_order(self, symbol: Str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1181,7 +1196,9 @@ class bitvavo(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/put
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1211,9 +1228,13 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
+
         cancels an open order
-        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1232,7 +1253,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+
+        https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
+
         cancel all open orders
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1257,7 +1280,9 @@ class bitvavo(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1329,7 +1354,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+
+        https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get
+
         fetches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1582,7 +1609,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+
+        https://docs.bitvavo.com/#tag/Trades/paths/~1trades/get
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1678,7 +1707,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get
+
         fetch all withdrawals made from an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -1727,7 +1758,9 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
-        :see: https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+
+        https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get
+
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -1892,7 +1925,9 @@ class bitvavo(Exchange, ImplicitAPI):
     def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         """
         fetch deposit and withdraw fees
-        :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
+        https://docs.bitvavo.com/#tag/General/paths/~1assets/get
+
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`

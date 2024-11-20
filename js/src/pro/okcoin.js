@@ -66,18 +66,18 @@ export default class okcoin extends okcoinRest {
         };
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
+    /**
+     * @method
+     * @name okcoin#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-trades-channel
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const trades = await this.subscribe('trade', symbol, params);
@@ -86,18 +86,18 @@ export default class okcoin extends okcoinRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    /**
+     * @method
+     * @name okcoin#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.authenticate();
         if (symbol !== undefined) {
@@ -173,16 +173,16 @@ export default class okcoin extends okcoinRest {
             }
         }
     }
+    /**
+     * @method
+     * @name okcoin#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         return await this.subscribe('ticker', symbol, params);
     }
     handleTrade(client, message) {
@@ -254,19 +254,19 @@ export default class okcoin extends okcoinRest {
         }
         return message;
     }
+    /**
+     * @method
+     * @name okcoin#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         symbol = this.symbol(symbol);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -322,17 +322,17 @@ export default class okcoin extends okcoinRest {
             client.resolve(stored, messageHash);
         }
     }
+    /**
+     * @method
+     * @name okcoin#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         const options = this.safeValue(this.options, 'watchOrderBook', {});
         const depth = this.safeString(options, 'depth', 'depth_l2_tbt');
         const orderbook = await this.subscribe(depth, symbol, params);
@@ -486,15 +486,15 @@ export default class okcoin extends okcoinRest {
         }
         return await future;
     }
+    /**
+     * @method
+     * @name okcoin#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance(params = {}) {
-        /**
-         * @method
-         * @name okcoin#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         const defaultType = this.safeString2(this.options, 'watchBalance', 'defaultType');
         const type = this.safeString(params, 'type', defaultType);
         if (type === undefined) {
