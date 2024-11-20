@@ -572,9 +572,9 @@ export default class ellipx extends Exchange {
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const marketId = market['id'];
         const request = {
-            'currencyPair': marketSymbol,
+            'currencyPair': marketId,
         };
         const response = await this.publicGetMarketCurrencyPairGetDepth (this.extend (request, params));
         // {
