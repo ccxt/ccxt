@@ -351,7 +351,7 @@ class sarmayex extends Exchange {
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp * 1000,
-            'datetime' => new Date ($timestamp * 1000).toISOString (),
+            'datetime' => $this->iso8601($timestamp * 1000),
             'high' => null,
             'low' => null,
             'bid' => null,
