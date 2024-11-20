@@ -11,7 +11,7 @@ public partial class binancecoinm : binance
             { "id", "binancecoinm" },
             { "name", "Binance COIN-M" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/387cfc4e-5f33-48cd-8f5c-cd4854dabf0c" },
                 { "doc", new List<object>() {"https://binance-docs.github.io/apidocs/delivery/en/", "https://binance-docs.github.io/apidocs/spot/en", "https://developers.binance.com/en"} },
             } },
             { "has", new Dictionary<string, object>() {

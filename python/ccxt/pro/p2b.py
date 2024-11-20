@@ -67,7 +67,7 @@ class p2b(ccxt.async_support.p2b):
 
     async def subscribe(self, name: str, messageHash: str, request, params={}):
         """
-         * @ignore
+ @ignore
         Connects to a websocket channel
         :param str name: name of the channel
         :param str messageHash: string to look up in handler
@@ -87,7 +87,9 @@ class p2b(ccxt.async_support.p2b):
     async def watch_ohlcv(self, symbol: str, timeframe='15m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 15m, 30m, 1h or 1d
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -114,8 +116,10 @@ class p2b(ccxt.async_support.p2b):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.method]: 'state'(default) or 'price'
@@ -135,8 +139,10 @@ class p2b(ccxt.async_support.p2b):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -166,7 +172,9 @@ class p2b(ccxt.async_support.p2b):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -178,7 +186,9 @@ class p2b(ccxt.async_support.p2b):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -209,7 +219,9 @@ class p2b(ccxt.async_support.p2b):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
+
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: 1-100, default=100
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -444,8 +456,8 @@ class p2b(ccxt.async_support.p2b):
 
     def ping(self, client: Client):
         """
-        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
-         * @param client
+        https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
+ @param client
         """
         return {
             'method': 'server.ping',

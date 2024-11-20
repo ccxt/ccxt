@@ -5,7 +5,7 @@
 
 from ccxt.kucoin import kucoin
 from ccxt.abstract.kucoinfutures import ImplicitAPI
-from ccxt.base.types import Balances, Currency, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, DepositAddress, Int, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -46,12 +46,14 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'addMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'closeAllPositions': False,
                 'closePosition': True,
                 'closePositions': False,
                 'createDepositAddress': True,
                 'createOrder': True,
                 'createOrders': True,
+                'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopLossOrder': True,
@@ -69,6 +71,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
@@ -214,6 +218,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                         'stopOrders': 1,
                         'sub/api-key': 1,
                         'orders/client-order/{clientOid}': 1,
+                        'orders/multi-cancel': 20,
                     },
                 },
                 'webExchange': {
@@ -253,6 +258,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
                     '400100': BadRequest,  # Parameter Error -- You tried to access the resource with invalid parameters
                     '411100': AccountSuspended,  # User is frozen -- Please contact us via support center
                     '500000': ExchangeNotAvailable,  # Internal Server Error -- We had a problem with our server. Try again later.
+                    '300009': InvalidOrder,  # {"msg":"No open positions to close.","code":"300009"}
                 },
                 'broad': {
                     'Position does not exist': OrderNotFound,  # {"code":"200000", "msg":"Position does not exist"}
@@ -369,7 +375,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -396,7 +404,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kucoinfutures
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -554,7 +564,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-server-time
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -570,7 +582,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -640,10 +654,12 @@ class kucoinfutures(kucoin, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_deposit_address(self, code: str, params={}):
+    def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
-        :see: https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+
+        https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
@@ -672,15 +688,17 @@ class kucoinfutures(kucoin, ImplicitAPI):
         return {
             'info': response,
             'currency': currencyId,
+            'network': self.safe_string(data, 'chain'),
             'address': address,
             'tag': self.safe_string(data, 'memo'),
-            'network': self.safe_string(data, 'chain'),
         }
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-part-order-book-level-2
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -729,7 +747,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -763,7 +783,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_mark_price(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -780,7 +802,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
@@ -992,7 +1016,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of funding payments paid and received on self account
-        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history
+
+        https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-funding-history
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
@@ -1057,7 +1083,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     def fetch_position(self, symbol: str, params={}):
         """
-        :see: https://docs.kucoin.com/futures/#get-position-details
+
+        https://docs.kucoin.com/futures/#get-position-details
+
         fetch data on an open position
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1119,7 +1147,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.kucoin.com/futures/#get-position-list
+
+        https://docs.kucoin.com/futures/#get-position-list
+
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
@@ -1178,8 +1208,12 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical positions
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history
+
         :param str[] [symbols]: list of unified market symbols
+        :param int [since]: the earliest time in ms to fetch position history for
+        :param int [limit]: the maximum number of entries to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: closing end time
         :param int [params.pageId]: page id
@@ -1369,21 +1403,27 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         Create an order on the exchange
-        :see: https://docs.kucoin.com/futures/#place-an-order
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
+
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
+        :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+        :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
         :param float [params.takeProfitPrice]: price to trigger take-profit orders
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str [params.timeInForce]: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str [params.postOnly]: Post only flag, invalid when timeInForce is IOC or FOK
-         * ----------------- Exchange Specific Parameters -----------------
-        :param float [params.leverage]: Leverage size of the order
+        :param float [params.cost]: the cost of the order in units of USDT
+ ----------------- Exchange Specific Parameters -----------------
+        :param float [params.leverage]: Leverage size of the order(mandatory param in request, default is 1)
         :param str [params.clientOid]: client order id, defaults to uuid if not passed
         :param str [params.remark]: remark for the order, length cannot exceed 100 utf8 characters
         :param str [params.stop]: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
@@ -1397,12 +1437,16 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
+        isTpAndSlOrder = (self.safe_value(params, 'stopLoss') is not None) or (self.safe_value(params, 'takeProfit') is not None)
         orderRequest = self.create_contract_order_request(symbol, type, side, amount, price, params)
         response = None
         if testOrder:
             response = self.futuresPrivatePostOrdersTest(orderRequest)
         else:
-            response = self.futuresPrivatePostOrders(orderRequest)
+            if isTpAndSlOrder:
+                response = self.futuresPrivatePostStOrders(orderRequest)
+            else:
+                response = self.futuresPrivatePostOrders(orderRequest)
         #
         #    {
         #        "code": "200000",
@@ -1417,7 +1461,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
         create a list of trade orders
-        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1465,18 +1511,25 @@ class kucoinfutures(kucoin, ImplicitAPI):
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
-        if amount < 1:
-            raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
-        preciseAmount = int(self.amount_to_precision(symbol, amount))
         request: dict = {
             'clientOid': clientOrderId,
             'side': side,
             'symbol': market['id'],
             'type': type,  # limit or market
-            'size': preciseAmount,
             'leverage': 1,
         }
+        cost = self.safe_string(params, 'cost')
+        params = self.omit(params, 'cost')
+        if cost is not None:
+            request['valueQty'] = self.cost_to_precision(symbol, cost)
+        else:
+            if amount < 1:
+                raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
+            request['size'] = int(self.amount_to_precision(symbol, amount))
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
+        # isTpAndSl = stopLossPrice and takeProfitPrice
         triggerPriceTypes: dict = {
             'mark': 'MP',
             'last': 'TP',
@@ -1484,11 +1537,22 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
         triggerPriceType = self.safe_string(params, 'triggerPriceType', 'mark')
         triggerPriceTypeValue = self.safe_string(triggerPriceTypes, triggerPriceType, triggerPriceType)
-        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice'])
+        params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice', 'takeProfit', 'stopLoss'])
         if triggerPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['stopPriceType'] = triggerPriceTypeValue
+        elif stopLoss is not None or takeProfit is not None:
+            priceType = triggerPriceTypeValue
+            if stopLoss is not None:
+                slPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
+                request['triggerStopDownPrice'] = self.price_to_precision(symbol, slPrice)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+            if takeProfit is not None:
+                tpPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'takeProfitPrice')
+                request['triggerStopUpPrice'] = self.price_to_precision(symbol, tpPrice)
+                priceType = self.safe_string(stopLoss, 'triggerPriceType', triggerPriceTypeValue)
+            request['stopPriceType'] = priceType
         elif stopLossPrice or takeProfitPrice:
             if stopLossPrice:
                 request['stop'] = 'up' if (side == 'buy') else 'down'
@@ -1525,7 +1589,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1559,11 +1625,70 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #
         return self.safe_value(response, 'data')
 
+    def cancel_orders(self, ids, symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/batch-cancel-orders
+
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        ordersRequests = []
+        clientOrderIds = self.safe_list_2(params, 'clientOrderIds', 'clientOids', [])
+        params = self.omit(params, ['clientOrderIds', 'clientOids'])
+        useClientorderId = False
+        for i in range(0, len(clientOrderIds)):
+            useClientorderId = True
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds')
+            ordersRequests.append({
+                'symbol': market['id'],
+                'clientOid': self.safe_string(clientOrderIds, i),
+            })
+        for i in range(0, len(ids)):
+            ordersRequests.append(ids[i])
+        requestKey = 'clientOidsList' if useClientorderId else 'orderIdsList'
+        request: dict = {}
+        request[requestKey] = ordersRequests
+        response = self.futuresPrivateDeleteOrdersMultiCancel(self.extend(request, params))
+        #
+        #   {
+        #       "code": "200000",
+        #       "data":
+        #       [
+        #           {
+        #               "orderId": "80465574458560512",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           },
+        #           {
+        #               "orderId": "80465575289094144",
+        #               "clientOid": null,
+        #               "code": "200",
+        #               "msg": "success"
+        #           }
+        #       ]
+        #   }
+        #
+        orders = self.safe_list(response, 'data', [])
+        return self.parse_orders(orders, market)
+
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
         cancel all open orders
-        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
-        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
+        https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
+
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.trigger]: When True, all the trigger orders will be cancelled
@@ -1595,7 +1720,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         """
         add margin
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/add-margin-manually
+
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1734,8 +1861,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches a list of orders placed on the exchange
-        :see: https://docs.kucoin.com/futures/#get-order-list
-        :see: https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+
+        https://docs.kucoin.com/futures/#get-order-list
+        https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+
         :param str status: 'active' or 'closed', only 'active' is valid for stop orders
         :param str symbol: unified symbol for the market to retrieve orders from
         :param int [since]: timestamp in ms of the earliest order to retrieve
@@ -1836,7 +1965,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://docs.kucoin.com/futures/#get-order-list
+
+        https://docs.kucoin.com/futures/#get-order-list
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1857,8 +1988,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple open orders made by the user
-        :see: https://docs.kucoin.com/futures/#get-order-list
-        :see: https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+
+        https://docs.kucoin.com/futures/#get-order-list
+        https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -1880,7 +2013,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_order(self, id: Str = None, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.kucoin.com/futures/#get-details-of-a-single-order
+
+        https://docs.kucoin.com/futures/#get-details-of-a-single-order
+
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2021,8 +2157,8 @@ class kucoinfutures(kucoin, ImplicitAPI):
         amount = self.safe_string(order, 'size')
         filled = self.safe_string(order, 'filledSize')
         cost = self.safe_string(order, 'filledValue')
-        average = None
-        if Precise.string_gt(filled, '0'):
+        average = self.safe_string(order, 'avgDealPrice')
+        if (average is None) and Precise.string_gt(filled, '0'):
             contractSize = self.safe_string(market, 'contractSize')
             if market['linear']:
                 average = Precise.string_div(cost, Precise.string_mul(contractSize, filled))
@@ -2079,7 +2215,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+
+        https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2109,7 +2247,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_funding_interval(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate interval
-        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+
+        https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -2177,7 +2317,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
+
+        https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -2212,6 +2354,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
         transfer currency internally between wallets on the same account
+
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+        https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -2219,38 +2365,90 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
         """
-        if (toAccount != 'main' and toAccount != 'funding') or (fromAccount != 'futures' and fromAccount != 'future' and fromAccount != 'contract'):
-            raise BadRequest(self.id + ' transfer() only supports transfers from contract(future) account to main(funding) account')
         self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
         request: dict = {
-            'currency': self.safe_string(currency, 'id'),  # Currency,including XBT,USDT
+            'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
-        # transfer from usdm futures wallet to spot wallet
-        response = self.futuresPrivatePostTransferOut(self.extend(request, params))
-        #
-        #    {
-        #        "code": "200000",
-        #        "data": {
-        #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
-        #        }
-        #    }
-        #
-        data = self.safe_value(response, 'data')
+        toAccountString = self.parse_transfer_type(toAccount)
+        response = None
+        if toAccountString == 'TRADE' or toAccountString == 'MAIN':
+            request['recAccountType'] = toAccountString
+            response = self.futuresPrivatePostTransferOut(self.extend(request, params))
+            #
+            #     {
+            #         "code": "200000",
+            #         "data": {
+            #             "applyId": "6738754373ceee00011ec3f8",
+            #             "bizNo": "6738754373ceee00011ec3f7",
+            #             "payAccountType": "CONTRACT",
+            #             "payTag": "DEFAULT",
+            #             "remark": "",
+            #             "recAccountType": "MAIN",
+            #             "recTag": "DEFAULT",
+            #             "recRemark": "",
+            #             "recSystem": "KUCOIN",
+            #             "status": "PROCESSING",
+            #             "currency": "USDT",
+            #             "amount": "5",
+            #             "fee": "0",
+            #             "sn": 1519769124846692,
+            #             "reason": "",
+            #             "createdAt": 1731753283000,
+            #             "updatedAt": 1731753283000
+            #         }
+            #     }
+            #
+        elif toAccount == 'future' or toAccount == 'swap' or toAccount == 'contract':
+            request['payAccountType'] = self.parse_transfer_type(fromAccount)
+            response = self.futuresPrivatePostTransferIn(self.extend(request, params))
+            #
+            #    {
+            #        "code": "200000",
+            #        "data": {
+            #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+            #        }
+            #    }
+            #
+        else:
+            raise BadRequest(self.id + ' transfer() only supports transfers between future/swap, spot and funding accounts')
+        data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_transfer(data, currency), {
             'amount': self.parse_number(amountToPrecision),
-            'fromAccount': 'future',
-            'toAccount': 'spot',
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
         })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
-        # transfer
+        # transfer to spot or funding account
         #
         #     {
         #            "applyId": "5bffb63303aa675e8bbe18f9"  # Transfer-out request ID
+        #     }
+        #
+        # transfer to future account
+        #
+        #     {
+        #         "applyId": "6738754373ceee00011ec3f8",
+        #         "bizNo": "6738754373ceee00011ec3f7",
+        #         "payAccountType": "CONTRACT",
+        #         "payTag": "DEFAULT",
+        #         "remark": "",
+        #         "recAccountType": "MAIN",
+        #         "recTag": "DEFAULT",
+        #         "recRemark": "",
+        #         "recSystem": "KUCOIN",
+        #         "status": "PROCESSING",
+        #         "currency": "USDT",
+        #         "amount": "5",
+        #         "fee": "0",
+        #         "sn": 1519769124846692,
+        #         "reason": "",
+        #         "createdAt": 1731753283000,
+        #         "updatedAt": 1731753283000
         #     }
         #
         timestamp = self.safe_integer(transfer, 'updatedAt')
@@ -2259,7 +2457,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(None, currency),
-            'amount': None,
+            'amount': self.safe_number(transfer, 'amount'),
             'fromAccount': None,
             'toAccount': None,
             'status': self.safe_string(transfer, 'status'),
@@ -2272,9 +2470,18 @@ class kucoinfutures(kucoin, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
+    def parse_transfer_type(self, transferType: Str) -> Str:
+        transferTypes: dict = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        }
+        return self.safe_string_upper(transferTypes, transferType, transferType)
+
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://docs.kucoin.com/futures/#get-fills
+
+        https://docs.kucoin.com/futures/#get-fills
+
         fetch all trades made by the user
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2345,7 +2552,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history
+
+        https://www.kucoin.com/docs/rest/futures-trading/market-data/get-transaction-history
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -2609,7 +2818,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
+
+        https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`
@@ -2644,7 +2855,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
         """
-         * @ignore
+ @ignore
         :param dict info: Exchange market response for 1 market
         :param dict market: CCXT market
         """
@@ -2662,8 +2873,10 @@ class kucoinfutures(kucoin, ImplicitAPI):
         tiers = []
         for i in range(0, len(info)):
             tier = info[i]
+            marketId = self.safe_string(tier, 'symbol')
             tiers.append({
                 'tier': self.safe_number(tier, 'level'),
+                'symbol': self.safe_symbol(marketId, market, None, 'contract'),
                 'currency': market['base'],
                 'minNotional': self.safe_number(tier, 'minRiskLimit'),
                 'maxNotional': self.safe_number(tier, 'maxRiskLimit'),
@@ -2675,7 +2888,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
+
+        https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
+
         fetches historical funding rate prices
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: not used by kucuoinfutures
@@ -2733,7 +2948,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def close_position(self, symbol: str, side: OrderSide = None, params={}) -> Order:
         """
         closes open positions for a market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+
+        https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoinfutures closePositions
         :param dict [params]: extra parameters specific to the okx api endpoint
@@ -2763,7 +2980,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
-        :see: https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+
+        https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
@@ -2799,7 +3018,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of a trading pair
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
+
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
@@ -2834,7 +3055,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/modify-margin-mode
+
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2865,7 +3088,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def fetch_leverage(self, symbol: str, params={}) -> Leverage:
         """
         fetch the set leverage for a market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -2898,7 +3123,9 @@ class kucoinfutures(kucoin, ImplicitAPI):
     def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
-        :see: https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+
+        https://www.kucoin.com/docs/rest/futures-trading/positions/modify-cross-margin-leverage
+
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint

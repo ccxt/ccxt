@@ -370,10 +370,10 @@ public partial class hashkey
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -468,6 +468,12 @@ public partial class hashkey
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.network</term>
     /// <description>
     /// string : network for withdraw
@@ -483,12 +489,6 @@ public partial class hashkey
     /// <term>params.platform</term>
     /// <description>
     /// string : the platform to withdraw to (hashkey, HashKey HK)
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -1024,6 +1024,12 @@ public partial class hashkey
     /// <term>symbol</term>
     /// <description>
     /// string : unified market symbol (not used by hashkey)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

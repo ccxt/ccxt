@@ -183,6 +183,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $precision_keys[$i]);
         }
     }
+    $is_inactive_market = $market['active'] === false;
     // check limits
     if (!(is_array($skipped_properties) && array_key_exists('limits', $skipped_properties))) {
         $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
@@ -191,6 +192,9 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         for ($i = 0; $i < count($limits_keys); $i++) {
             $key = $limits_keys[$i];
             $limit_entry = $market['limits'][$key];
+            if ($is_inactive_market) {
+                continue;
+            }
             // min >= 0
             assert_greater_or_equal($exchange, $skipped_properties, $method, $limit_entry, 'min', '0');
             // max >= 0

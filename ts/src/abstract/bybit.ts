@@ -170,6 +170,7 @@ interface Exchange {
     privateGetV5UserDelSubmember (params?: {}): Promise<implicitReturnType>;
     privateGetV5UserSubmembers (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotLeverTokenOrderRecord (params?: {}): Promise<implicitReturnType>;
+    privateGetV5SpotMarginTradeInterestRateHistory (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotMarginTradeState (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeLoanInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5SpotCrossMarginTradeAccount (params?: {}): Promise<implicitReturnType>;
@@ -187,19 +188,6 @@ interface Exchange {
     privateGetV5BrokerEarningsInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAccountInfo (params?: {}): Promise<implicitReturnType>;
     privateGetV5BrokerAssetQuerySubMemberDepositRecord (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1CancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1CancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1ExecutionList (params?: {}): Promise<implicitReturnType>;
-    privatePostOptionUsdcOpenapiPrivateV1QueryPosition (params?: {}): Promise<implicitReturnType>;
-    privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostPerpetualUsdcOpenapiPrivateV1CancelAll (params?: {}): Promise<implicitReturnType>;
-    privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSpotV3PrivateCancelOrders (params?: {}): Promise<implicitReturnType>;

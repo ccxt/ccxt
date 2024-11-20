@@ -40,9 +40,9 @@ class testMainClass {
     public $proxy_test_file_name = 'proxies';
 
     public function parse_cli_args_and_props() {
-        $this->response_tests = get_cli_arg_value('--responseTests');
+        $this->response_tests = get_cli_arg_value('--responseTests') || get_cli_arg_value('--response');
         $this->id_tests = get_cli_arg_value('--idTests');
-        $this->request_tests = get_cli_arg_value('--requestTests');
+        $this->request_tests = get_cli_arg_value('--requestTests') || get_cli_arg_value('--request');
         $this->info = get_cli_arg_value('--info');
         $this->verbose = get_cli_arg_value('--verbose');
         $this->debug = get_cli_arg_value('--debug');
@@ -80,6 +80,7 @@ class testMainClass {
             'symbol' => $symbol_argv,
             'method' => $method_argv,
             'isWs' => $this->ws_tests,
+            'useProxy' => get_cli_arg_value('--useProxy'),
         ), $new_line);
         $exchange_args = array(
             'verbose' => $this->verbose,
@@ -223,6 +224,7 @@ class testMainClass {
         $is_load_markets = ($method_name === 'loadMarkets');
         $is_fetch_currencies = ($method_name === 'fetchCurrencies');
         $is_proxy_test = ($method_name === $this->proxy_test_file_name);
+        $is_feature_test = ($method_name === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!$is_public && (is_array($this->checked_public_tests) && array_key_exists($method_name, $this->checked_public_tests)) && !$is_fetch_currencies) {
             return;
@@ -231,7 +233,7 @@ class testMainClass {
         $supported_by_exchange = (is_array($exchange->has) && array_key_exists($method_name, $exchange->has)) && $exchange->has[$method_name];
         if (!$is_load_markets && (count($this->only_specific_tests) > 0 && !$exchange->in_array($method_name, $this->only_specific_tests))) {
             $skip_message = '[INFO] IGNORED_TEST';
-        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test) {
+        } elseif (!$is_load_markets && !$supported_by_exchange && !$is_proxy_test && !$is_feature_test) {
             $skip_message = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } elseif (is_string($skipped_properties_for_method)) {
             $skip_message = '[INFO] SKIPPED_TEST';
@@ -409,6 +411,7 @@ class testMainClass {
 
     public function run_public_tests($exchange, $symbol) {
         $tests = array(
+            'features' => [],
             'fetchCurrencies' => [],
             'fetchTicker' => [$symbol],
             'fetchTickers' => [$symbol],
@@ -778,10 +781,11 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         $calculated_string = json_stringify($calculated_output);
         $stored_string = json_stringify($stored_output);
-        $error_message = $message . ' computed ' . $stored_string . ' stored: ' . $calculated_string;
+        $error_message = $message;
         if ($key !== null) {
-            $error_message = ' | ' . $key . ' | ' . 'computed value: ' . $stored_string . ' stored value: ' . $calculated_string;
+            $error_message = '[' . $key . ']';
         }
+        $error_message .= ' computed: ' . $stored_string . ' stored: ' . $calculated_string;
         assert($cond, $error_message);
     }
 
@@ -914,9 +918,17 @@ class testMainClass {
                 // when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 $this->assert_static_error($sanitized_new_output === $sanitized_stored_output, $message_error, $stored_output, $new_output, $asserting_key);
             } else {
-                $is_boolean = (is_bool($sanitized_new_output)) || (is_bool($sanitized_stored_output));
-                $is_string = (is_string($sanitized_new_output)) || (is_string($sanitized_stored_output));
-                $is_undefined = ($sanitized_new_output === null) || ($sanitized_stored_output === null); // undefined is a perfetly valid value
+                $is_computed_bool = (is_bool($sanitized_new_output));
+                $is_stored_bool = (is_bool($sanitized_stored_output));
+                $is_computed_string = (is_string($sanitized_new_output));
+                $is_stored_string = (is_string($sanitized_stored_output));
+                $is_computed_undefined = ($sanitized_new_output === null);
+                $is_stored_undefined = ($sanitized_stored_output === null);
+                $should_be_same = ($is_computed_bool === $is_stored_bool) && ($is_computed_string === $is_stored_string) && ($is_computed_undefined === $is_stored_undefined);
+                $this->assert_static_error($should_be_same, 'output type mismatch', $stored_output, $new_output, $asserting_key);
+                $is_boolean = $is_computed_bool || $is_stored_bool;
+                $is_string = $is_computed_string || $is_stored_string;
+                $is_undefined = $is_computed_undefined || $is_stored_undefined; // undefined is a perfetly valid value
                 if ($is_boolean || $is_string || $is_undefined) {
                     if ($this->lang === 'C#') {
                         // tmp c# number comparsion
@@ -1045,7 +1057,7 @@ class testMainClass {
             $this->assert_static_request_output($exchange, $type, $skip_keys, $data['url'], $request_url, $call_output, $output);
         } catch(\Throwable $e) {
             $this->request_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_REQUEST_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
             dump('[TEST_FAILURE]' . $error_message);
         }
     }
@@ -1063,7 +1075,7 @@ class testMainClass {
             }
         } catch(\Throwable $e) {
             $this->response_tests_failed = true;
-            $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
+            $error_message = '[' . $this->lang . '][STATIC_RESPONSE]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
             dump('[TEST_FAILURE]' . $error_message);
         }
         set_fetch_response($exchange, null); // reset state
@@ -1300,7 +1312,7 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey(), $this->test_coincatch()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1836,6 +1848,23 @@ class testMainClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_coincatch() {
+        $exchange = $this->init_offline_exchange('coincatch');
+        $req_headers = null;
+        $id = '47cfy';
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['X-CHANNEL-API-CODE'] === $id, 'coincatch - id: ' . $id . ' not in headers.');
         if (!is_sync()) {
             close($exchange);
         }

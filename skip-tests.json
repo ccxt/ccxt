@@ -719,18 +719,17 @@
         "skipMethods": {
             "proxies": "probably they do not permit our proxy location",
             "loadMarkets": {
-                "active":"is undefined",
+                "taker":"unavailable",
+                "maker":"unavailable",
+                "active":"undefined",
+                "limits":"zero min/max",
                 "currencyIdAndCode": "messes codes"
             },
-            "fetchCurrencies": {
-                "currencyIdAndCode": "messes codes",
-                "limits": "min is negative",
-                "withdraw": "not provided",
-                "deposit": "not provided",
-                "networks": "missing"
+            "ticker": {
+                "quoteVolume": "quoteVolume >= baseVolume * low is failing"
             },
-            "watchOHLCV": "does not work for 1min",
-            "fetchOHLCV": "unexpected issue"
+            "fetchOHLCV": "cant be tested because of additional required param",
+            "watchOHLCV": "does not work for 1min"
         }
     },
     "coinex": {
@@ -1199,6 +1198,9 @@
             "orderBook": {
                 "spread": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269364330#L3612"
             },
+            "ohlcv": {
+                "1":"https://app.travis-ci.com/github/ccxt/ccxt/builds/272644155#L4669"
+            },
             "watchOHLCV": "some timestamp issues"
         }
     },
@@ -1252,7 +1254,11 @@
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided"
-            }
+            },
+            "fetchOrderBook": {
+                "timestamp": "undefined https://app.travis-ci.com/github/ccxt/ccxt/builds/272800616#L3898"
+            },
+            "fetchL2OrderBook": "asks and bids could be empty"
         }
     },
     "mexc": {
@@ -1344,9 +1350,10 @@
         }
     },
     "oxfun": {
-        "skip": "temporarily before new proxy ip",
-        "httpsProxy": "http://5.75.153.75:8911",
-        "wsProxy": "http://5.75.153.75:8911",
+        "skip": "cloudflare captcha block",
+        "skipWs": "same",
+        "httpProxy": "http://188.34.194.190:8911",
+        "wsProxy": "http://188.34.194.190:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
@@ -1600,6 +1607,7 @@
                 "side": "undefined"
             },
             "ticker": {
+                "askVolume": "weird value https://app.travis-ci.com/github/ccxt/ccxt/builds/272650012#L3904",
                 "baseVolume": "not supported",
                 "spread": "same bid-ask https://app.travis-ci.com/github/ccxt/ccxt/builds/269550508#L3581"
             },
@@ -1724,6 +1732,8 @@
     "vertex": {
         "httpsProxy": "http://188.34.194.190:8911",
         "wsProxy": "http://188.34.194.190:8911",
+        "skipPhpAsync": "for some reason it shows invalid headers - https://app.travis-ci.com/github/ccxt/ccxt/builds/272619476#L4519 but cant reproduce locally",
+        "skipCSharp": "same as above",
         "skipMethods": {
             "fetchCurrencies": "incomplete",
             "loadMarkets": {
@@ -1744,7 +1754,7 @@
     },
     "paradex": {
         "skipMethods": {
-            "loadMarkets" : {
+            "loadMarkets": {
                 "active":"not provided",
                 "currencyIdAndCode": "broken currencies"
 	          }
@@ -1761,6 +1771,14 @@
             "watchTrades": {
                 "side": "not provided"
             }
+        }
+    },
+    "coincatch": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "loadMarkets": "linear and inverse values are same"
         }
     }
 }

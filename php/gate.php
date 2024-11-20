@@ -97,6 +97,7 @@ class gate extends Exchange {
                 'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -104,6 +105,8 @@ class gate extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
@@ -146,7 +149,7 @@ class gate extends Exchange {
                 'fetchSettlementHistory' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
-                'fetchTime' => false,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
@@ -317,10 +320,17 @@ class gate extends Exchange {
                             'interest_records' => 20 / 15,
                             'estimate_rate' => 20 / 15,
                             'currency_discount_tiers' => 20 / 15,
+                            'risk_units' => 20 / 15,
+                            'unified_mode' => 20 / 15,
+                            'loan_margin_tiers' => 20 / 15,
                         ),
                         'post' => array(
                             'account_mode' => 20 / 15,
                             'loans' => 200 / 15, // 15r/10s cost = 20 / 1.5 = 13.33
+                            'portfolio_calculator' => 20 / 15,
+                        ),
+                        'put' => array(
+                            'unified_mode' => 20 / 15,
                         ),
                     ),
                     'spot' => array(
@@ -622,6 +632,7 @@ class gate extends Exchange {
             ),
             'options' => array(
                 'sandboxMode' => false,
+                'unifiedAccount' => null,
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
@@ -885,6 +896,63 @@ class gate extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
+    public function load_unified_status($params = array ()) {
+        /**
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * returns $unifiedAccount so the user can check if the unified account is enabled
+         *
+         * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
+         *
+         * @return {boolean} true or false if the enabled unified account is enabled or not and sets the $unifiedAccount option if it is null
+         */
+        $unifiedAccount = $this->safe_bool($this->options, 'unifiedAccount');
+        if ($unifiedAccount === null) {
+            try {
+                //
+                //     {
+                //         "user_id" => 10406147,
+                //         "ip_whitelist" => array(),
+                //         "currency_pairs" => array(),
+                //         "key" => array(
+                //             "mode" => 1
+                //         ),
+                //         "tier" => 0,
+                //         "tier_expire_time" => "0001-01-01T00:00:00Z",
+                //         "copy_trading_role" => 0
+                //     }
+                //
+                $response = $this->privateAccountGetDetail ($params);
+                $result = $this->safe_dict($response, 'key', array());
+                $this->options['unifiedAccount'] = $this->safe_integer($result, 'mode') === 2;
+            } catch (Exception $e) {
+                // if the request fails, the $unifiedAccount is disabled
+                $this->options['unifiedAccount'] = false;
+            }
+        }
+    }
+
+    public function upgrade_unified_trade_account($params = array ()) {
+        return $this->privateUnifiedPutUnifiedMode ($params);
+    }
+
+    public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-server-current-time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = $this->publicSpotGetTime ($params);
+        //
+        //     {
+        //         "server_time" => 1731447921098
+        //     }
+        //
+        return $this->safe_integer($response, 'server_time');
+    }
+
     public function create_expired_option_market(string $symbol) {
         // support expired option contracts
         $quote = 'USDT';
@@ -962,11 +1030,13 @@ class gate extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for gate
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currency-pairs-supported                                     // spot
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading         // margin
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts                                            // swap
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2                                          // future
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  // option
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -1495,22 +1565,22 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function multi_order_spot_prepare_request($market = null, $stop = false, $params = array ()) {
+    public function multi_order_spot_prepare_request($market = null, $trigger = false, $params = array ()) {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {array} $market CCXT $market
-         * @param {bool} $stop true if for a $stop order
+         * @param {bool} stop true if for a stop order
          * @param {array} [$params] $request parameters
          * @return the api $request object, and the new $params object with non-needed parameters removed
          */
-        list($marginMode, $query) = $this->get_margin_mode($stop, $params);
+        list($marginMode, $query) = $this->get_margin_mode($trigger, $params);
         $request = array(
             'account' => $marginMode,
         );
         if ($market !== null) {
-            if ($stop) {
-                // gate spot and margin $stop orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single $stop order, but createOrder does not call this method
+            if ($trigger) {
+                // gate spot and margin stop orders use the term $market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
                 $request['market'] = $market['id'];
             } else {
                 $request['currency_pair'] = $market['id'];
@@ -1546,6 +1616,11 @@ class gate extends Exchange {
                 throw new BadRequest($this->id . ' getMarginMode() does not support $stop orders for cross margin');
             }
         }
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'getMarginMode', 'unifiedAccount');
+        if ($isUnifiedAccount) {
+            $marginMode = 'unified';
+        }
         return array( $marginMode, $params );
     }
 
@@ -1559,7 +1634,9 @@ class gate extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-currencies-details
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -1567,6 +1644,9 @@ class gate extends Exchange {
         $apiBackup = $this->safe_value($this->urls, 'apiBackup');
         if ($apiBackup !== null) {
             return null;
+        }
+        if ($this->check_required_credentials(false)) {
+            $this->load_unified_status();
         }
         $response = $this->publicSpotGetCurrencies ($params);
         //
@@ -1674,7 +1754,9 @@ class gate extends Exchange {
     public function fetch_funding_rate(string $symbol, $params = array ()): array {
         /**
          * fetch the current funding rate
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-contract
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -1736,7 +1818,9 @@ class gate extends Exchange {
     public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the funding rate for multiple markets
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
+         *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
@@ -1918,10 +2002,12 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
+         *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified $network $code (not used directly by gate.io but used by ccxt to filter the $response)
@@ -1990,18 +2076,19 @@ class gate extends Exchange {
         $this->check_address($address);
         return array(
             'info' => $response,
-            'code' => $code, // kept here for backward-compatibility, but will be removed soon
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
         );
     }
 
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -2032,7 +2119,9 @@ class gate extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -2100,7 +2189,9 @@ class gate extends Exchange {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2156,7 +2247,9 @@ class gate extends Exchange {
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
          * fetch deposit and withdraw fees
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2238,8 +2331,10 @@ class gate extends Exchange {
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch the history of funding payments paid and received on this account
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#$query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#$query-account-book-3
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
@@ -2324,10 +2419,12 @@ class gate extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-order-book
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-order-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#options-order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2439,10 +2536,12 @@ class gate extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -2598,10 +2697,12 @@ class gate extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+         *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -2653,10 +2754,15 @@ class gate extends Exchange {
          * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {string} [$params->symbol] margin only - unified ccxt $symbol
+         * @param {boolean} [$params->unifiedAccount] default false, set to true for fetching the unified account balance
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $symbol = $this->safe_string($params, 'symbol');
         $params = $this->omit($params, 'symbol');
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'unifiedAccount');
         list($type, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($request, $requestParams) = $this->prepare_request(null, $type, $query);
         list($marginMode, $requestQuery) = $this->get_margin_mode(false, $requestParams);
@@ -2665,7 +2771,9 @@ class gate extends Exchange {
             $request['currency_pair'] = $market['id'];
         }
         $response = null;
-        if ($type === 'spot') {
+        if ($isUnifiedAccount) {
+            $response = $this->privateUnifiedGetAccounts ($this->extend($request, $params));
+        } elseif ($type === 'spot') {
             if ($marginMode === 'spot') {
                 $response = $this->privateSpotGetAccounts ($this->extend($request, $requestQuery));
             } elseif ($marginMode === 'margin') {
@@ -2831,12 +2939,63 @@ class gate extends Exchange {
         //         "orders_limit" => 10
         //     }
         //
+        // unified
+        //
+        //     {
+        //         "user_id" => 10001,
+        //         "locked" => false,
+        //         "balances" => {
+        //             "ETH" => array(
+        //                 "available" => "0",
+        //                 "freeze" => "0",
+        //                 "borrowed" => "0.075393666654",
+        //                 "negative_liab" => "0",
+        //                 "futures_pos_liab" => "0",
+        //                 "equity" => "1016.1",
+        //                 "total_freeze" => "0",
+        //                 "total_liab" => "0"
+        //             ),
+        //             "POINT" => array(
+        //                 "available" => "9999999999.017023138734",
+        //                 "freeze" => "0",
+        //                 "borrowed" => "0",
+        //                 "negative_liab" => "0",
+        //                 "futures_pos_liab" => "0",
+        //                 "equity" => "12016.1",
+        //                 "total_freeze" => "0",
+        //                 "total_liab" => "0"
+        //             ),
+        //             "USDT" => array(
+        //                 "available" => "0.00000062023",
+        //                 "freeze" => "0",
+        //                 "borrowed" => "0",
+        //                 "negative_liab" => "0",
+        //                 "futures_pos_liab" => "0",
+        //                 "equity" => "16.1",
+        //                 "total_freeze" => "0",
+        //                 "total_liab" => "0"
+        //             }
+        //         ),
+        //         "total" => "230.94621713",
+        //         "borrowed" => "161.66395521",
+        //         "total_initial_margin" => "1025.0524665088",
+        //         "total_margin_balance" => "3382495.944473949183",
+        //         "total_maintenance_margin" => "205.01049330176",
+        //         "total_initial_margin_rate" => "3299.827135672679",
+        //         "total_maintenance_margin_rate" => "16499.135678363399",
+        //         "total_available_margin" => "3381470.892007440383",
+        //         "unified_account_total" => "3381470.892007440383",
+        //         "unified_account_total_liab" => "0",
+        //         "unified_account_total_equity" => "100016.1",
+        //         "leverage" => "2"
+        //     }
+        //
         $result = array(
             'info' => $response,
         );
         $isolated = $marginMode === 'margin';
         $data = $response;
-        if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
+        if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
             $flatBalances = array();
             $balances = $this->safe_value($data, 'balances', array());
             // inject currency and create an artificial balance object
@@ -2875,10 +3034,12 @@ class gate extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // spot
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
          * @see https://www.gate.io/docs/developers/apiv4/en/#$market-candlesticks       // future
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-options-candlesticks  // option
+         *
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
@@ -2962,26 +3123,44 @@ class gate extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#funding-rate-history
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
         }
-        list($request, $query) = $this->prepare_request($market, null, $params);
+        $request = array();
+        list($request, $params) = $this->prepare_request($market, null, $params);
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicFuturesGetSettleFundingRate ($this->extend($request, $query));
+        if ($since !== null) {
+            $request['from'] = $this->parse_to_int($since / 1000);
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['to'] = $this->parse_to_int($until / 1000);
+        }
+        $response = $this->publicFuturesGetSettleFundingRate ($this->extend($request, $params));
         //
         //     {
         //         "r" => "0.00063521",
@@ -3054,10 +3233,12 @@ class gate extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * get the list of most recent trades for a particular $symbol
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-$market-trades
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-trading-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#options-trade-history
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
@@ -3164,10 +3345,12 @@ class gate extends Exchange {
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all the trades made from a single order
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -3205,10 +3388,12 @@ class gate extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Fetch personal trading history
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-personal-trading-history-4
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -3222,10 +3407,12 @@ class gate extends Exchange {
          * @param {int} [$params->offset] *$contract only* list offset, starting from 0
          * @param {string} [$params->last_id] *$contract only* specify list staring point using the id of last record in previous list-query results
          * @param {int} [$params->count_total] *$contract only* whether to return total number matched, default to 0(no return)
-         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {bool} [$params->unifiedAccount] set to true for fetching trades in a unified account
+         * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -3489,12 +3676,14 @@ class gate extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all deposits made to an account
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-deposit-records
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
-         * @param {int} [$params->until] end time in ms
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] end time in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
@@ -3526,7 +3715,9 @@ class gate extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all withdrawals made from an account
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-records
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -3560,10 +3751,12 @@ class gate extends Exchange {
         return $this->parse_transactions($response, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
          * make a withdrawal
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#withdraw
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
@@ -3634,32 +3827,61 @@ class gate extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // deposits
+        // fetchDeposits
         //
-        //    {
-        //        "id" => "d33361395",
-        //        "currency" => "USDT_TRX",
-        //        "address" => "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
-        //        "amount" => "100",
-        //        "txid" => "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
-        //        "timestamp" => "1626345819",
-        //        "status" => "DONE",
-        //        "memo" => ""
-        //    }
+        //     {
+        //         "id" => "d33361395",
+        //         "currency" => "USDT_TRX",
+        //         "address" => "TErdnxenuLtXfnMafLbfappYdHtnXQ5U4z",
+        //         "amount" => "100",
+        //         "txid" => "ae9374de34e558562fe18cbb1bf9ab4d9eb8aa7669d65541c9fa2a532c1474a0",
+        //         "timestamp" => "1626345819",
+        //         "status" => "DONE",
+        //         "memo" => ""
+        //     }
         //
         // withdraw
         //
-        //    {
-        //        "id" => "w13389675",
-        //        "currency" => "USDT",
-        //        "amount" => "50",
-        //        "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
-        //        "memo" => null
-        //    }
+        //     {
+        //         "id":"w64413318",
+        //         "currency":"usdt",
+        //         "amount":"10150",
+        //         "address":"0x0ab891497116f7f5532a4c2f4f7b1784488628e1",
+        //         "memo":null,
+        //         "status":"REQUEST",
+        //         "chain":"eth",
+        //         "withdraw_order_id":"",
+        //         "fee_amount":"4.15000000"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id" => "210496",
+        //         "timestamp" => "1542000000",
+        //         "withdraw_order_id" => "order_123456",
+        //         "currency" => "USDT",
+        //         "address" => "1HkxtBAMrA3tP5ENnYY2CZortjZvFDH5Cs",
+        //         "txid" => "128988928203223323290",
+        //         "block_number" => "41575382",
+        //         "amount" => "222.61",
+        //         "fee" => "0.01",
+        //         "memo" => "",
+        //         "status" => "DONE",
+        //         "chain" => "TRX"
+        //     }
+        //
+        //     {
+        //         "id" => "w13389675",
+        //         "currency" => "USDT",
+        //         "amount" => "50",
+        //         "address" => "TUu2rLFrmzUodiWfYki7QCNtv1akL682p1",
+        //         "memo" => null
+        //     }
         //
         //     {
         //         "currency":"usdt",
-        //         "address":"0x01b0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
+        //         "address":"0x01c0A9b7b4CdE774AF0f3E47CB4f1c2CCdBa0806",
         //         "amount":"1880",
         //         "chain":"eth"
         //     }
@@ -3676,7 +3898,7 @@ class gate extends Exchange {
                 $type = $this->parse_transaction_type($id[0]);
             }
         }
-        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostString = $this->safe_string_2($transaction, 'fee', 'fee_amount');
         if ($type === 'withdrawal') {
             $amountString = Precise::string_sub($amountString, $feeCostString);
         }
@@ -3719,6 +3941,7 @@ class gate extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * Create an order on the exchange
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-$price-triggered-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
@@ -3726,6 +3949,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-$price-triggered-order-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+         *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market' *"market" is contract only*
          * @param {string} $side 'buy' or 'sell'
@@ -3747,9 +3971,11 @@ class gate extends Exchange {
          * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
          * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {bool} [$params->unifiedAccount] set to true for creating an order in the unified account
          * @return {array|null} ~@link https://docs.ccxt.com/#/?id=order-structure An order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = $this->market($symbol);
         $trigger = $this->safe_value($params, 'trigger');
         $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
@@ -3888,13 +4114,17 @@ class gate extends Exchange {
     public function create_orders(array $orders, $params = array ()) {
         /**
          * create a list of trade $orders
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-$orders
+         *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $ordersRequests = $this->create_orders_request($orders, $params);
         $firstOrder = $orders[0];
         $market = $this->market($firstOrder['symbol']);
@@ -3997,7 +4227,7 @@ class gate extends Exchange {
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     'currency_pair' => $market['id'], // filled in prepareRequest above
                     'type' => $type,
-                    'account' => $marginMode, // 'spot', 'margin', 'cross_margin'
+                    'account' => $marginMode, // spot, margin, cross_margin, unified
                     'side' => $side,
                     // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
@@ -4157,13 +4387,17 @@ class gate extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a $market buy order by providing the $symbol and $cost
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-order
+         *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->unifiedAccount] set to true for creating a unified account order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -4174,8 +4408,14 @@ class gate extends Exchange {
 
     public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('editOrder', $market, $params);
         $account = $this->convert_type_to_account($marketType);
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'editOrder', 'unifiedAccount');
+        if ($isUnifiedAccount) {
+            $account = 'unified';
+        }
         $isLimitOrder = ($type === 'limit');
         if ($account === 'spot') {
             if (!$isLimitOrder) {
@@ -4205,14 +4445,16 @@ class gate extends Exchange {
         if (!$market['spot']) {
             $request['settle'] = $market['settleId'];
         }
-        return $this->extend($request, $query);
+        return $this->extend($request, $params);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order, gate currently only supports the modification of the $price or $amount fields
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
+         *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -4220,9 +4462,11 @@ class gate extends Exchange {
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->unifiedAccount] set to true for editing an order in a unified account
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = $this->market($symbol);
         $extendedRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = null;
@@ -4485,21 +4729,21 @@ class gate extends Exchange {
         // Everything below this(above return) is related to $fees
         $fees = array();
         $gtFee = $this->safe_string($order, 'gt_fee');
-        if ($gtFee) {
+        if ($gtFee !== null) {
             $fees[] = array(
                 'currency' => 'GT',
                 'cost' => $gtFee,
             );
         }
         $fee = $this->safe_string($order, 'fee');
-        if ($fee) {
+        if ($fee !== null) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'fee_currency')),
                 'cost' => $fee,
             );
         }
         $rebate = $this->safe_string($order, 'rebated_fee');
-        if ($rebate) {
+        if ($rebate !== null) {
             $fees[] = array(
                 'currency' => $this->safe_currency_code($this->safe_string($order, 'rebated_fee_currency')),
                 'cost' => Precise::string_neg($rebate),
@@ -4572,10 +4816,12 @@ class gate extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Retrieves information on an order
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-4
+         *
          * @param {string} $id Order $id
          * @param {string} $symbol Unified $market $symbol, *required for spot and margin*
          * @param {array} [$params] Parameters specified by the exchange api
@@ -4583,9 +4829,11 @@ class gate extends Exchange {
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
          * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
+         * @param {bool} [$params->unifiedAccount] set to true for fetching a unified account order
          * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = ($symbol === null) ? null : $this->market($symbol);
         $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
         $type = $this->safe_string($result, 0);
@@ -4621,7 +4869,10 @@ class gate extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch all unfilled currently open orders
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-open-orders
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+         *
          * @param {string} $symbol unified market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -4629,6 +4880,7 @@ class gate extends Exchange {
          * @param {bool} [$params->stop] true for fetching stop orders
          * @param {string} [$params->type] spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided $this->options['defaultMarginMode'] is used
+         * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         return $this->fetch_orders_by_status('open', $symbol, $since, $limit, $params);
@@ -4637,6 +4889,7 @@ class gate extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed orders made by the user
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-orders
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-running-auto-order-list
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders
@@ -4645,6 +4898,7 @@ class gate extends Exchange {
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-auto-orders-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-options-orders
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-orders-by-time-range
+         *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -4653,9 +4907,11 @@ class gate extends Exchange {
          * @param {string} [$params->type] spot, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
          * @param {boolean} [$params->historical] *swap only* true for using historical endpoint
+         * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $until = $this->safe_integer($params, 'until');
         $market = null;
         if ($symbol !== null) {
@@ -4692,13 +4948,16 @@ class gate extends Exchange {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $trigger = null;
+        list($trigger, $params) = $this->handle_param_bool_2($params, 'trigger', 'stop');
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
         $request = array();
-        list($request, $params) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $params) : $this->prepare_request($market, $type, $params);
+        list($request, $params) = $spot ? $this->multi_order_spot_prepare_request($market, $trigger, $params) : $this->prepare_request($market, $type, $params);
+        if ($spot && $trigger) {
+            $request = $this->omit($request, 'account');
+        }
         if ($status === 'closed') {
             $status = 'finished';
         }
@@ -4725,36 +4984,39 @@ class gate extends Exchange {
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         $this->load_markets();
+        $this->load_unified_status();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'trigger', 'stop' ));
+        // don't omit here, omits done in prepareOrdersByStatusRequest
+        $trigger = $this->safe_bool_2($params, 'trigger', 'stop');
         $res = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
         $type = $this->safe_string($res, 0);
-        $params['type'] = $type;
         list($request, $requestParams) = $this->prepare_orders_by_status_request($status, $symbol, $since, $limit, $params);
         $spot = ($type === 'spot') || ($type === 'margin');
-        $openSpotOrders = $spot && ($status === 'open') && !$stop;
+        $openStatus = ($status === 'open');
+        $openSpotOrders = $spot && $openStatus && !$trigger;
         $response = null;
-        if ($type === 'spot' || $type === 'margin') {
-            if ($openSpotOrders) {
-                $response = $this->privateSpotGetOpenOrders ($this->extend($request, $requestParams));
-            } elseif ($stop) {
-                $response = $this->privateSpotGetPriceOrders ($this->extend($request, $requestParams));
+        if ($spot) {
+            if (!$trigger) {
+                if ($openStatus) {
+                    $response = $this->privateSpotGetOpenOrders ($this->extend($request, $requestParams));
+                } else {
+                    $response = $this->privateSpotGetOrders ($this->extend($request, $requestParams));
+                }
             } else {
-                $response = $this->privateSpotGetOrders ($this->extend($request, $requestParams));
+                $response = $this->privateSpotGetPriceOrders ($this->extend($request, $requestParams));
             }
         } elseif ($type === 'swap') {
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateFuturesGetSettlePriceOrders ($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateFuturesGetSettleOrders ($this->extend($request, $requestParams));
             }
         } elseif ($type === 'future') {
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateDeliveryGetSettlePriceOrders ($this->extend($request, $requestParams));
             } else {
                 $response = $this->privateDeliveryGetSettleOrders ($this->extend($request, $requestParams));
@@ -4836,7 +5098,7 @@ class gate extends Exchange {
         //        }
         //    )
         //
-        // $spot $stop
+        // $spot stop
         //
         //    array(
         //        {
@@ -4925,17 +5187,21 @@ class gate extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          * Cancels an open order
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-single-order-4
+         *
          * @param {string} $id Order $id
          * @param {string} $symbol Unified $market $symbol
          * @param {array} [$params] Parameters specified by the exchange api
          * @param {bool} [$params->stop] True if the order to be cancelled is a trigger order
+         * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
          * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = ($symbol === null) ? null : $this->market($symbol);
         $stop = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
         $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
@@ -5053,14 +5319,18 @@ class gate extends Exchange {
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list-2
+         *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -5099,13 +5369,17 @@ class gate extends Exchange {
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
         /**
          * cancel multiple $orders for multiple symbols
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-$orders-with-an-$id-list
+         *
          * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client $order ids
+         * @param {bool} [$params->unifiedAccount] set to true for canceling unified account $orders
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
@@ -5136,15 +5410,19 @@ class gate extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
         /**
          * cancel all open orders
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
+         *
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $market = ($symbol === null) ? null : $this->market($symbol);
         $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
@@ -5208,7 +5486,9 @@ class gate extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * transfer $currency internally between wallets on the same account
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#transfer-between-trading-accounts
+         *
          * @param {string} $code unified $currency $code for $currency being transferred
          * @param {float} $amount the $amount of $currency to transfer
          * @param {string} $fromAccount the account to transfer $currency from
@@ -5291,8 +5571,10 @@ class gate extends Exchange {
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
         /**
          * set the level of $leverage for a $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-$leverage
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-$leverage-2
+         *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5506,9 +5788,11 @@ class gate extends Exchange {
     public function fetch_position(string $symbol, $params = array ()) {
         /**
          * fetch data on an open contract position
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-single-position-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-specified-contract-position
+         *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -5591,9 +5875,11 @@ class gate extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open positions
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-positions-of-a-user-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-positions-of-specified-underlying
+         *
          * @param {string[]|null} $symbols Not used by gate, but parsed internally by CCXT
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
@@ -5698,8 +5984,10 @@ class gate extends Exchange {
     public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-futures-contracts-2
+         *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -5816,7 +6104,9 @@ class gate extends Exchange {
     public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-risk-limit-tiers
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
@@ -5843,7 +6133,8 @@ class gate extends Exchange {
         return $this->parse_market_leverage_tiers($response, $market);
     }
 
-    public function parse_emulated_leverage_tiers($info, $market = null) {
+    public function parse_emulated_leverage_tiers($info, $market = null): array {
+        $marketId = $this->safe_string($info, 'name');
         $maintenanceMarginUnit = $this->safe_string($info, 'maintenance_rate'); // '0.005',
         $leverageMax = $this->safe_string($info, 'leverage_max'); // '100',
         $riskLimitStep = $this->safe_string($info, 'risk_limit_step'); // '1000000',
@@ -5857,6 +6148,7 @@ class gate extends Exchange {
             $cap = Precise::string_add($floor, $riskLimitStep);
             $tiers[] = array(
                 'tier' => $this->parse_number(Precise::string_div($cap, $riskLimitStep)),
+                'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
                 'currency' => $this->safe_string($market, 'settle'),
                 'minNotional' => $this->parse_number($floor),
                 'maxNotional' => $this->parse_number($cap),
@@ -5893,6 +6185,7 @@ class gate extends Exchange {
             $maxNotional = $this->safe_number($item, 'risk_limit');
             $tiers[] = array(
                 'tier' => $this->sum($i, 1),
+                'symbol' => $market['symbol'],
                 'currency' => $market['base'],
                 'minNotional' => $minNotional,
                 'maxNotional' => $maxNotional,
@@ -5908,7 +6201,9 @@ class gate extends Exchange {
     public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array ()) {
         /**
          * repay borrowed margin and interest
+         *
          * @see https://www.gate.io/docs/apiv4/en/#repay-a-loan
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
@@ -5936,49 +6231,63 @@ class gate extends Exchange {
     public function repay_cross_margin(string $code, $amount, $params = array ()) {
         /**
          * repay cross margin borrowed margin and interest
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#cross-margin-repayments
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
+         *
          * @param {string} $code unified $currency $code of the $currency to repay
          * @param {float} $amount the $amount to repay
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
          * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
+         * @param {boolean} [$params->unifiedAccount] set to true for repaying in the unified account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $currency = $this->currency($code);
         $request = array(
             'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params));
-        //
-        //     array(
-        //         {
-        //             "id" => "17",
-        //             "create_time" => 1620381696159,
-        //             "update_time" => 1620381696159,
-        //             "currency" => "EOS",
-        //             "amount" => "110.553635",
-        //             "text" => "web",
-        //             "status" => 2,
-        //             "repaid" => "110.506649705159",
-        //             "repaid_interest" => "0.046985294841",
-        //             "unpaid_interest" => "0.0000074393366667"
-        //         }
-        //     )
-        //
-        $response = $this->safe_value($response, 0);
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'repayCrossMargin', 'unifiedAccount');
+        $response = null;
+        if ($isUnifiedAccount) {
+            $request['type'] = 'repay';
+            $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
+        } else {
+            $response = $this->privateMarginPostCrossRepayments ($this->extend($request, $params));
+            $response = $this->safe_dict($response, 0);
+            //
+            //     array(
+            //         {
+            //             "id" => "17",
+            //             "create_time" => 1620381696159,
+            //             "update_time" => 1620381696159,
+            //             "currency" => "EOS",
+            //             "amount" => "110.553635",
+            //             "text" => "web",
+            //             "status" => 2,
+            //             "repaid" => "110.506649705159",
+            //             "repaid_interest" => "0.046985294841",
+            //             "unpaid_interest" => "0.0000074393366667"
+            //         }
+            //     )
+            //
+        }
         return $this->parse_margin_loan($response, $currency);
     }
 
     public function borrow_isolated_margin(string $symbol, string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#marginuni
+         *
+         * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol unified $market $symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
@@ -6019,35 +6328,47 @@ class gate extends Exchange {
     public function borrow_cross_margin(string $code, float $amount, $params = array ()) {
         /**
          * create a loan to borrow margin
+         *
          * @see https://www.gate.io/docs/apiv4/en/#create-a-cross-margin-borrow-loan
+         * @see https://www.gate.io/docs/developers/apiv4/en/#borrow-or-repay
+         *
          * @param {string} $code unified $currency $code of the $currency to borrow
          * @param {float} $amount the $amount to borrow
-         * @param {string} symbol unified market symbol, required for isolated margin
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
+         * @param {boolean} [$params->unifiedAccount] set to true for borrowing in the unified account
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin loan structure~
          */
         $this->load_markets();
+        $this->load_unified_status();
         $currency = $this->currency($code);
         $request = array(
             'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params));
-        //
-        //     {
-        //         "id" => "17",
-        //         "create_time" => 1620381696159,
-        //         "update_time" => 1620381696159,
-        //         "currency" => "EOS",
-        //         "amount" => "110.553635",
-        //         "text" => "web",
-        //         "status" => 2,
-        //         "repaid" => "110.506649705159",
-        //         "repaid_interest" => "0.046985294841",
-        //         "unpaid_interest" => "0.0000074393366667"
-        //     }
-        //
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'borrowCrossMargin', 'unifiedAccount');
+        $response = null;
+        if ($isUnifiedAccount) {
+            $request['type'] = 'borrow';
+            $response = $this->privateUnifiedPostLoans ($this->extend($request, $params));
+        } else {
+            $response = $this->privateMarginPostCrossLoans ($this->extend($request, $params));
+            //
+            //     {
+            //         "id" => "17",
+            //         "create_time" => 1620381696159,
+            //         "update_time" => 1620381696159,
+            //         "currency" => "EOS",
+            //         "amount" => "110.553635",
+            //         "text" => "web",
+            //         "status" => 2,
+            //         "repaid" => "110.506649705159",
+            //         "repaid_interest" => "0.046985294841",
+            //         "unpaid_interest" => "0.0000074393366667"
+            //     }
+            //
+        }
         return $this->parse_margin_loan($response, $currency);
     }
 
@@ -6103,6 +6424,78 @@ class gate extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,
+        );
+    }
+
+    public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch the $interest owed by the user for borrowing $currency for margin trading
+         *
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records
+         * @see https://www.gate.io/docs/developers/apiv4/en/#$interest-records-for-the-cross-margin-account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-$interest-records-2
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {string} [$symbol] unified $market $symbol when fetching $interest in isolated markets
+         * @param {int} [$since] the earliest time in ms to fetch borrow $interest for
+         * @param {int} [$limit] the maximum number of structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->unifiedAccount] set to true for fetching borrow $interest in the unified account
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=borrow-$interest-structure borrow $interest structures~
+         */
+        $this->load_markets();
+        $this->load_unified_status();
+        $isUnifiedAccount = false;
+        list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBorrowInterest', 'unifiedAccount');
+        $request = array();
+        list($request, $params) = $this->handle_until_option('to', $request, $params);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($since !== null) {
+            $request['from'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = null;
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params, 'cross');
+        if ($isUnifiedAccount) {
+            $response = $this->privateUnifiedGetInterestRecords ($this->extend($request, $params));
+        } elseif ($marginMode === 'isolated') {
+            if ($market !== null) {
+                $request['currency_pair'] = $market['id'];
+            }
+            $response = $this->privateMarginGetUniInterestRecords ($this->extend($request, $params));
+        } elseif ($marginMode === 'cross') {
+            $response = $this->privateMarginGetCrossInterestRecords ($this->extend($request, $params));
+        }
+        $interest = $this->parse_borrow_interests($response, $market);
+        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+    }
+
+    public function parse_borrow_interest(array $info, ?array $market = null): array {
+        $marketId = $this->safe_string($info, 'currency_pair');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = ($marketId !== null) ? 'isolated' : 'cross';
+        $timestamp = $this->safe_integer($info, 'create_time');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'currency' => $this->safe_currency_code($this->safe_string($info, 'currency')),
+            'interest' => $this->safe_number($info, 'interest'),
+            'interestRate' => $this->safe_number($info, 'actual_rate'),
+            'amountBorrowed' => null,
+            'marginMode' => $marginMode,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 
@@ -6256,8 +6649,10 @@ class gate extends Exchange {
     public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * remove margin from a position
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6269,8 +6664,10 @@ class gate extends Exchange {
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
         /**
          * add margin
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin
          * @see https://www.gate.io/docs/developers/apiv4/en/#update-position-margin-2
+         *
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -6282,7 +6679,9 @@ class gate extends Exchange {
     public function fetch_open_interest_history(string $symbol, $timeframe = '5m', ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest of a currency
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+         *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe "5m", "15m", "30m", "1h", "4h", "1d"
          * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
@@ -6370,7 +6769,9 @@ class gate extends Exchange {
     public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical settlement records
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-settlement-history-2
+         *
          * @param {string} $symbol unified $market $symbol of the settlement history, required on gate
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
@@ -6419,7 +6820,9 @@ class gate extends Exchange {
     public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches historical settlement records of the user
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-my-options-$settlements
+         *
          * @param {string} $symbol unified $market $symbol of the settlement history
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
@@ -6550,11 +6953,13 @@ class gate extends Exchange {
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-margin-account-balance-change-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-account-book-3
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-account-changing-history
+         *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] timestamp in ms of the earliest ledger entry
          * @param {int} [$limit] max number of ledger entries to return
@@ -6791,7 +7196,9 @@ class gate extends Exchange {
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
         /**
          * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#enable-or-disable-dual-mode
+         *
          * @param {bool} $hedged set to true to enable dual mode
          * @param {string|null} $symbol if passed, dual mode is set for all markets with the same settle currency
          * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -6807,7 +7214,9 @@ class gate extends Exchange {
     public function fetch_underlying_assets($params = array ()) {
         /**
          * fetches the market ids of $underlying assets for a specific contract market type
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-$underlyings
+         *
          * @param {array} [$params] exchange specific $params
          * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$underlying-assets-structure $underlying assets~
@@ -6845,7 +7254,9 @@ class gate extends Exchange {
     public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves the public liquidations of a trading pair
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-liquidation-history
+         *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -6888,9 +7299,11 @@ class gate extends Exchange {
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * retrieves the users liquidated positions
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-liquidation-history-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-user-s-liquidation-history-of-specified-underlying
+         *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -7030,7 +7443,9 @@ class gate extends Exchange {
     public function fetch_greeks(string $symbol, $params = array ()): array {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-tickers-of-options-contracts
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch greeks for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
@@ -7123,9 +7538,11 @@ class gate extends Exchange {
     public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
         /**
          * closes open positions for a market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-futures-order-2
          * @see https://www.gate.io/docs/developers/apiv4/en/#create-an-options-order
+         *
          * @param {string} $symbol Unified CCXT market $symbol
          * @param {string} $side 'buy' or 'sell'
          * @param {array} [$params] extra parameters specific to the okx api endpoint
@@ -7144,9 +7561,11 @@ class gate extends Exchange {
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-unified-account-information
          * @see https://www.gate.io/docs/developers/apiv4/en/#get-detail-of-lending-$market
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-one-single-margin-currency-pair-deprecated
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->unified] default false, set to true for fetching the unified accounts leverage
@@ -7250,8 +7669,10 @@ class gate extends Exchange {
     public function fetch_leverages(?array $symbols = null, $params = array ()): array {
         /**
          * fetch the set leverage for all leverage markets, only spot margin is supported on gate
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-lending-markets
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-supported-currency-pairs-supported-in-margin-trading-deprecated
+         *
          * @param {string[]} $symbols a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->unified] default false, set to true for fetching unified account leverages
@@ -7311,7 +7732,9 @@ class gate extends Exchange {
     public function fetch_option(string $symbol, $params = array ()): Option {
         /**
          * fetches option data that is commonly found in an option chain
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#query-specified-contract-detail
+         *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
@@ -7368,8 +7791,10 @@ class gate extends Exchange {
     public function fetch_option_chain(string $code, $params = array ()): OptionChain {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
+         *
          * @see https://www.gate.io/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time
-         * @param {string} $currency base $currency to fetch an option chain for
+         *
+         * @param {string} $code base $currency to fetch an option chain for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
          * @param {int} [$params->expiration] unix timestamp of the expiration time
@@ -7494,8 +7919,10 @@ class gate extends Exchange {
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical positions
+         *
          * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history
          * @see https://www.gate.io/docs/developers/apiv4/#list-position-close-history-2
+         *
          * @param {string[]} $symbols unified conract $symbols, must all have the same settle currency and the same $market type
          * @param {int} [$since] the earliest time in ms to fetch positions for
          * @param {int} [$limit] the maximum amount of records to fetch, default=1000
@@ -7503,9 +7930,9 @@ class gate extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch positions for
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} offset list offset, starting from 0
-         * @param {string} side long or short
-         * @param {string} pnl query profit or loss
+         * @param {int} [$params->offset] list offset, starting from 0
+         * @param {string} [$params->side] long or short
+         * @param {string} [$params->pnl] query profit or loss
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
          */
         $this->load_markets();

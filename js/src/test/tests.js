@@ -40,9 +40,9 @@ class testMainClass {
         this.proxyTestFileName = "proxies";
     }
     parseCliArgsAndProps() {
-        this.responseTests = getCliArgValue('--responseTests');
+        this.responseTests = getCliArgValue('--responseTests') || getCliArgValue('--response');
         this.idTests = getCliArgValue('--idTests');
-        this.requestTests = getCliArgValue('--requestTests');
+        this.requestTests = getCliArgValue('--requestTests') || getCliArgValue('--request');
         this.info = getCliArgValue('--info');
         this.verbose = getCliArgValue('--verbose');
         this.debug = getCliArgValue('--debug');
@@ -74,7 +74,7 @@ class testMainClass {
             return;
         }
         const newLine = "\n";
-        dump(newLine + '' + newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, newLine);
+        dump(newLine + '' + newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests, 'useProxy': getCliArgValue('--useProxy') }, newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
             'debug': this.debug,
@@ -213,6 +213,7 @@ class testMainClass {
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
+        const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return;
@@ -222,7 +223,7 @@ class testMainClass {
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray(methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
         }
-        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
+        else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         }
         else if (typeof skippedPropertiesForMethod === 'string') {
@@ -410,6 +411,7 @@ class testMainClass {
     }
     async runPublicTests(exchange, symbol) {
         let tests = {
+            'features': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -851,10 +853,11 @@ class testMainClass {
         //  -----------------------------------------------------------------------------
         const calculatedString = jsonStringify(calculatedOutput);
         const storedString = jsonStringify(storedOutput);
-        let errorMessage = message + ' computed ' + storedString + ' stored: ' + calculatedString;
+        let errorMessage = message;
         if (key !== undefined) {
-            errorMessage = ' | ' + key + ' | ' + 'computed value: ' + storedString + ' stored value: ' + calculatedString;
+            errorMessage = '[' + key + ']';
         }
+        errorMessage += ' computed: ' + storedString + ' stored: ' + calculatedString;
         assert(cond, errorMessage);
     }
     loadMarketsFromFile(id) {
@@ -986,9 +989,17 @@ class testMainClass {
                 this.assertStaticError(sanitizedNewOutput === sanitizedStoredOutput, messageError, storedOutput, newOutput, assertingKey);
             }
             else {
-                const isBoolean = (typeof sanitizedNewOutput === 'boolean') || (typeof sanitizedStoredOutput === 'boolean');
-                const isString = (typeof sanitizedNewOutput === 'string') || (typeof sanitizedStoredOutput === 'string');
-                const isUndefined = (sanitizedNewOutput === undefined) || (sanitizedStoredOutput === undefined); // undefined is a perfetly valid value
+                const isComputedBool = (typeof sanitizedNewOutput === 'boolean');
+                const isStoredBool = (typeof sanitizedStoredOutput === 'boolean');
+                const isComputedString = (typeof sanitizedNewOutput === 'string');
+                const isStoredString = (typeof sanitizedStoredOutput === 'string');
+                const isComputedUndefined = (sanitizedNewOutput === undefined);
+                const isStoredUndefined = (sanitizedStoredOutput === undefined);
+                const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
+                this.assertStaticError(shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
+                const isBoolean = isComputedBool || isStoredBool;
+                const isString = isComputedString || isStoredString;
+                const isUndefined = isComputedUndefined || isStoredUndefined; // undefined is a perfetly valid value
                 if (isBoolean || isString || isUndefined) {
                     if (this.lang === 'C#') {
                         // tmp c# number comparsion
@@ -1128,7 +1139,7 @@ class testMainClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1147,7 +1158,7 @@ class testMainClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse(exchange, undefined); // reset state
@@ -1381,7 +1392,8 @@ class testMainClass {
             this.testXT(),
             this.testVertex(),
             this.testParadex(),
-            this.testHashkey()
+            this.testHashkey(),
+            this.testCoincatch()
         ];
         await Promise.all(promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1897,6 +1909,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
+        if (!isSync()) {
+            await close(exchange);
+        }
+        return true;
+    }
+    async testCoincatch() {
+        const exchange = this.initOfflineExchange('coincatch');
+        let reqHeaders = undefined;
+        const id = "47cfy";
+        try {
+            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
+        }
+        catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'coincatch - id: ' + id + ' not in headers.');
         if (!isSync()) {
             await close(exchange);
         }

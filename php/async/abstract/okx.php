@@ -145,6 +145,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function public_get_rubik_stat_contracts_long_short_account_ratio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function public_get_rubik_stat_contracts_long_short_account_ratio_contract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function public_get_rubik_stat_contracts_open_interest_volume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -460,6 +463,15 @@ abstract class okx extends \ccxt\async\Exchange {
     public function private_get_account_fixed_loan_borrowing_orders_list($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_account_spot_manual_borrow_repay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_account_set_auto_repay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_spot_borrow_repay_history($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -555,6 +567,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function private_get_finance_staking_defi_eth_purchase_redeem_history($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function private_get_finance_staking_defi_eth_product_info($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function private_get_copytrading_current_subpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -1120,6 +1135,9 @@ abstract class okx extends \ccxt\async\Exchange {
     public function publicGetRubikStatContractsLongShortAccountRatio($params = array()) {
         return $this->request('rubik/stat/contracts/long-short-account-ratio', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function publicGetRubikStatContractsLongShortAccountRatioContract($params = array()) {
+        return $this->request('rubik/stat/contracts/long-short-account-ratio-contract', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function publicGetRubikStatContractsOpenInterestVolume($params = array()) {
         return $this->request('rubik/stat/contracts/open-interest-volume', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1435,6 +1453,15 @@ abstract class okx extends \ccxt\async\Exchange {
     public function privateGetAccountFixedLoanBorrowingOrdersList($params = array()) {
         return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetAccountSpotManualBorrowRepay($params = array()) {
+        return $this->request('account/spot-manual-borrow-repay', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetAccountSetAutoRepay($params = array()) {
+        return $this->request('account/set-auto-repay', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountSpotBorrowRepayHistory($params = array()) {
+        return $this->request('account/spot-borrow-repay-history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1530,6 +1557,9 @@ abstract class okx extends \ccxt\async\Exchange {
     }
     public function privateGetFinanceStakingDefiEthPurchaseRedeemHistory($params = array()) {
         return $this->request('finance/staking-defi/eth/purchase-redeem-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function privateGetFinanceStakingDefiEthProductInfo($params = array()) {
+        return $this->request('finance/staking-defi/eth/product-info', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));

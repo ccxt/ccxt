@@ -28,9 +28,9 @@ class testMainClass:
     proxy_test_file_name = 'proxies'
 
     def parse_cli_args_and_props(self):
-        self.response_tests = get_cli_arg_value('--responseTests')
+        self.response_tests = get_cli_arg_value('--responseTests') or get_cli_arg_value('--response')
         self.id_tests = get_cli_arg_value('--idTests')
-        self.request_tests = get_cli_arg_value('--requestTests')
+        self.request_tests = get_cli_arg_value('--requestTests') or get_cli_arg_value('--request')
         self.info = get_cli_arg_value('--info')
         self.verbose = get_cli_arg_value('--verbose')
         self.debug = get_cli_arg_value('--debug')
@@ -63,6 +63,7 @@ class testMainClass:
             'symbol': symbol_argv,
             'method': method_argv,
             'isWs': self.ws_tests,
+            'useProxy': get_cli_arg_value('--useProxy'),
         }, new_line)
         exchange_args = {
             'verbose': self.verbose,
@@ -179,6 +180,7 @@ class testMainClass:
         is_load_markets = (method_name == 'loadMarkets')
         is_fetch_currencies = (method_name == 'fetchCurrencies')
         is_proxy_test = (method_name == self.proxy_test_file_name)
+        is_feature_test = (method_name == 'features')
         # if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if not is_public and (method_name in self.checked_public_tests) and not is_fetch_currencies:
             return
@@ -186,7 +188,7 @@ class testMainClass:
         supported_by_exchange = (method_name in exchange.has) and exchange.has[method_name]
         if not is_load_markets and (len(self.only_specific_tests) > 0 and not exchange.in_array(method_name, self.only_specific_tests)):
             skip_message = '[INFO] IGNORED_TEST'
-        elif not is_load_markets and not supported_by_exchange and not is_proxy_test:
+        elif not is_load_markets and not supported_by_exchange and not is_proxy_test and not is_feature_test:
             skip_message = '[INFO] UNSUPPORTED_TEST'  # keep it aligned with the longest message
         elif isinstance(skipped_properties_for_method, str):
             skip_message = '[INFO] SKIPPED_TEST'
@@ -332,6 +334,7 @@ class testMainClass:
 
     def run_public_tests(self, exchange, symbol):
         tests = {
+            'features': [],
             'fetchCurrencies': [],
             'fetchTicker': [symbol],
             'fetchTickers': [symbol],
@@ -635,9 +638,10 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         stored_string = json_stringify(stored_output)
-        error_message = message + ' computed ' + stored_string + ' stored: ' + calculated_string
+        error_message = message
         if key is not None:
-            error_message = ' | ' + key + ' | ' + 'computed value: ' + stored_string + ' stored value: ' + calculated_string
+            error_message = '[' + key + ']'
+        error_message += ' computed: ' + stored_string + ' stored: ' + calculated_string
         assert cond, error_message
 
     def load_markets_from_file(self, id):
@@ -748,9 +752,17 @@ class testMainClass:
                 # when comparing the response we want to allow some flexibility, because a 50.0 can be equal to 50 after saving it to the json file
                 self.assert_static_error(sanitized_new_output == sanitized_stored_output, message_error, stored_output, new_output, asserting_key)
             else:
-                is_boolean = (isinstance(sanitized_new_output, bool)) or (isinstance(sanitized_stored_output, bool))
-                is_string = (isinstance(sanitized_new_output, str)) or (isinstance(sanitized_stored_output, str))
-                is_undefined = (sanitized_new_output is None) or (sanitized_stored_output is None)  # undefined is a perfetly valid value
+                is_computed_bool = (isinstance(sanitized_new_output, bool))
+                is_stored_bool = (isinstance(sanitized_stored_output, bool))
+                is_computed_string = (isinstance(sanitized_new_output, str))
+                is_stored_string = (isinstance(sanitized_stored_output, str))
+                is_computed_undefined = (sanitized_new_output is None)
+                is_stored_undefined = (sanitized_stored_output is None)
+                should_be_same = (is_computed_bool == is_stored_bool) and (is_computed_string == is_stored_string) and (is_computed_undefined == is_stored_undefined)
+                self.assert_static_error(should_be_same, 'output type mismatch', stored_output, new_output, asserting_key)
+                is_boolean = is_computed_bool or is_stored_bool
+                is_string = is_computed_string or is_stored_string
+                is_undefined = is_computed_undefined or is_stored_undefined  # undefined is a perfetly valid value
                 if is_boolean or is_string or is_undefined:
                     if self.lang == 'C#':
                         # tmp c# number comparsion
@@ -854,7 +866,7 @@ class testMainClass:
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
 
     def test_response_statically(self, exchange, method, skip_keys, data):
@@ -869,7 +881,7 @@ class testMainClass:
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
         except Exception as e:
             self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_RESPONSE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
 
@@ -1067,7 +1079,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey(), self.test_coincatch()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1526,6 +1538,20 @@ class testMainClass:
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
+        if not is_sync():
+            close(exchange)
+        return True
+
+    def test_coincatch(self):
+        exchange = self.init_offline_exchange('coincatch')
+        req_headers = None
+        id = '47cfy'
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['X-CHANNEL-API-CODE'] == id, 'coincatch - id: ' + id + ' not in headers.'
         if not is_sync():
             close(exchange)
         return True

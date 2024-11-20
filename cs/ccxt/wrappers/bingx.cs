@@ -330,6 +330,26 @@ public partial class bingx
         return new Tickers(res);
     }
     /// <summary>
+    /// fetches mark prices for the market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarkPrice(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
     /// fetches mark prices for multiple markets
     /// </summary>
     /// <remarks>
@@ -640,6 +660,12 @@ public partial class bingx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// boolean : *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
     /// </description>
     /// </item>
     /// </list>
@@ -1086,10 +1112,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}, indexed by the network.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1112,10 +1138,10 @@ public partial class bingx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -1358,12 +1384,12 @@ public partial class bingx
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/common/account-api.html#Withdraw"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :          * @param {object} [params] extra parameters specific to the exchange API endpoint
+    /// string :      * @param {object} [params] extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
