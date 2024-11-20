@@ -119,7 +119,8 @@ export default class coinbaseexchange extends Exchange {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines', // experimental
+                        'products/spark-lines',
+                        'products/volume-summary',
                     ],
                 },
                 'private': {

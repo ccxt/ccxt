@@ -850,7 +850,7 @@ class cex extends cex$1 {
             const code = this.safeCurrencyCode(key);
             const account = {
                 'used': this.safeString(balance, 'balanceOnHold'),
-                'free': this.safeString(balance, 'balance'),
+                'total': this.safeString(balance, 'balance'),
             };
             result[code] = account;
         }
