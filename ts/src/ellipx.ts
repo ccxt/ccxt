@@ -304,10 +304,12 @@ export default class ellipx extends Exchange {
     }
 
     /**
-     * Fetches market information from the exchange.
+     * @method
+     * @name ellipx#fetchMarkets
+     * @description Fetches market information from the exchange.
      * @see https://docs.ccxt.com/en/latest/manual.html#markets
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.1a1t05wpgfof
-     * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
+     * @param {object} [params] - Extra parameters specific to the exchange API endpoint
      * @returns {Promise<Market[]>} An array of market structures.
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -450,8 +452,8 @@ export default class ellipx extends Exchange {
     /**
      * @method
      * @name ellipx#fetchTicker
-     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.d2jylz4u6pmu
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.d2jylz4u6pmu
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -560,8 +562,8 @@ export default class ellipx extends Exchange {
     /**
      * @method
      * @name ellipx#fetchOrderBook
-     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.bqmucewhkpdz
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.bqmucewhkpdz
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return the exchange not supported yet.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -657,6 +659,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market, default will return the last 24h period.
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.w65baeuhxwt8
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -731,6 +734,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchCurrencies
      * @description fetches information on all currencies from the exchange, including deposit/withdrawal details and available chains
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.x65f9s9j74jf
      * @param {object} [params] extra parameters specific to the ellipx API endpoint
      * @param {string} [params.Can_Deposit] filter currencies by deposit availability, Y for available
      * @param {number} [params.results_per_page] number of results per page, default 100
@@ -834,8 +838,8 @@ export default class ellipx extends Exchange {
      * @name ellipx#fetchTrades
      * @description fetches all completed trades for a particular market/symbol
      * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
-     * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-     * @param {int|undefined} limit the maximum amount of trades to fetch
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the EllipX API endpoint
      * @param {string} [params.before] get trades before the given trade ID
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
@@ -919,6 +923,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.ihrjov144txg
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
@@ -1024,11 +1029,12 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#createOrder
      * @description create a new order in a market
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.yzfak2n2bwpo
      * @param {string} symbol unified market symbol (e.g. 'BTC/USDT')
      * @param {string} type order type - the exchange automatically sets type to 'limit' if price defined, 'market' if undefined
      * @param {string} side 'buy' or 'sell'
-     * @param {float} amount amount of base currency to trade (can be undefined if using Spend_Limit)
-     * @param {float|undefined} price price per unit of base currency for limit orders
+     * @param {float} [amount] amount of base currency to trade (can be undefined if using Spend_Limit)
+     * @param {float} [price] price per unit of base currency for limit orders
      * @param {object} [params] extra parameters specific to the EllipX API endpoint
      * @param {float} [params.Spend_Limit] maximum amount to spend in quote currency (required for market orders if amount undefined)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1117,16 +1123,16 @@ export default class ellipx extends Exchange {
         return this.parseOrder (order, market);
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchOrder
+     * @description fetches information on an order made by the user
+     * @param {string} id the order ID as returned by createOrder or fetchOrders
+     * @param {string|undefined} symbol not used by ellipx.fetchOrder
+     * @param {object} [params] extra parameters specific to the EllipX API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name ellipx#fetchOrder
-         * @description fetches information on an order made by the user
-         * @param {string} id the order ID as returned by createOrder or fetchOrders
-         * @param {string|undefined} symbol not used by ellipx.fetchOrder
-         * @param {object} [params] extra parameters specific to the EllipX API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request = {
             'orderUuid': id,
@@ -1140,7 +1146,8 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchOrdersByStatus
      * @description fetches a list of orders placed on the exchange
-     * @param {string|undefined} status 'open' or 'closed', omit for all orders
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.5z2nh2b5s81n
+     * @param {string} status 'open' or 'closed', omit for all orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum amount of orders to fetch
@@ -1221,6 +1228,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchOrders
      * @description fetches information on multiple orders made by the user
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.5z2nh2b5s81n
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} since timestamp in ms of the earliest order
      * @param {int|undefined} limit the maximum amount of orders to fetch
@@ -1235,6 +1243,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchOpenOrders
      * @description fetches information on open orders made by the user
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.5z2nh2b5s81n
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} since timestamp in ms of the earliest order
      * @param {int|undefined} limit the maximum amount of orders to fetch
@@ -1294,6 +1303,15 @@ export default class ellipx extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name ellipx#cancelOrder
+     * @description Cancels an open order on the exchange
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.f1qu1pb1rebn
+     * @param {string} id - The order ID to cancel (format: mktor-xxxxx-xxxx-xxxx-xxxx-xxxxxxxx)
+     * @param {object} [params={}] - Extra parameters specific to the exchange API
+     * @returns {Promise<object>} A Promise that resolves to the canceled order info
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request = {
@@ -1349,6 +1367,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchDepositAddress
      * @description fetches a crypto deposit address for a specific currency
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.k7qe5aricayh
      * @param {string} code unified currency code (e.g. "BTC", "ETH", "USDT")
      * @param {object} [params] extra parameters specific to the EllipX API endpoint
      * @returns {object} an address structure {
@@ -1390,6 +1409,7 @@ export default class ellipx extends Exchange {
      * @method
      * @name ellipx#fetchTradingFee
      * @description Fetches the current trading fees (maker and taker) applicable to the user.
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.kki5jay2c8it
      * @param {string} [symbol] Not used by EllipX as fees are not symbol-specific.
      * @param {object} [params] Extra parameters specific to the EllipX API endpoint.
      * @returns {Promise<object>} A promise resolving to a unified trading fee structure:
@@ -1435,11 +1455,13 @@ export default class ellipx extends Exchange {
     }
 
     /**
-     * Make a withdrawal request
+     * @method
+     * @@description Make a withdrawal request
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
      * @param {string} code Currency code
      * @param {number} amount Amount to withdraw
      * @param {string} address Destination wallet address
-     * @param {string|undefined} tag Additional tag/memo for currencies that require it
+     * @param {string} [tag] Additional tag/memo for currencies that require it
      * @param {object} params Extra parameters specific to the EllipX API endpoint (Crypto_Chain__, Unit__)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
