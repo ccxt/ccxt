@@ -123,6 +123,7 @@ class cex extends Exchange {
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'Get deposit address for main account is not allowed' => '\\ccxt\\PermissionDenied',
                     'Market Trigger orders are not allowed' => '\\ccxt\\BadRequest', // for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect' => '\\ccxt\\AuthenticationError',
                 ),
             ),
             'timeframes' => array(
@@ -890,7 +891,7 @@ class cex extends Exchange {
             $code = $this->safe_currency_code($key);
             $account = array(
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
-                'free' => $this->safe_string($balance, 'balance'),
+                'total' => $this->safe_string($balance, 'balance'),
             );
             $result[$code] = $account;
         }
@@ -904,7 +905,7 @@ class cex extends Exchange {
              *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
              *
-             * @param $status
+             * @param {string} $status order $status to fetch for
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve

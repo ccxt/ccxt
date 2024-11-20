@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.31'
+__version__ = '4.4.32'
 
 # -----------------------------------------------------------------------------
 
@@ -88,6 +88,14 @@ import gzip
 import hashlib
 import hmac
 import io
+
+# load orjson if available, otherwise default to json
+orjson = None
+try:
+    import orjson as orjson
+except ImportError:
+    pass
+
 import json
 import math
 import random
@@ -317,6 +325,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {}
+    features = {}
     precisionMode = TICK_SIZE
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
@@ -486,9 +495,11 @@ class Exchange(object):
         return response_body.strip()
 
     def on_json_response(self, response_body):
-        if self.quoteJsonNumbers:
+        if self.quoteJsonNumbers and orjson is None:
             return json.loads(response_body, parse_float=str, parse_int=str)
         else:
+            if orjson:
+                return orjson.loads(response_body)
             return json.loads(response_body)
 
     def fetch(self, url, method='GET', headers=None, body=None):
@@ -1433,6 +1444,8 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
+        if orjson:
+            return orjson.dumps(data).decode('utf-8')
         return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
@@ -2713,6 +2726,83 @@ class Exchange(object):
 
     def after_construct(self):
         self.create_networks_by_id_object()
+        self.features_generator()
+
+    def features_generator(self):
+        #
+        # the exchange-specific features can be something like self, where we support 'string' aliases too:
+        #
+        #     {
+        #         'myItem' : {
+        #             'createOrder' : {...},
+        #             'fetchOrders' : {...},
+        #         },
+        #         'swap': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         },
+        #         'future': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         }
+        #     }
+        #
+        #
+        #
+        # self method would regenerate the blank features tree, eg:
+        #
+        #     {
+        #         "spot": {
+        #             "createOrder": None,
+        #             "fetchBalance": None,
+        #             ...
+        #         },
+        #         "swap": {
+        #             ...
+        #         }
+        #     }
+        #
+        if self.features is None:
+            return
+        # reconstruct
+        initialFeatures = self.features
+        self.features = {}
+        unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
+        subTypes = ['linear', 'inverse']
+        # atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for i in range(0, len(unifiedMarketTypes)):
+            marketType = unifiedMarketTypes[i]
+            # if marketType is not filled for self exchange, don't add that in `features`
+            if not (marketType in initialFeatures):
+                self.features[marketType] = None
+            else:
+                if marketType == 'spot':
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                else:
+                    self.features[marketType] = {}
+                    for j in range(0, len(subTypes)):
+                        subType = subTypes[j]
+                        self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
+
+    def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
+        featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        extendsStr: Str = self.safe_string(featuresObj, 'extends')
+        if extendsStr is not None:
+            featuresObj = self.omit(featuresObj, 'extends')
+            extendObj = initialFeatures[extendsStr]
+            featuresObj = self.extend(extendObj, featuresObj)  # Warning, do not use deepExtend here, because we override only one level
+        #
+        # corrections
+        #
+        if 'createOrder' in featuresObj:
+            value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
+            if value is not None:
+                featuresObj['createOrder']['stopLoss'] = value
+                featuresObj['createOrder']['takeProfit'] = value
+            # omit 'hedged' from spot
+            if marketType == 'spot':
+                featuresObj['createOrder']['hedged'] = None
+        return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'

@@ -2589,6 +2589,8 @@ export default class krakenfutures extends Exchange {
     }
 
     /**
+     * @method
+     * @name krakenfutures#transferOut
      * @description transfer from futures wallet to spot wallet
      * @param {str} code Unified currency code
      * @param {float} amount Size of the transfer

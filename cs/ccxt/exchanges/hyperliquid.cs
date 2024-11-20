@@ -751,8 +751,9 @@ public partial class hyperliquid : Exchange
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', by default fetches both
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -761,7 +762,19 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        object response = await this.fetchMarkets(parameters);
+        object response = new List<object>() {};
+        object type = this.safeString(parameters, "type");
+        parameters = this.omit(parameters, "type");
+        if (isTrue(isEqual(type, "spot")))
+        {
+            response = await this.fetchSpotMarkets(parameters);
+        } else if (isTrue(isEqual(type, "swap")))
+        {
+            response = await this.fetchSwapMarkets(parameters);
+        } else
+        {
+            response = await this.fetchMarkets(parameters);
+        }
         // same response as under "fetchMarkets"
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))

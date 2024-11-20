@@ -10,6 +10,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -127,6 +128,7 @@ class cex(Exchange, ImplicitAPI):
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
                     'Market Trigger orders are not allowed': BadRequest,  # for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect': AuthenticationError,
                 },
             },
             'timeframes': {
@@ -837,7 +839,7 @@ class cex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(key)
             account: dict = {
                 'used': self.safe_string(balance, 'balanceOnHold'),
-                'free': self.safe_string(balance, 'balance'),
+                'total': self.safe_string(balance, 'balance'),
             }
             result[code] = account
         return self.safe_balance(result)
@@ -848,7 +850,7 @@ class cex(Exchange, ImplicitAPI):
 
         https://trade.cex.io/docs/#rest-private-api-calls-orders
 
- @param status
+        :param str status: order status to fetch for
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

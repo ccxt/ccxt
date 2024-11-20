@@ -534,35 +534,35 @@
                   },
                   "BTC": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "XRP": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "TRX": {
                     "used": null,
-                    "free": 0.039369,
-                    "total": null
+                    "free": null,
+                    "total": 0.039369
                   },
                   "USD": {
                     "used": null,
-                    "free": 0.02,
-                    "total": null
+                    "free": null,
+                    "total": 0.02
                   },
                   "AI": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "USDT": {
                     "used": null,
-                    "free": 0.877611,
-                    "total": null
+                    "free": null,
+                    "total": 0.877611
                   },
-                  "free": {
+                 "total": {
                     "BTC": 0,
                     "XRP": 0,
                     "TRX": 0.039369,
@@ -578,7 +578,7 @@
                     "AI": null,
                     "USDT": null
                   },
-                  "total": {
+                  "free": {
                     "BTC": null,
                     "XRP": null,
                     "TRX": null,

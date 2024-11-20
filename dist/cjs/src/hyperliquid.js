@@ -727,15 +727,27 @@ class hyperliquid extends hyperliquid$1 {
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', by default fetches both
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         // at this stage, to get tickers data, we use fetchMarkets endpoints
-        const response = await this.fetchMarkets(params);
+        let response = [];
+        const type = this.safeString(params, 'type');
+        params = this.omit(params, 'type');
+        if (type === 'spot') {
+            response = await this.fetchSpotMarkets(params);
+        }
+        else if (type === 'swap') {
+            response = await this.fetchSwapMarkets(params);
+        }
+        else {
+            response = await this.fetchMarkets(params);
+        }
         // same response as under "fetchMarkets"
         const result = {};
         for (let i = 0; i < response.length; i++) {

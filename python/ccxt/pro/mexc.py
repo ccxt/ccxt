@@ -1248,8 +1248,7 @@ class mexc(ccxt.async_support.mexc):
             '2': 'closed',   # filled
             '3': 'open',     # partially filled
             '4': 'canceled',  # canceled
-            '5': 'open',     # order partially filled
-            '6': 'closed',   # partially filled then canceled
+            '5': 'closed',   # partially filled then canceled
             'NEW': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',

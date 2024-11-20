@@ -197,6 +197,7 @@ class kraken(Exchange, ImplicitAPI):
                         'AddOrder': 0,
                         'AddOrderBatch': 0,
                         'AddExport': 3,
+                        'AmendOrder': 0,
                         'Balance': 3,
                         'CancelAll': 3,
                         'CancelAllOrdersAfter': 3,
@@ -2045,8 +2046,8 @@ class kraken(Exchange, ImplicitAPI):
 
         https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
 
-        :param str[]|None ids: list of order id
- @param symbol
+        :param str[] [ids]: list of order id
+        :param str [symbol]: unified ccxt market symbol
         :param dict [params]: extra parameters specific to the kraken api endpoint
         :returns dict[]: a list of `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

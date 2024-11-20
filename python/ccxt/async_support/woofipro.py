@@ -2379,8 +2379,8 @@ class woofipro(Exchange, ImplicitAPI):
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
 
- @param leverage
-        :param str symbol: unified market symbol
+        :param int [leverage]: the rate of leverage
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """

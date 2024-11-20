@@ -1556,7 +1556,7 @@ class hitbtc extends hitbtc$1 {
      * @name hitbtc#fetchOrderBooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @see https://api.hitbtc.com/#order-books
-     * @param {string[]|undefined} symbols list of unified market symbols, all symbols fetched if undefined, default is undefined
+     * @param {string[]} [symbols] list of unified market symbols, all symbols fetched if undefined, default is undefined
      * @param {int} [limit] max number of entries per orderbook to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
@@ -3577,8 +3577,8 @@ class hitbtc extends hitbtc$1 {
      * @name hitbtc#closePosition
      * @description closes open positions for a market
      * @see https://api.hitbtc.com/#close-all-futures-margin-positions
-     * @param symbol
-     * @param side
+     * @param {string} symbol unified ccxt market symbol
+     * @param {string} side 'buy' or 'sell'
      * @param {object} [params] extra parameters specific to the okx api endpoint
      * @param {string} [params.symbol] *required* unified market symbol
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'

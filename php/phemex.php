@@ -485,6 +485,13 @@ class phemex extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'triggerPriceTypesMap' => array(
+                    'last' => 'ByLastPrice',
+                    'mark' => 'ByMarkPrice',
+                    'index' => 'ByIndexPrice',
+                    'ask' => 'ByAskPrice',
+                    'bid' => 'ByBidPrice',
+                ),
             ),
         ));
     }
@@ -502,7 +509,7 @@ class phemex extends Exchange {
     public function parse_swap_market(array $market) {
         //
         //     {
-        //         "symbol":"BTCUSD",
+        //         "symbol":"BTCUSD", //
         //         "code":"1",
         //         "type":"Perpetual",
         //         "displaySymbol":"BTC / USD",
@@ -510,7 +517,7 @@ class phemex extends Exchange {
         //         "markSymbol":".MBTC",
         //         "fundingRateSymbol":".BTCFR",
         //         "fundingRate8hSymbol":".BTCFR8H",
-        //         "contractUnderlyingAssets":"USD",
+        //         "contractUnderlyingAssets":"USD", // or eg. `1000 SHIB`
         //         "settleCurrency":"BTC",
         //         "quoteCurrency":"USD",
         //         "contractSize":"1 USD",
@@ -554,6 +561,7 @@ class phemex extends Exchange {
         $quoteId = $this->safe_string($market, 'quoteCurrency');
         $settleId = $this->safe_string($market, 'settleCurrency');
         $base = $this->safe_currency_code($baseId);
+        $base = str_replace(' ', '', $base); // replace space for junction codes, eg. `1000 SHIB`
         $quote = $this->safe_currency_code($quoteId);
         $settle = $this->safe_currency_code($settleId);
         $inverse = false;
@@ -2128,6 +2136,7 @@ class phemex extends Exchange {
             'PartiallyFilled' => 'open',
             'Filled' => 'closed',
             'Canceled' => 'canceled',
+            'Suspended' => 'canceled',
             '1' => 'open',
             '2' => 'canceled',
             '3' => 'closed',
@@ -2622,7 +2631,7 @@ class phemex extends Exchange {
                 if ($stopLossDefined) {
                     $stopLossTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
                     if ($stopLossTriggerPrice === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["stopLoss"]["triggerPrice"], or $params["stopLoss"]["stopPrice"] for a stop loss order');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["stopLoss"]["triggerPrice"] for a stop loss order');
                     }
                     if ($market['settle'] === 'USDT') {
                         $request['stopLossRp'] = $this->price_to_precision($symbol, $stopLossTriggerPrice);
@@ -2631,40 +2640,30 @@ class phemex extends Exchange {
                     }
                     $stopLossTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'slTrigger');
                     if ($stopLossTriggerPriceType !== null) {
-                        if ($market['settle'] === 'USDT') {
-                            if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice') && ($stopLossTriggerPriceType !== 'ByIndexPrice') && ($stopLossTriggerPriceType !== 'ByAskPrice') && ($stopLossTriggerPriceType !== 'ByBidPrice') && ($stopLossTriggerPriceType !== 'ByMarkPriceLimit') && ($stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                            }
-                        } else {
-                            if (($stopLossTriggerPriceType !== 'ByMarkPrice') && ($stopLossTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
-                            }
-                        }
-                        $request['slTrigger'] = $stopLossTriggerPriceType;
+                        $request['slTrigger'] = $this->safe_string($this->options['triggerPriceTypesMap'], $stopLossTriggerPriceType, $stopLossTriggerPriceType);
+                    }
+                    $slLimitPrice = $this->safe_string($stopLoss, 'price');
+                    if ($slLimitPrice !== null) {
+                        $request['slPxRp'] = $this->price_to_precision($symbol, $slLimitPrice);
                     }
                 }
                 if ($takeProfitDefined) {
                     $takeProfitTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
                     if ($takeProfitTriggerPrice === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["takeProfit"]["triggerPrice"], or $params["takeProfit"]["stopPrice"] for a take profit order');
+                        throw new InvalidOrder($this->id . ' createOrder() requires a trigger $price in $params["takeProfit"]["triggerPrice"] for a take profit order');
                     }
                     if ($market['settle'] === 'USDT') {
                         $request['takeProfitRp'] = $this->price_to_precision($symbol, $takeProfitTriggerPrice);
                     } else {
                         $request['takeProfitEp'] = $this->to_ep($takeProfitTriggerPrice, $market);
                     }
-                    $takeProfitTriggerPriceType = $this->safe_string_2($stopLoss, 'triggerPriceType', 'tpTrigger');
+                    $takeProfitTriggerPriceType = $this->safe_string_2($takeProfit, 'triggerPriceType', 'tpTrigger');
                     if ($takeProfitTriggerPriceType !== null) {
-                        if ($market['settle'] === 'USDT') {
-                            if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice') && ($takeProfitTriggerPriceType !== 'ByIndexPrice') && ($takeProfitTriggerPriceType !== 'ByAskPrice') && ($takeProfitTriggerPriceType !== 'ByBidPrice') && ($takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && ($takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
-                            }
-                        } else {
-                            if (($takeProfitTriggerPriceType !== 'ByMarkPrice') && ($takeProfitTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder($this->id . ' createOrder() take profit trigger $price $type must be one of "ByMarkPrice", or "ByLastPrice"');
-                            }
-                        }
-                        $request['tpTrigger'] = $takeProfitTriggerPriceType;
+                        $request['tpTrigger'] = $this->safe_string($this->options['triggerPriceTypesMap'], $takeProfitTriggerPriceType, $takeProfitTriggerPriceType);
+                    }
+                    $tpLimitPrice = $this->safe_string($takeProfit, 'price');
+                    if ($tpLimitPrice !== null) {
+                        $request['tpPxRp'] = $this->price_to_precision($symbol, $tpLimitPrice);
                     }
                 }
             }
@@ -2832,7 +2831,7 @@ class phemex extends Exchange {
                 $request['baseQtyEV'] = $this->to_ev($amount, $market);
             }
         }
-        $stopPrice = $this->safe_string_2($params, 'stopPx', 'stopPrice');
+        $stopPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         if ($stopPrice !== null) {
             if ($isUSDTSettled) {
                 $request['stopPxRp'] = $this->price_to_precision($symbol, $stopPrice);
@@ -2840,7 +2839,7 @@ class phemex extends Exchange {
                 $request['stopPxEp'] = $this->to_ep($stopPrice, $market);
             }
         }
-        $params = $this->omit($params, array( 'stopPx', 'stopPrice' ));
+        $params = $this->omit($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         $response = null;
         if ($isUSDTSettled) {
             $posSide = $this->safe_string($params, 'posSide');
@@ -4162,6 +4161,9 @@ class phemex extends Exchange {
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://phemex-docs.github.io/#set-$leverage
+         *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4451,6 +4453,10 @@ class phemex extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
         /**
          * $transfer $currency internally between wallets on the same account
+         *
+         * @see https://phemex-docs.github.io/#$transfer-between-spot-and-futures
+         * @see https://phemex-docs.github.io/#universal-$transfer-main-account-only-$transfer-between-sub-to-main-main-to-sub-or-sub-to-sub
+         *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
          * @param {string} $fromAccount account to $transfer from
@@ -4535,6 +4541,9 @@ class phemex extends Exchange {
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetch a history of internal $transfers made on an account
+         *
+         * @see https://phemex-docs.github.io/#query-transfer-history
+         *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
          * @param {int} [$limit] the maximum number of  $transfers structures to retrieve

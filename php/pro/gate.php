@@ -359,7 +359,7 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.io/docs/developers/futures/ws/en/#order-list
              *
              * fetches information on multiple $orders made by the user by $status
-             * @param $status
+             * @param {string} $status requested order $status
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} [$since] the earliest time in ms to fetch $orders for
              * @param {int|null} [$limit] the maximum number of order structures to retrieve
@@ -1182,9 +1182,9 @@ class gate extends \ccxt\async\gate {
              * @see https://www.gate.io/docs/developers/options/ws/en/#$positions-$channel
              *
              * watch all open $positions
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param $since
-             * @param $limit
+             * @param {string[]} [$symbols] list of unified $market $symbols to watch $positions for
+             * @param {int} [$since] the earliest time in ms to fetch $positions for
+             * @param {int} [$limit] the maximum number of $positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

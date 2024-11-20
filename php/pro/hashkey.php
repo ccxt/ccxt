@@ -626,9 +626,9 @@ class hashkey extends \ccxt\async\hashkey {
              * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
              *
              * watch all open $positions
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param $since
-             * @param $limit
+             * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
+             * @param {int} [$since] the earliest time in ms to fetch $positions for
+             * @param {int} [$limit] the maximum number of $positions to retrieve
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */

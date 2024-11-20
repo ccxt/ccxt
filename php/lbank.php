@@ -204,6 +204,7 @@ class lbank extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'HIT' => 'Hiver',
                 'VET_ERC20' => 'VEN',
                 'PNT' => 'Penta',
             ),

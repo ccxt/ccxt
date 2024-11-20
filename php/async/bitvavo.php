@@ -1149,10 +1149,6 @@ class bitvavo extends Exchange {
         if ($postOnly) {
             $request['postOnly'] = true;
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId === null) {
-            $request['clientOrderId'] = $this->uuid22();
-        }
         return $this->extend($request, $params);
     }
 

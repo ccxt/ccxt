@@ -1114,10 +1114,6 @@ class bitvavo extends bitvavo$1 {
         if (postOnly) {
             request['postOnly'] = true;
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
-        if (clientOrderId === undefined) {
-            request['clientOrderId'] = this.uuid22();
-        }
         return this.extend(request, params);
     }
     /**

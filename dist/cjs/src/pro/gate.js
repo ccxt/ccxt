@@ -324,7 +324,7 @@ class gate extends gate$1 {
      * @name gate#fetchOrdersWs
      * @see https://www.gate.io/docs/developers/futures/ws/en/#order-list
      * @description fetches information on multiple orders made by the user by status
-     * @param status
+     * @param {string} status requested order status
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int|undefined} [since] the earliest time in ms to fetch orders for
      * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -1117,9 +1117,9 @@ class gate extends gate$1 {
      * @see https://www.gate.io/docs/developers/delivery/ws/en/#positions-subscription
      * @see https://www.gate.io/docs/developers/options/ws/en/#positions-channel
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
+     * @param {string[]} [symbols] list of unified market symbols to watch positions for
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
