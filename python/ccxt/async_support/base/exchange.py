@@ -75,7 +75,7 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         super(Exchange, self).__init__(config)
-        self.throttle = None
+        self.throttler = None
         self.markets_loading = None
         self.reloading_markets = False
 
@@ -83,7 +83,10 @@ class Exchange(BaseExchange):
         return self.asyncio_loop
 
     def init_throttler(self, cost=None):
-        self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
+        self.throttler = Throttler(self.tokenBucket, self.asyncio_loop)
+
+    async def throttle(self, cost=None):
+        return await self.throttler(cost)
 
     def get_session(self):
         return self.session
@@ -106,7 +109,7 @@ class Exchange(BaseExchange):
                 self.asyncio_loop = asyncio.get_running_loop()
             else:
                 self.asyncio_loop = asyncio.get_event_loop()
-            self.throttle.loop = self.asyncio_loop
+            self.throttler.loop = self.asyncio_loop
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file

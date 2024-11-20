@@ -650,12 +650,12 @@ export default class Exchange {
         return result
     }
 
-    initThrottler () {
-        this.throttler = new Throttler (this.tokenBucket);
-    }
-
     throttle (cost = undefined) {
         return this.throttler.throttle (cost)
+    }
+
+    initThrottler () {
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
