@@ -397,6 +397,7 @@ export default class ellipx extends Exchange {
         const created = this.safeTimestamp (market['Created'], 'unix');
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
         const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
+        let fees = this.fees; // should use fetchTradingFees
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -416,6 +417,8 @@ export default class ellipx extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
+            'taker': fees['trading']['taker'],
+            'maker': fees['trading']['maker'],
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -444,20 +447,21 @@ export default class ellipx extends Exchange {
         });
     }
 
-    /**
-     * @method
-     * @name ellipx#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name ellipx#fetchTicker
+         * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.d2jylz4u6pmu
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const marketId = market['id'];
         const request = {
-            'currencyPair': marketSymbol,
+            'currencyPair': marketId,
         };
         const response = await this.publicGetMarketCurrencyPairTicker (this.extend (request, params));
         //
@@ -514,23 +518,20 @@ export default class ellipx extends Exchange {
         //         "time": 0.015463566
         //     }
         //
-        if (response['result'] !== 'success') {
-            throw new ExchangeError (this.id + ' fetchTicker() failed: ' + this.json (response));
-        }
         const ticker = this.safeValue (response['data'], 'ticker', {});
         return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'time') * 1000;
-        const open = this.parseAmount (this.safeValue (ticker, 'open', undefined));
-        const high = this.parseAmount (this.safeValue (ticker, 'high', undefined));
-        const low = this.parseAmount (this.safeValue (ticker, 'low', undefined));
-        const close = this.parseAmount (this.safeValue (ticker, 'close', undefined));
-        const avg = this.parseAmount (this.safeValue (ticker, 'avg', undefined));
-        const vwap = this.parseAmount (this.safeValue (ticker, 'vwap', undefined));
-        const baseVolume = this.parseAmount (this.safeValue (ticker, 'vol', undefined));
-        const quoteVolume = this.parseAmount (this.safeValue (ticker, 'secvol', undefined));
+        const open = this.parseAmount (this.safeValue (ticker, 'open'));
+        const high = this.parseAmount (this.safeValue (ticker, 'high'));
+        const low = this.parseAmount (this.safeValue (ticker, 'low'));
+        const close = this.parseAmount (this.safeValue (ticker, 'close'));
+        const avg = this.parseAmount (this.safeValue (ticker, 'avg'));
+        const vwap = this.parseAmount (this.safeValue (ticker, 'vwap'));
+        const baseVolume = this.parseAmount (this.safeValue (ticker, 'vol'));
+        const quoteVolume = this.parseAmount (this.safeValue (ticker, 'secvol'));
         // const count = this.safeInteger(ticker, 'count'); not used
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
