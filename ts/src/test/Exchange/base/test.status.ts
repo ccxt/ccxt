@@ -1,7 +1,8 @@
+import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 
 function testStatus (exchange: Exchange, skippedProperties: object, method: string, entry: object, now : number) {
-    return true;
+    assert (true, 'testStatus');
     // const format = {
     //     'info': { },
     //     'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
