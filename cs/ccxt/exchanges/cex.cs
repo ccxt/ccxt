@@ -907,7 +907,7 @@ public partial class cex : Exchange
             object code = this.safeCurrencyCode(key);
             object account = new Dictionary<string, object>() {
                 { "used", this.safeString(balance, "balanceOnHold") },
-                { "free", this.safeString(balance, "balance") },
+                { "total", this.safeString(balance, "balance") },
             };
             ((IDictionary<string,object>)result)[(string)code] = account;
         }

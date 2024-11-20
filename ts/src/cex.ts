@@ -869,7 +869,7 @@ export default class cex extends Exchange {
             const code = this.safeCurrencyCode (key);
             const account: Dict = {
                 'used': this.safeString (balance, 'balanceOnHold'),
-                'free': this.safeString (balance, 'balance'),
+                'total': this.safeString (balance, 'balance'),
             };
             result[code] = account;
         }

@@ -96,7 +96,7 @@ public partial class coinbaseexchange : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currencies", "products", "products/{id}", "products/{id}/book", "products/{id}/candles", "products/{id}/stats", "products/{id}/ticker", "products/{id}/trades", "time", "products/spark-lines"} },
+                    { "get", new List<object>() {"currencies", "products", "products/{id}", "products/{id}/book", "products/{id}/candles", "products/{id}/stats", "products/{id}/ticker", "products/{id}/trades", "time", "products/spark-lines", "products/volume-summary"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"address-book", "accounts", "accounts/{id}", "accounts/{id}/holds", "accounts/{id}/ledger", "accounts/{id}/transfers", "coinbase-accounts", "fills", "funding", "fees", "margin/profile_information", "margin/buying_power", "margin/withdrawal_power", "margin/withdrawal_power_all", "margin/exit_plan", "margin/liquidation_history", "margin/position_refresh_amounts", "margin/status", "oracle", "orders", "orders/{id}", "orders/client:{client_oid}", "otc/orders", "payment-methods", "position", "profiles", "profiles/{id}", "reports/{report_id}", "transfers", "transfers/{transfer_id}", "users/self/exchange-limits", "users/self/hold-balances", "users/self/trailing-volume", "withdrawals/fee-estimate", "conversions/{conversion_id}", "conversions/fees"} },

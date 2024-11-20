@@ -891,7 +891,7 @@ class cex extends Exchange {
             $code = $this->safe_currency_code($key);
             $account = array(
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
-                'free' => $this->safe_string($balance, 'balance'),
+                'total' => $this->safe_string($balance, 'balance'),
             );
             $result[$code] = $account;
         }
