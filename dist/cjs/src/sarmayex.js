@@ -344,7 +344,7 @@ class sarmayex extends sarmayex$1 {
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp * 1000,
-            'datetime': new Date(timestamp * 1000).toISOString(),
+            'datetime': this.iso8601(timestamp * 1000),
             'high': undefined,
             'low': undefined,
             'bid': undefined,
