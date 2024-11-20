@@ -526,6 +526,7 @@ export default class bingx extends Exchange {
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
+                            'GTD': false,
                         },
                         'hedged': true,
                         // exchange-supported features
