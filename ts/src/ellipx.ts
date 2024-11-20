@@ -303,14 +303,14 @@ export default class ellipx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
+    /**
+     * Fetches market information from the exchange.
+     * @see https://docs.ccxt.com/en/latest/manual.html#markets
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.1a1t05wpgfof
+     * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
+     * @returns {Promise<Market[]>} An array of market structures.
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * Fetches market information from the exchange.
-         * @see https://docs.ccxt.com/en/latest/manual.html#markets
-         * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.1a1t05wpgfof
-         * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
-         * @returns {Promise<Market[]>} An array of market structures.
-         */
         const response = await this._restGetMarket (params);
         // {
         //     Market__: "mkt-lrnp2e-eaor-eobj-ua73-75j6sjxe",
@@ -397,7 +397,7 @@ export default class ellipx extends Exchange {
         const created = this.safeTimestamp (market['Created'], 'unix');
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
         const pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Secondary'], 'Decimals')));
-        let fees = this.fees; // should use fetchTradingFees
+        const fees = this.fees; // should use fetchTradingFees
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
@@ -447,16 +447,16 @@ export default class ellipx extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name ellipx#fetchTicker
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.d2jylz4u6pmu
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name ellipx#fetchTicker
-         * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.d2jylz4u6pmu
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -560,6 +560,7 @@ export default class ellipx extends Exchange {
     /**
      * @method
      * @name ellipx#fetchOrderBook
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.bqmucewhkpdz
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return the exchange not supported yet.
