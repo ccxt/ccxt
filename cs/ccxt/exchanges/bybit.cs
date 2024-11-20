@@ -3747,11 +3747,20 @@ public partial class bybit : Exchange
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
+        object marketUnit = this.safeString(order, "marketUnit", "baseCoin");
         object id = this.safeString(order, "orderId");
         object type = this.safeStringLower(order, "orderType");
         object price = this.safeString(order, "price");
-        object amount = this.safeString(order, "qty");
-        object cost = this.safeString(order, "cumExecValue");
+        object amount = null;
+        object cost = null;
+        if (isTrue(isEqual(marketUnit, "baseCoin")))
+        {
+            amount = this.safeString(order, "qty");
+            cost = this.safeString(order, "cumExecValue");
+        } else
+        {
+            cost = this.safeString(order, "cumExecValue");
+        }
         object filled = this.safeString(order, "cumExecQty");
         object remaining = this.safeString(order, "leavesQty");
         object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");

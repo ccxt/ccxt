@@ -3432,7 +3432,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newPx"] = this.priceToPrecision(symbol, price);
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit"});
+        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"});
         return this.extend(request, parameters);
     }
 

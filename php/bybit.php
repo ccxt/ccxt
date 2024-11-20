@@ -3582,11 +3582,18 @@ class bybit extends Exchange {
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'createdTime', 'createdAt');
+        $marketUnit = $this->safe_string($order, 'marketUnit', 'baseCoin');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string($order, 'price');
-        $amount = $this->safe_string($order, 'qty');
-        $cost = $this->safe_string($order, 'cumExecValue');
+        $amount = null;
+        $cost = null;
+        if ($marketUnit === 'baseCoin') {
+            $amount = $this->safe_string($order, 'qty');
+            $cost = $this->safe_string($order, 'cumExecValue');
+        } else {
+            $cost = $this->safe_string($order, 'cumExecValue');
+        }
         $filled = $this->safe_string($order, 'cumExecQty');
         $remaining = $this->safe_string($order, 'leavesQty');
         $lastTradeTimestamp = $this->safe_integer_2($order, 'updatedTime', 'updatedAt');

@@ -2363,8 +2363,9 @@ class okx extends \ccxt\async\okx {
 
     public function handle_error_message(Client $client, $message) {
         //
-        //     array( event => 'error', msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
-        //     array( event => 'error", msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
+        //     array( event => 'error', $msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
+        //     array( event => 'error", $msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
+        //     array("event":"error","msg":"Illegal request => array(\\"id\\":\\"17321173472466905\\",\\"op\\":\\"amend-order\\",\\"args\\":[array(\\"instId\\":\\"ETH-USDC\\",\\"ordId\\":\\"2000345622407479296\\",\\"newSz\\":\\"0.050857\\",\\"newPx\\":\\"2949.4\\",\\"postOnly\\":true)],\\"postOnly\\":true)","code":"60012","connId":"0808af6c")
         //
         $errorCode = $this->safe_string($message, 'code');
         try {
@@ -2396,6 +2397,15 @@ class okx extends \ccxt\async\okx {
             // if the $message contains an $id, it means it is a response to a request
             // so we only reject that promise, instead of deleting all futures, destroying the authentication future
             $id = $this->safe_string($message, 'id');
+            if ($id === null) {
+                // try to parse it from the stringified json inside $msg
+                $msg = $this->safe_string($message, 'msg');
+                if ($msg !== null && str_starts_with($msg, 'Illegal request => {')) {
+                    $stringifiedJson = str_replace('Illegal request => ', '', $msg);
+                    $parsedJson = $this->parse_json($stringifiedJson);
+                    $id = $this->safe_string($parsedJson, 'id');
+                }
+            }
             if ($id !== null) {
                 $client->reject ($e, $id);
                 return false;
