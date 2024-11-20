@@ -676,13 +676,13 @@ export default class ellipx extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
-        const marketSymbol = market['symbol'].replace ('/', '_'); // Convert BTC/USDC to BTC_USDC
+        const marketId = market['id'];
         const time_frame = this.safeString (this.timeframes, timeframe, undefined);
         if (time_frame === undefined) {
             throw new ExchangeError (this.id + ' fetchOHLCV() does not support timeframe ' + timeframe);
         }
         const request: Dict = {
-            'currencyPair': marketSymbol,
+            'currencyPair': marketId,
             'interval': time_frame,
         };
         if (since !== undefined) {
