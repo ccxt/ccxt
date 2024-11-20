@@ -303,34 +303,96 @@ export default class ellipx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * Fetches market information from the exchange.
          * @see https://docs.ccxt.com/en/latest/manual.html#markets
+         * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.1a1t05wpgfof
          * @param {object} [params={}] - Extra parameters specific to the exchange API endpoint
-         * @returns {Promise<object[]>} An array of market structures, each containing:
-         *    - {string} id - The market ID in the exchange-specific format
-         *    - {string} symbol - The unified market symbol (e.g., 'BTC/USD')
-         *    - {string} base - The base currency
-         *    - {string} quote - The quote currency
-         *    - {object} limits - The trading limits { amount, price, cost }
-         *    - {object} precision - The price precision by market { amount, price }
-         *    - {boolean} active - True if the market is active, false otherwise
-         * @throws {ExchangeError} If the exchange API request fails or returns error response
+         * @returns {Promise<Market[]>} An array of market structures.
          */
         const response = await this._restGetMarket (params);
-        const request_id = this.safeString (response, 'request_id');
-        if (response['result'] !== 'success') {
-            throw new ExchangeError ('Failed to fetch markets: ' + request_id);
-        }
+        // {
+        //     Market__: "mkt-lrnp2e-eaor-eobj-ua73-75j6sjxe",
+        //     Primary_Unit__: "unit-aebkye-u35b-e5zm-zt22-2qvwhsqa",
+        //     Secondary_Unit__: "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+        //     Primary_Step: null,
+        //     Secondary_Step: null,
+        //     Status: "active",
+        //     Default_Scale: "5",
+        //     Priority: "100",
+        //     Created: {
+        //       unix: "1728113809",
+        //       us: "0",
+        //       iso: "2024-10-05 07:36:49.000000",
+        //       tz: "UTC",
+        //       full: "1728113809000000",
+        //       unixms: "1728113809000",
+        //     },
+        //     Start: {
+        //       unix: "1728295200",
+        //       us: "0",
+        //       iso: "2024-10-07 10:00:00.000000",
+        //       tz: "UTC",
+        //       full: "1728295200000000",
+        //       unixms: "1728295200000",
+        //     },
+        //     Key: "BTC_USDC",
+        //     Primary: {
+        //       Unit__: "unit-aebkye-u35b-e5zm-zt22-2qvwhsqa",
+        //       Currency__: "BTC",
+        //       Crypto_Token__: "crtok-c5v3mh-grfn-hl5d-lmel-fvggbf4i",
+        //       Key: "BTC",
+        //       Symbol: "BTC",
+        //       Symbol_Position: "after",
+        //       Name: "Bitcoin",
+        //       Decimals: "8",
+        //       Display_Decimals: "8",
+        //       Legacy_Decimals: null,
+        //       Type: "crypto_token",
+        //       Visible: "Y",
+        //       Created: {
+        //         unix: "1495247415",
+        //         us: "0",
+        //         iso: "2017-05-20 02:30:15.000000",
+        //         tz: "UTC",
+        //         full: "1495247415000000",
+        //         unixms: "1495247415000",
+        //       },
+        //     },
+        //     Secondary: {
+        //       Unit__: "unit-jcevlk-soxf-fepb-yjwm-b32q5bom",
+        //       Currency__: null,
+        //       Crypto_Token__: "crtok-ptabkh-ra4r-anbd-cqra-bqfbtnba",
+        //       Key: "USDC",
+        //       Symbol: null,
+        //       Symbol_Position: "before",
+        //       Name: "Circle USD",
+        //       Decimals: "6",
+        //       Display_Decimals: "6",
+        //       Legacy_Decimals: null,
+        //       Type: "crypto_token",
+        //       Visible: "Y",
+        //       Created: {
+        //         unix: "1694859829",
+        //         us: "0",
+        //         iso: "2023-09-16 10:23:49.000000",
+        //         tz: "UTC",
+        //         full: "1694859829000000",
+        //         unixms: "1694859829000",
+        //       },
+        //     },
+        //   }
         const markets = this.safeValue (response, 'data', []);
         return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'Market__');
+        const id = this.safeString (market, 'Key');
         const base = this.safeString (market['Primary'], 'Key');
         const quote = this.safeString (market['Secondary'], 'Key');
+        const baseId = this.safeString (market['Primary'], 'Crypto_Token__');
+        const quoteId = this.safeString (market['Secondary'], 'Crypto_Token__');
         const status = this.safeString (market, 'Status') === 'active';
         const created = this.safeTimestamp (market['Created'], 'unix');
         let amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market['Primary'], 'Decimals')));
@@ -347,8 +409,8 @@ export default class ellipx extends Exchange {
             'base': base,
             'quote': quote,
             'settle': undefined,
-            'baseId': this.safeString (market['Primary'], 'Crypto_Token__'),
-            'quoteId': this.safeString (market['Secondary'], 'Crypto_Token__'),
+            'baseId': baseId,
+            'quoteId': quoteId,
             'settleId': undefined,
             'type': 'spot',
             'spot': true,
