@@ -7,7 +7,7 @@ import Exchange from './abstract/defx.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
-import { NotSupported, ArgumentsRequired } from './base/errors.js';
+import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder } from './base/errors.js';
 import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position } from './base/types.js';
 import { Precise } from '../ccxt.js';
 
@@ -280,8 +280,19 @@ export default class defx extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+                    '404': BadRequest, // {"errorCode":404,"errorMessage":"Not Found"}
+                    'missing_auth_signature': AuthenticationError, // {"msg":"Missing auth signature","code":"missing_auth_signature"}
+                    'invalid_order_id': InvalidOrder, // {"success":false,"err":{"msg":"Invalid order id","code":"invalid_order_id"}}
+                    'filter_lotsize_maxqty': InvalidOrder, // {"errorCode":"filter_lotsize_maxqty","errorMessage":"LOT_SIZE filter failed, quantity more than maxQty","errorData":{"maxQty":"5000.00"}}
+                    'filter_notional_min': InvalidOrder, // {"errorCode":"filter_notional_min","errorMessage":"NOTIONAL filter failed, Notional value of quote asset less than minNotional","errorData":{"minNotional":"100.00000000"}}
+                    'failed_index_price_up_multiplier_filter': InvalidOrder, // {"errorCode":"failed_index_price_up_multiplier_filter","errorMessage":"failed_index_price_up_multiplier_filter","errorData":{"maxPrice":"307.81241042"}}
+                    'no_open_orders': InvalidOrder, // {"errorMessage":"No open orders found","errorCode":"no_open_orders"}
+                    'active_position_not_found': InvalidOrder, // {"errorCode":"active_position_not_found","errorMessage":"Active position not found"}
+                    'position_inactive': InvalidOrder, // {"errorCode":"position_inactive","errorMessage":"Position is already inactive"}
+                    'invalid_position_id': InvalidOrder, // {"errorCode":"invalid_position_id","errorMessage":"Position id is invalid"}
                 },
                 'broad': {
+                    'Bad Request': BadRequest, // {"errorMessage":"Bad Request","data":[{"param":"symbol","message":"\"symbol\" must be one of [ETH_USDC, BTC_USDC, BNB_USDC, SOL_USDC, DOGE_USDC, TON_USDC, AVAX_USDC, WIF_USDC, KPEPE_USDC, KSHIB_USDC, KBONK_USDC, MOODENG_USDC, POPCAT_USDC, MOTHER_USDC]"}]}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1815,12 +1826,12 @@ export default class defx extends Exchange {
         if (!response) {
             return undefined; // fallback to default error handler
         }
-        //
-        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
-        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
-        //
+        // {"errorCode":404,"errorMessage":"Not Found"}
+        // {"msg":"Missing auth signature","code":"missing_auth_signature"}
+        // {"success":false,"err":{"msg":"Invalid order id","code":"invalid_order_id"}}
         const success = this.safeBool (response, 'success');
-        const errorCode = this.safeString (response, 'code');
+        const err = this.safeDict (response, 'err', response);
+        const errorCode = this.safeString2 (err, 'errorCode', 'code');
         if (!success) {
             const feedback = this.id + ' ' + this.json (response);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
