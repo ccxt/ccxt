@@ -18,6 +18,7 @@ class luno extends \ccxt\async\luno {
                 'watchTicker' => false,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => false,
                 'watchOrders' => null, // is in beta
                 'watchOrderBook' => true,
@@ -42,7 +43,9 @@ class luno extends \ccxt\async\luno {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of    $trades to fetch

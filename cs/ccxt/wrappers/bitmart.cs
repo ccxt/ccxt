@@ -417,6 +417,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -496,6 +497,24 @@ public partial class bitmart
     /// string : *swap only* the price to trigger a trailing order, default uses the price argument
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.plan_category</term>
+    /// <description>
+    /// int : *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -532,6 +551,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-tp-or-sl-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -603,6 +623,24 @@ public partial class bitmart
     /// <term>params.trailingTriggerPrice</term>
     /// <description>
     /// string : *swap only* the price to trigger a trailing order, default uses the price argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.plan_category</term>
+    /// <description>
+    /// int : *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
     /// </description>
     /// </item>
     /// </list>
@@ -710,6 +748,7 @@ public partial class bitmart
     /// </summary>
     /// <remarks>
     /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-all-orders"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed"/>  <br/>
     /// <list type="table">
@@ -955,10 +994,10 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal
@@ -974,10 +1013,10 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Dictionary<string, object>> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Transaction(res);
     }
     public async Task<List<Transaction>> FetchTransactionsByType(object type, string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1225,12 +1264,12 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
     /// <summary>
     /// Retrieves the open interest of a currency
@@ -1294,10 +1333,10 @@ public partial class bitmart
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch data on a single open contract trade position
@@ -1380,5 +1419,77 @@ public partial class bitmart
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+    }
+    /// <summary>
+    /// edits an open order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-tp-sl-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#modify-preset-plan-order-signed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the base currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price to fulfill the order, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a stop-loss order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// string : *swap only* the price to trigger a take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.price_type</term>
+    /// <description>
+    /// int : *swap only* 1: last price, 2: fair price, default is 1
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.plan_category</term>
+    /// <description>
+    /// int : *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
     }
 }

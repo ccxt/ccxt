@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -26,7 +26,9 @@ class whitebit(ccxt.async_support.whitebit):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTicker': True,
+                'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {
@@ -67,6 +69,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.whitebit.com/public/websocket/#kline
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -135,6 +140,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.whitebit.com/public/websocket/#market-depth
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -233,6 +241,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.whitebit.com/public/websocket/#market-statistics
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -244,6 +255,35 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'ticker:' + symbol
         # every time we want to subscribe to another market we have to "re-subscribe" sending it all again
         return await self.watch_multiple_subscription(messageHash, method, symbol, False, params)
+
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+
+        https://docs.whitebit.com/public/websocket/#market-statistics
+
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        method = 'market_subscribe'
+        url = self.urls['api']['ws']
+        id = self.nonce()
+        messageHashes = []
+        args = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            messageHashes.append('ticker:' + market['symbol'])
+            args.append(market['id'])
+        request: dict = {
+            'id': id,
+            'method': method,
+            'params': args,
+        }
+        await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
 
     def handle_ticker(self, client: Client, message):
         #
@@ -295,6 +335,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+
+        https://docs.whitebit.com/public/websocket/#market-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -356,6 +399,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches trades made by the user
+
+        https://docs.whitebit.com/private/websocket/#deals
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -449,6 +495,9 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+
+        https://docs.whitebit.com/private/websocket/#orders-pending
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -612,6 +661,10 @@ class whitebit(ccxt.async_support.whitebit):
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://docs.whitebit.com/private/websocket/#balance-spot
+        https://docs.whitebit.com/private/websocket/#balance-margin
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`

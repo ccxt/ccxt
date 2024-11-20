@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -52,7 +52,9 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
+                'fetchDepositAddress': False,
                 'fetchDepositAddresses': True,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -210,7 +212,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.coinone.co.kr/reference/currencies
+
+        https://docs.coinone.co.kr/reference/currencies
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -273,7 +277,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for coinone
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -396,7 +402,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.coinone.co.kr/v1.0/reference/v21
+
+        https://docs.coinone.co.kr/v1.0/reference/v21
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -407,7 +415,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.coinone.co.kr/v1.0/reference/orderbook
+
+        https://docs.coinone.co.kr/v1.0/reference/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -451,8 +461,10 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.coinone.co.kr/v1.0/reference/tickers
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/tickers
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -511,7 +523,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.coinone.co.kr/v1.0/reference/ticker
+
+        https://docs.coinone.co.kr/v1.0/reference/ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -682,7 +696,9 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
+        https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -722,8 +738,10 @@ class coinone(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-        :see: https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
@@ -755,6 +773,7 @@ class coinone(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1021,7 +1040,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.safe_order(response)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
@@ -1059,10 +1078,11 @@ class coinone(Exchange, ImplicitAPI):
             depositAddress = self.safe_value(result, code)
             if depositAddress is None:
                 depositAddress = {
+                    'info': value,
                     'currency': code,
+                    'network': None,
                     'address': None,
                     'tag': None,
-                    'info': value,
                 }
             address = self.safe_string(depositAddress, 'address', value)
             self.check_address(address)

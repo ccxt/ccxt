@@ -27,6 +27,7 @@ class vertex extends \ccxt\async\vertex {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(
@@ -50,6 +51,9 @@ class vertex extends \ccxt\async\vertex {
                 'watchPositions' => array(
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
+                'ws' => array(
+                    'inflate' => true,
                 ),
             ),
             'streaming' => array(
@@ -82,6 +86,14 @@ class vertex extends \ccxt\async\vertex {
                 'id' => $requestId,
             );
             $request = $this->extend($subscribe, $message);
+            $wsOptions = array(
+                'headers' => array(
+                    'Sec-WebSocket-Extensions' => 'permessage-deflate',
+                ),
+            );
+            $this->options['ws'] = array(
+                'options' => $wsOptions,
+            );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscribe));
         }) ();
     }
@@ -90,7 +102,9 @@ class vertex extends \ccxt\async\vertex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -152,7 +166,9 @@ class vertex extends \ccxt\async\vertex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -304,7 +320,9 @@ class vertex extends \ccxt\async\vertex {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -391,7 +409,9 @@ class vertex extends \ccxt\async\vertex {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
@@ -575,9 +595,13 @@ class vertex extends \ccxt\async\vertex {
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * watch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
+             * @param $since
+             * @param $limit
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
@@ -819,7 +843,9 @@ class vertex extends \ccxt\async\vertex {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve

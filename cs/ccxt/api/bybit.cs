@@ -661,6 +661,21 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5AccountMmpState",parameters);
     }
 
+    public async Task<object> privateGetV5AssetExchangeQueryCoinList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetExchangeQueryCoinList",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetExchangeConvertResultQuery (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetExchangeConvertResultQuery",parameters);
+    }
+
+    public async Task<object> privateGetV5AssetExchangeQueryConvertHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5AssetExchangeQueryConvertHistory",parameters);
+    }
+
     public async Task<object> privateGetV5AssetExchangeOrderRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5AssetExchangeOrderRecord",parameters);
@@ -801,6 +816,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privateGetV5SpotLeverTokenOrderRecord",parameters);
     }
 
+    public async Task<object> privateGetV5SpotMarginTradeInterestRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV5SpotMarginTradeInterestRateHistory",parameters);
+    }
+
     public async Task<object> privateGetV5SpotMarginTradeState (object parameters = null)
     {
         return await this.callAsync ("privateGetV5SpotMarginTradeState",parameters);
@@ -884,71 +904,6 @@ public partial class bybit : Exchange
     public async Task<object> privateGetV5BrokerAssetQuerySubMemberDepositRecord (object parameters = null)
     {
         return await this.callAsync ("privateGetV5BrokerAssetQuerySubMemberDepositRecord",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1PlaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1PlaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1CancelOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1CancelOrder",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1CancelAll (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1CancelAll",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1ExecutionList (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1ExecutionList",parameters);
-    }
-
-    public async Task<object> privatePostOptionUsdcOpenapiPrivateV1QueryPosition (object parameters = null)
-    {
-        return await this.callAsync ("privatePostOptionUsdcOpenapiPrivateV1QueryPosition",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1CancelAll (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1CancelAll",parameters);
-    }
-
-    public async Task<object> privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (object parameters = null)
-    {
-        return await this.callAsync ("privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave",parameters);
     }
 
     public async Task<object> privatePostSpotV3PrivateOrder (object parameters = null)
@@ -1349,6 +1304,16 @@ public partial class bybit : Exchange
     public async Task<object> privatePostV5AccountMmpReset (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AccountMmpReset",parameters);
+    }
+
+    public async Task<object> privatePostV5AssetExchangeQuoteApply (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AssetExchangeQuoteApply",parameters);
+    }
+
+    public async Task<object> privatePostV5AssetExchangeConvertExecute (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AssetExchangeConvertExecute",parameters);
     }
 
     public async Task<object> privatePostV5AssetTransferInterTransfer (object parameters = null)

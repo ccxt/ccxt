@@ -28,6 +28,7 @@ class vertex(ccxt.async_support.vertex):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {
@@ -51,6 +52,9 @@ class vertex(ccxt.async_support.vertex):
                 'watchPositions': {
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
+                'ws': {
+                    'inflate': True,
                 },
             },
             'streaming': {
@@ -80,12 +84,22 @@ class vertex(ccxt.async_support.vertex):
             'id': requestId,
         }
         request = self.extend(subscribe, message)
+        wsOptions = {
+            'headers': {
+                'Sec-WebSocket-Extensions': 'permessage-deflate',
+            },
+        }
+        self.options['ws'] = {
+            'options': wsOptions,
+        }
         return await self.watch(url, messageHash, request, messageHash, subscribe)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -141,7 +155,9 @@ class vertex(ccxt.async_support.vertex):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -283,7 +299,9 @@ class vertex(ccxt.async_support.vertex):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -365,7 +383,9 @@ class vertex(ccxt.async_support.vertex):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
@@ -525,9 +545,13 @@ class vertex(ccxt.async_support.vertex):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+ @param since
+ @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
@@ -740,7 +764,9 @@ class vertex(ccxt.async_support.vertex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
+        https://docs.vertexprotocol.com/developer-resources/api/subscriptions/streams
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

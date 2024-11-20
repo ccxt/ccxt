@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.80'
+__version__ = '4.4.32'
 
 # ----------------------------------------------------------------------------
 
@@ -37,8 +37,10 @@ from ccxt.pro.blofin import blofin                                        # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
+from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
 from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
+from ccxt.pro.coincatch import coincatch                                  # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
@@ -49,6 +51,7 @@ from ccxt.pro.exmo import exmo                                            # noqa
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.gemini import gemini                                        # noqa: F401
+from ccxt.pro.hashkey import hashkey                                      # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.htx import htx                                              # noqa: F401
@@ -109,8 +112,10 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseadvanced',
     'coinbaseexchange',
     'coinbaseinternational',
+    'coincatch',
     'coincheck',
     'coinex',
     'coinone',
@@ -121,6 +126,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
     'hollaex',
     'htx',

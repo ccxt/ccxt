@@ -3,7 +3,7 @@
 import p2bRest from '../p2b.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict } from '../base/types.js';
+import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -29,8 +29,9 @@ export default class p2b extends p2bRest {
                 'watchOrders': false,
                 // 'watchStatus': true,
                 'watchTicker': true,
-                'watchTickers': false,  // in the docs but does not return anything when subscribed to
+                'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -60,17 +61,17 @@ export default class p2b extends p2bRest {
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @param {string} name name of the channel
+     * @param {string} messageHash string to look up in handler
+     * @param {string[]|float[]} request endpoint parameters
+     * @param {object} [params] extra parameters specific to the p2b api
+     * @returns {object} data from the websocket stream
+     */
     async subscribe (name: string, messageHash: string, request, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @description Connects to a websocket channel
-         * @param {string} name name of the channel
-         * @param {string} messageHash string to look up in handler
-         * @param {string[]|float[]} request endpoint parameters
-         * @param {object} [params] extra parameters specific to the p2b api
-         * @returns {object} data from the websocket stream
-         */
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': name,
@@ -81,19 +82,19 @@ export default class p2b extends p2bRest {
         return await this.watch (url, messageHash, query, messageHash);
     }
 
+    /**
+     * @method
+     * @name p2b#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 15m, 30m, 1h or 1d
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '15m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name p2b#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Can only subscribe to one timeframe at a time for each symbol
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#kline-candlestick
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe 15m, 30m, 1h or 1d
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const channel = this.safeInteger (timeframes, timeframe);
@@ -113,18 +114,18 @@ export default class p2b extends p2bRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name p2b#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name p2b#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.method] 'state' (default) or 'price'
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
         let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
@@ -138,43 +139,104 @@ export default class p2b extends p2bRest {
         return await this.subscribe (name + '.subscribe', messageHash, request, params);
     }
 
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name p2b#watchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
+    /**
+     * @method
+     * @name p2b#watchTickers
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#last-price
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#market-status
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.method] 'state' (default) or 'price'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = [
-            market['id'],
-        ];
-        const messageHash = 'deals::' + market['symbol'];
-        const trades = await this.subscribe ('deals.subscribe', messageHash, request, params);
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const watchTickerOptions = this.safeDict (this.options, 'watchTicker');
+        let name = this.safeString (watchTickerOptions, 'name', 'state');  // or price
+        [ name, params ] = this.handleOptionAndParams (params, 'method', 'name', name);
+        const messageHashes = [];
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            messageHashes.push (name + '::' + market['symbol']);
+            args.push (market['id']);
+        }
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'method': name + '.subscribe',
+            'params': args,
+            'id': this.milliseconds (),
+        };
+        await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    /**
+     * @method
+     * @name p2b#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name p2b#watchTradesForSymbols
+     * @description get the list of most recent trades for a list of symbols
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                messageHashes.push ('deals::' + symbols[i]);
+            }
+        }
+        const marketIds = this.marketIds (symbols);
+        const url = this.urls['api']['ws'];
+        const subscribe: Dict = {
+            'method': 'deals.subscribe',
+            'params': marketIds,
+            'id': this.milliseconds (),
+        };
+        const query = this.extend (subscribe, params);
+        const trades = await this.watchMultiple (url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name p2b#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] 1-100, default=100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name p2b#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#depth-of-market
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] 1-100, default=100
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const name = 'depth.subscribe';
@@ -330,6 +392,7 @@ export default class p2b extends p2bRest {
             ticker = this.parseTicker (tickerData, market);
         }
         const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
         const messageHash = messageHashStart + '::' + symbol;
         client.resolve (ticker, messageHash);
         return message;

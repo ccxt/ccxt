@@ -62,7 +62,7 @@ class bitmex extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => 'emulated', // emulated in exchange
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -114,7 +114,7 @@ class bitmex extends Exchange {
                     'public' => 'https://testnet.bitmex.com',
                     'private' => 'https://testnet.bitmex.com',
                 ),
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/cea9cfe5-c57e-4b84-b2ac-77b960b04445',
+                'logo' => 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
                 'api' => array(
                     'public' => 'https://www.bitmex.com',
                     'private' => 'https://www.bitmex.com',
@@ -296,7 +296,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -476,7 +478,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitmex
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActive
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -783,7 +787,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -847,7 +853,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
              * @param {int} [$limit] the maximum $amount of $order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -892,7 +900,10 @@ class bitmex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+             *
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -914,7 +925,9 @@ class bitmex extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+             *
              * fetches information on multiple orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -963,7 +976,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+             *
              * @param {string} $symbol unified market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -983,7 +998,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+             *
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1000,7 +1017,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Execution/Execution_getTradeHistory
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1109,7 +1128,7 @@ class bitmex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         //     {
         //         "transactID" => "69573da3-7744-5467-3207-89fd6efe7a47",
@@ -1158,6 +1177,7 @@ class bitmex extends Exchange {
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'transactType'));
         $currencyId = $this->safe_string($item, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $amountString = $this->safe_string($item, 'amount');
         $amount = $this->convert_to_real_amount($code, $amountString);
         $timestamp = $this->parse8601($this->safe_string($item, 'transactTime'));
@@ -1167,14 +1187,15 @@ class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a $timestamp
             $timestamp = 0; // see comments above
         }
+        $fee = null;
         $feeCost = $this->safe_string($item, 'fee');
         if ($feeCost !== null) {
             $feeCost = $this->convert_to_real_amount($code, $feeCost);
+            $fee = array(
+                'cost' => $this->parse_number($feeCost),
+                'currency' => $code,
+            );
         }
-        $fee = array(
-            'cost' => $this->parse_number($feeCost),
-            'currency' => $code,
-        );
         $after = $this->safe_string($item, 'walletBalance');
         if ($after !== null) {
             $after = $this->convert_to_real_amount($code, $after);
@@ -1188,9 +1209,9 @@ class bitmex extends Exchange {
             $direction = 'in';
         }
         $status = $this->parse_transaction_status($this->safe_string($item, 'transactStatus'));
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'direction' => $direction,
@@ -1199,22 +1220,24 @@ class bitmex extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'before' => $before,
             'after' => $this->parse_number($after),
             'status' => $status,
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
-             * @param {string} $code unified $currency $code, default is null
+             *
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
@@ -1264,7 +1287,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://www.bitmex.com/api/explorer/#!/User/User_getWalletHistory
+             *
              * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1385,7 +1410,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1408,7 +1435,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1456,6 +1485,7 @@ class bitmex extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'homeNotional24h'),
             'quoteVolume' => $this->safe_string($ticker, 'foreignNotional24h'),
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -1495,7 +1525,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_getBucketed
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] $timestamp in ms of the earliest candle to fetch
@@ -1812,7 +1844,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Trade/Trade_get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -1881,7 +1915,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_new
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2029,7 +2065,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol not used by bitmex cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2061,7 +2099,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol not used by bitmex cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2087,7 +2127,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
+             *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
@@ -2147,7 +2189,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($timeout, $params) {
             /**
              * dead man's switch, cancel all orders after the given $timeout
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAllAfter
+             *
              * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
@@ -2171,7 +2215,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the set leverage for all contract markets
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+             *
              * @param {string[]} [$symbols] a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structures~
@@ -2197,7 +2243,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -2453,11 +2501,13 @@ class bitmex extends Exchange {
         ));
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://www.bitmex.com/api/explorer/#!/User/User_requestWithdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2480,6 +2530,9 @@ class bitmex extends Exchange {
                 // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
                 // 'fee' => 0.001, // bitcoin network fee
             );
+            if ($this->twofa !== null) {
+                $request['otpToken'] = $this->totp($this->twofa);
+            }
             $response = Async\await($this->privatePostUserRequestWithdrawal ($this->extend($request, $params)));
             //
             //     {
@@ -2502,14 +2555,16 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()) {
+    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+             *
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $response = Async\await($this->publicGetInstrumentActiveAndIndices ($params));
@@ -2530,7 +2585,7 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null) {
+    public function parse_funding_rate($contract, ?array $market = null): array {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         $datetime = $this->safe_string($contract, 'timestamp');
         $marketId = $this->safe_string($contract, 'symbol');
@@ -2545,7 +2600,7 @@ class bitmex extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
-            'fundingTimestamp' => $this->iso8601($fundingDatetime),
+            'fundingTimestamp' => $this->parse_to_numeric($this->iso8601($fundingDatetime)),
             'fundingDatetime' => $fundingDatetime,
             'nextFundingRate' => $this->safe_number($contract, 'indicativeFundingRate'),
             'nextFundingTimestamp' => null,
@@ -2553,6 +2608,7 @@ class bitmex extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+            'interval' => null,
         );
     }
 
@@ -2560,7 +2616,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetches the history of funding rates
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
@@ -2646,7 +2704,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Position/Position_updateLeverage
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2675,7 +2735,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Position/Position_isolateMargin
+             *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2702,11 +2764,13 @@ class bitmex extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
@@ -2729,11 +2793,11 @@ class bitmex extends Exchange {
             //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
             //
             return array(
+                'info' => $response,
                 'currency' => $code,
+                'network' => $networkCode,
                 'address' => str_replace('"', '', $response->replace ('"', '')), // Done twice because some languages only replace the first instance
                 'tag' => null,
-                'network' => $networkCode,
-                'info' => $response,
             );
         }) ();
     }
@@ -2806,7 +2870,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+             *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
@@ -2863,7 +2929,9 @@ class bitmex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the public liquidations of a trading pair
+             *
              * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
+             *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve

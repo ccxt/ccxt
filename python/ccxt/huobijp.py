@@ -323,6 +323,7 @@ class huobijp(Exchange, ImplicitAPI):
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'currencyToPrecisionRoundingMode': TRUNCATE,
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
@@ -1116,6 +1117,7 @@ class huobijp(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1561,17 +1563,6 @@ class huobijp(Exchange, ImplicitAPI):
             }),
         ]
 
-    def currency_to_precision(self, code, fee, networkCode=None):
-        return self.decimal_to_precision(fee, 0, self.currencies[code]['precision'], self.precisionMode)
-
-    def safe_network(self, networkId):
-        lastCharacterIndex = len(networkId) - 1
-        lastCharacter = networkId[lastCharacterIndex]
-        if lastCharacter == '1':
-            networkId = networkId[0:lastCharacterIndex]
-        networksById: dict = {}
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
         #     {
@@ -1755,7 +1746,7 @@ class huobijp(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
+    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code

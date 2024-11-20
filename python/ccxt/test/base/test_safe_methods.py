@@ -79,6 +79,7 @@ def test_safe_methods():
     assert equals(dict_object, compare_dict)
     list_object = exchange.safe_dict_2(input_dict, 'a', 'list')
     assert list_object is None
+    # @ts-expect-error
     assert exchange.safe_dict_2(input_list, 2, 1) is None
     # safeDictN
     dict_object = exchange.safe_dict_n(input_dict, ['a', 'b', 'dict'])
@@ -95,6 +96,7 @@ def test_safe_methods():
     list_object = exchange.safe_list_2(input_dict, 'a', 'list')
     assert equals(dict_object, compare_dict)
     assert exchange.safe_list_2(input_dict, 'a', 'dict') is None
+    # @ts-expect-error
     assert exchange.safe_list_2(input_list, 2, 1) is None
     # safeListN
     list_object = exchange.safe_list_n(input_dict, ['a', 'b', 'list'])
@@ -207,19 +209,28 @@ def test_safe_methods():
     assert exchange.safe_timestamp_n(input_dict, ['a', 'b', 'strNumber']) == 3000
     assert exchange.safe_timestamp_n(input_list, [3, 2, 1]) == 2000
     # safeFloat
+    # @ts-expect-error
     assert exchange.safe_float(input_dict, 'i') == float(1)
     assert exchange.safe_float(input_dict, 'f') == 0.123
+    # @ts-expect-error
     assert exchange.safe_float(input_dict, 'strNumber') == float(3)
+    # @ts-expect-error
     assert exchange.safe_float(input_list, 1) == float(2)
     # safeFloat2
+    # @ts-expect-error
     assert exchange.safe_float_2(input_dict, 'a', 'i') == float(1)
     assert exchange.safe_float_2(input_dict, 'a', 'f') == 0.123
+    # @ts-expect-error
     assert exchange.safe_float_2(input_dict, 'a', 'strNumber') == float(3)
+    # @ts-expect-error
     assert exchange.safe_float_2(input_list, 2, 1) == float(2)
     # safeFloatN
+    # @ts-expect-error
     assert exchange.safe_float_n(input_dict, ['a', 'b', 'i']) == float(1)
     assert exchange.safe_float_n(input_dict, ['a', 'b', 'f']) == 0.123
+    # @ts-expect-error
     assert exchange.safe_float_n(input_dict, ['a', 'b', 'strNumber']) == float(3)
+    # @ts-expect-error
     assert exchange.safe_float_n(input_list, [3, 2, 1]) == float(2)
     # safeNumber
     assert exchange.safe_number(input_dict, 'i') == exchange.parse_number(1)

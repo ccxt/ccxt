@@ -24,6 +24,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'watchTickers': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,  # for now
                 'watchOHLCV': False,  # missing on the exchange side in v1
             },
@@ -62,7 +63,9 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.bitfinex.com/v1/reference/ws-public-trades
+
+        https://docs.bitfinex.com/v1/reference/ws-public-trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -79,7 +82,9 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://docs.bitfinex.com/v1/reference/ws-public-ticker
+
+        https://docs.bitfinex.com/v1/reference/ws-public-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -212,15 +217,15 @@ class bitfinex(ccxt.async_support.bitfinex):
         open = None
         if (last is not None) and (change is not None):
             open = Precise.string_sub(last, change)
-        result = {
+        result = self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.safe_float(message, 9),
-            'low': self.safe_float(message, 10),
-            'bid': self.safe_float(message, 1),
+            'high': self.safe_string(message, 9),
+            'low': self.safe_string(message, 10),
+            'bid': self.safe_string(message, 1),
             'bidVolume': None,
-            'ask': self.safe_float(message, 3),
+            'ask': self.safe_string(message, 3),
             'askVolume': None,
             'vwap': None,
             'open': self.parse_number(open),
@@ -228,19 +233,21 @@ class bitfinex(ccxt.async_support.bitfinex):
             'last': self.parse_number(last),
             'previousClose': None,
             'change': self.parse_number(change),
-            'percentage': self.safe_float(message, 6),
+            'percentage': self.safe_string(message, 6),
             'average': None,
-            'baseVolume': self.safe_float(message, 8),
+            'baseVolume': self.safe_string(message, 8),
             'quoteVolume': None,
             'info': message,
-        }
+        })
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.bitfinex.com/v1/reference/ws-public-order-books
+
+        https://docs.bitfinex.com/v1/reference/ws-public-order-books
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -433,8 +440,10 @@ class bitfinex(ccxt.async_support.bitfinex):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
-        :see: https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
+
+        https://docs.bitfinex.com/v1/reference/ws-auth-order-updates
+        https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve

@@ -10,6 +10,7 @@ use ccxt\async\abstract\independentreserve as Exchange;
 use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class independentreserve extends Exchange {
@@ -155,11 +156,12 @@ class independentreserve extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $baseCurrencies = Async\await($this->publicGetGetValidPrimaryCurrencyCodes ($params));
+            $baseCurrenciesPromise = $this->publicGetGetValidPrimaryCurrencyCodes ($params);
             //     ['Xbt', 'Eth', 'Usdt', ...]
-            $quoteCurrencies = Async\await($this->publicGetGetValidSecondaryCurrencyCodes ($params));
+            $quoteCurrenciesPromise = $this->publicGetGetValidSecondaryCurrencyCodes ($params);
             //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-            $limits = Async\await($this->publicGetGetOrderMinimumVolumes ($params));
+            $limitsPromise = $this->publicGetGetOrderMinimumVolumes ($params);
+            list($baseCurrencies, $quoteCurrencies, $limits) = Async\await(Promise\all(array( $baseCurrenciesPromise, $quoteCurrenciesPromise, $limitsPromise )));
             //
             //     {
             //         "Xbt" => 0.0001,
@@ -492,6 +494,7 @@ class independentreserve extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
+             * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -744,7 +747,9 @@ class independentreserve extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://www.independentreserve.com/features/api#CancelOrder
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -774,11 +779,13 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://www.independentreserve.com/features/api#GetDigitalCurrencyDepositAddress
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -801,7 +808,7 @@ class independentreserve extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //    {
         //        Tag => '3307446684',
@@ -815,17 +822,19 @@ class independentreserve extends Exchange {
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_string($currency, 'code'),
+            'network' => null,
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'Tag'),
-            'network' => null,
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://www.independentreserve.com/features/api#WithdrawDigitalCurrency
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to

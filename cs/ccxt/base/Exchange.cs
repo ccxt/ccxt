@@ -29,19 +29,22 @@ public partial class Exchange
 
     private void initHttpClient()
     {
+        var handler = new HttpClientHandler{ AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
         if (this.httpProxy != null && this.httpProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else if (this.httpsProxy != null && this.httpsProxy.ToString().Length > 0)
         {
             var proxy = new WebProxy(this.httpsProxy.ToString());
-            this.httpClient = new HttpClient(new HttpClientHandler { Proxy = proxy });
+            handler.Proxy = proxy;
+            this.httpClient = new HttpClient(handler);
         }
         else
         {
-            this.httpClient = new HttpClient();
+            this.httpClient = new HttpClient(handler);
         }
     }
 
@@ -384,7 +387,16 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
-
+    public int randNumber(int size)
+    {
+        Random random = new Random();
+        string number = "";
+        for (int i = 0; i < size; i++)
+        {
+            number += random.Next(0, 10);
+        }
+        return int.Parse(number);
+    }
     public virtual dict sign(object path, object api, string method = "GET", dict headers = null, object body2 = null, object parameters2 = null)
     {
         api ??= "public";
@@ -782,7 +794,7 @@ public partial class Exchange
         var privateKeyString = privateKey.ToString().Replace("0x", "");
         var msgHashStr = msgHash.ToString().Replace("0x", "");
         var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
-        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber);;
+        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber); ;
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
     }

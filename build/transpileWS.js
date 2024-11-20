@@ -192,7 +192,7 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileWsOrderBookTest() {
         const currentFolder = 'base/';
-        const testName = 'test.OrderBook';
+        const testName = 'test.orderBook';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
             base: true,
@@ -208,7 +208,7 @@ class CCXTProTranspiler extends Transpiler {
 
     transpileWsCacheTest() {
         const currentFolder = 'base/';
-        const testName = 'test.Cache';
+        const testName = 'test.cache';
         const testNameUncameled = this.uncamelcaseName(testName);
         const test = {
             base: true,

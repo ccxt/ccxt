@@ -36,6 +36,7 @@ public partial class kraken : Exchange
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "createTrailingAmountOrder", true },
+                { "createTrailingPercentOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
@@ -46,6 +47,8 @@ public partial class kraken : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
+                { "fetchDepositAddresses", false },
+                { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
@@ -138,6 +141,7 @@ public partial class kraken : Exchange
                         { "AddOrder", 0 },
                         { "AddOrderBatch", 0 },
                         { "AddExport", 3 },
+                        { "AmendOrder", 0 },
                         { "Balance", 3 },
                         { "CancelAll", 3 },
                         { "CancelAllOrdersAfter", 3 },
@@ -191,6 +195,8 @@ public partial class kraken : Exchange
                 { "XDG", "DOGE" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "timeDifference", 0 },
+                { "adjustForTimeDifference", false },
                 { "marketsByAltname", new Dictionary<string, object>() {} },
                 { "delistedMarketsById", new Dictionary<string, object>() {} },
                 { "inactiveCurrencies", new List<object>() {"CAD", "USD", "JPY", "GBP"} },
@@ -199,100 +205,100 @@ public partial class kraken : Exchange
                     { "TRX", "TRC20" },
                 } },
                 { "depositMethods", new Dictionary<string, object>() {
-                    { "1INCH", "1inch (1INCH)" },
+                    { "1INCH", add(add("1inch", " "), "(1INCH)") },
                     { "AAVE", "Aave" },
                     { "ADA", "ADA" },
                     { "ALGO", "Algorand" },
-                    { "ANKR", "ANKR (ANKR)" },
-                    { "ANT", "Aragon (ANT)" },
+                    { "ANKR", add(add("ANKR", " "), "(ANKR)") },
+                    { "ANT", add(add("Aragon", " "), "(ANT)") },
                     { "ATOM", "Cosmos" },
-                    { "AXS", "Axie Infinity Shards (AXS)" },
-                    { "BADGER", "Bager DAO (BADGER)" },
-                    { "BAL", "Balancer (BAL)" },
-                    { "BAND", "Band Protocol (BAND)" },
+                    { "AXS", add(add("Axie Infinity Shards", " "), "(AXS)") },
+                    { "BADGER", add(add("Bager DAO", " "), "(BADGER)") },
+                    { "BAL", add(add("Balancer", " "), "(BAL)") },
+                    { "BAND", add(add("Band Protocol", " "), "(BAND)") },
                     { "BAT", "BAT" },
                     { "BCH", "Bitcoin Cash" },
-                    { "BNC", "Bifrost (BNC)" },
-                    { "BNT", "Bancor (BNT)" },
+                    { "BNC", add(add("Bifrost", " "), "(BNC)") },
+                    { "BNT", add(add("Bancor", " "), "(BNT)") },
                     { "BTC", "Bitcoin" },
-                    { "CHZ", "Chiliz (CHZ)" },
-                    { "COMP", "Compound (COMP)" },
-                    { "CQT", "	Covalent Query Token (CQT)" },
-                    { "CRV", "Curve DAO Token (CRV)" },
-                    { "CTSI", "Cartesi (CTSI)" },
+                    { "CHZ", add(add("Chiliz", " "), "(CHZ)") },
+                    { "COMP", add(add("Compound", " "), "(COMP)") },
+                    { "CQT", add(add("\tCovalent Query Token", " "), "(CQT)") },
+                    { "CRV", add(add("Curve DAO Token", " "), "(CRV)") },
+                    { "CTSI", add(add("Cartesi", " "), "(CTSI)") },
                     { "DAI", "Dai" },
                     { "DASH", "Dash" },
                     { "DOGE", "Dogecoin" },
                     { "DOT", "Polkadot" },
-                    { "DYDX", "dYdX (DYDX)" },
-                    { "ENJ", "Enjin Coin (ENJ)" },
+                    { "DYDX", add(add("dYdX", " "), "(DYDX)") },
+                    { "ENJ", add(add("Enjin Coin", " "), "(ENJ)") },
                     { "EOS", "EOS" },
-                    { "ETC", "Ether Classic (Hex)" },
-                    { "ETH", "Ether (Hex)" },
+                    { "ETC", add(add("Ether Classic", " "), "(Hex)") },
+                    { "ETH", add(add("Ether", " "), "(Hex)") },
                     { "EWT", "Energy Web Token" },
                     { "FEE", "Kraken Fee Credit" },
                     { "FIL", "Filecoin" },
                     { "FLOW", "Flow" },
-                    { "GHST", "Aavegotchi (GHST)" },
+                    { "GHST", add(add("Aavegotchi", " "), "(GHST)") },
                     { "GNO", "GNO" },
                     { "GRT", "GRT" },
                     { "ICX", "Icon" },
-                    { "INJ", "Injective Protocol (INJ)" },
-                    { "KAR", "Karura (KAR)" },
+                    { "INJ", add(add("Injective Protocol", " "), "(INJ)") },
+                    { "KAR", add(add("Karura", " "), "(KAR)") },
                     { "KAVA", "Kava" },
-                    { "KEEP", "Keep Token (KEEP)" },
-                    { "KNC", "Kyber Network (KNC)" },
+                    { "KEEP", add(add("Keep Token", " "), "(KEEP)") },
+                    { "KNC", add(add("Kyber Network", " "), "(KNC)") },
                     { "KSM", "Kusama" },
                     { "LINK", "Link" },
-                    { "LPT", "Livepeer Token (LPT)" },
-                    { "LRC", "Loopring (LRC)" },
+                    { "LPT", add(add("Livepeer Token", " "), "(LPT)") },
+                    { "LRC", add(add("Loopring", " "), "(LRC)") },
                     { "LSK", "Lisk" },
                     { "LTC", "Litecoin" },
                     { "MANA", "MANA" },
-                    { "MATIC", "Polygon (MATIC)" },
+                    { "MATIC", add(add("Polygon", " "), "(MATIC)") },
                     { "MINA", "Mina" },
-                    { "MIR", "Mirror Protocol (MIR)" },
-                    { "MKR", "Maker (MKR)" },
+                    { "MIR", add(add("Mirror Protocol", " "), "(MIR)") },
+                    { "MKR", add(add("Maker", " "), "(MKR)") },
                     { "MLN", "MLN" },
-                    { "MOVR", "Moonriver (MOVR)" },
+                    { "MOVR", add(add("Moonriver", " "), "(MOVR)") },
                     { "NANO", "NANO" },
                     { "OCEAN", "OCEAN" },
-                    { "OGN", "Origin Protocol (OGN)" },
+                    { "OGN", add(add("Origin Protocol", " "), "(OGN)") },
                     { "OMG", "OMG" },
-                    { "OXT", "Orchid (OXT)" },
-                    { "OXY", "Oxygen (OXY)" },
-                    { "PAXG", "PAX (Gold)" },
-                    { "PERP", "Perpetual Protocol (PERP)" },
-                    { "PHA", "Phala (PHA)" },
+                    { "OXT", add(add("Orchid", " "), "(OXT)") },
+                    { "OXY", add(add("Oxygen", " "), "(OXY)") },
+                    { "PAXG", add(add("PAX", " "), "(Gold)") },
+                    { "PERP", add(add("Perpetual Protocol", " "), "(PERP)") },
+                    { "PHA", add(add("Phala", " "), "(PHA)") },
                     { "QTUM", "QTUM" },
-                    { "RARI", "Rarible (RARI)" },
-                    { "RAY", "Raydium (RAY)" },
-                    { "REN", "Ren Protocol (REN)" },
+                    { "RARI", add(add("Rarible", " "), "(RARI)") },
+                    { "RAY", add(add("Raydium", " "), "(RAY)") },
+                    { "REN", add(add("Ren Protocol", " "), "(REN)") },
                     { "REP", "REPv2" },
                     { "REPV1", "REP" },
-                    { "SAND", "The Sandbox (SAND)" },
+                    { "SAND", add(add("The Sandbox", " "), "(SAND)") },
                     { "SC", "Siacoin" },
-                    { "SDN", "Shiden (SDN)" },
+                    { "SDN", add(add("Shiden", " "), "(SDN)") },
                     { "SOL", "Solana" },
-                    { "SNX", "Synthetix  Network (SNX)" },
+                    { "SNX", add(add("Synthetix  Network", " "), "(SNX)") },
                     { "SRM", "Serum" },
-                    { "STORJ", "Storj (STORJ)" },
-                    { "SUSHI", "Sushiswap (SUSHI)" },
+                    { "STORJ", add(add("Storj", " "), "(STORJ)") },
+                    { "SUSHI", add(add("Sushiswap", " "), "(SUSHI)") },
                     { "TBTC", "tBTC" },
                     { "TRX", "Tron" },
                     { "UNI", "UNI" },
                     { "USDC", "USDC" },
-                    { "USDT", "Tether USD (ERC20)" },
-                    { "USDT-TRC20", "Tether USD (TRC20)" },
+                    { "USDT", add(add("Tether USD", " "), "(ERC20)") },
+                    { "USDT-TRC20", add(add("Tether USD", " "), "(TRC20)") },
                     { "WAVES", "Waves" },
-                    { "WBTC", "Wrapped Bitcoin (WBTC)" },
+                    { "WBTC", add(add("Wrapped Bitcoin", " "), "(WBTC)") },
                     { "XLM", "Stellar XLM" },
                     { "XMR", "Monero" },
                     { "XRP", "Ripple XRP" },
                     { "XTZ", "XTZ" },
                     { "YFI", "YFI" },
-                    { "ZEC", "Zcash (Transparent)" },
-                    { "ZRX", "0x (ZRX)" },
+                    { "ZEC", add(add("Zcash", " "), "(Transparent)") },
+                    { "ZRX", add(add("0x", " "), "(ZRX)") },
                 } },
                 { "withdrawMethods", new Dictionary<string, object>() {
                     { "Lightning", "Lightning" },
@@ -395,7 +401,9 @@ public partial class kraken : Exchange
                 { "EGeneral:Internal error", typeof(ExchangeNotAvailable) },
                 { "EGeneral:Temporary lockout", typeof(DDoSProtection) },
                 { "EGeneral:Permission denied", typeof(PermissionDenied) },
+                { "EGeneral:Invalid arguments:price", typeof(InvalidOrder) },
                 { "EOrder:Unknown order", typeof(InvalidOrder) },
+                { "EOrder:Invalid price:Invalid price argument", typeof(InvalidOrder) },
                 { "EOrder:Order minimum not met", typeof(InvalidOrder) },
                 { "EGeneral:Invalid arguments", typeof(BadRequest) },
                 { "ESession:Invalid session", typeof(AuthenticationError) },
@@ -414,17 +422,21 @@ public partial class kraken : Exchange
         return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), this.precisionMode);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchMarkets
+     * @description retrieves data on all markets for kraken
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchMarkets
-        * @description retrieves data on all markets for kraken
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} an array of objects representing market data
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.options, "adjustForTimeDifference")))
+        {
+            await this.loadTimeDifference();
+        }
         object response = await this.publicGetAssetPairs(parameters);
         //
         //     {
@@ -626,16 +638,16 @@ public partial class kraken : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     public async override Task<object> fetchStatus(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchStatus
-        * @description the latest known information on the availability of the exchange API
-        * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetSystemStatus(parameters);
         //
@@ -655,16 +667,16 @@ public partial class kraken : Exchange
         };
     }
 
+    /**
+     * @method
+     * @name kraken#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchCurrencies
-        * @description fetches all available currencies on an exchange
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an associative dictionary of currencies
-        */
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetAssets(parameters);
         //
@@ -723,17 +735,17 @@ public partial class kraken : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchTradingFee
-        * @description fetch the trading fees for a market
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -802,18 +814,18 @@ public partial class kraken : Exchange
         return new List<object>() {price, amount, timestamp};
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOrderBook
-        * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -912,17 +924,17 @@ public partial class kraken : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchTickers
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -956,17 +968,17 @@ public partial class kraken : Exchange
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchTicker
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object darkpool = isGreaterThanOrEqual(getIndexOf(symbol, ".d"), 0);
@@ -1000,21 +1012,21 @@ public partial class kraken : Exchange
         return new List<object> {this.safeTimestamp(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 6)};
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOHLCV
-        * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOHLCData
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1098,7 +1110,9 @@ public partial class kraken : Exchange
         object referenceId = this.safeString(item, "refid");
         object referenceAccount = null;
         object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        object code = this.safeCurrencyCode(this.safeString(item, "asset"), currency);
+        object currencyId = this.safeString(item, "asset");
+        object code = this.safeCurrencyCode(currencyId, currency);
+        currency = this.safeCurrency(currencyId, currency);
         object amount = this.safeString(item, "amount");
         if (isTrue(Precise.stringLt(amount, "0")))
         {
@@ -1109,7 +1123,7 @@ public partial class kraken : Exchange
             direction = "in";
         }
         object timestamp = this.safeIntegerProduct(item, "time", 1000);
-        return new Dictionary<string, object>() {
+        return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
             { "direction", direction },
@@ -1128,23 +1142,24 @@ public partial class kraken : Exchange
                 { "cost", this.safeNumber(item, "fee") },
                 { "currency", code },
             } },
-        };
+        }, currency);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {int} [params.end] timestamp in seconds of the latest ledger entry
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchLedger
-        * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
-        * @param {string} code unified currency code, default is undefined
-        * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-        * @param {int} [limit] max number of ledger entrys to return, default is undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest ledger entry
-        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-        */
         // https://www.kraken.com/features/api#get-ledgers-info
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1159,9 +1174,13 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = this.parseToInt(Precise.stringAdd(untilDivided, "1"));
+        }
         object response = await this.privatePostLedgers(this.extend(request, parameters));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1257,6 +1276,26 @@ public partial class kraken : Exchange
         //         "misc": ''
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "ordertxid": "OSJVN7-A2AE-63WZV",
+        //         "postxid": "TBP7O6-PNXI-CONU",
+        //         "pair": "XXBTZUSD",
+        //         "time": 1710429248.3052235,
+        //         "type": "sell",
+        //         "ordertype": "liquidation market",
+        //         "price": "72026.50000",
+        //         "cost": "7.20265",
+        //         "fee": "0.01873",
+        //         "vol": "0.00010000",
+        //         "margin": "1.44053",
+        //         "leverage": "5",
+        //         "misc": "closing",
+        //         "trade_id": 68230622,
+        //         "maker": false
+        //     }
+        //
         object timestamp = null;
         object side = null;
         object type = null;
@@ -1318,6 +1357,12 @@ public partial class kraken : Exchange
             symbol = getValue(market, "symbol");
         }
         object cost = this.safeString(trade, "cost");
+        object maker = this.safeBool(trade, "maker");
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(maker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1327,7 +1372,7 @@ public partial class kraken : Exchange
             { "symbol", symbol },
             { "type", type },
             { "side", side },
-            { "takerOrMaker", null },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", cost },
@@ -1335,19 +1380,19 @@ public partial class kraken : Exchange
         }, market);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1414,16 +1459,16 @@ public partial class kraken : Exchange
         return this.safeBalance(result);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchBalance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostBalanceEx(parameters);
@@ -1445,19 +1490,19 @@ public partial class kraken : Exchange
         return this.parseBalance(response);
     }
 
+    /**
+     * @method
+     * @name kraken#createMarketOrderWithCost
+     * @description create a market order by providing the symbol, side and cost
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+     * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#createMarketOrderWithCost
-        * @description create a market order by providing the symbol, side and cost
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
-        * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // only buy orders are supported by the endpoint
@@ -1465,46 +1510,48 @@ public partial class kraken : Exchange
         return await this.createOrder(symbol, "market", side, cost, null, parameters);
     }
 
+    /**
+     * @method
+     * @name kraken#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol, side and cost
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#createMarketBuyOrderWithCost
-        * @description create a market buy order by providing the symbol, side and cost
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {float} cost how much you want to trade in units of the quote currency
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         return await this.createMarketOrderWithCost(symbol, "buy", cost, parameters);
     }
 
+    /**
+     * @method
+     * @name kraken#createOrder
+     * @description create a trade order
+     * @see https://docs.kraken.com/api/docs/rest-api/add-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
+     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
+     * @param {string} [params.trailingPercent] *margin only* the percent to trail away from the current market price
+     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+     * @param {string} [params.trailingLimitPercent] *margin only* the percent away from the trailingAmount
+     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#createOrder
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
-        * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-        * @param {string} [params.trailingAmount] *margin only* the quote amount to trail away from the current market price
-        * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
-        * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-        * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -1520,7 +1567,7 @@ public partial class kraken : Exchange
         //     {
         //         "error": [],
         //         "result": {
-        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //             "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' }, // see more examples in "parseOrder"
         //             "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
         //         }
         //     }
@@ -1599,8 +1646,8 @@ public partial class kraken : Exchange
     {
         object statuses = new Dictionary<string, object>() {
             { "take-profit", "market" },
-            { "stop-loss-limit", "limit" },
             { "stop-loss", "market" },
+            { "stop-loss-limit", "limit" },
             { "take-profit-limit", "limit" },
             { "trailing-stop-limit", "limit" },
         };
@@ -1610,29 +1657,18 @@ public partial class kraken : Exchange
     public override object parseOrder(object order, object market = null)
     {
         //
-        // createOrder for regular orders
+        // createOrder
         //
         //     {
-        //         "descr": { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
+        //         "descr": {
+        //            "order": "buy 0.02100000 ETHUSDT @ limit 330.00" // limit orders
+        //                     "buy 0.12345678 ETHUSDT @ market" // market order
+        //                     "sell 0.28002676 ETHUSDT @ stop loss 0.0123 -> limit 0.0.1222" // stop order
+        //                     "sell 0.00100000 ETHUSDT @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"
+        //                     "buy 0.10000000 LTCUSDT @ take profit 75.00000 -> limit 74.00000"
+        //                     "sell 10.00000000 XRPEUR @ trailing stop +50.0000%" // trailing stop
+        //         },
         //         "txid": [ 'OEKVV2-IH52O-TPL6GZ' ]
-        //     }
-        //     {
-        //         "txid": [ "TX_ID_HERE" ],
-        //         "descr": { "order":"buy 0.12345678 ETHEUR @ market" },
-        //     }
-        //
-        //
-        // createOrder for stop orders
-        //
-        //     {
-        //         "txid":["OSILNC-VQI5Q-775ZDQ"],
-        //         "descr":{"order":"sell 167.28002676 ADAXBT @ stop loss 0.00003280 -> limit 0.00003212"}
-        //     }
-        //
-        //
-        //     {
-        //         "txid":["OVHMJV-BZW2V-6NZFWF"],
-        //         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         //     }
         //
         // editOrder
@@ -1714,29 +1750,37 @@ public partial class kraken : Exchange
             orderDescription = this.safeString(order, "descr");
         }
         object side = null;
-        object type = null;
+        object rawType = null;
         object marketId = null;
         object price = null;
         object amount = null;
-        object stopPrice = null;
+        object triggerPrice = null;
         if (isTrue(!isEqual(orderDescription, null)))
         {
             object parts = ((string)orderDescription).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
             amount = this.safeString(parts, 1);
             marketId = this.safeString(parts, 2);
-            type = this.safeString(parts, 4);
-            if (isTrue(isEqual(type, "stop")))
+            object part4 = this.safeString(parts, 4);
+            object part5 = this.safeString(parts, 5);
+            if (isTrue(isTrue(isEqual(part4, "limit")) || isTrue(isEqual(part4, "market"))))
             {
-                stopPrice = this.safeString(parts, 6);
+                rawType = part4; // eg, limit, market
+            } else
+            {
+                rawType = add(add(part4, " "), part5); // eg. stop loss, take profit, trailing stop
+            }
+            if (isTrue(isTrue(isEqual(rawType, "stop loss")) || isTrue(isEqual(rawType, "take profit"))))
+            {
+                triggerPrice = this.safeString(parts, 6);
                 price = this.safeString(parts, 9);
-            } else if (isTrue(isEqual(type, "limit")))
+            } else if (isTrue(isEqual(rawType, "limit")))
             {
                 price = this.safeString(parts, 5);
             }
         }
         side = this.safeString(description, "type", side);
-        type = this.safeString(description, "ordertype", type);
+        rawType = this.safeString(description, "ordertype", rawType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
         object foundMarket = this.findMarketByAltnameOrId(marketId);
         object symbol = null;
@@ -1816,17 +1860,34 @@ public partial class kraken : Exchange
                 ((IList<object>)trades).Add(rawTrade);
             }
         }
-        stopPrice = this.omitZero(this.safeString(order, "stopprice", stopPrice));
+        // as mentioned in #24192 PR, this field is not something consistent/actual
+        // triggerPrice = this.omitZero (this.safeString (order, 'stopprice', triggerPrice));
         object stopLossPrice = null;
         object takeProfitPrice = null;
-        if (isTrue(((string)type).StartsWith(((string)"take-profit"))))
+        // the dashed strings are not provided from fields (eg. fetch order)
+        // while spaced strings from "order" sentence (when other fields not available)
+        if (isTrue(((string)rawType).StartsWith(((string)"take-profit"))))
         {
             takeProfitPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
-        } else if (isTrue(((string)type).StartsWith(((string)"stop-loss"))))
+        } else if (isTrue(((string)rawType).StartsWith(((string)"stop-loss"))))
         {
             stopLossPrice = this.safeString(description, "price");
             price = this.omitZero(this.safeString(description, "price2"));
+        } else if (isTrue(isEqual(rawType, "take profit")))
+        {
+            takeProfitPrice = triggerPrice;
+        } else if (isTrue(isEqual(rawType, "stop loss")))
+        {
+            stopLossPrice = triggerPrice;
+        }
+        object finalType = this.parseOrderType(rawType);
+        // unlike from endpoints which provide eg: "take-profit-limit"
+        // for "space-delimited" orders we dont have market/limit suffixes, their format is
+        // eg: `stop loss > limit 123`, so we need to parse them manually
+        if (isTrue(this.inArray(finalType, new List<object>() {"stop loss", "take profit"})))
+        {
+            finalType = ((bool) isTrue((isEqual(price, null)))) ? "market" : "limit";
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
@@ -1837,13 +1898,13 @@ public partial class kraken : Exchange
             { "lastTradeTimestamp", null },
             { "status", status },
             { "symbol", symbol },
-            { "type", this.parseOrderType(type) },
+            { "type", finalType },
             { "timeInForce", null },
             { "postOnly", isPostOnly },
             { "side", side },
             { "price", price },
-            { "stopPrice", stopPrice },
-            { "triggerPrice", stopPrice },
+            { "stopPrice", triggerPrice },
+            { "triggerPrice", triggerPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "stopLossPrice", stopLossPrice },
             { "cost", null },
@@ -1872,8 +1933,11 @@ public partial class kraken : Exchange
         object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
         object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
         object trailingAmount = this.safeString(parameters, "trailingAmount");
+        object trailingPercent = this.safeString(parameters, "trailingPercent");
         object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
+        object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
         object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         object isMarketOrder = isEqual(type, "market");
         object cost = this.safeString(parameters, "cost");
@@ -1891,7 +1955,7 @@ public partial class kraken : Exchange
             }
             object extendedOflags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",viqc") : "viqc";
             ((IDictionary<string,object>)request)["oflags"] = extendedOflags;
-        } else if (isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)))
+        } else if (isTrue(isTrue(isTrue(isLimitOrder) && !isTrue(isTrailingAmountOrder)) && !isTrue(isTrailingPercentOrder)))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
@@ -1923,22 +1987,41 @@ public partial class kraken : Exchange
             {
                 ((IDictionary<string,object>)request)["price2"] = this.priceToPrecision(symbol, price);
             }
-        } else if (isTrue(isTrailingAmountOrder))
+        } else if (isTrue(isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder)))
         {
-            object trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
-            object trailingAmountString = add("+", trailingAmount);
-            ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
-            if (isTrue(isTrue(isLimitOrder) || isTrue((!isEqual(trailingLimitAmount, null)))))
+            object trailingPercentString = null;
+            if (isTrue(!isEqual(trailingPercent, null)))
             {
-                object offset = this.safeString(parameters, "offset", "-");
-                object trailingLimitAmountString = add(offset, this.numberToString(trailingLimitAmount));
-                ((IDictionary<string,object>)request)["price"] = trailingAmountString;
-                ((IDictionary<string,object>)request)["price2"] = trailingLimitAmountString;
+                trailingPercentString = ((bool) isTrue((((string)trailingPercent).EndsWith(((string)"%"))))) ? (add("+", trailingPercent)) : (add(add("+", trailingPercent), "%"));
+            }
+            object trailingAmountString = ((bool) isTrue((!isEqual(trailingAmount, null)))) ? add("+", trailingAmount) : null; // must use + for this
+            object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
+            object trailingLimitAmountString = ((bool) isTrue((!isEqual(trailingLimitAmount, null)))) ? add(offset, this.numberToString(trailingLimitAmount)) : null;
+            object trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
+            ((IDictionary<string,object>)request)["trigger"] = trailingActivationPriceType;
+            if (isTrue(isTrue(isTrue(isLimitOrder) || isTrue((!isEqual(trailingLimitAmount, null)))) || isTrue((!isEqual(trailingLimitPercent, null)))))
+            {
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop-limit";
+                if (isTrue(!isEqual(trailingLimitPercent, null)))
+                {
+                    object trailingLimitPercentString = ((bool) isTrue((((string)trailingLimitPercent).EndsWith(((string)"%"))))) ? (add(offset, trailingLimitPercent)) : (add(add(offset, trailingLimitPercent), "%"));
+                    ((IDictionary<string,object>)request)["price"] = trailingPercentString;
+                    ((IDictionary<string,object>)request)["price2"] = trailingLimitPercentString;
+                } else if (isTrue(!isEqual(trailingLimitAmount, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingAmountString;
+                    ((IDictionary<string,object>)request)["price2"] = trailingLimitAmountString;
+                }
             } else
             {
-                ((IDictionary<string,object>)request)["price"] = trailingAmountString;
                 ((IDictionary<string,object>)request)["ordertype"] = "trailing-stop";
+                if (isTrue(!isEqual(trailingPercent, null)))
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingPercentString;
+                } else
+                {
+                    ((IDictionary<string,object>)request)["price"] = trailingAmountString;
+                }
             }
         }
         if (isTrue(reduceOnly))
@@ -1986,32 +2069,32 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["oflags"] = flags;
         }
-        parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingLimitAmount", "offset"});
+        parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"});
         return new List<object>() {request, parameters};
     }
 
+    /**
+     * @method
+     * @name kraken#editOrder
+     * @description edit a trade order
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
+     * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
+     * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
+     * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
+     * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#editOrder
-        * @description edit a trade order
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
-        * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
-        * @param {string} [params.trailingAmount] *margin only* the quote price away from the current market price
-        * @param {string} [params.trailingLimitAmount] *margin only* the quote amount away from the trailingAmount
-        * @param {string} [params.offset] *margin only* '+' or '-' whether you want the trailingLimitAmount value to be positive or negative, default is negative '-'
-        * @param {string} [params.trigger] *margin only* the activation price type, 'last' or 'index', default is 'last'
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -2049,17 +2132,18 @@ public partial class kraken : Exchange
         return this.parseOrder(data, market);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+     * @param {string} id order id
+     * @param {string} symbol not used by kraken fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOrder
-        * @description fetches information on an order made by the user
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
-        * @param {string} symbol not used by kraken fetchOrder
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
@@ -2121,26 +2205,26 @@ public partial class kraken : Exchange
         }, getValue(result, id)));
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOrderTrades
-        * @description fetch all the trades made from a single order
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
-        * @param {string} id order id
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object orderTrades = this.safeValue(parameters, "trades");
         object tradeIds = new List<object>() {};
         if (isTrue(isEqual(orderTrades, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a \'trades\' param (an array of trade id strings)")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " fetchOrderTrades() requires a unified order structure in the params argument or a 'trades' param (an array of trade id strings)")) ;
         } else
         {
             for (object i = 0; isLessThan(i, getArrayLength(orderTrades)); postFixIncrement(ref i))
@@ -2215,17 +2299,18 @@ public partial class kraken : Exchange
         return result;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOrdersByIds
+     * @description fetch orders by the list of order id
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+     * @param {string[]} [ids] list of order id
+     * @param {string} [symbol] unified ccxt market symbol
+     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> fetchOrdersByIds(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOrdersByIds
-        * @description fetch orders by the list of order id
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-        * @param {string[]|undefined} ids list of order id
-        * @param {object} [params] extra parameters specific to the kraken api endpoint
-        * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostQueryOrders(this.extend(new Dictionary<string, object>() {
@@ -2247,25 +2332,34 @@ public partial class kraken : Exchange
         return orders;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest trade entry
+     * @param {int} [params.end] timestamp in seconds of the latest trade entry
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchMyTrades
-        * @description fetch all trades made by the user
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeHistory
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch trades for
-        * @param {int} [limit] the maximum number of trades structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = this.parseToInt(Precise.stringAdd(untilDivided, "1"));
         }
         object response = await this.privatePostTradesHistory(this.extend(request, parameters));
         //
@@ -2285,7 +2379,10 @@ public partial class kraken : Exchange
         //                     "fee": "0.000026",
         //                     "vol": "16.00000000",
         //                     "margin": "0.000000",
+        //                     "leverage": "5",
         //                     "misc": ""
+        //                     "trade_id": 68230622,
+        //                     "maker": false
         //                 },
         //                 ...
         //             },
@@ -2307,18 +2404,18 @@ public partial class kraken : Exchange
         return this.parseTrades(trades, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name kraken#cancelOrder
+     * @description cancels an open order
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelOrder
-        * @description cancels an open order
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = null;
@@ -2346,18 +2443,18 @@ public partial class kraken : Exchange
         });
     }
 
+    /**
+     * @method
+     * @name kraken#cancelOrders
+     * @description cancel multiple orders
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+     * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelOrders
-        * @description cancel multiple orders
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
-        * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
-        * @param {string} symbol unified market symbol
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "orders", ids },
@@ -2376,17 +2473,17 @@ public partial class kraken : Exchange
 })};
     }
 
+    /**
+     * @method
+     * @name kraken#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelAllOrders
-        * @description cancel all open orders
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.privatePostCancelAll(parameters);
@@ -2403,17 +2500,17 @@ public partial class kraken : Exchange
 })};
     }
 
+    /**
+     * @method
+     * @name kraken#cancelAllOrdersAfter
+     * @description dead man's switch, cancel all orders after the given timeout
+     * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+     * @param {number} timeout time in milliseconds, 0 represents cancel the timer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#cancelAllOrdersAfter
-        * @description dead man's switch, cancel all orders after the given timeout
-        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
-        * @param {number} timeout time in milliseconds, 0 represents cancel the timer
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} the api result
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
@@ -2436,19 +2533,19 @@ public partial class kraken : Exchange
         return response;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchOpenOrders
-        * @description fetch all unfilled currently open orders
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenOrders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2474,20 +2571,20 @@ public partial class kraken : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchClosedOrders
-        * @description fetches information on multiple closed orders made by the user
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of order structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.until] timestamp in ms of the latest entry
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2702,33 +2799,41 @@ public partial class kraken : Exchange
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction entry
+     * @param {int} [params.end] timestamp in seconds of the latest transaction entry
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchDeposits
-        * @description fetch all deposits made to an account
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch deposits for
-        * @param {int} [limit] the maximum number of deposits structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         // https://www.kraken.com/en-us/help/api#deposit-status
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(code, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires a currency code argument")) ;
-        }
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
-        };
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+        }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start"] = since;
+            object sinceString = this.numberToString(since);
+            ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(untilDivided, "1");
         }
         object response = await this.privatePostDepositStatus(this.extend(request, parameters));
         //
@@ -2747,16 +2852,16 @@ public partial class kraken : Exchange
         return this.parseTransactionsByType("deposit", getValue(response, "result"), code, since, limit);
     }
 
+    /**
+     * @method
+     * @name kraken#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     public async override Task<object> fetchTime(object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchTime
-        * @description fetches the current integer timestamp in milliseconds from the exchange server
-        * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        */
         // https://www.kraken.com/en-us/features/api#get-server-time
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetTime(parameters);
@@ -2773,21 +2878,22 @@ public partial class kraken : Exchange
         return this.safeTimestamp(result, "unixtime");
     }
 
+    /**
+     * @method
+     * @name kraken#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest transaction entry
+     * @param {int} [params.end] timestamp in seconds of the latest transaction entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchWithdrawals
-        * @description fetch all withdrawals made from an account
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
-        * @param {string} code unified currency code
-        * @param {int} [since] the earliest time in ms to fetch withdrawals for
-        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
-        * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
-        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object paginate = false;
@@ -2807,7 +2913,15 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["since"] = ((object)since).ToString();
+            object sinceString = this.numberToString(since);
+            ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(untilDivided, "1");
         }
         object response = await this.privatePostWithdrawStatus(this.extend(request, parameters));
         //
@@ -2874,17 +2988,17 @@ public partial class kraken : Exchange
         return data;
     }
 
+    /**
+     * @method
+     * @name kraken#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#createDepositAddress
-        * @description create a currency deposit address
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
-        * @param {string} code unified currency code of the currency for the deposit address
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "new", "true" },
@@ -2892,17 +3006,17 @@ public partial class kraken : Exchange
         return await this.fetchDepositAddress(code, this.extend(request, parameters));
     }
 
+    /**
+     * @method
+     * @name kraken#fetchDepositMethods
+     * @description fetch deposit methods for a currency associated with this account
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @returns {object} of deposit methods
+     */
     public async virtual Task<object> fetchDepositMethods(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchDepositMethods
-        * @description fetch deposit methods for a currency associated with this account
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the kraken api endpoint
-        * @returns {object} of deposit methods
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -2936,17 +3050,17 @@ public partial class kraken : Exchange
         return this.safeValue(response, "result");
     }
 
+    /**
+     * @method
+     * @name kraken#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchDepositAddress
-        * @description fetch the deposit address for a currency associated with this account
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
-        * @param {string} code unified currency code
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3022,28 +3136,28 @@ public partial class kraken : Exchange
         object code = getValue(currency, "code");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
+            { "info", depositAddress },
             { "currency", code },
+            { "network", null },
             { "address", address },
             { "tag", tag },
-            { "network", null },
-            { "info", depositAddress },
         };
     }
 
+    /**
+     * @method
+     * @name kraken#withdraw
+     * @description make a withdrawal
+     * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#withdraw
-        * @description make a withdrawal
-        * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
-        * @param {string} code unified currency code
-        * @param {float} amount the amount to withdraw
-        * @param {string} address the address to withdraw to
-        * @param {string} tag
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -3070,20 +3184,20 @@ public partial class kraken : Exchange
             object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
             return this.parseTransaction(result, currency);
         }
-        throw new ExchangeError ((string)add(this.id, " withdraw() requires a \'key\' parameter (withdrawal key name, as set up on your account)")) ;
+        throw new ExchangeError ((string)add(this.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")) ;
     }
 
+    /**
+     * @method
+     * @name kraken#fetchPositions
+     * @description fetch all open positions
+     * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#fetchPositions
-        * @description fetch all open positions
-        * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
-        * @param {string[]} [symbols] not used by kraken fetchPositions ()
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {
@@ -3202,34 +3316,36 @@ public partial class kraken : Exchange
         return this.safeString(accountByType, account, account);
     }
 
+    /**
+     * @method
+     * @name kraken#transferOut
+     * @description transfer from spot wallet to futures wallet
+     * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+     * @param {str} code Unified currency code
+     * @param {float} amount Size of the transfer
+     * @param {dict} [params] Exchange specific parameters
+     * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async virtual Task<object> transferOut(object code, object amount, object parameters = null)
     {
-        /**
-        * @description transfer from spot wallet to futures wallet
-        * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
-        * @param {str} code Unified currency code
-        * @param {float} amount Size of the transfer
-        * @param {dict} [params] Exchange specific parameters
-        * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         return await this.transfer(code, amount, "spot", "swap", parameters);
     }
 
+    /**
+     * @method
+     * @name kraken#transfer
+     * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+     * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
+     * @param {string} code Unified currency code
+     * @param {float} amount Size of the transfer
+     * @param {string} fromAccount 'spot' or 'Spot Wallet'
+     * @param {string} toAccount 'swap' or 'Futures Wallet'
+     * @param {object} [params] Exchange specific parameters
+     * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
-        /**
-        * @method
-        * @name kraken#transfer
-        * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
-        * @description transfers currencies between sub-accounts (only spot->swap direction is supported)
-        * @param {string} code Unified currency code
-        * @param {float} amount Size of the transfer
-        * @param {string} fromAccount 'spot' or 'Spot Wallet'
-        * @param {string} toAccount 'swap' or 'Futures Wallet'
-        * @param {object} [params] Exchange specific parameters
-        * @returns a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
@@ -3306,11 +3422,17 @@ public partial class kraken : Exchange
             }
         } else if (isTrue(isEqual(api, "private")))
         {
+            object price = this.safeString(parameters, "price");
+            object isTriggerPercent = false;
+            if (isTrue(!isEqual(price, null)))
+            {
+                isTriggerPercent = ((bool) isTrue((((string)price).EndsWith(((string)"%"))))) ? true : false;
+            }
             object isCancelOrderBatch = (isEqual(path, "CancelOrderBatch"));
             this.checkRequiredCredentials();
             object nonce = ((object)this.nonce()).ToString();
             // urlencodeNested is used to address https://github.com/ccxt/ccxt/issues/12872
-            if (isTrue(isCancelOrderBatch))
+            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
             {
                 body = this.json(this.extend(new Dictionary<string, object>() {
                     { "nonce", nonce },
@@ -3331,7 +3453,7 @@ public partial class kraken : Exchange
                 { "API-Key", this.apiKey },
                 { "API-Sign", signature },
             };
-            if (isTrue(isCancelOrderBatch))
+            if (isTrue(isTrue(isCancelOrderBatch) || isTrue(isTriggerPercent)))
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else
@@ -3353,7 +3475,7 @@ public partial class kraken : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return subtract(this.milliseconds(), getValue(this.options, "timeDifference"));
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

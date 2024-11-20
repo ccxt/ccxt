@@ -952,7 +952,7 @@ node cli.js binance fetchTrades "BTC/USDT:USDT" --report
 
 Folder: `ts/src/test/static/response/binance.json`
 
-You can create a static-request test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
+You can create a static-response test by running this command and pasting the result in the correct file (eg: `static/response/binance.json`)
 
 ```Javascript
 node cli.js binance fetchTrades "BTC/USDT:USDT"  undefined 1 --response

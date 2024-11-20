@@ -116,7 +116,7 @@ export default class ascendex extends Exchange {
             },
             'version': 'v2',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg',
+                'logo': 'https://github.com/user-attachments/assets/55bab6b9-d4ca-42a8-a0e6-fac81ae557f1',
                 'api': {
                     'rest': 'https://ascendex.com',
                 },
@@ -285,26 +285,17 @@ export default class ascendex extends Exchange {
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
-                    'TRC': 'TRC20',
+                    // 'TRC': 'TRC20',
                     'TRX': 'TRC20',
-                    'ERC': 'ERC20',
-                },
-                'networksById': {
-                    'BEP20 (BSC)': 'BSC',
-                    'arbitrum': 'ARB',
-                    'Solana': 'SOL',
-                    'avalanche C chain': 'AVAX',
-                    'Omni': 'OMNI',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
                     'BEP2': 'BEP2',
-                    'Bitcoin': 'BTC',
-                    'Bitcoin ABC': 'BCH',
-                    'Litecoin': 'LTC',
-                    'Matic Network': 'MATIC',
-                    'xDai': 'STAKE',
-                    'Akash': 'AKT',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'Bitcoin ABC',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Matic Network',
+                    'AKT': 'Akash',
                 },
             },
             'exceptions': {
@@ -389,15 +380,15 @@ export default class ascendex extends Exchange {
         const lowercaseAccount = account.toLowerCase();
         return this.capitalize(lowercaseAccount);
     }
+    /**
+     * @method
+     * @name ascendex#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
-        const assets = await this.v1PublicGetAssets(params);
+        const assetsPromise = this.v1PublicGetAssets(params);
         //
         //     {
         //         "code":0,
@@ -414,7 +405,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const margin = await this.v1PublicGetMarginAssets(params);
+        const marginPromise = this.v1PublicGetMarginAssets(params);
         //
         //     {
         //         "code":0,
@@ -434,7 +425,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashAssets(params);
+        const cashPromise = this.v1PublicGetCashAssets(params);
         //
         //     {
         //         "code":0,
@@ -451,9 +442,10 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const assetsData = this.safeValue(assets, 'data', []);
-        const marginData = this.safeValue(margin, 'data', []);
-        const cashData = this.safeValue(cash, 'data', []);
+        const [assets, margin, cash] = await Promise.all([assetsPromise, marginPromise, cashPromise]);
+        const assetsData = this.safeList(assets, 'data', []);
+        const marginData = this.safeList(margin, 'data', []);
+        const cashData = this.safeList(cash, 'data', []);
         const assetsById = this.indexBy(assetsData, 'assetCode');
         const marginById = this.indexBy(marginData, 'assetCode');
         const cashById = this.indexBy(cashData, 'assetCode');
@@ -497,15 +489,15 @@ export default class ascendex extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name ascendex#fetchMarkets
+     * @description retrieves data on all markets for ascendex
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchMarkets
-         * @description retrieves data on all markets for ascendex
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
-        const products = await this.v1PublicGetProducts(params);
+        const productsPromise = this.v1PublicGetProducts(params);
         //
         //     {
         //         "code": 0,
@@ -526,7 +518,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashProducts(params);
+        const cashPromise = this.v1PublicGetCashProducts(params);
         //
         //     {
         //         "code": 0,
@@ -556,7 +548,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetuals = await this.v2PublicGetFuturesContract(params);
+        const perpetualsPromise = this.v2PublicGetFuturesContract(params);
         //
         //    {
         //        "code": 0,
@@ -594,10 +586,11 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const productsData = this.safeValue(products, 'data', []);
+        const [products, cash, perpetuals] = await Promise.all([productsPromise, cashPromise, perpetualsPromise]);
+        const productsData = this.safeList(products, 'data', []);
         const productsById = this.indexBy(productsData, 'symbol');
-        const cashData = this.safeValue(cash, 'data', []);
-        const perpetualsData = this.safeValue(perpetuals, 'data', []);
+        const cashData = this.safeList(cash, 'data', []);
+        const perpetualsData = this.safeList(perpetuals, 'data', []);
         const cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
         const cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, 'symbol');
         const dataById = this.deepExtend(productsById, cashAndPerpetualsById);
@@ -606,7 +599,7 @@ export default class ascendex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = dataById[id];
-            const settleId = this.safeValue(market, 'settlementAsset');
+            const settleId = this.safeString(market, 'settlementAsset');
             const settle = this.safeCurrencyCode(settleId);
             const status = this.safeString(market, 'status');
             const domain = this.safeString(market, 'domain');
@@ -629,10 +622,10 @@ export default class ascendex extends Exchange {
             const quote = this.safeCurrencyCode(quoteId);
             let symbol = base + '/' + quote;
             if (swap) {
-                const lotSizeFilter = this.safeValue(market, 'lotSizeFilter');
+                const lotSizeFilter = this.safeDict(market, 'lotSizeFilter');
                 minQty = this.safeNumber(lotSizeFilter, 'minQty');
                 maxQty = this.safeNumber(lotSizeFilter, 'maxQty');
-                const priceFilter = this.safeValue(market, 'priceFilter');
+                const priceFilter = this.safeDict(market, 'priceFilter');
                 minPrice = this.safeNumber(priceFilter, 'minPrice');
                 maxPrice = this.safeNumber(priceFilter, 'maxPrice');
                 symbol = base + '/' + quote + ':' + settle;
@@ -693,14 +686,14 @@ export default class ascendex extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name ascendex#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the ascendex server
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the ascendex server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the ascendex server
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the ascendex server
-         */
         const request = {
             'requestTime': this.milliseconds(),
         };
@@ -715,17 +708,17 @@ export default class ascendex extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.safeInteger(data, 'requestReceiveAt');
     }
+    /**
+     * @method
+     * @name ascendex#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     async fetchAccounts(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
         let accountGroup = this.safeString(this.options, 'account-group');
         let response = undefined;
         if (accountGroup === undefined) {
@@ -746,7 +739,7 @@ export default class ascendex extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue(response, 'data', {});
+            const data = this.safeDict(response, 'data', {});
             accountGroup = this.safeString(data, 'accountGroup');
             this.options['account-group'] = accountGroup;
         }
@@ -765,7 +758,7 @@ export default class ascendex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -782,7 +775,7 @@ export default class ascendex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const balances = this.safeValue(response, 'data', []);
+        const balances = this.safeList(response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -802,8 +795,8 @@ export default class ascendex extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const data = this.safeValue(response, 'data', {});
-        const collaterals = this.safeValue(data, 'collaterals', []);
+        const data = this.safeDict(response, 'data', {});
+        const collaterals = this.safeList(data, 'collaterals', []);
         for (let i = 0; i < collaterals.length; i++) {
             const balance = collaterals[i];
             const code = this.safeCurrencyCode(this.safeString(balance, 'asset'));
@@ -813,19 +806,19 @@ export default class ascendex extends Exchange {
         }
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name ascendex#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
+     * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
+     * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://ascendex.github.io/ascendex-pro-api/#cash-account-balance
-         * @see https://ascendex.github.io/ascendex-pro-api/#margin-account-balance
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] wallet type, 'spot', 'margin', or 'swap'
-         * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         let marketType = undefined;
@@ -836,9 +829,9 @@ export default class ascendex extends Exchange {
         const isCross = marginMode === 'cross';
         marketType = (isMargin || isCross) ? 'margin' : marketType;
         params = this.omit(params, 'margin');
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, marketType, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -912,16 +905,16 @@ export default class ascendex extends Exchange {
             return this.parseBalance(response);
         }
     }
+    /**
+     * @method
+     * @name ascendex#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -951,8 +944,8 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const orderbook = this.safeValue(data, 'data', {});
+        const data = this.safeDict(response, 'data', {});
+        const orderbook = this.safeDict(data, 'data', {});
         const timestamp = this.safeInteger(orderbook, 'ts');
         const result = this.parseOrderBook(orderbook, symbol, timestamp);
         result['nonce'] = this.safeInteger(orderbook, 'seqnum');
@@ -978,8 +971,8 @@ export default class ascendex extends Exchange {
         const delimiter = (type === 'spot') ? '/' : undefined;
         const symbol = this.safeSymbol(marketId, market, delimiter);
         const close = this.safeString(ticker, 'close');
-        const bid = this.safeValue(ticker, 'bid', []);
-        const ask = this.safeValue(ticker, 'ask', []);
+        const bid = this.safeList(ticker, 'bid', []);
+        const ask = this.safeList(ticker, 'ask', []);
         const open = this.safeString(ticker, 'open');
         return this.safeTicker({
             'symbol': symbol,
@@ -1004,15 +997,15 @@ export default class ascendex extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1038,22 +1031,22 @@ export default class ascendex extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://ascendex.github.io/ascendex-pro-api/#ticker
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeValue(symbols, 0);
+            const symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             const marketIds = this.marketIds(symbols);
             request['symbol'] = marketIds.join(',');
@@ -1070,22 +1063,20 @@ export default class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "open":"0.00016537",
-        //                 "close":"0.00019077",
-        //                 "high":"0.000192",
-        //                 "low":"0.00016537",
-        //                 "volume":"846.6",
-        //                 "ask":["0.00018698","26.2"],
-        //                 "bid":["0.00018408","503.7"],
-        //                 "type":"spot"
-        //             }
-        //         ]
+        //         "data": {
+        //             "symbol":"QTUM/BTC",
+        //             "open":"0.00016537",
+        //             "close":"0.00019077",
+        //             "high":"0.000192",
+        //             "low":"0.00016537",
+        //             "volume":"846.6",
+        //             "ask":["0.00018698","26.2"],
+        //             "bid":["0.00018408","503.7"],
+        //             "type":"spot"
+        //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         if (!Array.isArray(data)) {
             return this.parseTickers([data], symbols);
         }
@@ -1107,7 +1098,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(ohlcv, 'data', {});
+        const data = this.safeDict(ohlcv, 'data', {});
         return [
             this.safeInteger(data, 'ts'),
             this.safeNumber(data, 'o'),
@@ -1117,18 +1108,18 @@ export default class ascendex extends Exchange {
             this.safeNumber(data, 'v'),
         ];
     }
+    /**
+     * @method
+     * @name ascendex#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1138,7 +1129,7 @@ export default class ascendex extends Exchange {
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default
         const duration = this.parseTimeframe(timeframe);
-        const options = this.safeValue(this.options, 'fetchOHLCV', {});
+        const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const defaultLimit = this.safeInteger(options, 'limit', 500);
         if (since !== undefined) {
             request['from'] = since;
@@ -1211,18 +1202,18 @@ export default class ascendex extends Exchange {
             'fee': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1246,7 +1237,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const records = this.safeValue(response, 'data', []);
+        const records = this.safeDict(response, 'data', {});
         const trades = this.safeList(records, 'data', []);
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1442,17 +1433,17 @@ export default class ascendex extends Exchange {
             'trades': undefined,
         }, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchTradingFees
+     * @description fetch the trading fees for multiple markets
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -1474,14 +1465,14 @@ export default class ascendex extends Exchange {
         //         }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const fees = this.safeValue(data, 'fees', []);
+        const data = this.safeDict(response, 'data', {});
+        const fees = this.safeList(data, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const marketId = this.safeString(fee, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, '/');
-            const takerMaker = this.safeValue(fee, 'fee', {});
+            const takerMaker = this.safeDict(fee, 'fee', {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -1515,13 +1506,13 @@ export default class ascendex extends Exchange {
         let marketType = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('createOrderRequest', params);
         [marketType, params] = this.handleMarketTypeAndParams('createOrderRequest', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         let accountCategory = this.safeString(accountsByType, marketType, 'cash');
         if (marginMode !== undefined) {
             accountCategory = 'margin';
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'id');
         const request = {
             'account-group': accountGroup,
@@ -1539,7 +1530,7 @@ export default class ascendex extends Exchange {
         const timeInForce = this.safeString(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarketOrder, false, params);
         const reduceOnly = this.safeBool(params, 'reduceOnly', false);
-        const stopPrice = this.safeValue2(params, 'triggerPrice', 'stopPrice');
+        const stopPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         if (isLimitOrder) {
             request['orderPrice'] = this.priceToPrecision(symbol, price);
         }
@@ -1581,28 +1572,28 @@ export default class ascendex extends Exchange {
         params = this.omit(params, ['reduceOnly', 'triggerPrice']);
         return this.extend(request, params);
     }
+    /**
+     * @method
+     * @name ascendex#createOrder
+     * @description create a trade order on the exchange
+     * @see https://ascendex.github.io/ascendex-pro-api/#place-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} type "limit" or "market"
+     * @param {string} side "buy" or "sell"
+     * @param {float} amount the amount of currency to trade
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {bool} [params.postOnly] true or false
+     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
+     * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
+     * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
+     * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#createOrder
-         * @description create a trade order on the exchange
-         * @see https://ascendex.github.io/ascendex-pro-api/#place-order
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#new-order
-         * @param {string} symbol unified CCXT market symbol
-         * @param {string} type "limit" or "market"
-         * @param {string} side "buy" or "sell"
-         * @param {float} amount the amount of currency to trade
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice that the attached take profit order will be triggered (perpetual swap markets only)
-         * @param {float} [params.takeProfit.triggerPrice] *swap only* take profit trigger price
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice that the attached stop loss order will be triggered (perpetual swap markets only)
-         * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
-         * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
@@ -1677,24 +1668,24 @@ export default class ascendex extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue2(data, 'order', 'info', {});
+        const data = this.safeDict(response, 'data', {});
+        const order = this.safeDict2(data, 'order', 'info', {});
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name ascendex#createOrders
+     * @description create a list of trade orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+     * @param {bool} [params.postOnly] true or false
+     * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrders(orders, params = {}) {
-        /**
-         * @method
-         * @name ascendex#createOrders
-         * @description create a list of trade orders
-         * @see https://ascendex.github.io/ascendex-pro-api/#place-batch-orders
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#place-batch-orders
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-         * @param {bool} [params.postOnly] true or false
-         * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         const ordersRequests = [];
@@ -1713,9 +1704,9 @@ export default class ascendex extends Exchange {
             }
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const marginResult = this.handleMarginModeAndParams('createOrders', orderParams);
             const currentMarginMode = marginResult[0];
             if (currentMarginMode !== undefined) {
@@ -1732,13 +1723,13 @@ export default class ascendex extends Exchange {
             ordersRequests.push(orderRequest);
         }
         const market = this.market(symbol);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         let accountCategory = this.safeString(accountsByType, market['type'], 'cash');
         if (marginMode !== undefined) {
             accountCategory = 'margin';
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {};
         let response = undefined;
         if (market['swap']) {
@@ -1776,21 +1767,22 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const info = this.safeList(data, 'info', []);
         return this.parseOrders(info, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://ascendex.github.io/ascendex-pro-api/#query-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://ascendex.github.io/ascendex-pro-api/#query-order
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         let market = undefined;
@@ -1798,10 +1790,10 @@ export default class ascendex extends Exchange {
             market = this.market(symbol);
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -1888,19 +1880,19 @@ export default class ascendex extends Exchange {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
+    /**
+     * @method
+     * @name ascendex#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://ascendex.github.io/ascendex-pro-api/#list-open-orders
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-open-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         let market = undefined;
@@ -1908,10 +1900,10 @@ export default class ascendex extends Exchange {
             market = this.market(symbol);
             symbol = market['symbol'];
         }
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const [type, query] = this.handleMarketTypeAndParams('fetchOpenOrders', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
         const request = {
             'account-group': accountGroup,
@@ -1995,7 +1987,7 @@ export default class ascendex extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         if (accountCategory === 'futures') {
             return this.parseOrders(data, market, since, limit);
         }
@@ -2007,24 +1999,24 @@ export default class ascendex extends Exchange {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
+    /**
+     * @method
+     * @name ascendex#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://ascendex.github.io/ascendex-pro-api/#list-history-orders-v2
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#list-current-history-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
         // 'category': accountCategory,
         // 'symbol': market['id'],
@@ -2042,7 +2034,7 @@ export default class ascendex extends Exchange {
             request['symbol'] = market['id'];
         }
         const [type, query] = this.handleMarketTypeAndParams('fetchClosedOrders', market, params);
-        const options = this.safeValue(this.options, 'fetchClosedOrders', {});
+        const options = this.safeDict(this.options, 'fetchClosedOrders', {});
         const defaultMethod = this.safeString(options, 'method', 'v2PrivateDataGetOrderHist');
         const method = this.getSupportedMapping(type, {
             'spot': defaultMethod,
@@ -2056,7 +2048,7 @@ export default class ascendex extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash'); // margin, futures
         let response = undefined;
         if (method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
@@ -2176,25 +2168,25 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        let data = this.safeValue(response, 'data');
+        let data = this.safeList(response, 'data', []);
         const isArray = Array.isArray(data);
         if (!isArray) {
-            data = this.safeValue(data, 'data', []);
+            data = this.safeList(data, 'data', []);
         }
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name ascendex#cancelOrder
+     * @description cancels an open order
+     * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#cancelOrder
-         * @description cancels an open order
-         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-order
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -2202,10 +2194,10 @@ export default class ascendex extends Exchange {
         await this.loadAccounts();
         const market = this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -2295,21 +2287,21 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const order = this.safeValue2(data, 'order', 'info', {});
+        const data = this.safeDict(response, 'data', {});
+        const order = this.safeDict2(data, 'order', 'info', {});
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name ascendex#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://ascendex.github.io/ascendex-pro-api/#cancel-all-orders
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         let market = undefined;
@@ -2317,10 +2309,10 @@ export default class ascendex extends Exchange {
             market = this.market(symbol);
         }
         const [type, query] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const accountCategory = this.safeString(accountsByType, type, 'cash');
-        const account = this.safeValue(this.accounts, 0, {});
-        const accountGroup = this.safeValue(account, 'id');
+        const account = this.safeDict(this.accounts, 0, {});
+        const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
             'account-category': accountCategory,
@@ -2400,28 +2392,24 @@ export default class ascendex extends Exchange {
         const chainName = this.safeString(depositAddress, 'blockchain');
         const network = this.networkIdToCode(chainName, code);
         return {
+            'info': depositAddress,
             'currency': code,
+            'network': network,
             'address': address,
             'tag': tag,
-            'network': network,
-            'info': depositAddress,
         };
     }
-    safeNetwork(networkId) {
-        const networksById = this.safeDict(this.options, 'networksById');
-        return this.safeString(networksById, networkId, networkId);
-    }
+    /**
+     * @method
+     * @name ascendex#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code for deposit chain
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://ascendex.github.io/ascendex-pro-api/#query-deposit-addresses
-         * @param {string} code unified currency code
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.network] unified network code for deposit chain
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const networkCode = this.safeString2(params, 'network', 'chainName');
@@ -2487,49 +2475,49 @@ export default class ascendex extends Exchange {
             'info': response,
         });
     }
+    /**
+     * @method
+     * @name ascendex#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const request = {
             'txType': 'deposit',
         };
         return await this.fetchTransactions(code, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name ascendex#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const request = {
             'txType': 'withdrawal',
         };
         return await this.fetchTransactions(code, since, limit, this.extend(request, params));
     }
+    /**
+     * @method
+     * @name ascendex#fetchDepositsWithdrawals
+     * @description fetch history of deposits and withdrawals
+     * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+     * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchDepositsWithdrawals
-         * @description fetch history of deposits and withdrawals
-         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
-         * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         const request = {
         // 'asset': currency['id'],
@@ -2576,7 +2564,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const transactions = this.safeList(data, 'data', []);
         return this.parseTransactions(transactions, currency, since, limit);
     }
@@ -2608,7 +2596,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const destAddress = this.safeValue(transaction, 'destAddress', {});
+        const destAddress = this.safeDict(transaction, 'destAddress', {});
         const address = this.safeString(destAddress, 'address');
         const tag = this.safeString(destAddress, 'destTag');
         const timestamp = this.safeInteger(transaction, 'time');
@@ -2644,18 +2632,18 @@ export default class ascendex extends Exchange {
             'internal': false,
         };
     }
+    /**
+     * @method
+     * @name ascendex#fetchPositions
+     * @description fetch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchPositions
-         * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -2700,8 +2688,8 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
-        const position = this.safeValue(data, 'contracts', []);
+        const data = this.safeDict(response, 'data', {});
+        const position = this.safeList(data, 'contracts', []);
         const result = [];
         for (let i = 0; i < position.length; i++) {
             result.push(this.parsePosition(position[i]));
@@ -2809,17 +2797,18 @@ export default class ascendex extends Exchange {
             'fundingRate': nextFundingRate,
             'fundingTimestamp': nextFundingRateTimestamp,
             'fundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'interval': undefined,
         };
     }
+    /**
+     * @method
+     * @name ascendex#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+     */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchFundingRates
-         * @description fetch the funding rate for multiple markets
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.v2PublicGetFuturesPricingData(params);
@@ -2847,8 +2836,8 @@ export default class ascendex extends Exchange {
         //          }
         //      }
         //
-        const data = this.safeValue(response, 'data', {});
-        const contracts = this.safeValue(data, 'contracts', []);
+        const data = this.safeDict(response, 'data', {});
+        const contracts = this.safeList(data, 'contracts', []);
         const result = this.parseFundingRates(contracts);
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2856,7 +2845,7 @@ export default class ascendex extends Exchange {
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         amount = this.amountToPrecision(symbol, amount);
         const request = {
@@ -2903,41 +2892,41 @@ export default class ascendex extends Exchange {
             'datetime': undefined,
         };
     }
+    /**
+     * @method
+     * @name ascendex#reduceMargin
+     * @description remove margin from a position
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     */
     async reduceMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name ascendex#reduceMargin
-         * @description remove margin from a position
-         * @param {string} symbol unified market symbol
-         * @param {float} amount the amount of margin to remove
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
     }
+    /**
+     * @method
+     * @name ascendex#addMargin
+     * @description add margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     */
     async addMargin(symbol, amount, params = {}) {
-        /**
-         * @method
-         * @name ascendex#addMargin
-         * @description add margin
-         * @param {string} symbol unified market symbol
-         * @param {float} amount amount of margin to add
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
-         */
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
     }
+    /**
+     * @method
+     * @name ascendex#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-contract-leverage
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2950,7 +2939,7 @@ export default class ascendex extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol(this.id + ' setLeverage() supports swap contracts only');
         }
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -2959,17 +2948,17 @@ export default class ascendex extends Exchange {
         };
         return await this.v2PrivateAccountGroupPostFuturesLeverage(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name ascendex#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#setMarginMode
-         * @description set margin mode to 'cross' or 'isolated'
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#change-margin-type
-         * @param {string} marginMode 'cross' or 'isolated'
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -2983,7 +2972,7 @@ export default class ascendex extends Exchange {
         await this.loadMarkets();
         await this.loadAccounts();
         const market = this.market(symbol);
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -2995,15 +2984,15 @@ export default class ascendex extends Exchange {
         }
         return await this.v2PrivateAccountGroupPostFuturesMarginType(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name ascendex#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.v2PublicGetFuturesContract(params);
         //
@@ -3034,7 +3023,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data', []);
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, 'symbol');
     }
@@ -3066,15 +3055,16 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
-        const marginRequirements = this.safeValue(info, 'marginRequirements', []);
-        const id = this.safeString(info, 'symbol');
-        market = this.safeMarket(id, market);
+        const marginRequirements = this.safeList(info, 'marginRequirements', []);
+        const marketId = this.safeString(info, 'symbol');
+        market = this.safeMarket(marketId, market);
         const tiers = [];
         for (let i = 0; i < marginRequirements.length; i++) {
             const tier = marginRequirements[i];
             const initialMarginRate = this.safeString(tier, 'initialMarginRate');
             tiers.push({
                 'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
                 'currency': market['quote'],
                 'minNotional': this.safeNumber(tier, 'positionNotionalLowerBound'),
                 'maxNotional': this.safeNumber(tier, 'positionNotionalUpperBound'),
@@ -3105,7 +3095,7 @@ export default class ascendex extends Exchange {
         //     ]
         // }
         //
-        const blockChains = this.safeValue(fee, 'blockChain', []);
+        const blockChains = this.safeList(fee, 'blockChain', []);
         const blockChainsLength = blockChains.length;
         const result = {
             'info': fee,
@@ -3135,39 +3125,39 @@ export default class ascendex extends Exchange {
         }
         return result;
     }
+    /**
+     * @method
+     * @name ascendex#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchDepositWithdrawFees
-         * @description fetch deposit and withdraw fees
-         * @see https://ascendex.github.io/ascendex-pro-api/#list-all-assets
-         * @param {string[]|undefined} codes list of unified currency codes
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const response = await this.v2PublicGetAssets(params);
         const data = this.safeList(response, 'data');
         return this.parseDepositWithdrawFees(data, codes, 'assetCode');
     }
+    /**
+     * @method
+     * @name ascendex#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @param {string} code unified currency codeåå
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name ascendex#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @param {string} code unified currency codeåå
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
         if (fromId !== 'cash' && toId !== 'cash') {
@@ -3184,7 +3174,7 @@ export default class ascendex extends Exchange {
         //
         //    { "code": "0" }
         //
-        const transferOptions = this.safeValue(this.options, 'transfer', {});
+        const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
         const transfer = this.parseTransfer(response, currency);
         if (fillResponseFromRequest) {
@@ -3219,19 +3209,19 @@ export default class ascendex extends Exchange {
         }
         return 'failed';
     }
+    /**
+     * @method
+     * @name ascendex#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchFundingHistory
-         * @description fetch the history of funding payments paid and received on this account
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#funding-payment-history
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch funding history for
-         * @param {int} [limit] the maximum number of funding history structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
         let paginate = false;
@@ -3239,7 +3229,7 @@ export default class ascendex extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchFundingHistory', symbol, since, limit, params, 'page', 25);
         }
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -3271,7 +3261,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         const rows = this.safeList(data, 'data', []);
         return this.parseIncomes(rows, market, since, limit);
     }
@@ -3296,19 +3286,19 @@ export default class ascendex extends Exchange {
             'amount': this.safeNumber(income, 'paymentInUSDT'),
         };
     }
+    /**
+     * @method
+     * @name ascendex#fetchMarginModes
+     * @description fetches the set margin mode of the user
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     async fetchMarginModes(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchMarginModes
-         * @description fetches the set margin mode of the user
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
-         * @param {string[]} [symbols] a list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,
@@ -3367,19 +3357,19 @@ export default class ascendex extends Exchange {
             'marginMode': margin,
         };
     }
+    /**
+     * @method
+     * @name ascendex#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     async fetchLeverages(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name ascendex#fetchLeverages
-         * @description fetch the set leverage for all contract markets
-         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
-         * @param {string[]} [symbols] a list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
         await this.loadMarkets();
         await this.loadAccounts();
-        const account = this.safeValue(this.accounts, 0, {});
+        const account = this.safeDict(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const request = {
             'account-group': accountGroup,

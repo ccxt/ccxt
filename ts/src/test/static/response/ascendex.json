@@ -28,10 +28,6 @@
                     }
                 },
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "ZXXfdfd",
-                    "tag": null,
-                    "network": "TRC20",
                     "info": {
                         "code": "0",
                         "data": {
@@ -45,7 +41,11 @@
                                 }
                             ]
                         }
-                    }
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "ZXXfdfd",
+                    "tag": null
                 }
             }
         ],
@@ -226,7 +226,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "public spot trades",
+                "description": "Fetch trades",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -240,11 +240,11 @@
                         "symbol": "BTC/USDT",
                         "data": [
                             {
-                                "p": "73240.01",
-                                "q": "0.02000",
-                                "ts": "1710327661659",
-                                "bm": false,
-                                "seqnum": "72057643604627214"
+                                "p": "63633.03",
+                                "q": "0.08147",
+                                "ts": "1724680185653",
+                                "bm": true,
+                                "seqnum": "0"
                             }
                         ]
                     }
@@ -252,24 +252,27 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "p": "73240.01",
-                            "q": "0.02000",
-                            "ts": "1710327661659",
-                            "bm": false,
-                            "seqnum": "72057643604627214"
+                            "p": "63633.03",
+                            "q": "0.08147",
+                            "ts": "1724680185653",
+                            "bm": true,
+                            "seqnum": "0"
                         },
-                        "timestamp": 1710327661659,
-                        "datetime": "2024-03-13T11:01:01.659Z",
+                        "timestamp": 1724680185653,
+                        "datetime": "2024-08-26T13:49:45.653Z",
                         "symbol": "BTC/USDT",
                         "id": null,
                         "order": null,
                         "type": null,
                         "takerOrMaker": null,
-                        "side": "buy",
-                        "price": 73240.01,
-                        "amount": 0.02,
-                        "cost": 1464.8002,
-                        "fee": {"cost": null, "currency": null },
+                        "side": "sell",
+                        "price": 63633.03,
+                        "amount": 0.08147,
+                        "cost": 5184.1829541,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
@@ -322,6 +325,8 @@
                     "average": 72619.59,
                     "baseVolume": 999.01458,
                     "quoteVolume": null,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "symbol": "BTC/USDT",
                         "open": "71865",
@@ -395,7 +400,7 @@
                         "latency": 494
                     }
                 },
-                "parsedResponse": "1721370799895"
+                "parsedResponse": 1721370799895
             }
         ],
         "fetchOrderBook": [
@@ -454,63 +459,123 @@
                 "method": "fetchTickers",
                 "input": [
                     [
-                        "BTC/USDT:USDT"
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
                     ]
                 ],
                 "httpResponse": {
-                    "code": 0,
-                    "data": {
-                        "symbol": "BTC-PERP",
-                        "open": "64851.7",
-                        "close": "64276.4",
-                        "high": "65102.7",
-                        "low": "63208",
-                        "baseVol": "26314.0671",
-                        "ask": [
-                            "64276.4",
-                            "2.09805"
-                        ],
-                        "bid": [
-                            "64276.1",
-                            "2.54895"
-                        ]
-                    }
+                    "code": "0",
+                    "data": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "open": "64152.2",
+                            "close": "63176.9",
+                            "high": "65093.7",
+                            "low": "63036.1",
+                            "baseVol": "161747.2677",
+                            "ask": [
+                                "63177.1",
+                                "3.13005"
+                            ],
+                            "bid": [
+                                "63176.8",
+                                "2.7378"
+                            ]
+                        },
+                        {
+                            "symbol": "ETH-PERP",
+                            "open": "2764.76",
+                            "close": "2674.32",
+                            "high": "2791.11",
+                            "low": "2670.08",
+                            "baseVol": "2145243.7",
+                            "ask": [
+                                "2674.34",
+                                "149.31"
+                            ],
+                            "bid": [
+                                "2674.26",
+                                "68.88"
+                            ]
+                        }
+                    ]
                 },
                 "parsedResponse": {
                     "BTC/USDT:USDT": {
                         "symbol": "BTC/USDT:USDT",
                         "timestamp": null,
                         "datetime": null,
-                        "high": 65102.7,
-                        "low": 63208,
-                        "bid": 64276.1,
-                        "bidVolume": 2.54895,
-                        "ask": 64276.4,
-                        "askVolume": 2.09805,
+                        "high": 65093.7,
+                        "low": 63036.1,
+                        "bid": 63176.8,
+                        "bidVolume": 2.7378,
+                        "ask": 63177.1,
+                        "askVolume": 3.13005,
                         "vwap": null,
-                        "open": 64851.7,
-                        "close": 64276.4,
-                        "last": 64276.4,
+                        "open": 64152.2,
+                        "close": 63176.9,
+                        "last": 63176.9,
                         "previousClose": null,
-                        "change": -575.3,
-                        "percentage": -0.887100877849,
-                        "average": 64564.05,
+                        "change": -975.3,
+                        "percentage": -1.5202908084212232,
+                        "average": 63664.55,
                         "baseVolume": null,
                         "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
                         "info": {
                             "symbol": "BTC-PERP",
-                            "open": "64851.7",
-                            "close": "64276.4",
-                            "high": "65102.7",
-                            "low": "63208",
-                            "baseVol": "26314.0671",
+                            "open": "64152.2",
+                            "close": "63176.9",
+                            "high": "65093.7",
+                            "low": "63036.1",
+                            "baseVol": "161747.2677",
                             "ask": [
-                                "64276.4",
-                                "2.09805"
+                                "63177.1",
+                                "3.13005"
                             ],
                             "bid": [
-                                "64276.1",
-                                "2.54895"
+                                "63176.8",
+                                "2.7378"
+                            ]
+                        }
+                    },
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 2791.11,
+                        "low": 2670.08,
+                        "bid": 2674.26,
+                        "bidVolume": 68.88,
+                        "ask": 2674.34,
+                        "askVolume": 149.31,
+                        "vwap": null,
+                        "open": 2764.76,
+                        "close": 2674.32,
+                        "last": 2674.32,
+                        "previousClose": null,
+                        "change": -90.44,
+                        "percentage": -3.2711700111402076,
+                        "average": 2719.54,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice":  null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "ETH-PERP",
+                            "open": "2764.76",
+                            "close": "2674.32",
+                            "high": "2791.11",
+                            "low": "2670.08",
+                            "baseVol": "2145243.7",
+                            "ask": [
+                                "2674.34",
+                                "149.31"
+                            ],
+                            "bid": [
+                                "2674.26",
+                                "68.88"
                             ]
                         }
                     }
@@ -567,7 +632,8 @@
                     "nextFundingDatetime": null,
                     "fundingRate": 0.00034,
                     "fundingTimestamp": 1721376000000,
-                    "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                    "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                    "interval": null
                 }
             }
         ],
@@ -771,7 +837,8 @@
                         "nextFundingDatetime": null,
                         "fundingRate": 0.00034,
                         "fundingTimestamp": 1721376000000,
-                        "fundingDatetime": "2024-07-19T08:00:00.000Z"
+                        "fundingDatetime": "2024-07-19T08:00:00.000Z",
+                        "interval": null
                     }
                 }
             }
@@ -879,6 +946,7 @@
                     "BTC/USDT:USDT": [
                         {
                             "tier": 1,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 0,
                             "maxNotional": 300000,
@@ -893,6 +961,7 @@
                         },
                         {
                             "tier": 2,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 300000,
                             "maxNotional": 1000000,
@@ -907,6 +976,7 @@
                         },
                         {
                             "tier": 3,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 1000000,
                             "maxNotional": 2000000,
@@ -921,6 +991,7 @@
                         },
                         {
                             "tier": 4,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 2000000,
                             "maxNotional": 2500000,
@@ -935,6 +1006,7 @@
                         },
                         {
                             "tier": 5,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 2500000,
                             "maxNotional": 3000000,
@@ -949,6 +1021,7 @@
                         },
                         {
                             "tier": 6,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 3000000,
                             "maxNotional": 3500000,
@@ -963,6 +1036,7 @@
                         },
                         {
                             "tier": 7,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 3500000,
                             "maxNotional": 4000000,
@@ -977,6 +1051,7 @@
                         },
                         {
                             "tier": 8,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 4000000,
                             "maxNotional": 4500000,
@@ -991,6 +1066,7 @@
                         },
                         {
                             "tier": 9,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 4500000,
                             "maxNotional": 5000000,
@@ -1005,6 +1081,7 @@
                         },
                         {
                             "tier": 10,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 5000000,
                             "maxNotional": 10000000,
@@ -1019,6 +1096,7 @@
                         },
                         {
                             "tier": 11,
+                            "symbol":"BTC/USDT:USDT",
                             "currency": "USDT",
                             "minNotional": 10000000,
                             "maxNotional": 1000000000,

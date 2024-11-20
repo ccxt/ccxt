@@ -16,6 +16,7 @@ public partial class probit : ccxt.probit
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -48,16 +49,16 @@ public partial class probit : ccxt.probit
         });
     }
 
+    /**
+     * @method
+     * @name probit#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs-en.probit.com/reference/balance-1
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://docs-en.probit.com/reference/balance-1
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object messageHash = "balance";
@@ -123,18 +124,18 @@ public partial class probit : ccxt.probit
         this.balance = this.safeBalance(this.balance);
     }
 
+    /**
+     * @method
+     * @name probit#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://docs-en.probit.com/reference/marketdata
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "filter", "ticker");
@@ -173,20 +174,20 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedTicker, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://docs-en.probit.com/reference/trade_history
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.interval] Unit time to synchronize market information (ms). Available units: 100, 500
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "filter", "recent_trades");
@@ -245,18 +246,19 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchMyTrades
+     * @description get the list of trades associated with the user
+     * @see https://docs-en.probit.com/reference/trade_history
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchMyTrades
-        * @description get the list of trades associated with the user
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate(parameters);
@@ -336,20 +338,20 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchOrders
+     * @description watches information on an order made by the user
+     * @see https://docs-en.probit.com/reference/open_order
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {int} [since] timestamp in ms of the earliest order to watch
+     * @param {int} [limit] the maximum amount of orders to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchOrders
-        * @description watches information on an order made by the user
-        * @see https://docs-en.probit.com/reference/open_order
-        * @param {string} symbol unified symbol of the market the order was made in
-        * @param {int} [since] timestamp in ms of the earliest order to watch
-        * @param {int} [limit] the maximum amount of orders to watch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.channel] choose what channel to use. Can open_order or order_history.
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -436,18 +438,18 @@ public partial class probit : ccxt.probit
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
+    /**
+     * @method
+     * @name probit#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs-en.probit.com/reference/marketdata
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name probit#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://docs-en.probit.com/reference/marketdata
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         object filter = null;
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
@@ -478,7 +480,8 @@ public partial class probit : ccxt.probit
             filters = getValue(((WebSocketClient)client).subscriptions, subscriptionHash);
             if (!isTrue((inOp(filters, filter))))
             {
-
+                // resubscribe
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
             }
         }
         ((IDictionary<string,object>)filters)[(string)filter] = true;
@@ -590,7 +593,7 @@ public partial class probit : ccxt.probit
         } else
         {
             ((Future)future).reject(message);
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
         }
     }
 

@@ -16,6 +16,7 @@ public partial class cex : ccxt.cex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", true },
                 { "watchOrders", true },
                 { "watchOrderBook", true },
@@ -50,16 +51,16 @@ public partial class cex : ccxt.cex
         return ((object)requestId).ToString();
     }
 
+    /**
+     * @method
+     * @name cex#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://cex.io/websocket-api#get-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://cex.io/websocket-api#get-balance
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.authenticate(parameters);
         object messageHash = this.requestId();
@@ -116,19 +117,19 @@ public partial class cex : ccxt.cex
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
     }
 
+    /**
+     * @method
+     * @name cex#watchTrades
+     * @description get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
+     * @see https://cex.io/websocket-api#old-pair-room
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchTrades
-        * @description get the list of most recent trades for a particular symbol. Note: can only watch one symbol at a time.
-        * @see https://cex.io/websocket-api#old-pair-room
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -263,18 +264,18 @@ public partial class cex : ccxt.cex
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.trades, messageHash});
     }
 
+    /**
+     * @method
+     * @name cex#watchTicker
+     * @see https://cex.io/websocket-api#ticker-subscription
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] public or private
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchTicker
-        * @see https://cex.io/websocket-api#ticker-subscription
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.method] public or private
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -301,17 +302,17 @@ public partial class cex : ccxt.cex
         return await this.watch(url, messageHash, request, subscriptionHash);
     }
 
+    /**
+     * @method
+     * @name cex#watchTickers
+     * @see https://cex.io/websocket-api#ticker-subscription
+     * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchTickers
-        * @see https://cex.io/websocket-api#ticker-subscription
-        * @description watches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -337,17 +338,17 @@ public partial class cex : ccxt.cex
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name cex#fetchTickerWs
+     * @see https://docs.cex.io/#ws-api-ticker-deprecated
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#fetchTickerWs
-        * @see https://docs.cex.io/#ws-api-ticker-deprecated
-        * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -461,16 +462,16 @@ public partial class cex : ccxt.cex
         }, market);
     }
 
+    /**
+     * @method
+     * @name cex#fetchBalanceWs
+     * @see https://docs.cex.io/#ws-api-get-balance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> fetchBalanceWs(object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#fetchBalanceWs
-        * @see https://docs.cex.io/#ws-api-get-balance
-        * @description query for balance and get the amount of funds available for trading or funds locked in orders
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -483,19 +484,19 @@ public partial class cex : ccxt.cex
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name cex#watchOrders
+     * @description get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchOrders
-        * @description get the list of orders associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        * @see https://docs.cex.io/#ws-api-open-orders
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -523,19 +524,19 @@ public partial class cex : ccxt.cex
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
+    /**
+     * @method
+     * @name cex#watchMyTrades
+     * @description get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchMyTrades
-        * @description get the list of trades associated with the user. Note: In CEX.IO system, orders can be present in trade engine or in archive database. There can be time periods (~2 seconds or more), when order is done/canceled, but still not moved to archive database. That means, you cannot see it using calls: archived-orders/open-orders.
-        * @see https://docs.cex.io/#ws-api-open-orders
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -998,18 +999,18 @@ public partial class cex : ccxt.cex
         }
     }
 
+    /**
+     * @method
+     * @name cex#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://cex.io/websocket-api#orderbook-subscribe
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://cex.io/websocket-api#orderbook-subscribe
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] the maximum amount of order book entries to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -1108,7 +1109,7 @@ public partial class cex : ccxt.cex
         object messageHash = add("orderbook:", symbol);
         if (isTrue(!isEqual(incrementalId, add(getValue(storedOrderBook, "nonce"), 1))))
         {
-
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
             ((WebSocketClient)client).reject(add(this.id, " watchOrderBook() skipped a message"), messageHash);
         }
         object timestamp = this.safeInteger(data, "time");
@@ -1136,20 +1137,20 @@ public partial class cex : ccxt.cex
         }
     }
 
+    /**
+     * @method
+     * @name cex#watchOHLCV
+     * @see https://cex.io/websocket-api#minute-data
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents.
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#watchOHLCV
-        * @see https://cex.io/websocket-api#minute-data
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe the length of time each candle represents.
-        * @param {int} [since] timestamp in ms of the earliest candle to fetch
-        * @param {int} [limit] the maximum amount of candles to fetch
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1282,17 +1283,18 @@ public partial class cex : ccxt.cex
         }
     }
 
+    /**
+     * @method
+     * @name cex#fetchOrderWs
+     * @description fetches information on an order made by the user
+     * @see https://docs.cex.io/#ws-api-get-order
+     * @param {string} id the order id
+     * @param {string} symbol not used by cex fetchOrder
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#fetchOrderWs
-        * @description fetches information on an order made by the user
-        * @see https://docs.cex.io/#ws-api-get-order
-        * @param {string} symbol not used by cex fetchOrder
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -1315,19 +1317,19 @@ public partial class cex : ccxt.cex
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name cex#fetchOpenOrdersWs
+     * @see https://docs.cex.io/#ws-api-open-orders
+     * @description fetch all unfilled currently open orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#fetchOpenOrdersWs
-        * @see https://docs.cex.io/#ws-api-open-orders
-        * @description fetch all unfilled currently open orders
-        * @param {string} symbol unified market symbol
-        * @param {int} [since] the earliest time in ms to fetch open orders for
-        * @param {int} [limit] the maximum number of  open orders structures to retrieve
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1350,22 +1352,22 @@ public partial class cex : ccxt.cex
         return this.parseOrders(response, market, since, limit, parameters);
     }
 
+    /**
+     * @method
+     * @name cex#createOrderWs
+     * @see https://docs.cex.io/#ws-api-order-placement
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#createOrderWs
-        * @see https://docs.cex.io/#ws-api-order-placement
-        * @description create a trade order
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the kraken api endpoint
-        * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(price, null)))
         {
@@ -1391,22 +1393,22 @@ public partial class cex : ccxt.cex
         return this.parseOrder(rawOrder, market);
     }
 
+    /**
+     * @method
+     * @name cex#editOrderWs
+     * @description edit a trade order
+     * @see https://docs.cex.io/#ws-api-cancel-replace
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of the currency you want to trade in units of the base currency
+     * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#editOrderWs
-        * @description edit a trade order
-        * @see https://docs.cex.io/#ws-api-cancel-replace
-        * @param {string} id order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))
         {
@@ -1437,18 +1439,18 @@ public partial class cex : ccxt.cex
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name cex#cancelOrderWs
+     * @see https://docs.cex.io/#ws-api-order-cancel
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol not used by cex cancelOrder ()
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#cancelOrderWs
-        * @see https://docs.cex.io/#ws-api-order-cancel
-        * @description cancels an open order
-        * @param {string} id order id
-        * @param {string} symbol not used by cex cancelOrder ()
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.authenticate();
@@ -1471,18 +1473,18 @@ public partial class cex : ccxt.cex
         return this.parseOrder(response, market);
     }
 
+    /**
+     * @method
+     * @name cex#cancelOrdersWs
+     * @description cancel multiple orders
+     * @see https://docs.cex.io/#ws-api-mass-cancel-place
+     * @param {string[]} ids order ids
+     * @param {string} symbol not used by cex cancelOrders()
+     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name cex#cancelOrdersWs
-        * @description cancel multiple orders
-        * @see https://docs.cex.io/#ws-api-mass-cancel-place
-        * @param {string[]} ids order ids
-        * @param {string} symbol not used by cex cancelOrders()
-        * @param {object} [params] extra parameters specific to the cex api endpoint
-        * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
         {

@@ -17,6 +17,7 @@ public partial class xt : ccxt.xt
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", true },
                 { "watchOrders", true },
                 { "watchMyTrades", true },
@@ -49,17 +50,17 @@ public partial class xt : ccxt.xt
         });
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description required for private endpoints
+     * @param {string} isContract true for contract trades
+     * @see https://doc.xt.com/#websocket_privategetToken
+     * @see https://doc.xt.com/#futures_user_websocket_v2base
+     * @returns {string} listen key / access token
+     */
     public async virtual Task<object> getListenKey(object isContract)
     {
-        /**
-         * @ignore
-         * @method
-         * @description required for private endpoints
-         * @param {string} isContract true for contract trades
-         * @see https://doc.xt.com/#websocket_privategetToken
-         * @see https://doc.xt.com/#futures_user_websocket_v2base
-         * @returns {string} listen key / access token
-         */
         this.checkRequiredCredentials();
         object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), tradeType);
@@ -149,22 +150,22 @@ public partial class xt : ccxt.xt
         }
     }
 
+    /**
+     * @ignore
+     * @method
+     * @description Connects to a websocket channel
+     * @see https://doc.xt.com/#websocket_privaterequestFormat
+     * @see https://doc.xt.com/#futures_market_websocket_v2base
+     * @param {string} name name of the channel
+     * @param {string} access public or private
+     * @param {string} methodName the name of the CCXT class method
+     * @param {object} [market] CCXT market
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api
+     * @returns {object} data from the websocket stream
+     */
     public async virtual Task<object> subscribe(object name, object access, object methodName, object market = null, object symbols = null, object parameters = null)
     {
-        /**
-        * @ignore
-        * @method
-        * @description Connects to a websocket channel
-        * @see https://doc.xt.com/#websocket_privaterequestFormat
-        * @see https://doc.xt.com/#futures_market_websocket_v2base
-        * @param {string} name name of the channel
-        * @param {string} access public or private
-        * @param {string} methodName the name of the CCXT class method
-        * @param {object} [market] CCXT market
-        * @param {string[]} [symbols] unified market symbols
-        * @param {object} params extra parameters specific to the xt api
-        * @returns {object} data from the websocket stream
-        */
         parameters ??= new Dictionary<string, object>();
         object privateAccess = isEqual(access, "private");
         object type = null;
@@ -208,20 +209,20 @@ public partial class xt : ccxt.xt
         return await this.watch(url, messageHash, request, messageHash);
     }
 
+    /**
+     * @method
+     * @name xt#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publictickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
+     * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://doc.xt.com/#websocket_publictickerRealTime
-        * @see https://doc.xt.com/#futures_market_websocket_v2tickerRealTime
-        * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
-        * @param {string} symbol unified symbol of the market to fetch the ticker for
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -232,20 +233,20 @@ public partial class xt : ccxt.xt
         return await this.subscribe(name, "public", "watchTicker", market, null, parameters);
     }
 
+    /**
+     * @method
+     * @name xt#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.xt.com/#websocket_publicallTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
+     * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
+     * @param {string} [symbols] unified market symbols
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+     */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchTicker
-        * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://doc.xt.com/#websocket_publicallTicker
-        * @see https://doc.xt.com/#futures_market_websocket_v2allTicker
-        * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
-        * @param {string} [symbols] unified market symbols
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
-        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object options = this.safeDict(this.options, "watchTickers");
@@ -264,21 +265,21 @@ public partial class xt : ccxt.xt
         return this.filterByArray(this.tickers, "symbol", symbols);
     }
 
+    /**
+     * @method
+     * @name hitbtc#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://doc.xt.com/#websocket_publicsymbolKline
+     * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
+     * @param {int} [since] not used by xt watchOHLCV
+     * @param {int} [limit] not used by xt watchOHLCV
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hitbtc#watchOHLCV
-        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        * @see https://doc.xt.com/#websocket_publicsymbolKline
-        * @see https://doc.xt.com/#futures_market_websocket_v2symbolKline
-        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-        * @param {int} [since] not used by xt watchOHLCV
-        * @param {int} [limit] not used by xt watchOHLCV
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-        */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -292,20 +293,20 @@ public partial class xt : ccxt.xt
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name xt#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://doc.xt.com/#websocket_publicdealRecord
+     * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+     */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchTrades
-        * @description get the list of most recent trades for a particular symbol
-        * @see https://doc.xt.com/#websocket_publicdealRecord
-        * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
-        * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -318,22 +319,22 @@ public partial class xt : ccxt.xt
         return this.filterBySinceLimit(trades, since, limit, "timestamp");
     }
 
+    /**
+     * @method
+     * @name xt#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://doc.xt.com/#websocket_publiclimitDepth
+     * @see https://doc.xt.com/#websocket_publicincreDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
+     * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] not used by xt watchOrderBook
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @param {int} [params.levels] 5, 10, 20, or 50
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchOrderBook
-        * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://doc.xt.com/#websocket_publiclimitDepth
-        * @see https://doc.xt.com/#websocket_publicincreDepth
-        * @see https://doc.xt.com/#futures_market_websocket_v2limitDepth
-        * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
-        * @param {string} symbol unified symbol of the market to fetch the order book for
-        * @param {int} [limit] not used by xt watchOrderBook
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @param {int} [params.levels] 5, 10, 20, or 50
-        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
@@ -348,20 +349,20 @@ public partial class xt : ccxt.xt
         return (orderbook as IOrderBook).limit();
     }
 
+    /**
+     * @method
+     * @name xt#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://doc.xt.com/#websocket_privateorderChange
+     * @see https://doc.xt.com/#futures_user_websocket_v2order
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] not used by xt watchOrders
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://doc.xt.com/#websocket_privateorderChange
-        * @see https://doc.xt.com/#futures_user_websocket_v2order
-        * @param {string} [symbol] unified market symbol
-        * @param {int} [since] not used by xt watchOrders
-        * @param {int} [limit] the maximum number of orders to return
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "order";
@@ -378,20 +379,20 @@ public partial class xt : ccxt.xt
         return this.filterBySinceLimit(orders, since, limit, "timestamp");
     }
 
+    /**
+     * @method
+     * @name xt#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://doc.xt.com/#websocket_privateorderDeal
+     * @see https://doc.xt.com/#futures_user_websocket_v2trade
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of  orde structures to retrieve
+     * @param {object} params extra parameters specific to the kucoin api endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchMyTrades
-        * @description watches information on multiple trades made by the user
-        * @see https://doc.xt.com/#websocket_privateorderDeal
-        * @see https://doc.xt.com/#futures_user_websocket_v2trade
-        * @param {string} symbol unified market symbol of the market orders were made in
-        * @param {int} [since] the earliest time in ms to fetch orders for
-        * @param {int} [limit] the maximum number of  orde structures to retrieve
-        * @param {object} params extra parameters specific to the kucoin api endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "trade";
@@ -408,17 +409,17 @@ public partial class xt : ccxt.xt
         return this.filterBySinceLimit(trades, since, limit, "timestamp");
     }
 
+    /**
+     * @method
+     * @name xt#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://doc.xt.com/#websocket_privatebalanceChange
+     * @see https://doc.xt.com/#futures_user_websocket_v2balance
+     * @param {object} params extra parameters specific to the xt api endpoint
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name xt#watchOrders
-        * @description watches information on multiple orders made by the user
-        * @see https://doc.xt.com/#websocket_privatebalanceChange
-        * @see https://doc.xt.com/#futures_user_websocket_v2balance
-        * @param {object} params extra parameters specific to the xt api endpoint
-        * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object name = "balance";

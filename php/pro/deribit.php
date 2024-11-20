@@ -20,7 +20,8 @@ class deribit extends \ccxt\async\deribit {
                 'ws' => true,
                 'watchBalance' => true,
                 'watchTicker' => true,
-                'watchTickers' => false,
+                'watchTickers' => true,
+                'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchMyTrades' => true,
@@ -83,7 +84,9 @@ class deribit extends \ccxt\async\deribit {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://docs.deribit.com/#user-portfolio-currency
+             *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -168,7 +171,9 @@ class deribit extends \ccxt\async\deribit {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+             *
              * watches a price ticker, a statistical calculation with the information for a specific $market->
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -195,6 +200,51 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $channel, $request, $channel, $request));
+        }) ();
+    }
+
+    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://docs.deribit.com/#ticker-instrument_name-$interval
+             *
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $url = $this->urls['api']['ws'];
+            $interval = $this->safe_string($params, 'interval', '100ms');
+            $params = $this->omit($params, 'interval');
+            Async\await($this->load_markets());
+            if ($interval === 'raw') {
+                Async\await($this->authenticate());
+            }
+            $channels = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
+            }
+            $message = array(
+                'jsonrpc' => '2.0',
+                'method' => 'public/subscribe',
+                'params' => array(
+                    'channels' => $channels,
+                ),
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $params);
+            $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols);
         }) ();
     }
 
@@ -238,11 +288,95 @@ class deribit extends \ccxt\async\deribit {
         $client->resolve ($ticker, $messageHash);
     }
 
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             *
+             * @see https://docs.deribit.com/#quote-instrument_name
+             *
+             * watches best bid & ask for $symbols
+             * @param {string[]} [$symbols] unified symbol of the $market to fetch the ticker for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, false);
+            $url = $this->urls['api']['ws'];
+            $channels = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $market = $this->market($symbols[$i]);
+                $channels[] = 'quote.' . $market['id'];
+            }
+            $message = array(
+                'jsonrpc' => '2.0',
+                'method' => 'public/subscribe',
+                'params' => array(
+                    'channels' => $channels,
+                ),
+                'id' => $this->request_id(),
+            );
+            $request = $this->deep_extend($message, $params);
+            $newTickers = Async\await($this->watch_multiple($url, $channels, $request, $channels, $request));
+            if ($this->newUpdates) {
+                $tickers = array();
+                $tickers[$newTickers['symbol']] = $newTickers;
+                return $tickers;
+            }
+            return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_bid_ask(Client $client, $message) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "method" => "subscription",
+        //         "params" => {
+        //             "channel" => "quote.BTC_USDT",
+        //             "data" => {
+        //                 "best_bid_amount" => 0.026,
+        //                 "best_ask_amount" => 0.026,
+        //                 "best_bid_price" => 63908,
+        //                 "best_ask_price" => 63940,
+        //                 "instrument_name" => "BTC_USDT",
+        //                 "timestamp" => 1727765131750
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $ticker = $this->parse_ws_bid_ask($data);
+        $symbol = $ticker['symbol'];
+        $this->bidsasks[$symbol] = $ticker;
+        $messageHash = $this->safe_string($params, 'channel');
+        $client->resolve ($ticker, $messageHash);
+    }
+
+    public function parse_ws_bid_ask($ticker, $market = null) {
+        $marketId = $this->safe_string($ticker, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $this->safe_string($market, 'symbol');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($ticker, 'best_ask_price'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_amount'),
+            'bid' => $this->safe_string($ticker, 'best_bid_price'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
+            'info' => $ticker,
+        ), $market);
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.deribit.com/#trades-instrument_name-interval
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -259,7 +393,9 @@ class deribit extends \ccxt\async\deribit {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             *
              * @see https://docs.deribit.com/#$trades-instrument_name-$interval
+             *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -330,7 +466,9 @@ class deribit extends \ccxt\async\deribit {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of $trades associated with the user
+             *
              * @see https://docs.deribit.com/#user-$trades-instrument_name-$interval
+             *
              * @param {string} $symbol unified $symbol of the market to fetch $trades for. Use 'any' to watch all $trades
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -416,7 +554,9 @@ class deribit extends \ccxt\async\deribit {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://docs.deribit.com/#book-instrument_name-group-depth-interval
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -433,7 +573,9 @@ class deribit extends \ccxt\async\deribit {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://docs.deribit.com/#book-instrument_name-$group-$depth-$interval
+             *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -578,7 +720,9 @@ class deribit extends \ccxt\async\deribit {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.deribit.com/#user-$orders-instrument_name-raw
+             *
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified market $symbol of the market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -673,7 +817,9 @@ class deribit extends \ccxt\async\deribit {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+             *
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -693,7 +839,9 @@ class deribit extends \ccxt\async\deribit {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
              * @see https://docs.deribit.com/#chart-trades-instrument_name-resolution
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
@@ -898,6 +1046,7 @@ class deribit extends \ccxt\async\deribit {
             );
             $handlers = array(
                 'ticker' => array($this, 'handle_ticker'),
+                'quote' => array($this, 'handle_bid_ask'),
                 'book' => array($this, 'handle_order_book'),
                 'trades' => array($this, 'handle_trades'),
                 'chart' => array($this, 'handle_ohlcv'),

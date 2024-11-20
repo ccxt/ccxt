@@ -397,6 +397,15 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_account_mmp_state($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_asset_exchange_query_coin_list($params = array()) {
+        return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_v5_asset_exchange_convert_result_query($params = array()) {
+        return $this->request('v5/asset/exchange/convert-result-query', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function private_get_v5_asset_exchange_query_convert_history($params = array()) {
+        return $this->request('v5/asset/exchange/query-convert-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
     public function private_get_v5_asset_exchange_order_record($params = array()) {
         return $this->request('v5/asset/exchange/order-record', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -481,6 +490,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function private_get_v5_spot_lever_token_order_record($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_spot_margin_trade_interest_rate_history($params = array()) {
+        return $this->request('v5/spot-margin-trade/interest-rate-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v5_spot_margin_trade_state($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -531,45 +543,6 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_get_v5_broker_asset_query_sub_member_deposit_record($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
-    }
-    public function private_post_option_usdc_openapi_private_v1_place_order($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_replace_order($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/replace-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_cancel_order($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_cancel_all($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/cancel-all', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_query_active_orders($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-active-orders', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_query_order_history($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_execution_list($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/execution-list', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_option_usdc_openapi_private_v1_query_position($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-position', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_perpetual_usdc_openapi_private_v1_place_order($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_perpetual_usdc_openapi_private_v1_replace_order($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/replace-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_perpetual_usdc_openapi_private_v1_cancel_order($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_perpetual_usdc_openapi_private_v1_cancel_all($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/cancel-all', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function private_post_perpetual_usdc_openapi_private_v1_position_leverage_save($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/position/leverage/save', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function private_post_spot_v3_private_order($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -810,6 +783,12 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function private_post_v5_account_mmp_reset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_v5_asset_exchange_quote_apply($params = array()) {
+        return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v5_asset_exchange_convert_execute($params = array()) {
+        return $this->request('v5/asset/exchange/convert-execute', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_v5_asset_transfer_inter_transfer($params = array()) {
         return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));
@@ -1282,6 +1261,15 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5AccountMmpState($params = array()) {
         return $this->request('v5/account/mmp-state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5AssetExchangeQueryCoinList($params = array()) {
+        return $this->request('v5/asset/exchange/query-coin-list', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetV5AssetExchangeConvertResultQuery($params = array()) {
+        return $this->request('v5/asset/exchange/convert-result-query', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetV5AssetExchangeQueryConvertHistory($params = array()) {
+        return $this->request('v5/asset/exchange/query-convert-history', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
     public function privateGetV5AssetExchangeOrderRecord($params = array()) {
         return $this->request('v5/asset/exchange/order-record', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1366,6 +1354,9 @@ abstract class bybit extends \ccxt\Exchange {
     public function privateGetV5SpotLeverTokenOrderRecord($params = array()) {
         return $this->request('v5/spot-lever-token/order-record', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetV5SpotMarginTradeInterestRateHistory($params = array()) {
+        return $this->request('v5/spot-margin-trade/interest-rate-history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV5SpotMarginTradeState($params = array()) {
         return $this->request('v5/spot-margin-trade/state', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1416,45 +1407,6 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privateGetV5BrokerAssetQuerySubMemberDepositRecord($params = array()) {
         return $this->request('v5/broker/asset/query-sub-member-deposit-record', 'private', 'GET', $params, null, null, array("cost" => 10));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1PlaceOrder($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1ReplaceOrder($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/replace-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1CancelOrder($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1CancelAll($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/cancel-all', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-active-orders', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1ExecutionList($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/execution-list', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostOptionUsdcOpenapiPrivateV1QueryPosition($params = array()) {
-        return $this->request('option/usdc/openapi/private/v1/query-position', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostPerpetualUsdcOpenapiPrivateV1PlaceOrder($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/place-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostPerpetualUsdcOpenapiPrivateV1ReplaceOrder($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/replace-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostPerpetualUsdcOpenapiPrivateV1CancelAll($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/cancel-all', 'private', 'POST', $params, null, null, array("cost" => 2.5));
-    }
-    public function privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave($params = array()) {
-        return $this->request('perpetual/usdc/openapi/private/v1/position/leverage/save', 'private', 'POST', $params, null, null, array("cost" => 2.5));
     }
     public function privatePostSpotV3PrivateOrder($params = array()) {
         return $this->request('spot/v3/private/order', 'private', 'POST', $params, null, null, array("cost" => 2.5));
@@ -1695,6 +1647,12 @@ abstract class bybit extends \ccxt\Exchange {
     }
     public function privatePostV5AccountMmpReset($params = array()) {
         return $this->request('v5/account/mmp-reset', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostV5AssetExchangeQuoteApply($params = array()) {
+        return $this->request('v5/asset/exchange/quote-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV5AssetExchangeConvertExecute($params = array()) {
+        return $this->request('v5/asset/exchange/convert-execute', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostV5AssetTransferInterTransfer($params = array()) {
         return $this->request('v5/asset/transfer/inter-transfer', 'private', 'POST', $params, null, null, array("cost" => 50));

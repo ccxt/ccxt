@@ -50,10 +50,13 @@ class okcoin extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true, // see below
                 'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
                 'fetchLedger' => true,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -582,6 +585,9 @@ class okcoin extends Exchange {
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
                     'ERC20' => 'Ethereum',
+                    'BTC' => 'Bitcoin',
+                    'OMNI' => 'Omni',
+                    'TRC20' => 'TRON',
                 ),
             ),
             'commonCurrencies' => array(
@@ -620,7 +626,9 @@ class okcoin extends Exchange {
     public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-public-data-get-instruments
+             *
              * retrieves data on all $markets for okcoin
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
@@ -718,15 +726,6 @@ class okcoin extends Exchange {
         ));
     }
 
-    public function safe_network($networkId) {
-        $networksById = array(
-            'Bitcoin' => 'BTC',
-            'Omni' => 'OMNI',
-            'TRON' => 'TRC20',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -768,7 +767,7 @@ class okcoin extends Exchange {
                         if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                             $parts = explode('-', $networkId);
                             $chainPart = $this->safe_string($parts, 1, $networkId);
-                            $networkCode = $this->safe_network($chainPart);
+                            $networkCode = $this->network_id_to_code($chainPart);
                             $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                             if ($maxPrecision === null) {
                                 $maxPrecision = $precision;
@@ -821,7 +820,9 @@ class okcoin extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-order-book
+             *
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -925,7 +926,9 @@ class okcoin extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-ticker
+             *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -972,7 +975,9 @@ class okcoin extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-market-$data-get-tickers
+             *
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1067,8 +1072,10 @@ class okcoin extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-trades-history
+             *
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1124,8 +1131,10 @@ class okcoin extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-$market-$data-get-candlesticks-history
+             *
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1316,7 +1325,9 @@ class okcoin extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1336,10 +1347,12 @@ class okcoin extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-$order
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-algo-$order
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-place-multiple-orders
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-$order
+             *
              * create a trade $order
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market' or 'limit'
@@ -1620,9 +1633,11 @@ class okcoin extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-$order
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-$order
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-$order
+             *
              * cancels an open $order
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -1679,9 +1694,11 @@ class okcoin extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-multiple-orders
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-algo-order
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-cancel-advance-algo-order
+             *
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1969,9 +1986,12 @@ class okcoin extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-$order-details
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-$order-list
+             *
              * fetches information on an $order made by the user
+             * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -2017,8 +2037,10 @@ class okcoin extends Exchange {
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-list
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-list
+             *
              * fetch all unfilled currently open orders
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -2065,9 +2087,11 @@ class okcoin extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-algo-order-history
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-3-months
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-order-history-last-7-days
+             *
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2150,7 +2174,7 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "addr" => "okbtothemoon",
@@ -2234,19 +2258,21 @@ class okcoin extends Exchange {
         //
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => $network,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
-            'info' => $depositAddress,
         );
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a currency associated with this account
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+             *
              * @param {string} $code unified currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -2265,11 +2291,13 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()) {
+    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch a dictionary of addresses for a $currency, indexed by network
+             *
              * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
+             *
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~ indexed by the network
@@ -2311,7 +2339,9 @@ class okcoin extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-funds-transfer
+             *
              * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
@@ -2454,10 +2484,12 @@ class okcoin extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-withdrawal
+             *
              * make a withdrawal
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -2518,7 +2550,9 @@ class okcoin extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-deposit-history
+             *
              * fetch all deposits made to an account
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2593,7 +2627,9 @@ class okcoin extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-get-withdrawal-history
+             *
              * fetch all withdrawals made from an account
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2794,8 +2830,10 @@ class okcoin extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-days
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-trade-get-transaction-details-last-3-months
+             *
              * fetch all trades made by the user
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -2850,16 +2888,18 @@ class okcoin extends Exchange {
         }) ();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
+             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+             *
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-funding-asset-bills-details
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-7-days
              * @see https://www.okcoin.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
-             * fetch the history of changes, actions done by the user or operations that altered balance of the user
-             * @param {string} $code unified $currency $code, default is null
+             *
+             * @param {string} [$code] unified $currency $code, default is null
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entrys to return, default is null
+             * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
              */
@@ -2965,7 +3005,7 @@ class okcoin extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry(array $item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null): array {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -3002,46 +3042,37 @@ class okcoin extends Exchange {
         //         "ts" => "1597026383085"
         //     }
         //
-        $id = $this->safe_string($item, 'billId');
-        $account = null;
-        $referenceId = $this->safe_string($item, 'ordId');
-        $referenceAccount = null;
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
-        $code = $this->safe_currency_code($this->safe_string($item, 'ccy'), $currency);
-        $amountString = $this->safe_string($item, 'balChg');
-        $amount = $this->parse_number($amountString);
+        $currencyId = $this->safe_string($item, 'ccy');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $currency = $this->safe_currency($currencyId, $currency);
         $timestamp = $this->safe_integer($item, 'ts');
         $feeCostString = $this->safe_string($item, 'fee');
         $fee = null;
         if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
+                'cost' => $this->parse_to_numeric(Precise::string_neg($feeCostString)),
                 'currency' => $code,
             );
         }
-        $before = null;
-        $afterString = $this->safe_string($item, 'bal');
-        $after = $this->parse_number($afterString);
-        $status = 'ok';
         $marketId = $this->safe_string($item, 'instId');
         $symbol = $this->safe_symbol($marketId, null, '-');
-        return array(
-            'id' => $id,
+        return $this->safe_ledger_entry(array(
             'info' => $item,
+            'id' => $this->safe_string($item, 'billId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'account' => $account,
-            'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
-            'type' => $type,
+            'account' => null,
+            'referenceId' => $this->safe_string($item, 'ordId'),
+            'referenceAccount' => null,
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'currency' => $code,
             'symbol' => $symbol,
-            'amount' => $amount,
-            'before' => $before, // balance $before
-            'after' => $after, // balance $after
-            'status' => $status,
+            'amount' => $this->safe_number($item, 'balChg'),
+            'before' => null, // balance before
+            'after' => $this->safe_number($item, 'bal'), // balance after
+            'status' => 'ok',
             'fee' => $fee,
-        );
+        ), $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
