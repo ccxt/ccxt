@@ -370,7 +370,7 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     }
 }
 
-async function tryFetchBestBidAsk (exchange, method, symbol) {
+async function fetchBestBidAsk (exchange, method, symbol) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
     let bestBid = undefined;
@@ -409,7 +409,7 @@ async function tryFetchBestBidAsk (exchange, method, symbol) {
     return [ bestBid, bestAsk ];
 }
 
-async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
+async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
     let fetchedOrder = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
@@ -590,8 +590,8 @@ export default {
     assertNonEqual,
     assertInteger,
     checkPrecisionAccuracy,
-    tryFetchBestBidAsk,
-    tryFetchOrder,
+    fetchBestBidAsk,
+    fetchOrder,
     assertOrderState,
     assertValidCurrencyIdAndCode,
     assertType,

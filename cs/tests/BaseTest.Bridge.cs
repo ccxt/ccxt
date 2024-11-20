@@ -166,7 +166,7 @@ public partial class BaseTest
         return isEqual(a, b);
 
     }
-  
+
     public object json(object a)
     {
         return Exchange.Json(a);
