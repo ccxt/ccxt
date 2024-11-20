@@ -3594,8 +3594,8 @@ export default class bybit extends Exchange {
         const id = this.safeString (order, 'orderId');
         const type = this.safeStringLower (order, 'orderType');
         const price = this.safeString (order, 'price');
-        let amount: String = undefined;
-        let cost: String = undefined;
+        let amount: Str = undefined;
+        let cost: Str = undefined;
         if (marketUnit === 'baseCoin') {
             amount = this.safeString (order, 'qty');
             cost = this.safeString (order, 'cumExecValue');
