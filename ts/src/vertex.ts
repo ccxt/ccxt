@@ -2377,9 +2377,8 @@ export default class vertex extends Exchange {
             'nonce': nonce,
         };
         const marketIdNum = this.parseToNumeric (marketId);
-        const cancelProductIds = cancels['productIds'];
         for (let i = 0; i < ids.length; i++) {
-            cancelProductIds.push (marketIdNum);
+            cancels['productIds'].push (marketIdNum);
         }
         const request = {
             'cancel_orders': {
