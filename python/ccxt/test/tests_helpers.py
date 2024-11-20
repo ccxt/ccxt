@@ -40,7 +40,6 @@ class Argv(object):
     ws_tests = False
     request_tests = False
     response_tests = False
-    token_bucket = False
     sandbox = False
     privateOnly = False
     private = False
@@ -58,7 +57,6 @@ class Argv(object):
 
 argv = Argv()
 parser = argparse.ArgumentParser()
-parser.add_argument('--token_bucket', action='store_true', help='enable token bucket experimental test')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
