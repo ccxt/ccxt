@@ -1309,7 +1309,8 @@ export default class ellipx extends Exchange {
      * @description Cancels an open order on the exchange
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.f1qu1pb1rebn
      * @param {string} id - The order ID to cancel (format: mktor-xxxxx-xxxx-xxxx-xxxx-xxxxxxxx)
-     * @param {object} [params={}] - Extra parameters specific to the exchange API
+     * @param {string} [symbol] - ellipx.cancelOrder does not use the symbol parameter
+     * @param {object} [params] - Extra parameters specific to the exchange API
      * @returns {Promise<object>} A Promise that resolves to the canceled order info
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -1456,7 +1457,7 @@ export default class ellipx extends Exchange {
 
     /**
      * @method
-     * @@description Make a withdrawal request
+     * @description Make a withdrawal request
      * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.zegupoa8g4t9
      * @param {string} code Currency code
      * @param {number} amount Amount to withdraw
