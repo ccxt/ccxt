@@ -7477,6 +7477,11 @@ export default class okx extends Exchange {
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
+        if (codes !== undefined) {
+            const ids = this.currencyIds (codes);
+            request['ccy'] = ids.join (',');
+        }
         const response = await this.privateGetAssetCurrencies (params);
         //
         //    {
