@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	neturl "net/url"
 	"strings"
 	"time"
 )
@@ -65,8 +66,23 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
+		// Create a transport with the proxy
+		transport := &http.Transport{}
+
+		if (httProxy != nil) || (httpsProxy != nil) {
+			proxyUrlStr := ""
+			if httProxy != nil {
+				proxyUrlStr = httProxy.(string)
+			} else {
+				proxyUrlStr = httpsProxy.(string)
+			}
+			proxyURLParsed, _ := neturl.Parse(proxyUrlStr)
+			transport.Proxy = http.ProxyURL(proxyURLParsed)
+		}
+
 		client := &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout:   30 * time.Second,
+			Transport: transport,
 		}
 
 		// Marshal the body to JSON if not nil
