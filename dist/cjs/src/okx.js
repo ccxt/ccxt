@@ -3309,7 +3309,7 @@ class okx extends okx$1 {
                 request['newPx'] = this.priceToPrecision(symbol, price);
             }
         }
-        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly']);
         return this.extend(request, params);
     }
     /**

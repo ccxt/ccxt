@@ -3168,7 +3168,7 @@ class okx(Exchange, ImplicitAPI):
         if not isAlgoOrder:
             if price is not None:
                 request['newPx'] = self.price_to_precision(symbol, price)
-        params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit'])
+        params = self.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly'])
         return self.extend(request, params)
 
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):

@@ -3340,7 +3340,7 @@ class okx extends Exchange {
                 $request['newPx'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         return $this->extend($request, $params);
     }
 

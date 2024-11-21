@@ -3312,7 +3312,7 @@ export default class okx extends Exchange {
                 request['newPx'] = this.priceToPrecision(symbol, price);
             }
         }
-        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly']);
         return this.extend(request, params);
     }
     /**

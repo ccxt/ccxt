@@ -3294,7 +3294,7 @@ export default class okx extends Exchange {
                 request['newPx'] = this.priceToPrecision (symbol, price);
             }
         }
-        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ]);
+        params = this.omit (params, [ 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ]);
         return this.extend (request, params);
     }
 
@@ -6478,7 +6478,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
@@ -6505,14 +6505,12 @@ export default class okx extends Exchange {
             'mgnMode': marginMode,
             'instId': market['id'],
         };
-        const posSide = this.safeString (params, 'posSide');
+        const posSide = this.safeString (params, 'posSide', 'net');
         if (marginMode === 'isolated') {
-            if (posSide === undefined) {
-                throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
-            }
             if (posSide !== 'long' && posSide !== 'short' && posSide !== 'net') {
                 throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
+            request['posSide'] = posSide;
         }
         const response = await this.privatePostAccountSetLeverage (this.extend (request, params));
         //

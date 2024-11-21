@@ -839,7 +839,7 @@ class cex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(key)
             account: dict = {
                 'used': self.safe_string(balance, 'balanceOnHold'),
-                'free': self.safe_string(balance, 'balance'),
+                'total': self.safe_string(balance, 'balance'),
             }
             result[code] = account
         return self.safe_balance(result)

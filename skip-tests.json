@@ -1614,7 +1614,8 @@
             "fetchOHLCV": "spot not supported",
             "fetchCurrencies": {
                 "deposit": "not provided",
-                "precision": "not provided"
+                "precision": "not provided",
+                "limits": "min/max essup temrporarily"
             },
             "orderBook": {
                 "bid": "multiple bid prices are equal https://app.travis-ci.com/github/ccxt/ccxt/builds/265172859#L2745"

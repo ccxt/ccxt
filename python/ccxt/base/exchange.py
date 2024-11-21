@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.32'
+__version__ = '4.4.33'
 
 # -----------------------------------------------------------------------------
 
@@ -2769,7 +2769,7 @@ class Exchange(object):
         self.features = {}
         unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
         subTypes = ['linear', 'inverse']
-        # atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for i in range(0, len(unifiedMarketTypes)):
             marketType = unifiedMarketTypes[i]
             # if marketType is not filled for self exchange, don't add that in `features`
@@ -2789,8 +2789,8 @@ class Exchange(object):
         extendsStr: Str = self.safe_string(featuresObj, 'extends')
         if extendsStr is not None:
             featuresObj = self.omit(featuresObj, 'extends')
-            extendObj = initialFeatures[extendsStr]
-            featuresObj = self.extend(extendObj, featuresObj)  # Warning, do not use deepExtend here, because we override only one level
+            extendObj = self.features_mapper(initialFeatures, extendsStr)
+            featuresObj = self.deep_extend(extendObj, featuresObj)
         #
         # corrections
         #
@@ -2799,9 +2799,9 @@ class Exchange(object):
             if value is not None:
                 featuresObj['createOrder']['stopLoss'] = value
                 featuresObj['createOrder']['takeProfit'] = value
-            # omit 'hedged' from spot
+            # False 'hedged' for spot
             if marketType == 'spot':
-                featuresObj['createOrder']['hedged'] = None
+                featuresObj['createOrder']['hedged'] = False
         return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
