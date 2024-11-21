@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -637,9 +637,6 @@ export default class ellipx extends Exchange {
         //     "result": "success",
         //     "time": 0.000074661
         // }
-        if (response['result'] !== 'success') {
-            throw new ExchangeError (this.id + ' fetchOrderBook() failed: ' + this.json (response));
-        }
         const data = this.safeValue (response, 'data', {}); // exchange specific v e f params
         const timestamp = this.milliseconds (); // the exchange does not provide timestamp for this.
         const dataBidsLength = data['bids'].length;
@@ -678,9 +675,6 @@ export default class ellipx extends Exchange {
         const market = this.market (symbol);
         const marketId = market['id'];
         const time_frame = this.safeString (this.timeframes, timeframe, undefined);
-        if (time_frame === undefined) {
-            throw new ExchangeError (this.id + ' fetchOHLCV() does not support timeframe ' + timeframe);
-        }
         const request: Dict = {
             'currencyPair': marketId,
             'interval': time_frame,
@@ -747,9 +741,6 @@ export default class ellipx extends Exchange {
             'results_per_page': 100,
             '_expand': '/Crypto_Token,/Crypto_Chain',
         }, params));
-        if (response['result'] !== 'success') {
-            throw new ExchangeError (this.id + ' fetchCurrencies() failed: ' + this.json (response));
-        }
         const currencies = {};
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
@@ -1386,10 +1377,6 @@ export default class ellipx extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const network = this.safeValue (currency['info'], 'Crypto_Chain', undefined);
-        // check if the currency supports deposit
-        if (!currency['info']['Can_Deposit']) {
-            throw new ExchangeError (this.id + ' does not support deposit for ' + code);
-        }
         const request = {
             'Crypto_Token__': this.safeString (network, 'Crypto_Token__'),
             'Crypto_Chain__': this.safeString (network, 'Crypto_Chain__'),
@@ -1473,36 +1460,15 @@ export default class ellipx extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const networks = this.safeValue (currency, 'networks');
-        const currencyChainId = this.safeString (networks, 'id');
-        const currencyTokenInfo = this.safeString (networks['info'], 'Crypto_Token__');
         if (networks === undefined) {
             throw new NotSupported (this.id + ' withdraw() for ' + code + ' is not supported');
         }
         const chainsResponse = await this.privateGetUnitCurrency ({ 'currency': currency['code'] }); // fetch Unit__ params for currency
         const chainsData = this.safeValue (chainsResponse, 'data', []);
-        if (chainsData.length === 0) {
-            throw new ExchangeError (this.id + ' withdraw() failed to fetch Unit__ for currency ' + code);
-        }
-        let tokenId = undefined;
-        const chainNetworkName = this.safeString (chainsData, 'Crypto_Token__');
-        if (chainNetworkName === currencyTokenInfo) {
-            tokenId = this.safeString (chainsData, 'Crypto_Token__');
-        }
-        if (tokenId === undefined) {
-            throw new ExchangeError (this.id + ' withdraw() currencyId ' + currencyChainId + ' not found for currency ' + code);
-        }
         const unit = this.safeString (chainsData, 'Unit__');
         // check params again and omit params
-        const unitParams = this.safeString (params, 'Unit__');
         this.omit (params, 'Unit__');
-        const currencyChainIdParams = this.safeString (params, 'Crypto_Chain__');
         this.omit (params, 'Crypto_Chain__');
-        if (unit !== unitParams) {
-            throw new ExchangeError (this.id + ' withdraw() Unit__ ' + unit + ' does not match ' + unitParams);
-        }
-        if (currencyChainId !== currencyChainIdParams) {
-            throw new ExchangeError (this.id + ' withdraw() currencyChainId ' + currencyChainId + ' does not match ' + currencyChainIdParams);
-        }
         const amountString = amount.toString ();
         const request = {
             'Unit__': unit,
@@ -1682,5 +1648,25 @@ export default class ellipx extends Exchange {
             'v': v,
             'e': e,
         };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        // {
+        //     "code": 404,
+        //     "error": "Not Found: Crypto\\Token(US)",
+        //     "exception": "Exception\\NotFound",
+        //     "message": "[I18N:error_not_found]",
+        //     "request": "cc83738a-2438-4f53-ae44-f15306c07f32",
+        //     "result": "error",
+        //     "time": 0.0089569091796875,
+        //     "token": "error_not_found"
+        // }
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if (errorCode !== undefined) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
+            throw new ExchangeError (this.id + ' ' + message);
+        }
+        return undefined;
     }
 }
