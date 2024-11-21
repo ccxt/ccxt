@@ -7482,7 +7482,7 @@ export default class okx extends Exchange {
             const ids = this.currencyIds (codes);
             request['ccy'] = ids.join (',');
         }
-        const response = await this.privateGetAssetCurrencies (params);
+        const response = await this.privateGetAssetCurrencies (this.extend (request, params));
         //
         //    {
         //        "code": "0",
