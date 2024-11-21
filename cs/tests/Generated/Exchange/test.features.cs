@@ -72,11 +72,7 @@ public partial class testMainClass : BaseTest
                     { "GTD", false },
                 } },
                 { "hedged", false },
-                { "selfTradePrevention", false },
                 { "trailing", false },
-                { "twap", false },
-                { "iceberg", false },
-                { "oco", false },
             } },
             { "createOrders", new Dictionary<string, object>() {
                 { "max", 5 },

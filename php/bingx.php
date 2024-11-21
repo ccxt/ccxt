@@ -494,6 +494,135 @@ class bingx extends Exchange {
                     'MATIC' => 'POLYGON',
                 ),
             ),
+            'features' => array(
+                'defaultForLinear' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'limitPrice' => true,
+                        ),
+                        'marginMode' => false,
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        'trailing' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 5,
+                    ),
+                    'fetchMyTrades' => array(
+                        'limit' => 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
+                        'daysBack' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'limit' => null,
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'limit' => 1000,
+                        'daysBack' => 20000, // since epoch
+                        'untilDays' => 7,
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'limit' => 1000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 7,
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                ),
+                'defaultForInverse' => array(
+                    'extends' => 'defaultForLinear',
+                    'fetchMyTrades' => array(
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1440,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'limit' => 1000,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 7,
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                ),
+                //
+                'spot' => array(
+                    'extends' => 'defaultForLinear',
+                    'createOrder' => array(
+                        'triggerPriceType' => null,
+                        'attachedStopLossTakeProfit' => null,
+                        'trailing' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'limit' => 1000,
+                        'daysBack' => 1,
+                        'untilDays' => 1,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'limit' => 100,
+                        'untilDays' => null,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'defaultForLinear',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'defaultForInverse',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'defaultForLinear',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'defaultForInverse',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -3926,7 +4055,8 @@ class bingx extends Exchange {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -3954,12 +4084,7 @@ class bingx extends Exchange {
         if ($since !== null) {
             $request['startTime'] = $since;
         }
-        $until = $this->safe_integer($params, 'until'); // unified in milliseconds
-        $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
-        $params = $this->omit($params, array( 'endTime', 'until' ));
-        if ($endTime !== null) {
-            $request['endTime'] = $endTime;
-        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->swapV1PrivateGetTradeFullOrder ($this->extend($request, $params));
         //
         //     {
@@ -4246,6 +4371,9 @@ class bingx extends Exchange {
         if ($standard) {
             $response = $this->contractV1PrivateGetAllOrders ($this->extend($request, $params));
         } elseif ($type === 'spot') {
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
             $response = $this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params));
             //
             //    {
@@ -5082,6 +5210,7 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
          * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
          *
          * @param {string} [$symbol] unified $market $symbol
@@ -5143,7 +5272,7 @@ class bingx extends Exchange {
                 $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
                 $request[$startTimeReq] = $since;
             } elseif ($market['swap']) {
-                $request['startTs'] = $now - 7776000000; // 90 days
+                $request['startTs'] = $now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
             }
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, 'until');

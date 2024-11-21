@@ -67,11 +67,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                 'GTD': False,
             },
             'hedged': False,
-            'selfTradePrevention': False,
             'trailing': False,
-            'twap': False,
-            'iceberg': False,
-            'oco': False,
         },
         'createOrders': {
             'max': 5,

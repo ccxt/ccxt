@@ -512,6 +512,135 @@ class bingx(Exchange, ImplicitAPI):
                     'MATIC': 'POLYGON',
                 },
             },
+            'features': {
+                'defaultForLinear': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': True,
+                                'mark': True,
+                                'index': True,
+                            },
+                            'limitPrice': True,
+                        },
+                        'marginMode': False,
+                        'timeInForce': {
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        'trailing': True,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
+                        'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                        'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': None,
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOrders': {
+                        'limit': 1000,
+                        'daysBack': 20000,  # since epoch
+                        'untilDays': 7,
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchClosedOrders': {
+                        'limit': 1000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 7,
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'defaultForInverse': {
+                    'extends': 'defaultForLinear',
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'limit': 1000,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                        'untilDays': 7,
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                    },
+                },
+                #
+                'spot': {
+                    'extends': 'defaultForLinear',
+                    'createOrder': {
+                        'triggerPriceType': None,
+                        'attachedStopLossTakeProfit': None,
+                        'trailing': False,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': 1,
+                        'untilDays': 1,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'untilDays': None,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'defaultForLinear',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForInverse',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'defaultForLinear',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForInverse',
+                    },
+                },
+            },
         })
 
     def fetch_time(self, params={}):
@@ -3764,7 +3893,8 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history(returns less fields than above)
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3788,11 +3918,7 @@ class bingx(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None:
             request['startTime'] = since
-        until = self.safe_integer(params, 'until')  # unified in milliseconds
-        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'until'])
-        if endTime is not None:
-            request['endTime'] = endTime
+        request, params = self.handle_until_option('endTime', request, params)
         response = self.swapV1PrivateGetTradeFullOrder(self.extend(request, params))
         #
         #     {
@@ -4071,6 +4197,8 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
         elif type == 'spot':
+            if limit is not None:
+                request['limit'] = limit
             response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))
             #
             #    {
@@ -4861,6 +4989,7 @@ class bingx(Exchange, ImplicitAPI):
 
         https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
 
         :param str [symbol]: unified market symbol
@@ -4920,7 +5049,7 @@ class bingx(Exchange, ImplicitAPI):
                 startTimeReq = 'startTime' if market['spot'] else 'startTs'
                 request[startTimeReq] = since
             elif market['swap']:
-                request['startTs'] = now - 7776000000  # 90 days
+                request['startTs'] = now - 30 * 24 * 60 * 60 * 1000  # 30 days for swap
             until = self.safe_integer(params, 'until')
             params = self.omit(params, 'until')
             if until is not None:
