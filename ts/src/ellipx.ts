@@ -1060,7 +1060,7 @@ export default class ellipx extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder requires an amount or Spend_Limit');
         }
         if (amount !== undefined) {
-            request['Amount'] = amount.toString ();
+            request['Amount'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['Price'] = this.priceToPrecision (symbol, price);
