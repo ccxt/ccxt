@@ -6,6 +6,19 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchDepositWithdrawFees": [
+                {
+                    "description": "with codes",
+                    "method": "fetchDepositWithdrawFees",
+                    "url": "https://www.okx.com/api/v5/asset/currencies",
+                    "input": [
+                        [
+                            "USDT"
+                        ]
+                    ],
+                    "output": null
+                }
+        ],
         "createOrder": [
             {
                 "description": "Spot limit buy order",

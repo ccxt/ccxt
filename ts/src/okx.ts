@@ -1821,7 +1821,7 @@ export default class okx extends Exchange {
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
+                        'fee': this.safeNumber (chain, 'fee'),
                         'precision': this.parseNumber (precision),
                         'limits': {
                             'withdraw': {
@@ -7565,7 +7565,7 @@ export default class okx extends Exchange {
                 }
                 const chainSplit = chain.split ('-');
                 const networkId = this.safeValue (chainSplit, 1);
-                const withdrawFee = this.safeNumber (feeInfo, 'minFee');
+                const withdrawFee = this.safeNumber (feeInfo, 'fee');
                 const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,

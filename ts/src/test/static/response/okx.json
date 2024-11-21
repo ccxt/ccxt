@@ -3,6 +3,195 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+    "fetchDepositWithdrawFees": [
+            {
+                "description": "with codes",
+                "method": "fetchDepositWithdrawFees",
+                "input": [
+                    [
+                        "USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "burningFeeRate": "",
+                            "canDep": true,
+                            "canInternal": true,
+                            "canWd": true,
+                            "ccy": "USDT",
+                            "chain": "USDT-TRC20",
+                            "depQuotaFixed": "",
+                            "depQuoteDailyLayer2": "",
+                            "fee": "1.5",
+                            "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                            "mainNet": false,
+                            "maxFee": "1.5",
+                            "maxFeeForCtAddr": "",
+                            "maxWd": "49024550",
+                            "minDep": "0.00000001",
+                            "minDepArrivalConfirm": "19",
+                            "minFee": "1.5",
+                            "minFeeForCtAddr": "",
+                            "minWd": "2",
+                            "minWdUnlockConfirm": "38",
+                            "name": "Tether",
+                            "needTag": false,
+                            "usedDepQuotaFixed": "",
+                            "usedWdQuota": "0",
+                            "wdQuota": "10000000",
+                            "wdTickSz": "6"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "USDT": {
+                                "burningFeeRate": "",
+                                "canDep": true,
+                                "canInternal": true,
+                                "canWd": true,
+                                "ccy": "USDT",
+                                "chain": "USDT-X Layer",
+                                "depQuotaFixed": "",
+                                "depQuoteDailyLayer2": "",
+                                "fee": "0.1",
+                                "logoLink": "https://static.coinall.ltd/cdn/oksupport/asset/currency/icon/usdt20240813135750.png",
+                                "mainNet": false,
+                                "maxFee": "0.1",
+                                "maxFeeForCtAddr": "",
+                                "maxWd": "14707365",
+                                "minDep": "0.00000001",
+                                "minDepArrivalConfirm": "120",
+                                "minFee": "0.1",
+                                "minFeeForCtAddr": "",
+                                "minWd": "0.0001",
+                                "minWdUnlockConfirm": "120",
+                                "name": "Tether",
+                                "needTag": false,
+                                "usedDepQuotaFixed": "",
+                                "usedWdQuota": "0",
+                                "wdQuota": "10000000",
+                                "wdTickSz": "6"
+                            }
+                        },
+                        "withdraw": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "deposit": {
+                            "fee": null,
+                            "percentage": null
+                        },
+                        "networks": {
+                            "TRC20": {
+                                "withdraw": {
+                                    "fee": 1.5,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "ERC20": {
+                                "withdraw": {
+                                    "fee": 5.51,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "ARBONE": {
+                                "withdraw": {
+                                    "fee": 0.098,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "AVAXC": {
+                                "withdraw": {
+                                    "fee": 0.22,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "OKTC": {
+                                "withdraw": {
+                                    "fee": 0,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "OPTIMISM": {
+                                "withdraw": {
+                                    "fee": 0.15,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "MATIC": {
+                                "withdraw": {
+                                    "fee": 0.8,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "SOL": {
+                                "withdraw": {
+                                    "fee": 1,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "TON": {
+                                "withdraw": {
+                                    "fee": 0.15,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            },
+                            "X Layer": {
+                                "withdraw": {
+                                    "fee": 0.1,
+                                    "percentage": false
+                                },
+                                "deposit": {
+                                    "fee": null,
+                                    "percentage": null
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    ],
         "fetchStatus" : [
             {
                 "description": "Fetch status",
