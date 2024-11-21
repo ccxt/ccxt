@@ -9,13 +9,13 @@ export default class gate extends Exchange {
     setSandboxMode(enable: boolean): void;
     /**
      * @method
-     * @name gate#isUnifiedEnabled
+     * @name gate#loadUnifiedStatus
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    loadUnifiedStatus(params?: {}): Promise<void>;
+    loadUnifiedStatus(params?: {}): Promise<any>;
     upgradeUnifiedTradeAccount(params?: {}): Promise<any>;
     /**
      * @method

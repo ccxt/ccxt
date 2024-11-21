@@ -1240,12 +1240,12 @@ class bybit(Exchange, ImplicitAPI):
 
     async def is_unified_enabled(self, params={}):
         """
-        :param dict [params]: extra parameters specific to the exchange API endpoint
 
         https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
         https://bybit-exchange.github.io/docs/v5/account/account-info
 
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.

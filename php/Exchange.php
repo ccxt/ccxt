@@ -2946,6 +2946,10 @@ class Exchange {
     }
 
     public function set_sandbox_mode(bool $enabled) {
+        /**
+         * set the sandbox mode for the exchange
+         * @param {boolean} $enabled true to enable sandbox mode, false to disable it
+         */
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {

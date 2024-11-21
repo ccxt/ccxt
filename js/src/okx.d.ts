@@ -662,7 +662,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: Int, symbol?: Str, params?: {}): Promise<any>;

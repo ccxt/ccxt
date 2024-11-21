@@ -945,6 +945,7 @@ class gate(Exchange, ImplicitAPI):
             except Exception as e:
                 # if the request fails, the unifiedAccount is disabled
                 self.options['unifiedAccount'] = False
+        return self.options['unifiedAccount']
 
     def upgrade_unified_trade_account(self, params={}):
         return self.privateUnifiedPutUnifiedMode(params)

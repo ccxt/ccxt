@@ -1560,7 +1560,7 @@ public partial class okx
     /// <item>
     /// <term>params.posSide</term>
     /// <description>
-    /// string : 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+    /// string : 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
     /// </description>
     /// </item>
     /// </list>

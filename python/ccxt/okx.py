@@ -6175,7 +6175,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :param str [params.posSide]: 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+        :param str [params.posSide]: 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -6197,12 +6197,11 @@ class okx(Exchange, ImplicitAPI):
             'mgnMode': marginMode,
             'instId': market['id'],
         }
-        posSide = self.safe_string(params, 'posSide')
+        posSide = self.safe_string(params, 'posSide', 'net')
         if marginMode == 'isolated':
-            if posSide is None:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
             if posSide != 'long' and posSide != 'short' and posSide != 'net':
                 raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
+            request['posSide'] = posSide
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {

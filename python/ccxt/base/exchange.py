@@ -2407,6 +2407,10 @@ class Exchange(object):
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
     def set_sandbox_mode(self, enabled: bool):
+        """
+        set the sandbox mode for the exchange
+        :param boolean enabled: True to enable sandbox mode, False to disable it
+        """
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):

@@ -1225,12 +1225,12 @@ class bybit extends Exchange {
 
     public function is_unified_enabled($params = array ()) {
         /**
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
          * @see https://bybit-exchange.github.io/docs/v5/account/account-info
          *
          * returns [$enableUnifiedMargin, $enableUnifiedAccount] so the user can check if unified account is enabled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {any} [$enableUnifiedMargin, $enableUnifiedAccount]
          */
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
