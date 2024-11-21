@@ -1669,7 +1669,9 @@ export default class ellipx extends Exchange {
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const preciseAmount = new Precise (v, e);
+        const preciseAmount = new Precise (v);
+        preciseAmount.decimals = e;
+        preciseAmount.reduce ();
         return preciseAmount.toString ();
     }
 
