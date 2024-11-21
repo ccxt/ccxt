@@ -2314,6 +2314,12 @@ export default class Exchange {
         return this.filterByLimit (result, limit, key, sinceIsDefined);
     }
 
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode (enabled: boolean) {
         if (enabled) {
             if ('test' in this.urls) {
