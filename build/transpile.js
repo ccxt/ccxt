@@ -1177,7 +1177,6 @@ class Transpiler {
                     line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
                         .replace ('asyncio.run(main())', 'main()')
                         .replace ('import ccxt.async_support as ccxt', 'import ccxt')
-                        .replace (/.*token\_bucket.*/g, '')
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))
