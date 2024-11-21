@@ -69,18 +69,24 @@ func (this *Exchange) SetCurrencies(currencies interface{}) {
 }
 
 func (this *Exchange) SetPassword(password interface{}) {
+	if password == nil {
+		return
+	}
 	this.Password = password.(string)
 }
 
 func (this *Exchange) SetHttpProxy(httpProxy interface{}) {
-	this.HttpProxy = httpProxy.(string)
+	this.HttpProxy = httpProxy
 }
 
 func (this *Exchange) SetHttpsProxy(httpProxy interface{}) {
-	this.HttpsProxy = httpProxy.(string)
+	this.HttpsProxy = httpProxy
 }
 
 func (this *Exchange) SetUid(uid interface{}) {
+	if uid == nil {
+		return
+	}
 	this.Uid = uid.(string)
 }
 
@@ -101,10 +107,16 @@ func (this *Exchange) SetOptions(options interface{}) {
 }
 
 func (this *Exchange) SetWssProxy(wssProxy interface{}) {
+	if wssProxy == nil {
+		return
+	}
 	this.WssProxy = wssProxy.(string)
 }
 
 func (this *Exchange) SetWsProxy(wsProxy interface{}) {
+	if wsProxy == nil {
+		return
+	}
 	this.WsProxy = wsProxy.(string)
 }
 
