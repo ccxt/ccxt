@@ -1039,7 +1039,7 @@ export default class cex extends Exchange {
             'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, undefined);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
