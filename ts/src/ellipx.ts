@@ -6,7 +6,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Permiss
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction } from '../ccxt.js';
+import { Str, Int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -722,11 +722,11 @@ export default class ellipx extends Exchange {
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'time') * 1000,  // timestamp
-            this.parseAmount (ohlcv['open']),      // open
-            this.parseAmount (ohlcv['high']),      // high
-            this.parseAmount (ohlcv['low']),       // low
-            this.parseAmount (ohlcv['close']),     // close
-            this.parseAmount (ohlcv['vol']),       // volume
+            this.parseNumber (this.parseAmount (ohlcv['open'])),      // open
+            this.parseNumber (this.parseAmount (ohlcv['high'])),      // high
+            this.parseNumber (this.parseAmount (ohlcv['low'])),       // low
+            this.parseNumber (this.parseAmount (ohlcv['close'])),     // close
+            this.parseNumber (this.parseAmount (ohlcv['vol'])),       // volume
         ];
     }
 
@@ -772,7 +772,7 @@ export default class ellipx extends Exchange {
         const withdraw = this.safeString (currency, 'Status') === 'valid';
         let fee = undefined;
         if (currency['Withdraw_Fee'] !== undefined) {
-            fee = this.parseAmount (currency['Withdraw_Fee']);
+            fee = this.parseNumber (this.parseAmount (currency['Withdraw_Fee']));
         }
         const precision = this.parseNumber (this.parsePrecision (this.safeString (token, 'Decimals')));
         let minDeposit = undefined;
@@ -1270,7 +1270,7 @@ export default class ellipx extends Exchange {
         const type = (price === undefined) ? 'market' : 'limit';
         const executed = this.parseAmount (order['Executed']);
         const filled = executed;
-        const remaining = (amount !== undefined && filled !== undefined) ? amount - filled : undefined;
+        const remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (amount, filled) : undefined;
         const symbol = market ? market['symbol'] : undefined;
         const clientOrderId = undefined;
         const timeInForce = 'GTC'; // default to Good Till Cancelled
@@ -1660,14 +1660,14 @@ export default class ellipx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseAmount (amount: Dict): number {
+    parseAmount (amount: Dict): string {
         const v = this.safeString (amount, 'v', undefined);
         const e = this.safeInteger (amount, 'e', undefined);
         if (v === undefined || e === undefined) {
             return undefined;
         }
-        const v_int = parseInt (v);
-        return v_int * Math.pow (10, -e);
+        const preciseAmount = new Precise (v, e);
+        return preciseAmount.toString ();
     }
 
     toAmount (amount: number, precision: number): Dict {
