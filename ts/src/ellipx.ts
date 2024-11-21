@@ -1604,9 +1604,12 @@ export default class ellipx extends Exchange {
         //       tax_rate: "0",
         //     },
         //   }
-        const data = this.safeValue (response, 'data', {});
-        const timestamp = this.safeInteger (data['Requested'], 'unixms');
+        const data = this.safeDict (response, 'data');
+        const amountResponse = this.safeDict (data, 'Amount');
+        const requested = this.safeDict (data, 'Requested');
+        const processed = this.safeDict (data, 'Processed');
         const withdrawId = this.safeString (data, 'Crypto_Disbursement__');
+        const timestamp = this.safeInteger (requested, 'unixms');
         return {
             'info': response,
             'id': withdrawId,
@@ -1621,10 +1624,10 @@ export default class ellipx extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'type': 'withdrawal',
-            'amount': this.safeNumber (data['Amount'], 'value'),
+            'amount': this.safeNumber (amountResponse, 'value'),
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (data, 'Status')),
-            'updated': this.safeTimestamp (data['Processed'], 'unix', undefined),
+            'updated': this.safeTimestamp (processed, 'unix'),
             'internal': false,
             'comment': undefined,
             'fee': {
