@@ -205,6 +205,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 			currencies = <-this.callInternal("fetchCurrencies", defaultParams)
 		}
 		markets := <-this.callInternal("fetchMarkets", defaultParams)
+		PanicOnError(markets)
 		ch <- this.SetMarkets(markets, currencies)
 	}()
 	return ch
