@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"tests/base"
 )
 
@@ -20,5 +21,10 @@ func main() {
 	argvMethod := base.GetCliPositionalArg(2)
 
 	res := <-tests.Init(argvExchange, argvSymbol, argvMethod)
-	base.PanicOnError(res)
+	if res != nil {
+		resStr := base.ToString(res)
+		if strings.HasPrefix(resStr, "panic:") {
+			panic(resStr)
+		}
+	}
 }
