@@ -26,7 +26,7 @@ class cex(Exchange, ImplicitAPI):
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 1667,  # 100 req/min
+            'rateLimit': 300,  # 200 req/min
             'pro': True,
             'has': {
                 'CORS': None,
@@ -987,10 +987,16 @@ class cex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         }
-        return self.safe_string(statuses, status, None)
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1039,7 +1045,7 @@ class cex(Exchange, ImplicitAPI):
             currencyId = self.safe_string(order, 'feeCurrency')
             feeCode = self.safe_currency_code(currencyId)
             fee['currency'] = feeCode
-            fee['fee'] = feeAmount
+            fee['cost'] = feeAmount
         timestamp = self.safe_integer(order, 'serverCreateTimestamp')
         requestedBase = self.safe_number(order, 'requestedAmountCcy1')
         executedBase = self.safe_number(order, 'executedAmountCcy1')

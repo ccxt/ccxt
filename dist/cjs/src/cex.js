@@ -18,7 +18,7 @@ class cex extends cex$1 {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 1667,
+            'rateLimit': 300,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -1006,10 +1006,16 @@ class cex extends cex$1 {
     }
     parseOrderStatus(status) {
         const statuses = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString(statuses, status, undefined);
+        return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1059,7 +1065,7 @@ class cex extends cex$1 {
             const currencyId = this.safeString(order, 'feeCurrency');
             const feeCode = this.safeCurrencyCode(currencyId);
             fee['currency'] = feeCode;
-            fee['fee'] = feeAmount;
+            fee['cost'] = feeAmount;
         }
         const timestamp = this.safeInteger(order, 'serverCreateTimestamp');
         const requestedBase = this.safeNumber(order, 'requestedAmountCcy1');

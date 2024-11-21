@@ -11,7 +11,7 @@ public partial class cex : Exchange
             { "id", "cex" },
             { "name", "CEX.IO" },
             { "countries", new List<object>() {"GB", "EU", "CY", "RU"} },
-            { "rateLimit", 1667 },
+            { "rateLimit", 300 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -1087,10 +1087,16 @@ public partial class cex : Exchange
     public virtual object parseOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "PENDING_NEW", "open" },
+            { "NEW", "open" },
+            { "PARTIALLY_FILLED", "open" },
             { "FILLED", "closed" },
+            { "EXPIRED", "expired" },
+            { "REJECTED", "rejected" },
+            { "PENDING_CANCEL", "canceling" },
             { "CANCELLED", "canceled" },
         };
-        return this.safeString(statuses, status, null);
+        return this.safeString(statuses, status, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1144,7 +1150,7 @@ public partial class cex : Exchange
             object currencyId = this.safeString(order, "feeCurrency");
             object feeCode = this.safeCurrencyCode(currencyId);
             ((IDictionary<string,object>)fee)["currency"] = feeCode;
-            ((IDictionary<string,object>)fee)["fee"] = feeAmount;
+            ((IDictionary<string,object>)fee)["cost"] = feeAmount;
         }
         object timestamp = this.safeInteger(order, "serverCreateTimestamp");
         object requestedBase = this.safeNumber(order, "requestedAmountCcy1");
