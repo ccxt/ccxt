@@ -1030,7 +1030,13 @@ export default class cex extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, undefined);
