@@ -2278,6 +2278,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -2319,10 +2320,11 @@ class bybit(Exchange, ImplicitAPI):
         # only if passedSubType is None, then use spot
         if type == 'spot' and passedSubType is None:
             request['category'] = 'spot'
-        elif type == 'swap' or type == 'future' or subType is not None:
-            request['category'] = subType
         elif type == 'option':
             request['category'] = 'option'
+            request['baseCoin'] = self.safe_string(params, 'baseCoin', 'BTC')
+        elif type == 'swap' or type == 'future' or subType is not None:
+            request['category'] = subType
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {

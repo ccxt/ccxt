@@ -2329,6 +2329,7 @@ export default class bybit extends Exchange {
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
@@ -2378,11 +2379,12 @@ export default class bybit extends Exchange {
         if (type === 'spot' && passedSubType === undefined) {
             request['category'] = 'spot';
         }
-        else if (type === 'swap' || type === 'future' || subType !== undefined) {
-            request['category'] = subType;
-        }
         else if (type === 'option') {
             request['category'] = 'option';
+            request['baseCoin'] = this.safeString(params, 'baseCoin', 'BTC');
+        }
+        else if (type === 'swap' || type === 'future' || subType !== undefined) {
+            request['category'] = subType;
         }
         const response = await this.publicGetV5MarketTickers(this.extend(request, params));
         //
