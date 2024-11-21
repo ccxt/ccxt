@@ -1090,7 +1090,7 @@ export default class cex extends Exchange {
             const currencyId = this.safeString (order, 'feeCurrency');
             const feeCode = this.safeCurrencyCode (currencyId);
             fee['currency'] = feeCode;
-            fee['fee'] = feeAmount;
+            fee['cost'] = feeAmount;
         }
         const timestamp = this.safeInteger (order, 'serverCreateTimestamp');
         const requestedBase = this.safeNumber (order, 'requestedAmountCcy1');
