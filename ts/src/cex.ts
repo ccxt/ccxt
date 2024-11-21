@@ -20,7 +20,7 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-            'rateLimit': 1667, // 100 req/min
+            'rateLimit': 300, // 200 req/min
             'pro': true,
             'has': {
                 'CORS': undefined,
