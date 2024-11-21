@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.4.32';
+$version = '4.4.33';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.4.32';
+    const VERSION = '4.4.33';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2946,6 +2946,10 @@ class Exchange {
     }
 
     public function set_sandbox_mode(bool $enabled) {
+        /**
+         * set the sandbox mode for the exchange
+         * @param {boolean} $enabled true to enable sandbox mode, false to disable it
+         */
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -3406,7 +3410,7 @@ class Exchange {
         $this->features = array();
         $unifiedMarketTypes = array( 'spot', 'swap', 'future', 'option' );
         $subTypes = array( 'linear', 'inverse' );
-        // atm only support basic methods to avoid to be able to maintain, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
             $marketType = $unifiedMarketTypes[$i];
             // if $marketType is not filled for this exchange, don't add that in `features`
@@ -3431,8 +3435,8 @@ class Exchange {
         $extendsStr = $this->safe_string($featuresObj, 'extends');
         if ($extendsStr !== null) {
             $featuresObj = $this->omit($featuresObj, 'extends');
-            $extendObj = $initialFeatures[$extendsStr];
-            $featuresObj = $this->extend($extendObj, $featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            $extendObj = $this->features_mapper($initialFeatures, $extendsStr);
+            $featuresObj = $this->deep_extend($extendObj, $featuresObj);
         }
         //
         // corrections
@@ -3443,9 +3447,9 @@ class Exchange {
                 $featuresObj['createOrder']['stopLoss'] = $value;
                 $featuresObj['createOrder']['takeProfit'] = $value;
             }
-            // omit 'hedged' from spot
+            // false 'hedged' for spot
             if ($marketType === 'spot') {
-                $featuresObj['createOrder']['hedged'] = null;
+                $featuresObj['createOrder']['hedged'] = false;
             }
         }
         return $featuresObj;

@@ -3290,7 +3290,7 @@ class okx extends Exchange {
                 $request['newPx'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         return $this->extend($request, $params);
     }
 
@@ -6473,7 +6473,7 @@ class okx extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
-         * @param {string} [$params->posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+         * @param {string} [$params->posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
          * @return {array} $response from the exchange
          */
         if ($symbol === null) {
@@ -6499,14 +6499,12 @@ class okx extends Exchange {
             'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
-        $posSide = $this->safe_string($params, 'posSide');
+        $posSide = $this->safe_string($params, 'posSide', 'net');
         if ($marginMode === 'isolated') {
-            if ($posSide === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
-            }
             if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
                 throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
             }
+            $request['posSide'] = $posSide;
         }
         $response = $this->privatePostAccountSetLeverage ($this->extend($request, $params));
         //

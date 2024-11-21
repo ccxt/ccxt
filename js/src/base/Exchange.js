@@ -1956,6 +1956,12 @@ export default class Exchange {
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode(enabled) {
         if (enabled) {
             if ('test' in this.urls) {
@@ -2344,7 +2350,7 @@ export default class Exchange {
         this.features = {};
         const unifiedMarketTypes = ['spot', 'swap', 'future', 'option'];
         const subTypes = ['linear', 'inverse'];
-        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (let i = 0; i < unifiedMarketTypes.length; i++) {
             const marketType = unifiedMarketTypes[i];
             // if marketType is not filled for this exchange, don't add that in `features`
@@ -2370,8 +2376,8 @@ export default class Exchange {
         const extendsStr = this.safeString(featuresObj, 'extends');
         if (extendsStr !== undefined) {
             featuresObj = this.omit(featuresObj, 'extends');
-            const extendObj = initialFeatures[extendsStr];
-            featuresObj = this.extend(extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            const extendObj = this.featuresMapper(initialFeatures, extendsStr);
+            featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
         // corrections
@@ -2382,9 +2388,9 @@ export default class Exchange {
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
-            // omit 'hedged' from spot
+            // false 'hedged' for spot
             if (marketType === 'spot') {
-                featuresObj['createOrder']['hedged'] = undefined;
+                featuresObj['createOrder']['hedged'] = false;
             }
         }
         return featuresObj;

@@ -72,11 +72,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                 'GTD' => false,
             ),
             'hedged' => false,
-            'selfTradePrevention' => false,
             'trailing' => false,
-            'twap' => false,
-            'iceberg' => false,
-            'oco' => false,
         ),
         'createOrders' => array(
             'max' => 5,

@@ -3432,7 +3432,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newPx"] = this.priceToPrecision(symbol, price);
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit"});
+        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"});
         return this.extend(request, parameters);
     }
 
@@ -6750,7 +6750,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -6785,17 +6785,14 @@ public partial class okx : Exchange
             { "mgnMode", marginMode },
             { "instId", getValue(market, "id") },
         };
-        object posSide = this.safeString(parameters, "posSide");
+        object posSide = this.safeString(parameters, "posSide", "net");
         if (isTrue(isEqual(marginMode, "isolated")))
         {
-            if (isTrue(isEqual(posSide, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a posSide argument for isolated margin")) ;
-            }
             if (isTrue(isTrue(isTrue(!isEqual(posSide, "long")) && isTrue(!isEqual(posSide, "short"))) && isTrue(!isEqual(posSide, "net"))))
             {
                 throw new BadRequest ((string)add(this.id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
             }
+            ((IDictionary<string,object>)request)["posSide"] = posSide;
         }
         object response = await this.privatePostAccountSetLeverage(this.extend(request, parameters));
         //

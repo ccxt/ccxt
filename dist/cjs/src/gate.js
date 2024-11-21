@@ -898,7 +898,7 @@ class gate extends gate$1 {
     }
     /**
      * @method
-     * @name gate#isUnifiedEnabled
+     * @name gate#loadUnifiedStatus
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
@@ -930,6 +930,7 @@ class gate extends gate$1 {
                 this.options['unifiedAccount'] = false;
             }
         }
+        return this.options['unifiedAccount'];
     }
     async upgradeUnifiedTradeAccount(params = {}) {
         return await this.privateUnifiedPutUnifiedMode(params);

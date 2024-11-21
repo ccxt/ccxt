@@ -65,11 +65,11 @@ function testFeaturesInner(exchange, skippedProperties, featureObj) {
             },
             'hedged': false,
             // exchange-supported features
-            'selfTradePrevention': false,
             'trailing': false,
-            'twap': false,
-            'iceberg': false,
-            'oco': false,
+            // 'iceberg': false,
+            // 'twap': false,
+            // 'selfTradePrevention': false,
+            // 'oco': false,
         },
         'createOrders': {
             'max': 5,

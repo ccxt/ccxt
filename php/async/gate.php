@@ -941,6 +941,7 @@ class gate extends Exchange {
                     $this->options['unifiedAccount'] = false;
                 }
             }
+            return $this->options['unifiedAccount'];
         }) ();
     }
 

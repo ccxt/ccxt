@@ -804,6 +804,12 @@ public partial class Exchange
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
 
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     public virtual void setSandboxMode(object enabled)
     {
         if (isTrue(enabled))
@@ -1420,7 +1426,7 @@ public partial class Exchange
         this.features = new Dictionary<string, object>() {};
         object unifiedMarketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
-        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (object i = 0; isLessThan(i, getArrayLength(unifiedMarketTypes)); postFixIncrement(ref i))
         {
             object marketType = getValue(unifiedMarketTypes, i);
@@ -1453,8 +1459,8 @@ public partial class Exchange
         if (isTrue(!isEqual(extendsStr, null)))
         {
             featuresObj = this.omit(featuresObj, "extends");
-            object extendObj = getValue(initialFeatures, extendsStr);
-            featuresObj = this.extend(extendObj, featuresObj); // Warning, do not use deepExtend here, because we override only one level
+            object extendObj = this.featuresMapper(initialFeatures, extendsStr);
+            featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
         // corrections
@@ -1467,10 +1473,10 @@ public partial class Exchange
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["stopLoss"] = value;
                 ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["takeProfit"] = value;
             }
-            // omit 'hedged' from spot
+            // false 'hedged' for spot
             if (isTrue(isEqual(marketType, "spot")))
             {
-                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = null;
+                ((IDictionary<string,object>)getValue(featuresObj, "createOrder"))["hedged"] = false;
             }
         }
         return featuresObj;

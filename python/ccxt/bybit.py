@@ -1239,12 +1239,12 @@ class bybit(Exchange, ImplicitAPI):
 
     def is_unified_enabled(self, params={}):
         """
-        :param dict [params]: extra parameters specific to the exchange API endpoint
 
         https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
         https://bybit-exchange.github.io/docs/v5/account/account-info
 
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -3462,11 +3462,17 @@ class bybit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
+        marketUnit = self.safe_string(order, 'marketUnit', 'baseCoin')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'orderType')
         price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'qty')
-        cost = self.safe_string(order, 'cumExecValue')
+        amount: Str = None
+        cost: Str = None
+        if marketUnit == 'baseCoin':
+            amount = self.safe_string(order, 'qty')
+            cost = self.safe_string(order, 'cumExecValue')
+        else:
+            cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
         lastTradeTimestamp = self.safe_integer_2(order, 'updatedTime', 'updatedAt')

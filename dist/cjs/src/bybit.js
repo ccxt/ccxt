@@ -1227,12 +1227,12 @@ class bybit extends bybit$1 {
         return data;
     }
     /**
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @method
      * @name bybit#isUnifiedEnabled
      * @see https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
      * @see https://bybit-exchange.github.io/docs/v5/account/account-info
      * @description returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} [enableUnifiedMargin, enableUnifiedAccount]
      */
     async isUnifiedEnabled(params = {}) {
@@ -3602,11 +3602,19 @@ class bybit extends bybit$1 {
         market = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2(order, 'createdTime', 'createdAt');
+        const marketUnit = this.safeString(order, 'marketUnit', 'baseCoin');
         const id = this.safeString(order, 'orderId');
         const type = this.safeStringLower(order, 'orderType');
         const price = this.safeString(order, 'price');
-        const amount = this.safeString(order, 'qty');
-        const cost = this.safeString(order, 'cumExecValue');
+        let amount = undefined;
+        let cost = undefined;
+        if (marketUnit === 'baseCoin') {
+            amount = this.safeString(order, 'qty');
+            cost = this.safeString(order, 'cumExecValue');
+        }
+        else {
+            cost = this.safeString(order, 'cumExecValue');
+        }
         const filled = this.safeString(order, 'cumExecQty');
         const remaining = this.safeString(order, 'leavesQty');
         const lastTradeTimestamp = this.safeInteger2(order, 'updatedTime', 'updatedAt');
