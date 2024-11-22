@@ -1446,6 +1446,7 @@ export default class bitget extends Exchange {
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -1463,7 +1464,6 @@ export default class bitget extends Exchange {
                             },
                             'limitPrice': true,
                         },
-                        'marginMode': true,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1472,11 +1472,11 @@ export default class bitget extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
+                        'trailing': false,
                         'marketBuyRequiresPrice': true,
                         'marketBuyByCost': true,
                         // exchange-supported features
                         // 'selfTradePrevention': true,
-                        // 'trailing': true,
                         // 'twap': false,
                         // 'iceberg': false,
                         // 'oco': false,
@@ -1485,80 +1485,97 @@ export default class bitget extends Exchange {
                         'max': 50,
                     },
                     'fetchMyTrades': {
+                        'marginMode': true, // todo: add in unify
                         'limit': 100,
-                        'daysBack': 365 * 2, // 2 years
-                        'untilDays': 7, // days between start-end
+                        'daysBack': undefined,
+                        'untilDays': 90,
                     },
                     'fetchOrder': {
                         'marginMode': false,
-                        'trigger': true,
+                        'trigger': false,
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': 50,
-                        'marginMode': false,
+                        'marginMode': true,
+                        'limit': 100,
                         'trigger': true,
                         'trailing': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
-                        'limit': 50,
-                        'daysBackClosed': 365 * 2, // 2 years
-                        'daysBackCanceled': 1,
-                        'untilDays': 7,
-                        'marginMode': false,
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 90,
                         'trigger': true,
                         'trailing': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 1000,
+                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
                     },
                 },
-            //     'spot': {
-            //         'extends': 'default',
-            //         'createOrder': {
-            //             'triggerPrice': true,
-            //             'triggerPriceType': undefined,
-            //             'triggerDirection': false,
-            //             'stopLossPrice': true,
-            //             'takeProfitPrice': true,
-            //             'attachedStopLossTakeProfit': {
-            //                 'triggerPriceType': undefined,
-            //                 'limitPrice': true,
-            //             },
-            //             'marginMode': false,
-            //             'timeInForce': {
-            //                 'GTC': true,
-            //                 'IOC': true,
-            //                 'FOK': true,
-            //                 'PO': true,
-            //                 'GTD': false,
-            //             },
-            //             'hedged': true,
-            //             // exchange-supported features
-            //             'selfTradePrevention': true,
-            //             'trailing': true,
-            //             'twap': false,
-            //             'iceberg': false,
-            //             'oco': false,
-            //         },
-            //     },
-            //     'swap': {
-            //         'linear': {
-            //             'extends': 'default',
-            //         },
-            //         'inverse': {
-            //             'extends': 'default',
-            //         },
-            //     },
-            //     'future': {
-            //         'linear': {
-            //             'extends': 'default',
-            //         },
-            //         'inverse': {
-            //             'extends': 'default',
-            //         },
-            //     },
+                'forPerps': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false, // not on spot
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': false,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'trailing': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'trailing': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'fetchMyTrades': {
+                        'untilDays': 7,
+                    },
+                    'fetchClosedOrders': {
+                        'trailing': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
             },
         });
     }
