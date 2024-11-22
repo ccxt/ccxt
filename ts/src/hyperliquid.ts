@@ -452,13 +452,15 @@ export default class hyperliquid extends Exchange {
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             const amountPrecision = this.safeInteger (innerBaseTokenInfo, 'szDecimals');
             const price = this.safeNumber (extraData, 'midPx');
+            const significantDigits = 5;  // Remove this line after network upgrade
+            // const significantDigits = Math.max (5, price !== 0 ? Math.floor (Math.log10 (price)) + 1 : 1);  // Uncomment this line after network upgrade
             let pricePrecision = 0;
             if (price > 0 && price < 1) {
-                pricePrecision = Math.abs (Math.log10 (price)) + 5; // 5 significant digits
+                pricePrecision = Math.abs (Math.log10 (price)) + significantDigits; // 5 significant digits
                 pricePrecision = Math.min (8 - amountPrecision, Math.floor (pricePrecision)); // 8 max decimals
             } else {
                 const integerDigits = price === 0 ? 1 : Math.floor (Math.log10 (price)) + 1;
-                pricePrecision = Math.min (8 - amountPrecision, 5 - integerDigits); // 8 max decimals, 5 significant digits
+                pricePrecision = Math.min (8 - amountPrecision, significantDigits - integerDigits); // 8 max decimals, 5 significant digits
             }
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             const baseId = this.numberToString (i + 10000);
@@ -558,13 +560,15 @@ export default class hyperliquid extends Exchange {
         const maker = this.safeNumber (fees, 'maker');
         const amountPrecision = this.safeInteger (market, 'szDecimals');
         const price = this.safeNumber (market, 'markPx', 0);
+        const significantDigits = 5;  // Remove this line after network upgrade
+        // const significantDigits = Math.max (5, price !== 0 ? Math.floor (Math.log10 (price)) + 1 : 1);  // Uncomment this line after network upgrade
         let pricePrecision = 0;
         if (price > 0 && price < 1) {
-            pricePrecision = Math.abs (Math.log10 (price)) + 5; // 5 significant digits
+            pricePrecision = Math.abs (Math.log10 (price)) + significantDigits; // 5 significant digits
             pricePrecision = Math.min (6 - amountPrecision, Math.floor (pricePrecision)); // 6 max decimals
         } else {
             const integerDigits = price === 0 ? 1 : Math.floor (Math.log10 (price)) + 1;
-            pricePrecision = Math.min (6 - amountPrecision, 5 - integerDigits); // 6 max decimals, 5 significant digits
+            pricePrecision = Math.min (6 - amountPrecision, significantDigits - integerDigits); // 6 max decimals, 5 significant digits
         }
         return this.safeMarketStructure ({
             'id': baseId,
@@ -1072,7 +1076,11 @@ export default class hyperliquid extends Exchange {
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
         // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        const result = this.decimalToPrecision (price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
+        // Announcement: based on user feedback, the tick formula will be updated on the next network upgrade to allow all integer prices
+        // regardless of number of sig figs. For example, after the change 123456 will be a valid price for BTC-USD. The change is already live on testnet
+        const significantDigits = 5;  // Remove this line after network upgrade
+        // const significantDigits = Math.max (5, price !== 0 ? Math.floor (Math.log10 (price)) + 1 : 1);  // Uncomment this line after network upgrade
+        const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market.spot ? 8 : 6;
         const decimalParsedResult = this.decimalToPrecision (result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
         return decimalParsedResult;
