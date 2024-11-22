@@ -1004,7 +1004,7 @@ public partial class cex : Exchange
         //            },
         //            ...
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 

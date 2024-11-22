@@ -197,7 +197,7 @@ class krakenfutures extends Exchange {
                     'invalidAmount' => '\\ccxt\\BadRequest',
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
-                    'Unavailable' => '\\ccxt\\InsufficientFunds',              // Insufficient funds in Futures account [withdraw]
+                    'Unavailable' => '\\ccxt\\ExchangeNotAvailable',              // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit' => '\\ccxt\\BadRequest',
                     'Json Parse Error' => '\\ccxt\\ExchangeError',
                     'nonceBelowThreshold' => '\\ccxt\\InvalidNonce',

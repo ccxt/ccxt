@@ -129,7 +129,7 @@ public partial class krakenfutures : Exchange
                     { "invalidAmount", typeof(BadRequest) },
                     { "insufficientFunds", typeof(InsufficientFunds) },
                     { "Bad Request", typeof(BadRequest) },
-                    { "Unavailable", typeof(InsufficientFunds) },
+                    { "Unavailable", typeof(ExchangeNotAvailable) },
                     { "invalidUnit", typeof(BadRequest) },
                     { "Json Parse Error", typeof(ExchangeError) },
                     { "nonceBelowThreshold", typeof(InvalidNonce) },

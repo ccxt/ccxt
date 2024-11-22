@@ -1228,7 +1228,7 @@ class bybit(Exchange, ImplicitAPI):
 
     def add_pagination_cursor_to_result(self, response):
         result = self.safe_dict(response, 'result', {})
-        data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
+        data = self.safe_list_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
         dataLength = len(data)
         if (paginationCursor is not None) and (dataLength > 0):
@@ -3110,7 +3110,7 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         responseResult = self.safe_dict(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])
+        currencyList = self.safe_list_n(responseResult, ['loanAccountList', 'list', 'balance'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -3880,7 +3880,7 @@ class bybit(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)

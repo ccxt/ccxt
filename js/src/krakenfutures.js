@@ -204,7 +204,7 @@ export default class krakenfutures extends Exchange {
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,
-                    'Unavailable': InsufficientFunds,
+                    'Unavailable': ExchangeNotAvailable,
                     'invalidUnit': BadRequest,
                     'Json Parse Error': ExchangeError,
                     'nonceBelowThreshold': InvalidNonce,

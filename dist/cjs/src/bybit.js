@@ -1216,7 +1216,7 @@ class bybit extends bybit$1 {
     }
     addPaginationCursorToResult(response) {
         const result = this.safeDict(response, 'result', {});
-        const data = this.safeValueN(result, ['list', 'rows', 'data', 'dataList'], []);
+        const data = this.safeListN(result, ['list', 'rows', 'data', 'dataList'], []);
         const paginationCursor = this.safeString2(result, 'nextPageCursor', 'cursor');
         const dataLength = data.length;
         if ((paginationCursor !== undefined) && (dataLength > 0)) {
@@ -3227,7 +3227,7 @@ class bybit extends bybit$1 {
             'datetime': this.iso8601(timestamp),
         };
         const responseResult = this.safeDict(response, 'result', {});
-        const currencyList = this.safeValueN(responseResult, ['loanAccountList', 'list', 'balance']);
+        const currencyList = this.safeListN(responseResult, ['loanAccountList', 'list', 'balance']);
         if (currencyList === undefined) {
             // usdc wallet
             const code = 'USDC';
@@ -4098,7 +4098,7 @@ class bybit extends bybit$1 {
             const side = this.safeString(rawOrder, 'side');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
-            const orderParams = this.safeValue(rawOrder, 'params', {});
+            const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             ordersRequests.push(orderRequest);
         }

@@ -8,7 +8,7 @@ export default class bybit extends Exchange {
     describe(): any;
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
-    addPaginationCursorToResult(response: any): any;
+    addPaginationCursorToResult(response: any): any[];
     /**
      * @method
      * @name bybit#isUnifiedEnabled

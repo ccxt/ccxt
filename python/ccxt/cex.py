@@ -918,7 +918,7 @@ class cex(Exchange, ImplicitAPI):
         #            },
         #            ...
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
