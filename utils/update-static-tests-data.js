@@ -125,7 +125,9 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         } else {
             // inject it after "methods": { line
             const methodsRegex = new RegExp(`"methods":\\s*\\{`, '');
-            const newContent = fileContent.replace(methodsRegex, '"methods": {\n' + spaces(spacesAmount * 2) + `"${method}": [\n${indentedContent}\n`+  spaces(spacesAmount * 2) + '],');
+            const replacementContent = '"methods": {\n' + spaces(spacesAmount * 2) + `"${method}": [\n${indentedContent}\n`+  spaces(spacesAmount * 2) + '],';
+            let newContent = fileContent.replace(methodsRegex, replacementContent);
+            newContent = newContent.replace('],}', ']\n  }'); // temporary fix,
             writeString(filePath, newContent);
         }
     }
