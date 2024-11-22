@@ -7,6 +7,78 @@
     "methods": {
         "createOrder": [
             {
+                "description": "swap +buy +limit +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    395,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT1234561b1598e7648198f0\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"395\"}"
+            },
+            {
+                "description": "swap +buy +market +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT123456b6074ff3d4d3ad71\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
+                "description": "swap +sell +market +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 400,
+                        "triggerDirection": "up",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Sell\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT12345604588208b43c8181\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
+                "description": "swap +buy +triggerPrice +triggerDirection +reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.01,
+                    null,
+                    {
+                        "triggerPrice": 200,
+                        "triggerDirection": "down",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT1234567a026aa3e4c0b839\",\"stopPxRp\":\"200\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\"}"
+            },
+            {
                 "description": "swap +marginMode +stopLoss +takeProfit +triggerLimitPrices",
                 "method": "createOrder",
                 "url": "https://api.phemex.com/g-orders",
@@ -133,23 +205,6 @@
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
-            },
-            {
-                "description": "Swap limit buy with trigger price",
-                "method": "createOrder",
-                "url": "https://testnet-api.phemex.com/g-orders",
-                "input": [
-                    "LTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.1,
-                    "55",
-                    {
-                        "triggerPrice": 60,
-                        "clientOrderId": "myordr2"
-                    }
-                ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"myordr2\",\"stopPxRp\":\"60\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"55\"}"
             },
             {
                 "description": "Swap sell hedged reduceOnly order",

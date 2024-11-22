@@ -70,6 +70,7 @@ interface Exchange {
     publicGetPulseHist (params?: {}): Promise<implicitReturnType>;
     publicGetPulseProfileNickname (params?: {}): Promise<implicitReturnType>;
     publicGetFundingStatsSymbolHist (params?: {}): Promise<implicitReturnType>;
+    publicGetExtVasps (params?: {}): Promise<implicitReturnType>;
     publicPostCalcTradeAvg (params?: {}): Promise<implicitReturnType>;
     publicPostCalcFx (params?: {}): Promise<implicitReturnType>;
     privatePostAuthRWallets (params?: {}): Promise<implicitReturnType>;

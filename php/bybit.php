@@ -1212,7 +1212,7 @@ class bybit extends Exchange {
 
     public function add_pagination_cursor_to_result($response) {
         $result = $this->safe_dict($response, 'result', array());
-        $data = $this->safe_value_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
+        $data = $this->safe_list_n($result, array( 'list', 'rows', 'data', 'dataList' ), array());
         $paginationCursor = $this->safe_string_2($result, 'nextPageCursor', 'cursor');
         $dataLength = count($data);
         if (($paginationCursor !== null) && ($dataLength > 0)) {
@@ -2323,6 +2323,7 @@ class bybit extends Exchange {
          * @param {string[]} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] *contract only* 'linear', 'inverse'
+         * @param {string} [$params->baseCoin] *option only* base coin, default is 'BTC'
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
@@ -2368,10 +2369,11 @@ class bybit extends Exchange {
         // only if $passedSubType is null, then use spot
         if ($type === 'spot' && $passedSubType === null) {
             $request['category'] = 'spot';
-        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
-            $request['category'] = $subType;
         } elseif ($type === 'option') {
             $request['category'] = 'option';
+            $request['baseCoin'] = $this->safe_string($params, 'baseCoin', 'BTC');
+        } elseif ($type === 'swap' || $type === 'future' || $subType !== null) {
+            $request['category'] = $subType;
         }
         $response = $this->publicGetV5MarketTickers ($this->extend($request, $params));
         //
@@ -3209,7 +3211,7 @@ class bybit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
         );
         $responseResult = $this->safe_dict($response, 'result', array());
-        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
+        $currencyList = $this->safe_list_n($responseResult, array( 'loanAccountList', 'list', 'balance' ));
         if ($currencyList === null) {
             // usdc wallet
             $code = 'USDC';
@@ -4053,7 +4055,7 @@ class bybit extends Exchange {
             $side = $this->safe_string($rawOrder, 'side');
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
-            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $orderParams, $isUta);
             $ordersRequests[] = $orderRequest;
         }

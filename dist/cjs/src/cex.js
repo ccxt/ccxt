@@ -937,7 +937,7 @@ class cex extends cex$1 {
         //            },
         //            ...
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     /**

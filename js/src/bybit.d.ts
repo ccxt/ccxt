@@ -8,7 +8,7 @@ export default class bybit extends Exchange {
     describe(): any;
     enableDemoTrading(enable: boolean): void;
     nonce(): number;
-    addPaginationCursorToResult(response: any): any;
+    addPaginationCursorToResult(response: any): any[];
     /**
      * @method
      * @name bybit#isUnifiedEnabled
@@ -83,6 +83,7 @@ export default class bybit extends Exchange {
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;

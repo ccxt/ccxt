@@ -1163,7 +1163,7 @@ public partial class bybit : Exchange
     public virtual object addPaginationCursorToResult(object response)
     {
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValueN(result, new List<object>() {"list", "rows", "data", "dataList"}, new List<object>() {});
+        object data = this.safeListN(result, new List<object>() {"list", "rows", "data", "dataList"}, new List<object>() {});
         object paginationCursor = this.safeString2(result, "nextPageCursor", "cursor");
         object dataLength = getArrayLength(data);
         if (isTrue(isTrue((!isEqual(paginationCursor, null))) && isTrue((isGreaterThan(dataLength, 0)))))
@@ -2369,6 +2369,7 @@ public partial class bybit : Exchange
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
+     * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -2424,12 +2425,13 @@ public partial class bybit : Exchange
         if (isTrue(isTrue(isEqual(type, "spot")) && isTrue(isEqual(passedSubType, null))))
         {
             ((IDictionary<string,object>)request)["category"] = "spot";
-        } else if (isTrue(isTrue(isTrue(isEqual(type, "swap")) || isTrue(isEqual(type, "future"))) || isTrue(!isEqual(subType, null))))
-        {
-            ((IDictionary<string,object>)request)["category"] = subType;
         } else if (isTrue(isEqual(type, "option")))
         {
             ((IDictionary<string,object>)request)["category"] = "option";
+            ((IDictionary<string,object>)request)["baseCoin"] = this.safeString(parameters, "baseCoin", "BTC");
+        } else if (isTrue(isTrue(isTrue(isEqual(type, "swap")) || isTrue(isEqual(type, "future"))) || isTrue(!isEqual(subType, null))))
+        {
+            ((IDictionary<string,object>)request)["category"] = subType;
         }
         object response = await this.publicGetV5MarketTickers(this.extend(request, parameters));
         //
@@ -3341,7 +3343,7 @@ public partial class bybit : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object currencyList = this.safeValueN(responseResult, new List<object>() {"loanAccountList", "list", "balance"});
+        object currencyList = this.safeListN(responseResult, new List<object>() {"loanAccountList", "list", "balance"});
         if (isTrue(isEqual(currencyList, null)))
         {
             // usdc wallet
@@ -4292,7 +4294,7 @@ public partial class bybit : Exchange
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams, isUta);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }

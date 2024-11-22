@@ -979,7 +979,7 @@ class cex extends Exchange {
             //            ),
             //            ...
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }

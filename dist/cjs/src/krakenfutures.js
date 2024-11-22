@@ -201,7 +201,7 @@ class krakenfutures extends krakenfutures$1 {
                     'invalidAmount': errors.BadRequest,
                     'insufficientFunds': errors.InsufficientFunds,
                     'Bad Request': errors.BadRequest,
-                    'Unavailable': errors.InsufficientFunds,
+                    'Unavailable': errors.ExchangeNotAvailable,
                     'invalidUnit': errors.BadRequest,
                     'Json Parse Error': errors.ExchangeError,
                     'nonceBelowThreshold': errors.InvalidNonce,

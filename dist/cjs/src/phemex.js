@@ -2637,6 +2637,29 @@ class phemex extends phemex$1 {
             if (triggerPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
                 request['triggerType'] = triggerType;
+                // set direction & exchange specific order type
+                let triggerDirection = undefined;
+                [triggerDirection, params] = this.handleParamString(params, 'triggerDirection');
+                if (triggerDirection === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
+                }
+                // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
+                if (triggerDirection === 'up') {
+                    if (side === 'sell') {
+                        request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    }
+                    else if (side === 'buy') {
+                        request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
+                    }
+                }
+                else if (triggerDirection === 'down') {
+                    if (side === 'sell') {
+                        request['ordType'] = (type === 'Market') ? 'Stop' : 'StopLimit';
+                    }
+                    else if (side === 'buy') {
+                        request['ordType'] = (type === 'Market') ? 'MarketIfTouched' : 'LimitIfTouched';
+                    }
+                }
             }
             if (stopLossDefined || takeProfitDefined) {
                 if (stopLossDefined) {

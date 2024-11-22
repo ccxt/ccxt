@@ -1228,7 +1228,7 @@ class bybit(Exchange, ImplicitAPI):
 
     def add_pagination_cursor_to_result(self, response):
         result = self.safe_dict(response, 'result', {})
-        data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
+        data = self.safe_list_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
         dataLength = len(data)
         if (paginationCursor is not None) and (dataLength > 0):
@@ -2277,6 +2277,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
@@ -2318,10 +2319,11 @@ class bybit(Exchange, ImplicitAPI):
         # only if passedSubType is None, then use spot
         if type == 'spot' and passedSubType is None:
             request['category'] = 'spot'
-        elif type == 'swap' or type == 'future' or subType is not None:
-            request['category'] = subType
         elif type == 'option':
             request['category'] = 'option'
+            request['baseCoin'] = self.safe_string(params, 'baseCoin', 'BTC')
+        elif type == 'swap' or type == 'future' or subType is not None:
+            request['category'] = subType
         response = self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {
@@ -3108,7 +3110,7 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         responseResult = self.safe_dict(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])
+        currencyList = self.safe_list_n(responseResult, ['loanAccountList', 'list', 'balance'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -3878,7 +3880,7 @@ class bybit(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
