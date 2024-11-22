@@ -374,10 +374,10 @@ export default class hyperliquid extends Exchange {
         // const significantDigits = this.parseToInt ('5');  // Remove this line after network upgrade
         let significantDigits = this.parseToInt ('5');
         if (price === 0) {
-            significantDigits = 1;
+            significantDigits = 5;
         } else {
-            // Calculate the number of digits before the decimal separator
-            significantDigits = Math.floor (Math.log10 (price)) + 1;
+            // Calculate the number of digits before the decimal separator. If larger than 5, take that
+            significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
         }
         let pricePrecision = 0;
         if (price > 0 && price < 1) {
@@ -1102,9 +1102,10 @@ export default class hyperliquid extends Exchange {
         // const significantDigits = this.parseToInt ('5');  // Remove this line after network upgrade
         let significantDigits = this.parseToInt ('5');
         if (price === 0) {
-            significantDigits = 1;
+            significantDigits = 5;
         } else {
-            significantDigits = Math.floor (Math.log10 (price)) + 1;
+            // Calculate the number of digits before the decimal separator. If larger than 5, take that
+            significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
         }
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? this.parseToInt ('8') : this.parseToInt ('6');
