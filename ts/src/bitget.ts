@@ -1442,6 +1442,124 @@ export default class bitget extends Exchange {
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false, // not on spot
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true, // but not yet implemented in spot
+                        'takeProfitPrice': true, // but not yet implemented in spot
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': false,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'limitPrice': true,
+                        },
+                        'marginMode': true,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'trailing': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 100,
+                        'daysBack': 365 * 2, // 2 years
+                        'untilDays': 7, // days between start-end
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'limit': 50,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'limit': 50,
+                        'daysBackClosed': 365 * 2, // 2 years
+                        'daysBackCanceled': 1,
+                        'untilDays': 7,
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+            //     'spot': {
+            //         'extends': 'default',
+            //         'createOrder': {
+            //             'triggerPrice': true,
+            //             'triggerPriceType': undefined,
+            //             'triggerDirection': false,
+            //             'stopLossPrice': true,
+            //             'takeProfitPrice': true,
+            //             'attachedStopLossTakeProfit': {
+            //                 'triggerPriceType': undefined,
+            //                 'limitPrice': true,
+            //             },
+            //             'marginMode': false,
+            //             'timeInForce': {
+            //                 'GTC': true,
+            //                 'IOC': true,
+            //                 'FOK': true,
+            //                 'PO': true,
+            //                 'GTD': false,
+            //             },
+            //             'hedged': true,
+            //             // exchange-supported features
+            //             'selfTradePrevention': true,
+            //             'trailing': true,
+            //             'twap': false,
+            //             'iceberg': false,
+            //             'oco': false,
+            //         },
+            //     },
+            //     'swap': {
+            //         'linear': {
+            //             'extends': 'default',
+            //         },
+            //         'inverse': {
+            //             'extends': 'default',
+            //         },
+            //     },
+            //     'future': {
+            //         'linear': {
+            //             'extends': 'default',
+            //         },
+            //         'inverse': {
+            //             'extends': 'default',
+            //         },
+            //     },
+            },
         });
     }
 
@@ -4251,7 +4369,7 @@ export default class bitget extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerType = this.safeString (params, 'triggerType', 'mark_price');
+        const triggerPriceType = this.safeString2 (params, 'triggerPriceType', 'triggerType', 'mark_price');
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
@@ -4279,7 +4397,7 @@ export default class bitget extends Exchange {
                 request['clientOid'] = clientOrderId;
             }
             if (isTriggerOrder || isStopLossOrTakeProfitTrigger || isTrailingPercentOrder) {
-                request['triggerType'] = triggerType;
+                request['triggerType'] = triggerPriceType;
             }
             if (isTrailingPercentOrder) {
                 if (!isMarketOrder) {
@@ -4412,7 +4530,7 @@ export default class bitget extends Exchange {
                 }
                 if (triggerPrice !== undefined) {
                     request['planType'] = planType;
-                    request['triggerType'] = triggerType;
+                    request['triggerType'] = triggerPriceType;
                     request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                     if (price !== undefined) {
                         request['executePrice'] = this.priceToPrecision (symbol, price);
