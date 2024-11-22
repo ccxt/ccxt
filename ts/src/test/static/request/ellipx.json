@@ -1,0 +1,16 @@
+{
+    "exchange": "ellipx",
+    "skipKeys": ["_key", "_time", "_nonce", "_sign"],
+    "outputType": "both",
+    "methods": {
+    "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://app.ellipx.com/_rest/User/Wallet?_key=key-hwlf2a-u2hj-fh7m-is6j-5vbu5tr4&_time=1732277464&_nonce=085a8b7b-c8dc-48d6-a48e-35b773deaf51&_sign=%2FR5MpsGpemosA0eMDQgmKBfLqIL3HTBNscNG8lW1adrNRAvZM%2BxQV%2BVBHGZFM9RB5iUq6k5gKrp0o3rPzY4HDA%3D%3D",
+                "input": [],
+                "output": null
+            }
+    ]
+    }
+}
