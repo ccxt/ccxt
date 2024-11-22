@@ -24,6 +24,7 @@ if (platform === 'win32' && __dirname[0] === '/') {
     __dirname = __dirname.substring (1);
 }
 const rootDir = __dirname + '/../';
+const useJsonParsing = false; 
 
 function getExchangeSettings (exchangeId) {
     // set up keys and settings, if any
@@ -41,11 +42,25 @@ function jsonStringify (elem, spaces = 4) {
     return JSON.stringify (elem, (k, v) => (v === undefined ? null : v), spaces); // preserve undefined values and convert them to null
 }
 
-function write (filename, data, spaces = 4) {
-    return fs.writeFileSync(filename, jsonStringify(data, spaces));
+function readFileInit (filename, defaultData = '{}') {
+    try {
+        return fs.readFileSync(filename, "utf8");
+    } catch (e) {
+        writeString(filename, defaultData);
+        return defaultData;
+    }
 }
+
+function writeJson (filename, data, spaces = 4) {
+    return writeString(filename, jsonStringify(data, spaces));
+}
+
 function writeString (filename, data) {
     return fs.writeFileSync(filename, data);
+}
+
+function spaces (amount) {
+    return ' '.repeat(amount);
 }
 
 function die (errorMessage = undefined, code = 1) {
@@ -72,14 +87,17 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         throw new Error ('should be either "request" or "response"');
     }
     const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${exchangeId}.json`;
-    const fileContent = fs.readFileSync(filePath, "utf8");
+    const defaultStructure = {"exchange":exchangeId, "skipKeys": [], "options": {}, "methods": {}};
+    if (requestOrResponse === 'request') {
+        defaultStructure.outputType = 'both';
+    }
+    const fileContent = readFileInit (filePath, jsonStringify(defaultStructure));
     // auto-detect 2 or 4 spaces used (just for backward compatibility)
     let spacesAmount = spacesIndent;
     if (spacesAmount === undefined) {
-        spacesAmount = fileContent.includes('{\n    "exchange"') ? 4 : 2;
+        spacesAmount = fileContent.includes('{\n  "exchange"') ? 2 : 4
     }
     // either Parse JSON or use string manipulation
-    const useJsonParsing = false; 
     if (useJsonParsing) {
         const jsonFull = JSON.parse (fileContent);
         const jsonMethods = jsonFull['methods']
@@ -91,7 +109,7 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         methodArray.push(entry);
         orderedMap.set(method, methodArray);
         jsonFull['methods'] = Object.fromEntries(orderedMap);
-        write(filePath, jsonFull, spacesAmount);
+        writeJson(filePath, jsonFull, spacesAmount);
     } else {
         // stringify the new entry
         const entryString = jsonStringify(entry, spacesAmount);
@@ -102,12 +120,12 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
         const match = fileContent.match(regex);
         // if method exists
         if (match !== null) {
-            const newContent = fileContent.replace(regex, `    "${method}": [\n${indentedContent},`);
+            const newContent = fileContent.replace(regex, `"${method}": [\n${indentedContent},`);
             writeString(filePath, newContent);
         } else {
             // inject it after "methods": { line
-            const methodsRegex = new RegExp(`  "methods":\\s*\\{`, '');
-            const newContent = fileContent.replace(methodsRegex, `  "methods": {\n    "${method}": [\n${indentedContent}\n    ],`);
+            const methodsRegex = new RegExp(`"methods":\\s*\\{`, '');
+            const newContent = fileContent.replace(methodsRegex, '"methods": {\n' + spaces(spacesAmount * 2) + `"${method}": [\n${indentedContent}\n`+  spaces(spacesAmount * 2) + '],');
             writeString(filePath, newContent);
         }
     }
@@ -127,8 +145,14 @@ function prependWhitespace(content, spacesAmountPerIndent, indentAmount) {
 const dataContainer = {
     filePathForMarkets : '',
     marketsJson : {},
+    indentForMarkets: 4,
     filePathForCurrencies : '',
     currenciesJson : {},
+    indentForCurrencies: 4,
+}
+
+function twoSpacedIndent (jsonStr) {
+    return jsonStr.includes('\n  "BTC') || jsonStr.includes('\n  "USDT');
 }
 
 async function update_markets_and_currencies () {
@@ -139,10 +163,15 @@ async function update_markets_and_currencies () {
         }
 
         dataContainer.filePathForMarkets = rootDir + `/ts/src/test/static/markets/${exchangeId}.json`;
-        dataContainer.marketsJson = JSON.parse (fs.readFileSync(dataContainer.filePathForMarkets, "utf8"));
+        const strMarkets = readFileInit(dataContainer.filePathForMarkets, '{}');
+        dataContainer.marketsJson = JSON.parse(strMarkets);
+        dataContainer.indentForMarkets = twoSpacedIndent(strMarkets) ? 2 : 4;
+
         dataContainer.filePathForCurrencies = rootDir + `/ts/src/test/static/currencies/${exchangeId}.json`;
-        dataContainer.currenciesJson = JSON.parse (fs.readFileSync(dataContainer.filePathForCurrencies, "utf8"));
-    
+        const strCurrencies = readFileInit(dataContainer.filePathForCurrencies, '{}');
+        dataContainer.currenciesJson = JSON.parse(strCurrencies);
+        dataContainer.indentForCurrencies = twoSpacedIndent(strCurrencies) ? 2 : 4;
+        //
         if (!ccxt.exchanges.includes(exchangeId)) {
             console.log('Exchange id ' + exchangeId + ' not found in exchanges.json');
             process.exit(1);
@@ -151,7 +180,9 @@ async function update_markets_and_currencies () {
         // remove first item
         args.shift ();
         const symbolsOrCurrencies = args;
-
+        if (!symbolsOrCurrencies.length) {
+            die ();
+        }
 
         const settings = getExchangeSettings (exchangeId);
         const exchange = new ccxt[exchangeId]({ ...settings });
@@ -176,10 +207,10 @@ async function update_markets_and_currencies () {
             }
         }
         // @ts-expect-error
-        die ('Finished! ' + exchangeId + ' > ' + JSON.stringify (symbolsOrCurrencies), 0);
+        die ('Finished! ' + exchangeId + ' > ' + jsonStringify (symbolsOrCurrencies), 0);
     } catch (e) {
         // @ts-expect-error
-        die ('Static data write error: ' + e.stack.toString (), 1);
+        die ('Static data writeJson error: ' + e.stack.toString (), 1);
     }
 }
 
@@ -201,7 +232,7 @@ function updateMarketsOrCurrencies (exchange, type, source) {
         }
     }
     const filePath = type === 'markets' ? dataContainer.filePathForMarkets : dataContainer.filePathForCurrencies;
-    write(filePath, destination);
+    writeJson(filePath, destination, 2);
 }
 
 // update signle market or currency
@@ -214,12 +245,12 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
         // @ts-expect-error
         die ('Symbol or Currency not found in ' + exchangeId, 1);
     }
-    // write to file
+    // writeJson to file
     if (isMarketOrCurrency) {
-        // if it's market, then write market object and currencies too
+        // if it's market, then writeJson market object and currencies too
         // market object
         dataContainer.marketsJson[symbolOrCurrency] = targetObject;
-        write (dataContainer.filePathForMarkets, dataContainer.marketsJson);
+        writeJson (dataContainer.filePathForMarkets, dataContainer.marketsJson, dataContainer.indentForMarkets);
         // base & quote currency objects
         const base = targetObject.base;
         const quote = targetObject.quote;
@@ -227,17 +258,18 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
         const quoteCurrency = exchange.currencies[quote];
         dataContainer.currenciesJson[base] = baseCurrency;
         dataContainer.currenciesJson[quote] = quoteCurrency;
-        write (dataContainer.filePathForCurrencies, dataContainer.currenciesJson);
+        writeJson (dataContainer.filePathForCurrencies, dataContainer.currenciesJson, dataContainer.indentForCurrencies);
     } else {
-        // if currency, then only write currency object
+        // if currency, then only writeJson currency object
         dataContainer.currenciesJson[symbolOrCurrency] = targetObject;
-        write(dataContainer.filePathForCurrencies, dataContainer.currenciesJson);
+        writeJson(dataContainer.filePathForCurrencies, dataContainer.currenciesJson, dataContainer.indentForCurrencies);
     }
 }
 
 
+export default {};
 
-export default { add_static_result, update_markets_and_currencies };
+export { add_static_result, update_markets_and_currencies };
 
 
 if (process.argv.includes ('--update')) {
