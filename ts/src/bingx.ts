@@ -45,6 +45,7 @@ export default class bingx extends Exchange {
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
