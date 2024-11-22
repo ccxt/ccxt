@@ -2817,6 +2817,7 @@ export default class Exchange {
         if ('createOrder' in featuresObj) {
             const value = this.safeDict (featuresObj['createOrder'], 'attachedStopLossTakeProfit');
             if (value !== undefined) {
+                featuresObj['createOrder'] = this.omit (featuresObj['createOrder'], 'attachedStopLossTakeProfit'); // omit duplicate, as we fill them on below lines
                 featuresObj['createOrder']['stopLoss'] = value;
                 featuresObj['createOrder']['takeProfit'] = value;
             }
