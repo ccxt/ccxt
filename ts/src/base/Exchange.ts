@@ -4395,7 +4395,7 @@ export default class Exchange {
     }
 
     currencyId (code: string): string {
-        let currency  = this.safeDict (this.currencies, code);
+        let currency = this.safeDict (this.currencies, code);
         if (currency === undefined) {
             currency = this.safeCurrency (code);
         }
