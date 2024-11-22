@@ -284,7 +284,7 @@ export default class ellipx extends Exchange {
             const signString = this.binaryConcatArray (components);
             const remainder = this.secret.length % 4;
             const paddingLength = remainder ? 4 - remainder : 0;
-            const secretWithPadding = this.secret.replace ('-', '+').replace ('_', '/').padEnd (this.secret.length + paddingLength, '=');
+            const secretWithPadding = this.secret.replaceAll ('-', '+').replaceAll ('_', '/').padEnd (this.secret.length + paddingLength, '=');
             const secretBytes = this.base64ToBinary (secretWithPadding);
             const seed = secretBytes.slice (0, 32); // Extract first 32 bytes as seed
             const signature = eddsa (signString, seed, ed25519);
