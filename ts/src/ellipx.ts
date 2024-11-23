@@ -1044,39 +1044,36 @@ export default class ellipx extends Exchange {
      * @param {float} [amount] amount of base currency to trade (can be undefined if using Spend_Limit)
      * @param {float} [price] price per unit of base currency for limit orders
      * @param {object} [params] extra parameters specific to the EllipX API endpoint
-     * @param {float} [params.Spend_Limit] maximum amount to spend in quote currency (required for market orders if amount undefined)
+     * @param {float} [params.cost] maximum amount to spend in quote currency (required for market orders if amount undefined)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-     * @throws {ArgumentsRequired} if neither amount nor Spend_Limit is provided
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the exchange automatically sets the type to 'limit' if the price is defined and to 'market' if it is not
         const marketId = market['id'];
-        let Type = 'bid';
+        let orderType = 'bid';
         if (side === 'buy') {
-            Type = 'bid';
+            orderType = 'bid';
         } else {
-            Type = 'ask';
+            orderType = 'ask';
         }
         const request: any = {
             'currencyPair': marketId,
-            'Type': Type,
+            'Type': orderType,
         };
-        if (amount === undefined && params['Spend_Limit'] === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder requires an amount or Spend_Limit');
-        }
         if (amount !== undefined) {
             request['Amount'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['Price'] = this.priceToPrecision (symbol, price);
         }
-        if (params['Spend_Limit'] !== undefined) {
-            request['Spend_Limit'] = this.priceToPrecision (symbol, params['Spend_Limit']);
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            params = this.omit (params, 'cost');
+            request['Spend_Limit'] = this.priceToPrecision (symbol, cost);
         }
-        const query = this.omit (params, [ 'currencyPair' ]);
-        const response = await this.privatePostMarketCurrencyPairOrder (this.extend (request, query));
+        const response = await this.privatePostMarketCurrencyPairOrder (this.extend (request, params));
         // {
         //     "result": "success",
         //     "data": {
@@ -1127,7 +1124,7 @@ export default class ellipx extends Exchange {
         //         }
         //     }
         // }
-        const order = this.safeValue (response, 'data', {});
+        const order = this.safeDict (response, 'data', {});
         return this.parseOrder (order, market);
     }
 
@@ -1146,7 +1143,7 @@ export default class ellipx extends Exchange {
             'orderUuid': id,
         };
         const response = await this.privateGetMarketOrderOrderUuid (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, undefined);
     }
 
@@ -1265,26 +1262,24 @@ export default class ellipx extends Exchange {
 
     parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'Market_Order__');
-        const timestamp = this.safeInteger (this.safeValue (order, 'Created'), 'unixms');
+        const timestamp = this.safeInteger (this.safeDict (order, 'Created'), 'unixms');
         const typeResponse = this.safeString (order, 'Type');
         let side = 'sell';
         if (typeResponse === 'bid') {
             side = 'buy';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        const amount = this.parseAmount (order['Amount']);
-        const price = this.parseAmount (order['Price']);
+        const amount = this.parseAmount (this.safeDict (order, 'Amount'));
+        const price = this.parseAmount (this.safeDict (order, 'Price'));
         const type = (price === undefined) ? 'market' : 'limit';
-        const executed = this.parseAmount (order['Executed']);
+        const executed = this.parseAmount (this.safeDict (order, 'Executed'));
         const filled = executed;
         const remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (amount, filled) : undefined;
         const symbol = market ? market['symbol'] : undefined;
         const clientOrderId = undefined;
         const timeInForce = 'GTC'; // default to Good Till Cancelled
         const postOnly = false;
-        const average = undefined;
-        const fee = undefined;
-        const updated = this.safeValue (order, 'Updated', {});
+        const updated = this.safeDict (order, 'Updated', {});
         const lastTradeTimestamp = this.safeInteger (updated, 'unixms', undefined);
         return this.safeOrder ({
             'id': id,
@@ -1302,12 +1297,12 @@ export default class ellipx extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'triggerPrice': undefined,
-            'average': average,
+            'average': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': fee,
+            'fee': undefined,
             'trades': undefined,
         }, market);
     }
