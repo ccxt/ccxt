@@ -122,7 +122,7 @@ class twox(Exchange, ImplicitAPI):
         result = []
         quotes = ['IRT', 'USDT']
         for i in range(0, len(response)):
-            marketData = {...response[i]}
+            marketData = self.extend({}, response[i])
             base = self.safe_string(marketData, 'symbol')
             for index in range(0, len(quotes)):
                 quote = quotes[index]

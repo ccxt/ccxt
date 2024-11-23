@@ -312,7 +312,7 @@ class hitobit extends Exchange {
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => new Date ($timestamp).toISOString (),
+            'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
@@ -349,13 +349,13 @@ class hitobit extends Exchange {
         $endTime = Date.now ();
         $request = array(
             'symbol' => $market['id'],
-            'from' => new Date (($endTime) - (24 * 60 * 60)).toISOString (),
-            'to' => new Date ($endTime).toISOString (),
+            'from' => $this->iso8601(($endTime) - (24 * 60 * 60)),
+            'to' => $this->iso8601($endTime),
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => 300,
         );
         if ($since !== null) {
-            $request['from'] = new Date ($since / 1000).toISOString ();
+            $request['from'] = $this->iso8601($since / 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;

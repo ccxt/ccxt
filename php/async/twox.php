@@ -125,7 +125,7 @@ class twox extends Exchange {
             $result = array();
             $quotes = array( 'IRT', 'USDT' );
             for ($i = 0; $i < count($response); $i++) {
-                $marketData = array( ...response[$i] );
+                $marketData = $this->extend(array(), $response[$i]);
                 $base = $this->safe_string($marketData, 'symbol');
                 for ($index = 0; $index < count($quotes); $index++) {
                     $quote = $quotes[$index];

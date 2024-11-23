@@ -316,7 +316,7 @@ export default class hitobit extends Exchange {
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': new Date(timestamp).toISOString(),
+            'datetime': this.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
@@ -354,13 +354,13 @@ export default class hitobit extends Exchange {
         const endTime = Date.now();
         const request = {
             'symbol': market['id'],
-            'from': new Date((endTime) - (24 * 60 * 60)).toISOString(),
-            'to': new Date(endTime).toISOString(),
+            'from': this.iso8601((endTime) - (24 * 60 * 60)),
+            'to': this.iso8601(endTime),
             'interval': this.safeString(this.timeframes, timeframe, timeframe),
             'limit': 300,
         };
         if (since !== undefined) {
-            request['from'] = new Date(since / 1000).toISOString();
+            request['from'] = this.iso8601(since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;

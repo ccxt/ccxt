@@ -305,7 +305,7 @@ class hitobit(Exchange, ImplicitAPI):
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': new Date(timestamp).toISOString(),
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
@@ -341,13 +341,13 @@ class hitobit(Exchange, ImplicitAPI):
         endTime = Date.now()
         request = {
             'symbol': market['id'],
-            'from': new Date((endTime) - (24 * 60 * 60)).toISOString(),
-            'to': new Date(endTime).toISOString(),
+            'from': self.iso8601((endTime) - (24 * 60 * 60)),
+            'to': self.iso8601(endTime),
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': 300,
         }
         if since is not None:
-            request['from'] = Date(since / 1000).toISOString()
+            request['from'] = self.iso8601(since / 1000)
         if limit is not None:
             request['limit'] = limit
         if timeframe is not None:
