@@ -83,7 +83,7 @@ export default class ellipx extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -161,6 +161,7 @@ export default class ellipx extends Exchange {
                         'User/Wallet': 1,
                         'Market/{currencyPair}/Order': 1,
                         'Market/Order/{orderUuid}': 1,
+                        'Market/{currencyPair}/Trade': 1,
                         'Market/TradeFee:query': 1,
                         'Unit/{currency}': 1,
                         'Crypto/Token/{currency}': 1,
@@ -882,17 +883,32 @@ export default class ellipx extends Exchange {
     parseTrade (trade, market = undefined): Trade {
         // Format of trade ID: "BTC_USDC:1731053859:914141972:0"
         const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        // fetchTrades and fetchMyTrades return different trade structures
+        const date = this.safeDict (trade, 'date');
+        let timestamp = undefined;
+        if (date === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'date'));
+        } else {
+            timestamp = this.safeInteger (date, 'unixms');
+        }
         const type = this.safeString (trade, 'type');
         const side = (type === 'bid') ? 'buy' : 'sell';
-        const amount = this.safeValue (trade, 'amount', {});
-        const price = this.safeValue (trade, 'price', {});
+        const amount = this.safeDict (trade, 'amount');
+        const price = this.safeDict (trade, 'price');
         const amountFloat = this.parseAmount (amount);
         const priceFloat = this.parseAmount (price);
-        const pair = this.safeValue (trade, 'pair', []);
-        const marketSymbol = this.safeString (pair, 0) + '/' + this.safeString (pair, 1);
-        const bidOrder = this.safeValue (trade, 'bid', {});
-        const askOrder = this.safeValue (trade, 'ask', {});
+        // fetchTrades and fetchMyTrades return different trade structures
+        const pair = this.safeList (trade, 'pair');
+        let marketSymbol = undefined;
+        if (pair === undefined) {
+            const symbol = this.safeString (trade, 'pair');
+            const [ base, quote ] = symbol.split ('_');
+            marketSymbol = base + '/' + quote;
+        } else {
+            marketSymbol = this.safeString (pair, 0) + '/' + this.safeString (pair, 1);
+        }
+        const bidOrder = this.safeDict (trade, 'bid');
+        const askOrder = this.safeDict (trade, 'ask');
         const orderId = side === 'buy' ? this.safeString (bidOrder, 'id') : this.safeString (askOrder, 'id');
         return this.safeTrade ({
             'id': id,
@@ -1355,6 +1371,199 @@ export default class ellipx extends Exchange {
             'fee': undefined,
             'trades': undefined,
         }, undefined);
+    }
+
+    /**
+     * @method
+     * @name ellipx#fetchMyTrades
+     * @description fetch a list of trades made by the user
+     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.ni0fhhkcehxu
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} params extra parameters specific to the EllipX API endpoint, need to provide order ID
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currencyPair = market['id'];
+        const request = {
+            'Market_Order__': params['orderUuid'],
+            'currencyPair': currencyPair,
+        };
+        params = this.omit (params, 'orderUuid'); // remove orderUuid from params
+        const response = await this.privateGetMarketCurrencyPairTrade (this.extend (request, params));
+        // {
+        //     "result": "success",
+        //     "request_id": "fc5be99d-d085-46f8-9228-e46d0996f112",
+        //     "time": 0.030913114547729492,
+        //     "data": [
+        //         {
+        //             "id": "DOGE_USDC:1731505789:911642994:0",
+        //             "pair": "DOGE_USDC",
+        //             "bid": {
+        //                 "id": "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4"
+        //             },
+        //             "ask": {
+        //                 "id": "mktor-oxmac4-mtkf-gi3o-mamg-u2cboqe4"
+        //             },
+        //             "type": "bid",
+        //             "amount": {
+        //                 "v": "334609419",
+        //                 "e": 8,
+        //                 "f": 3.34609419
+        //             },
+        //             "price": {
+        //                 "v": "410673",
+        //                 "e": 6,
+        //                 "f": 0.410673
+        //             },
+        //             "date": {
+        //                 "unix": 1731505789,
+        //                 "us": 911642,
+        //                 "iso": "2024-11-13 13:49:49.911642",
+        //                 "tz": "UTC",
+        //                 "full": "1731505789911642",
+        //                 "unixms": "1731505789911"
+        //             }
+        //         },
+        //         {
+        //             "id": "DOGE_USDC:1731505789:911642994:4",
+        //             "pair": "DOGE_USDC",
+        //             "bid": {
+        //                 "id": "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4"
+        //             },
+        //             "ask": {
+        //                 "id": "mktor-cmtztk-3z3n-gupp-uqdg-74g4wjfq"
+        //             },
+        //             "type": "bid",
+        //             "amount": {
+        //                 "v": "145453950",
+        //                 "e": 8,
+        //                 "f": 1.4545395
+        //             },
+        //             "price": {
+        //                 "v": "412589",
+        //                 "e": 6,
+        //                 "f": 0.412589
+        //             },
+        //             "date": {
+        //                 "unix": 1731505789,
+        //                 "us": 911642,
+        //                 "iso": "2024-11-13 13:49:49.911642",
+        //                 "tz": "UTC",
+        //                 "full": "1731505789911642",
+        //                 "unixms": "1731505789911"
+        //             }
+        //         },
+        //         {
+        //             "id": "DOGE_USDC:1731505789:911642994:2",
+        //             "pair": "DOGE_USDC",
+        //             "bid": {
+        //                 "id": "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4"
+        //             },
+        //             "ask": {
+        //                 "id": "mktor-6tyslh-b33b-flnm-2ata-acjkco4y"
+        //             },
+        //             "type": "bid",
+        //             "amount": {
+        //                 "v": "587627076",
+        //                 "e": 8,
+        //                 "f": 5.87627076
+        //             },
+        //             "price": {
+        //                 "v": "411005",
+        //                 "e": 6,
+        //                 "f": 0.411005
+        //             },
+        //             "date": {
+        //                 "unix": 1731505789,
+        //                 "us": 911642,
+        //                 "iso": "2024-11-13 13:49:49.911642",
+        //                 "tz": "UTC",
+        //                 "full": "1731505789911642",
+        //                 "unixms": "1731505789911"
+        //             }
+        //         },
+        //         {
+        //             "id": "DOGE_USDC:1731505789:911642994:1",
+        //             "pair": "DOGE_USDC",
+        //             "bid": {
+        //                 "id": "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4"
+        //             },
+        //             "ask": {
+        //                 "id": "mktor-ihpjlj-5ufj-dm5l-fmud-oftkqcgu"
+        //             },
+        //             "type": "bid",
+        //             "amount": {
+        //                 "v": "475845734",
+        //                 "e": 8,
+        //                 "f": 4.75845734
+        //             },
+        //             "price": {
+        //                 "v": "410830",
+        //                 "e": 6,
+        //                 "f": 0.41083
+        //             },
+        //             "date": {
+        //                 "unix": 1731505789,
+        //                 "us": 911642,
+        //                 "iso": "2024-11-13 13:49:49.911642",
+        //                 "tz": "UTC",
+        //                 "full": "1731505789911642",
+        //                 "unixms": "1731505789911"
+        //             }
+        //         },
+        //         {
+        //             "id": "DOGE_USDC:1731505789:911642994:3",
+        //             "pair": "DOGE_USDC",
+        //             "bid": {
+        //                 "id": "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4"
+        //             },
+        //             "ask": {
+        //                 "id": "mktor-d2uyb3-nzsj-aevn-dikr-tq3sxhre"
+        //             },
+        //             "type": "bid",
+        //             "amount": {
+        //                 "v": "641013461",
+        //                 "e": 8,
+        //                 "f": 6.41013461
+        //             },
+        //             "price": {
+        //                 "v": "411846",
+        //                 "e": 6,
+        //                 "f": 0.411846
+        //             },
+        //             "date": {
+        //                 "unix": 1731505789,
+        //                 "us": 911642,
+        //                 "iso": "2024-11-13 13:49:49.911642",
+        //                 "tz": "UTC",
+        //                 "full": "1731505789911642",
+        //                 "unixms": "1731505789911"
+        //             }
+        //         }
+        //     ],
+        //     "access": {
+        //         "mkt-xrkg5l-akjz-cxxl-3a2e-mul5gfo4": {
+        //             "required": "r",
+        //             "available": "?"
+        //         },
+        //         "mktor-xb3ne5-emm5-fx7e-xggk-fyfoiye4": {
+        //             "required": "R",
+        //             "available": "O"
+        //         }
+        //     },
+        //     "paging": {
+        //         "page_no": 1,
+        //         "count": "5",
+        //         "page_max": 1,
+        //         "results_per_page": 20
+        //     }
+        // }
+        const data = this.safeList (response, 'data');
+        return this.parseTrades (data, market, since, limit);
     }
 
     /**

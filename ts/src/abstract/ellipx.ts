@@ -21,6 +21,7 @@ interface Exchange {
     privateGetUserWallet (params?: {}): Promise<implicitReturnType>;
     privateGetMarketCurrencyPairOrder (params?: {}): Promise<implicitReturnType>;
     privateGetMarketOrderOrderUuid (params?: {}): Promise<implicitReturnType>;
+    privateGetMarketCurrencyPairTrade (params?: {}): Promise<implicitReturnType>;
     privateGetMarketTradeFeeQuery (params?: {}): Promise<implicitReturnType>;
     privateGetUnitCurrency (params?: {}): Promise<implicitReturnType>;
     privateGetCryptoTokenCurrency (params?: {}): Promise<implicitReturnType>;
