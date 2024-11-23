@@ -1485,7 +1485,7 @@ export default class bitget extends Exchange {
                         'max': 50,
                     },
                     'fetchMyTrades': {
-                        'marginMode': true, // todo: add in unify
+                        'marginMode': true,
                         'limit': 100,
                         'daysBack': undefined,
                         'untilDays': 90,

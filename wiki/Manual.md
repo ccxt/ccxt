@@ -288,7 +288,14 @@ console.log(exchange.features);
       triggerDirection: false,     // if trigger direction is supported (up, down)
       stopLossPrice: true,         // if stop-loss order is supported (read "Stop Loss Orders" paragraph) 
       takeProfitPrice: true,       // if take-profit order is supported
-      attachedStopLossTakeProfit: undefined,  // if embedded orders are supported inside entry orders
+      attachedStopLossTakeProfit: {       
+        triggerPriceType: {
+            last: true,
+            mark: true,
+            index: true,
+        },
+        limitPrice: true,
+      },
       marginMode: true,            // if `marginMode` param is supported (cross, isolated)
       timeInForce: {               // supported TIF types
         GTC: true,
