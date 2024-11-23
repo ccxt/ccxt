@@ -708,19 +708,19 @@ export default class ellipx extends Exchange {
         // }
         // No limit parameter supported by the API
         const response = await this.publicGetMarketCurrencyPairGetGraph (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        const ohlcv = this.safeValue (data, 'stats', []);
+        const data = this.safeDict (response, 'data', {});
+        const ohlcv = this.safeList (data, 'stats', []);
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'time') * 1000,  // timestamp
-            this.parseNumber (this.parseAmount (ohlcv['open'])),      // open
-            this.parseNumber (this.parseAmount (ohlcv['high'])),      // high
-            this.parseNumber (this.parseAmount (ohlcv['low'])),       // low
-            this.parseNumber (this.parseAmount (ohlcv['close'])),     // close
-            this.parseNumber (this.parseAmount (ohlcv['vol'])),       // volume
+            this.parseNumber (this.parseAmount (this.safeDict (ohlcv, 'open'))),      // open
+            this.parseNumber (this.parseAmount (this.safeDict (ohlcv, 'high'))),      // high
+            this.parseNumber (this.parseAmount (this.safeDict (ohlcv, 'low'))),       // low
+            this.parseNumber (this.parseAmount (this.safeDict (ohlcv, 'close'))),     // close
+            this.parseNumber (this.parseAmount (this.safeDict (ohlcv, 'vol'))),       // volume
         ];
     }
 
@@ -874,8 +874,8 @@ export default class ellipx extends Exchange {
         //     "date": "2024-11-08T08:17:39.914141972Z"
         // }
         const response = await this.publicGetMarketCurrencyPairGetTrades (this.extend (request, params));
-        const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'trades', []);
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
