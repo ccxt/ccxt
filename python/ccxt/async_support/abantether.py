@@ -227,7 +227,7 @@ class abantether(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = await self.publicGetManagementAllCoins(params)
-        result = []
+        result = {}
         quotes = ['IRT', 'USDT']
         for i in range(0, len(response)):
             base = self.safe_string(response[i], 'symbol')
@@ -238,7 +238,7 @@ class abantether(Exchange, ImplicitAPI):
                 response[i]['base'] = base
                 response[i]['quote'] = quote
                 response[i]['symbol'] = base + quote
-                ticker = await self.parse_ticker(response[i])
+                ticker = self.parse_ticker(response[i])
                 symbol = ticker['symbol']
                 result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

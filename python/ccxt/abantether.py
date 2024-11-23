@@ -227,7 +227,7 @@ class abantether(Exchange, ImplicitAPI):
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = self.publicGetManagementAllCoins(params)
-        result = []
+        result = {}
         quotes = ['IRT', 'USDT']
         for i in range(0, len(response)):
             base = self.safe_string(response[i], 'symbol')

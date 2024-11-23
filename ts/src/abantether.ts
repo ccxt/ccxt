@@ -239,7 +239,7 @@ export default class abantether extends Exchange {
             symbols = this.marketSymbols (symbols);
         }
         const response = await this.publicGetManagementAllCoins (params);
-        const result = [];
+        const result = {};
         const quotes = [ 'IRT', 'USDT' ];
         for (let i = 0; i < response.length; i++) {
             const base = this.safeString (response[i], 'symbol');
@@ -251,7 +251,7 @@ export default class abantether extends Exchange {
                 response[i]['base'] = base;
                 response[i]['quote'] = quote;
                 response[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker (response[i]);
+                const ticker = this.parseTicker (response[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }

@@ -234,7 +234,7 @@ class abantether extends abantether$1 {
             symbols = this.marketSymbols(symbols);
         }
         const response = await this.publicGetManagementAllCoins(params);
-        const result = [];
+        const result = {};
         const quotes = ['IRT', 'USDT'];
         for (let i = 0; i < response.length; i++) {
             const base = this.safeString(response[i], 'symbol');
@@ -246,7 +246,7 @@ class abantether extends abantether$1 {
                 response[i]['base'] = base;
                 response[i]['quote'] = quote;
                 response[i]['symbol'] = base + quote;
-                const ticker = await this.parseTicker(response[i]);
+                const ticker = this.parseTicker(response[i]);
                 const symbol = ticker['symbol'];
                 result[symbol] = ticker;
             }
