@@ -1178,6 +1178,7 @@ class okx extends okx$1 {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -1187,7 +1188,6 @@ class okx extends okx$1 {
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'marginMode': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': true,
@@ -1215,6 +1215,7 @@ class okx extends okx$1 {
                         'max': 20,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
@@ -1225,18 +1226,18 @@ class okx extends okx$1 {
                         'trailing': true,
                     },
                     'fetchOpenOrders': {
-                        'limit': 100,
                         'marginMode': false,
+                        'limit': 100,
                         'trigger': true,
                         'trailing': true,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 100,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 1 / 12,
                         'untilDays': undefined,
-                        'marginMode': false,
                         'trigger': true,
                         'trailing': true,
                     },

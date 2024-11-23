@@ -43,6 +43,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
     $format = array(
         'sandbox' => false,
         'createOrder' => array(
+            'marginMode' => false,
             'triggerPrice' => false,
             'triggerPriceType' => array(
                 'mark' => false,
@@ -59,7 +60,6 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
                 ),
                 'limitPrice' => false,
             ),
-            'marginMode' => false,
             'timeInForce' => array(
                 'GTC' => false,
                 'IOC' => false,
@@ -74,6 +74,7 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'max' => 5,
         ),
         'fetchMyTrades' => array(
+            'marginMode' => false,
             'daysBack' => 0,
             'limit' => 0,
             'untilDays' => 0,
@@ -84,25 +85,25 @@ function test_features_inner($exchange, $skipped_properties, $feature_obj) {
             'trailing' => false,
         ),
         'fetchOpenOrders' => array(
-            'limit' => 0,
             'marginMode' => false,
+            'limit' => 0,
             'trigger' => false,
             'trailing' => false,
         ),
         'fetchOrders' => array(
+            'marginMode' => false,
             'limit' => 0,
             'daysBack' => 0,
             'untilDays' => 0,
-            'marginMode' => false,
             'trigger' => false,
             'trailing' => false,
         ),
         'fetchClosedOrders' => array(
+            'marginMode' => false,
             'limit' => 0,
             'daysBackClosed' => 0,
             'daysBackCanceled' => 0,
             'untilDays' => 0,
-            'marginMode' => false,
             'trigger' => false,
             'trailing' => false,
         ),

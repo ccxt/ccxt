@@ -39,6 +39,8 @@ class krakenfutures extends Exchange {
                 'cancelOrders' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRateHistories' => false,

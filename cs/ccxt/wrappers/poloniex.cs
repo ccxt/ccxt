@@ -275,7 +275,7 @@ public partial class poloniex
     /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
-    /// float : *spot only* The price at which a trigger order is triggered at
+    /// float : the price at which a trigger order is triggered at
     /// </description>
     /// </item>
     /// <item>

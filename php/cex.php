@@ -27,6 +27,8 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
@@ -1129,6 +1131,7 @@ class cex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->accountId] account-id to use (default is empty string)
+         * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $accountId = null;

@@ -1186,6 +1186,7 @@ class okx extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => true,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'last' => true,
@@ -1195,7 +1196,6 @@ class okx extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
-                        'marginMode' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => array(
                                 'last' => true,
@@ -1223,6 +1223,7 @@ class okx extends Exchange {
                         'max' => 20,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'daysBack' => 90,
                         'limit' => 100,
                         'untilDays' => 10000,
@@ -1233,18 +1234,18 @@ class okx extends Exchange {
                         'trailing' => true,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 100,
                         'marginMode' => false,
+                        'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
                     ),
                     'fetchOrders' => null, // not supported
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 100,
                         'daysBackClosed' => 90, // 3 months
                         'daysBackCanceled' => 1 / 12, // 2 hour
                         'untilDays' => null,
-                        'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true,
                     ),

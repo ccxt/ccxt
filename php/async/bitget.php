@@ -1490,7 +1490,7 @@ class bitget extends Exchange {
                         'max' => 50,
                     ),
                     'fetchMyTrades' => array(
-                        'marginMode' => true, // todo => add in unify
+                        'marginMode' => true,
                         'limit' => 100,
                         'daysBack' => null,
                         'untilDays' => 90,

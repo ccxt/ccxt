@@ -58,6 +58,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createStopLossOrder': True,
+                'createStopOrder': True,
                 'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
@@ -532,6 +533,7 @@ class bingx(Exchange, ImplicitAPI):
                 'defaultForLinear': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -549,7 +551,6 @@ class bingx(Exchange, ImplicitAPI):
                             },
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -564,6 +565,7 @@ class bingx(Exchange, ImplicitAPI):
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
@@ -574,25 +576,25 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': None,
                         'marginMode': False,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBack': 20000,  # since epoch
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -612,11 +614,11 @@ class bingx(Exchange, ImplicitAPI):
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },

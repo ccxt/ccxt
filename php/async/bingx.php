@@ -50,6 +50,7 @@ class bingx extends Exchange {
                 'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createStopLossOrder' => true,
+                'createStopOrder' => true,
                 'createTakeProfitOrder' => true,
                 'createTrailingAmountOrder' => true,
                 'createTrailingPercentOrder' => true,
@@ -524,6 +525,7 @@ class bingx extends Exchange {
                 'defaultForLinear' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'last' => true,
@@ -541,7 +543,6 @@ class bingx extends Exchange {
                             ),
                             'limitPrice' => true,
                         ),
-                        'marginMode' => false,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -556,6 +557,7 @@ class bingx extends Exchange {
                         'max' => 5,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'limit' => 512, // 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays' => 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
@@ -566,25 +568,25 @@ class bingx extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => null,
                         'marginMode' => false,
+                        'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchOrders' => array(
+                        'marginMode' => false,
                         'limit' => 1000,
                         'daysBack' => 20000, // since epoch
                         'untilDays' => 7,
-                        'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 1000,
                         'daysBackClosed' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
-                        'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
                     ),
@@ -604,11 +606,11 @@ class bingx extends Exchange {
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 1000,
                         'daysBackClosed' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 7,
-                        'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
                     ),

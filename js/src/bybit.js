@@ -1062,6 +1062,7 @@ export default class bybit extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -1079,7 +1080,6 @@ export default class bybit extends Exchange {
                             },
                             'limitPrice': true,
                         },
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1099,6 +1099,7 @@ export default class bybit extends Exchange {
                         'max': 10,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'limit': 100,
                         'daysBack': 365 * 2,
                         'untilDays': 7, // days between start-end
@@ -1109,18 +1110,18 @@ export default class bybit extends Exchange {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': 50,
                         'marginMode': false,
+                        'limit': 50,
                         'trigger': true,
                         'trailing': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 50,
                         'daysBackClosed': 365 * 2,
                         'daysBackCanceled': 1,
                         'untilDays': 7,
-                        'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                     },
@@ -1131,6 +1132,7 @@ export default class bybit extends Exchange {
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -1140,7 +1142,6 @@ export default class bybit extends Exchange {
                             'triggerPriceType': undefined,
                             'limitPrice': true,
                         },
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,

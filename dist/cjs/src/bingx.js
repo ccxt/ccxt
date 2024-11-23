@@ -43,6 +43,7 @@ class bingx extends bingx$1 {
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
@@ -517,6 +518,7 @@ class bingx extends bingx$1 {
                 'defaultForLinear': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -534,7 +536,6 @@ class bingx extends bingx$1 {
                             },
                             'limitPrice': true,
                         },
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -549,6 +550,7 @@ class bingx extends bingx$1 {
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'limit': 512,
                         'daysBack': 30,
                         'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
@@ -559,25 +561,25 @@ class bingx extends bingx$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': undefined,
                         'marginMode': false,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
+                        'marginMode': false,
                         'limit': 1000,
                         'daysBack': 20000,
                         'untilDays': 7,
-                        'marginMode': false,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 1000,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
-                        'marginMode': false,
                         'trigger': false,
                         'trailing': false,
                     },
@@ -597,11 +599,11 @@ class bingx extends bingx$1 {
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 1000,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 7,
-                        'marginMode': false,
                         'trigger': false,
                         'trailing': false,
                     },

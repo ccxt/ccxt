@@ -38,6 +38,8 @@ class cex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
@@ -1089,6 +1091,7 @@ class cex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account-id to use(default is empty string)
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         accountId = None

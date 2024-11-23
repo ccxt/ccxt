@@ -32,6 +32,8 @@ class bitbns extends bitbns$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,

@@ -1504,7 +1504,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': 50,
                     },
                     'fetchMyTrades': {
-                        'marginMode': True,  # todo: add in unify
+                        'marginMode': True,
                         'limit': 100,
                         'daysBack': None,
                         'untilDays': 90,

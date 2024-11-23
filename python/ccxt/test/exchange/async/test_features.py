@@ -42,6 +42,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
     format = {
         'sandbox': False,
         'createOrder': {
+            'marginMode': False,
             'triggerPrice': False,
             'triggerPriceType': {
                 'mark': False,
@@ -58,7 +59,6 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
                 },
                 'limitPrice': False,
             },
-            'marginMode': False,
             'timeInForce': {
                 'GTC': False,
                 'IOC': False,
@@ -73,6 +73,7 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'max': 5,
         },
         'fetchMyTrades': {
+            'marginMode': False,
             'daysBack': 0,
             'limit': 0,
             'untilDays': 0,
@@ -83,25 +84,25 @@ def test_features_inner(exchange, skipped_properties, feature_obj):
             'trailing': False,
         },
         'fetchOpenOrders': {
-            'limit': 0,
             'marginMode': False,
+            'limit': 0,
             'trigger': False,
             'trailing': False,
         },
         'fetchOrders': {
+            'marginMode': False,
             'limit': 0,
             'daysBack': 0,
             'untilDays': 0,
-            'marginMode': False,
             'trigger': False,
             'trailing': False,
         },
         'fetchClosedOrders': {
+            'marginMode': False,
             'limit': 0,
             'daysBackClosed': 0,
             'daysBackCanceled': 0,
             'untilDays': 0,
-            'marginMode': False,
             'trigger': False,
             'trailing': False,
         },

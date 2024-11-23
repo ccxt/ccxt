@@ -51,6 +51,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRateHistories': False,

@@ -36,6 +36,7 @@ public partial class bingx : Exchange
                 { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createStopLossOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTrailingAmountOrder", true },
                 { "createTrailingPercentOrder", true },
@@ -510,6 +511,7 @@ public partial class bingx : Exchange
                 { "defaultForLinear", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -527,7 +529,6 @@ public partial class bingx : Exchange
                             } },
                             { "limitPrice", true },
                         } },
-                        { "marginMode", false },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
                             { "IOC", true },
@@ -542,6 +543,7 @@ public partial class bingx : Exchange
                         { "max", 5 },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 512 },
                         { "daysBack", 30 },
                         { "untilDays", 30 },
@@ -552,25 +554,25 @@ public partial class bingx : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", null },
                         { "marginMode", false },
+                        { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 1000 },
                         { "daysBack", 20000 },
                         { "untilDays", 7 },
-                        { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 1000 },
                         { "daysBackClosed", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 7 },
-                        { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
                     } },
@@ -590,11 +592,11 @@ public partial class bingx : Exchange
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 1000 },
                         { "daysBackClosed", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 7 },
-                        { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
                     } },

@@ -68,6 +68,7 @@ class coinex(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
                 'createStopLossOrder': True,
+                'createStopOrder': True,
                 'createTakeProfitOrder': True,
                 'createTriggerOrder': True,
                 'editOrder': True,

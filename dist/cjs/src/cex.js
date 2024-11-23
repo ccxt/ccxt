@@ -30,6 +30,8 @@ class cex extends cex$1 {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -1109,6 +1111,7 @@ class cex extends cex$1 {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

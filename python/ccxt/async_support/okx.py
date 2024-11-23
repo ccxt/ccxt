@@ -1205,6 +1205,7 @@ class okx(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -1214,7 +1215,6 @@ class okx(Exchange, ImplicitAPI):
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
-                        'marginMode': True,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': True,
@@ -1242,6 +1242,7 @@ class okx(Exchange, ImplicitAPI):
                         'max': 20,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
@@ -1252,18 +1253,18 @@ class okx(Exchange, ImplicitAPI):
                         'trailing': True,
                     },
                     'fetchOpenOrders': {
-                        'limit': 100,
                         'marginMode': False,
+                        'limit': 100,
                         'trigger': True,
                         'trailing': True,
                     },
                     'fetchOrders': None,  # not supported
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 100,
                         'daysBackClosed': 90,  # 3 months
                         'daysBackCanceled': 1 / 12,  # 2 hour
                         'untilDays': None,
-                        'marginMode': False,
                         'trigger': True,
                         'trailing': True,
                     },

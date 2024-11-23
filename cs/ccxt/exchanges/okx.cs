@@ -1100,6 +1100,7 @@ public partial class okx : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -1109,7 +1110,6 @@ public partial class okx : Exchange
                         { "triggerDirection", false },
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
-                        { "marginMode", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", new Dictionary<string, object>() {
                                 { "last", true },
@@ -1136,6 +1136,7 @@ public partial class okx : Exchange
                         { "max", 20 },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "daysBack", 90 },
                         { "limit", 100 },
                         { "untilDays", 10000 },
@@ -1146,18 +1147,18 @@ public partial class okx : Exchange
                         { "trailing", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", 100 },
                         { "marginMode", false },
+                        { "limit", 100 },
                         { "trigger", true },
                         { "trailing", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 100 },
                         { "daysBackClosed", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                         { "untilDays", null },
-                        { "marginMode", false },
                         { "trigger", true },
                         { "trailing", true },
                     } },

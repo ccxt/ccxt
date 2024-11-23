@@ -1059,6 +1059,7 @@ class bybit extends bybit$1 {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -1076,7 +1077,6 @@ class bybit extends bybit$1 {
                             },
                             'limitPrice': true,
                         },
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1096,6 +1096,7 @@ class bybit extends bybit$1 {
                         'max': 10,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'limit': 100,
                         'daysBack': 365 * 2,
                         'untilDays': 7, // days between start-end
@@ -1106,18 +1107,18 @@ class bybit extends bybit$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': 50,
                         'marginMode': false,
+                        'limit': 50,
                         'trigger': true,
                         'trailing': false,
                     },
                     'fetchOrders': undefined,
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 50,
                         'daysBackClosed': 365 * 2,
                         'daysBackCanceled': 1,
                         'untilDays': 7,
-                        'marginMode': false,
                         'trigger': true,
                         'trailing': false,
                     },
@@ -1128,6 +1129,7 @@ class bybit extends bybit$1 {
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
@@ -1137,7 +1139,6 @@ class bybit extends bybit$1 {
                             'triggerPriceType': undefined,
                             'limitPrice': true,
                         },
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,

@@ -56,6 +56,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,

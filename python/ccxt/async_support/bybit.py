@@ -1077,6 +1077,7 @@ class bybit(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -1094,7 +1095,6 @@ class bybit(Exchange, ImplicitAPI):
                             },
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1114,6 +1114,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': 10,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 100,
                         'daysBack': 365 * 2,  # 2 years
                         'untilDays': 7,  # days between start-end
@@ -1124,18 +1125,18 @@ class bybit(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': 50,
                         'marginMode': False,
+                        'limit': 50,
                         'trigger': True,
                         'trailing': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 50,
                         'daysBackClosed': 365 * 2,  # 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': True,
                         'trailing': False,
                     },
@@ -1146,6 +1147,7 @@ class bybit(Exchange, ImplicitAPI):
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
@@ -1155,7 +1157,6 @@ class bybit(Exchange, ImplicitAPI):
                             'triggerPriceType': None,
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,

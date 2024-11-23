@@ -1000,6 +1000,7 @@ public partial class bybit : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -1017,7 +1018,6 @@ public partial class bybit : Exchange
                             } },
                             { "limitPrice", true },
                         } },
-                        { "marginMode", false },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
                             { "IOC", true },
@@ -1036,6 +1036,7 @@ public partial class bybit : Exchange
                         { "max", 10 },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 100 },
                         { "daysBack", multiply(365, 2) },
                         { "untilDays", 7 },
@@ -1046,18 +1047,18 @@ public partial class bybit : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", 50 },
                         { "marginMode", false },
+                        { "limit", 50 },
                         { "trigger", true },
                         { "trailing", false },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 50 },
                         { "daysBackClosed", multiply(365, 2) },
                         { "daysBackCanceled", 1 },
                         { "untilDays", 7 },
-                        { "marginMode", false },
                         { "trigger", true },
                         { "trailing", false },
                     } },
@@ -1068,6 +1069,7 @@ public partial class bybit : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
@@ -1077,7 +1079,6 @@ public partial class bybit : Exchange
                             { "triggerPriceType", null },
                             { "limitPrice", true },
                         } },
-                        { "marginMode", false },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
                             { "IOC", true },

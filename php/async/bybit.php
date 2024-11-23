@@ -1065,6 +1065,7 @@ class bybit extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'last' => true,
@@ -1082,7 +1083,6 @@ class bybit extends Exchange {
                             ),
                             'limitPrice' => true,
                         ),
-                        'marginMode' => false,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -1102,6 +1102,7 @@ class bybit extends Exchange {
                         'max' => 10,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'limit' => 100,
                         'daysBack' => 365 * 2, // 2 years
                         'untilDays' => 7, // days between start-end
@@ -1112,18 +1113,18 @@ class bybit extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 50,
                         'marginMode' => false,
+                        'limit' => 50,
                         'trigger' => true,
                         'trailing' => false,
                     ),
                     'fetchOrders' => null,
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 50,
                         'daysBackClosed' => 365 * 2, // 2 years
                         'daysBackCanceled' => 1,
                         'untilDays' => 7,
-                        'marginMode' => false,
                         'trigger' => true,
                         'trailing' => false,
                     ),
@@ -1134,6 +1135,7 @@ class bybit extends Exchange {
                 'spot' => array(
                     'extends' => 'default',
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
@@ -1143,7 +1145,6 @@ class bybit extends Exchange {
                             'triggerPriceType' => null,
                             'limitPrice' => true,
                         ),
-                        'marginMode' => false,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,

@@ -1583,13 +1583,13 @@ class binance(Exchange, ImplicitAPI):
                 'spot': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': True,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1607,6 +1607,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 1,  # days between start-end
@@ -1617,25 +1618,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': None,
                         'marginMode': True,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -1646,6 +1647,7 @@ class binance(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'mark': True,
@@ -1655,7 +1657,6 @@ class binance(Exchange, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1676,6 +1677,7 @@ class binance(Exchange, ImplicitAPI):
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'daysBack': None,
                         'limit': 1000,
                         'untilDays': 7,
@@ -1686,25 +1688,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': 500,
                         'marginMode': True,
+                        'limit': 500,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
