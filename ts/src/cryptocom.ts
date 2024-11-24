@@ -1761,7 +1761,7 @@ export default class cryptocom extends Exchange {
         }
         const result: Dict = {};
         for (let i = 0; i < addressesLength; i++) {
-            const value = this.safeString (addresses, i);
+            const value = this.safeDict (addresses, i);
             const addressString = this.safeString (value, 'address');
             const currencyId = this.safeString (value, 'currency');
             const responseCode = this.safeCurrencyCode (currencyId);
