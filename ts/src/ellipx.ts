@@ -1242,6 +1242,9 @@ export default class ellipx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol parameter');
+        }
         return await this.fetchOrdersByStatus (undefined, symbol, since, limit, params);
     }
 
@@ -1257,6 +1260,9 @@ export default class ellipx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol parameter');
+        }
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
