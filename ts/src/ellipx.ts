@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ellipx.js';
-import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, ArgumentsRequired, NotSupported } from './base/errors.js';
+import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, NotSupported } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -1263,18 +1263,25 @@ export default class ellipx extends Exchange {
     parseOrder (order, market = undefined): Order {
         const id = this.safeString (order, 'Market_Order__');
         const timestamp = this.safeInteger (this.safeDict (order, 'Created'), 'unixms');
-        const typeResponse = this.safeString (order, 'Type');
+        const orderType = this.safeString (order, 'Type');
         let side = 'sell';
-        if (typeResponse === 'bid') {
+        if (orderType === 'bid') {
             side = 'buy';
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        const status =  this.safeString (order, 'Status');
         const amount = this.parseAmount (this.safeDict (order, 'Amount'));
         const price = this.parseAmount (this.safeDict (order, 'Price'));
         const type = (price === undefined) ? 'market' : 'limit';
         const executed = this.parseAmount (this.safeDict (order, 'Executed'));
         const filled = executed;
-        const remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (amount, filled) : undefined;
+        let remaining = undefined;
+        let cost = undefined;
+        if (status === 'pending'){
+            remaining = this.parseAmount (this.safeDict (order, 'Secured'));
+        } else {
+            remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (filled, amount) : undefined;
+            cost = this.parseAmount (this.safeDict (order, 'Total_Spent'));
+        }
         const symbol = market ? market['symbol'] : undefined;
         const clientOrderId = undefined;
         const timeInForce = 'GTC'; // default to Good Till Cancelled
@@ -1298,7 +1305,7 @@ export default class ellipx extends Exchange {
             'stopPrice': undefined,
             'triggerPrice': undefined,
             'average': undefined,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
