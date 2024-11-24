@@ -1098,10 +1098,6 @@ export default class hyperliquid extends Exchange {
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        // Announcement: based on user feedback, the tick formula will be updated on the next network upgrade to allow all integer prices
-        // regardless of number of sig figs. For example, after the change 123456 will be a valid price for BTC-USD. The change is already live on testnet
-        // const significantDigits = this.parseToInt ('5');  // Remove this line after network upgrade
         let significantDigits = this.parseToInt ('5');
         if (price === 0) {
             significantDigits = 5;
@@ -1111,8 +1107,7 @@ export default class hyperliquid extends Exchange {
         }
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? this.parseToInt ('8') : this.parseToInt ('6');
-        const decimalParsedResult = this.decimalToPrecision (result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
-        return decimalParsedResult;
+        return this.decimalToPrecision (result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
     hashMessage (message) {
