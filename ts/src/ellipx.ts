@@ -1,12 +1,12 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/ellipx.js';
-import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, NotSupported } from './base/errors.js';
+import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, PermissionDenied, NotSupported, ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 // import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
-import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise } from '../ccxt.js';
+import { Str, Int, int, Dict, Num, Market, Ticker, OrderBook, OHLCV, Currency, Currencies, Trade, Balances, OrderType, OrderSide, Order, DepositAddress, TradingFeeInterface, Transaction, Precise, NullableDict } from '../ccxt.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { eddsa } from './base/functions/crypto.js';
@@ -83,7 +83,8 @@ export default class ellipx extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
+                'fetchOrderTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -91,7 +92,6 @@ export default class ellipx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -526,7 +526,7 @@ export default class ellipx extends Exchange {
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        const timestamp = this.safeInteger (ticker, 'time') * 1000;
+        const timestamp = this.safeIntegerProduct (ticker, 'time', 1000);
         const open = this.parseAmount (this.safeValue (ticker, 'open'));
         const high = this.parseAmount (this.safeValue (ticker, 'high'));
         const low = this.parseAmount (this.safeValue (ticker, 'low'));
@@ -1377,24 +1377,26 @@ export default class ellipx extends Exchange {
 
     /**
      * @method
-     * @name ellipx#fetchMyTrades
-     * @description fetch a list of trades made by the user
-     * @see https://docs.google.com/document/d/1ZXzTQYffKE_EglTaKptxGQERRnunuLHEMmar7VC9syM/edit?tab=t.0#heading=h.ni0fhhkcehxu
+     * @name ellipx#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} params extra parameters specific to the EllipX API endpoint, need to provide order ID
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired ('fetchMyTrades requires a symbol parameter');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currencyPair = market['id'];
         const request = {
-            'Market_Order__': params['orderUuid'],
+            'Market_Order__': id,
             'currencyPair': currencyPair,
         };
-        params = this.omit (params, 'orderUuid'); // remove orderUuid from params
         const response = await this.privateGetMarketCurrencyPairTrade (this.extend (request, params));
         // {
         //     "result": "success",
@@ -1840,7 +1842,7 @@ export default class ellipx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseAmount (amount: Dict): string {
+    parseAmount (amount: NullableDict): Str {
         const v = this.safeString (amount, 'v', undefined);
         const e = this.safeInteger (amount, 'e', undefined);
         if (v === undefined || e === undefined) {
