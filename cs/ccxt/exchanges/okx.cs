@@ -1784,7 +1784,7 @@ public partial class okx : Exchange
                         { "active", active },
                         { "deposit", canDeposit },
                         { "withdraw", canWithdraw },
-                        { "fee", this.safeNumber(chain, "minFee") },
+                        { "fee", this.safeNumber(chain, "fee") },
                         { "precision", this.parseNumber(precision) },
                         { "limits", new Dictionary<string, object>() {
                             { "withdraw", new Dictionary<string, object>() {
@@ -7847,7 +7847,13 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAssetCurrencies(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(codes, null)))
+        {
+            object ids = this.currencyIds(codes);
+            ((IDictionary<string,object>)request)["ccy"] = String.Join(",", ((IList<object>)ids).ToArray());
+        }
+        object response = await this.privateGetAssetCurrencies(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",
@@ -7940,7 +7946,7 @@ public partial class okx : Exchange
                 }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
-                object withdrawFee = this.safeNumber(feeInfo, "minFee");
+                object withdrawFee = this.safeNumber(feeInfo, "fee");
                 object withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
                     { "percentage", ((bool) isTrue((!isEqual(withdrawFee, null)))) ? false : null },

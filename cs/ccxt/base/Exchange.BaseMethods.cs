@@ -2823,6 +2823,20 @@ public partial class Exchange
         return result;
     }
 
+    public virtual object currencyIds(object codes = null)
+    {
+        if (isTrue(isEqual(codes, null)))
+        {
+            return codes;
+        }
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.currencyId(getValue(codes, i)));
+        }
+        return result;
+    }
+
     public virtual object marketsForSymbols(object symbols = null)
     {
         if (isTrue(isEqual(symbols, null)))
@@ -3379,6 +3393,20 @@ public partial class Exchange
     public virtual object setHeaders(object headers)
     {
         return headers;
+    }
+
+    public virtual object currencyId(object code)
+    {
+        object currency = this.safeDict(this.currencies, code);
+        if (isTrue(isEqual(currency, null)))
+        {
+            currency = this.safeCurrency(code);
+        }
+        if (isTrue(!isEqual(currency, null)))
+        {
+            return getValue(currency, "id");
+        }
+        return code;
     }
 
     public virtual object marketId(object symbol)

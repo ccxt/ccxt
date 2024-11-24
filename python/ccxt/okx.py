@@ -1818,7 +1818,7 @@ class okx(Exchange, ImplicitAPI):
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': self.safe_number(chain, 'minFee'),
+                        'fee': self.safe_number(chain, 'fee'),
                         'precision': self.parse_number(precision),
                         'limits': {
                             'withdraw': {
@@ -7105,7 +7105,11 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.privateGetAssetCurrencies(params)
+        request = {}
+        if codes is not None:
+            ids = self.currency_ids(codes)
+            request['ccy'] = ','.join(ids)
+        response = self.privateGetAssetCurrencies(self.extend(request, params))
         #
         #    {
         #        "code": "0",
@@ -7190,7 +7194,7 @@ class okx(Exchange, ImplicitAPI):
                     continue
                 chainSplit = chain.split('-')
                 networkId = self.safe_value(chainSplit, 1)
-                withdrawFee = self.safe_number(feeInfo, 'minFee')
+                withdrawFee = self.safe_number(feeInfo, 'fee')
                 withdrawResult: dict = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,

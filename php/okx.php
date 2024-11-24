@@ -1818,7 +1818,7 @@ class okx extends Exchange {
                         'active' => $active,
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
-                        'fee' => $this->safe_number($chain, 'minFee'),
+                        'fee' => $this->safe_number($chain, 'fee'),
                         'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
@@ -7471,7 +7471,12 @@ class okx extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
          */
         $this->load_markets();
-        $response = $this->privateGetAssetCurrencies ($params);
+        $request = array();
+        if ($codes !== null) {
+            $ids = $this->currency_ids($codes);
+            $request['ccy'] = implode(',', $ids);
+        }
+        $response = $this->privateGetAssetCurrencies ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -7559,7 +7564,7 @@ class okx extends Exchange {
                 }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
-                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawFee = $this->safe_number($feeInfo, 'fee');
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,

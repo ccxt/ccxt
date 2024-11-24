@@ -3748,6 +3748,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def currency_ids(self, codes: Strings = None):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.currency_id(codes[i]))
+        return result
+
     def markets_for_symbols(self, symbols: Strings = None):
         if symbols is None:
             return symbols
@@ -4100,6 +4108,14 @@ class Exchange(object):
 
     def set_headers(self, headers):
         return headers
+
+    def currency_id(self, code: str):
+        currency = self.safe_dict(self.currencies, code)
+        if currency is None:
+            currency = self.safe_currency(code)
+        if currency is not None:
+            return currency['id']
+        return code
 
     def market_id(self, symbol: str):
         market = self.market(symbol)

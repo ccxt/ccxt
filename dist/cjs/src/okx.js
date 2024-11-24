@@ -1815,7 +1815,7 @@ class okx extends okx$1 {
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': this.safeNumber(chain, 'minFee'),
+                        'fee': this.safeNumber(chain, 'fee'),
                         'precision': this.parseNumber(precision),
                         'limits': {
                             'withdraw': {
@@ -7473,7 +7473,12 @@ class okx extends okx$1 {
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetAssetCurrencies(params);
+        const request = {};
+        if (codes !== undefined) {
+            const ids = this.currencyIds(codes);
+            request['ccy'] = ids.join(',');
+        }
+        const response = await this.privateGetAssetCurrencies(this.extend(request, params));
         //
         //    {
         //        "code": "0",
@@ -7560,7 +7565,7 @@ class okx extends okx$1 {
                 }
                 const chainSplit = chain.split('-');
                 const networkId = this.safeValue(chainSplit, 1);
-                const withdrawFee = this.safeNumber(feeInfo, 'minFee');
+                const withdrawFee = this.safeNumber(feeInfo, 'fee');
                 const withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
