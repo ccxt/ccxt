@@ -457,7 +457,7 @@ export default class currencycom extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols', []);
+        const markets = this.safeList (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -484,7 +484,7 @@ export default class currencycom extends Exchange {
             let takerFee = this.safeString (market, 'takerFee', exchangeFee);
             makerFee = Precise.stringDiv (makerFee, '100');
             takerFee = Precise.stringDiv (takerFee, '100');
-            const filters = this.safeValue (market, 'filters', []);
+            const filters = this.safeList (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
             let limitPriceMin = undefined;
             let limitPriceMax = undefined;
@@ -626,7 +626,7 @@ export default class currencycom extends Exchange {
         //         ]
         //     }
         //
-        const accounts = this.safeValue (response, 'balances', []);
+        const accounts = this.safeList (response, 'balances', []);
         const result = [];
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
@@ -709,7 +709,7 @@ export default class currencycom extends Exchange {
         //     }
         //
         const result: Dict = { 'info': response };
-        const balances = this.safeValue (response, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
@@ -1308,7 +1308,7 @@ export default class currencycom extends Exchange {
                 throw new ArgumentsRequired (this.id + " createOrder() requires an accountId parameter or an exchange.options['accountId'] option for " + market['type'] + ' markets');
             }
         }
-        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
+        const newOrderRespType = this.safeString (this.options['newOrderRespType'], type, 'RESULT');
         const request: Dict = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
