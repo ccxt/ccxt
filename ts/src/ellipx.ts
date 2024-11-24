@@ -1268,7 +1268,7 @@ export default class ellipx extends Exchange {
         if (orderType === 'bid') {
             side = 'buy';
         }
-        const status =  this.safeString (order, 'Status');
+        const status = this.safeString (order, 'Status');
         const amount = this.parseAmount (this.safeDict (order, 'Amount'));
         const price = this.parseAmount (this.safeDict (order, 'Price'));
         const type = (price === undefined) ? 'market' : 'limit';
@@ -1276,7 +1276,7 @@ export default class ellipx extends Exchange {
         const filled = executed;
         let remaining = undefined;
         let cost = undefined;
-        if (status === 'pending'){
+        if (status === 'pending') {
             remaining = this.parseAmount (this.safeDict (order, 'Secured'));
         } else {
             remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (filled, amount) : undefined;
@@ -1295,7 +1295,7 @@ export default class ellipx extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
