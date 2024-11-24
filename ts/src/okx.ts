@@ -1822,7 +1822,7 @@ export default class okx extends Exchange {
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
+                        'fee': this.safeNumber (chain, 'fee'),
                         'precision': this.parseNumber (precision),
                         'limits': {
                             'withdraw': {
@@ -7478,7 +7478,12 @@ export default class okx extends Exchange {
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAssetCurrencies (params);
+        const request = {};
+        if (codes !== undefined) {
+            const ids = this.currencyIds (codes);
+            request['ccy'] = ids.join (',');
+        }
+        const response = await this.privateGetAssetCurrencies (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -7566,7 +7571,7 @@ export default class okx extends Exchange {
                 }
                 const chainSplit = chain.split ('-');
                 const networkId = this.safeValue (chainSplit, 1);
-                const withdrawFee = this.safeNumber (feeInfo, 'minFee');
+                const withdrawFee = this.safeNumber (feeInfo, 'fee');
                 const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,
