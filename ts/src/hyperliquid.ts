@@ -371,22 +371,24 @@ export default class hyperliquid extends Exchange {
      * @returns {int} The calculated price precision
      */
     calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
-        // const significantDigits = this.parseToInt ('5');  // Remove this line after network upgrade
-        let significantDigits = this.parseToInt ('5');
-        if (price === 0) {
-            significantDigits = 5;
-        } else {
-            // Calculate the number of digits before the decimal separator. If larger than 5, take that
-            significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
-        }
         let pricePrecision = 0;
-        if (price > 0 && price < 1) {
+        if (price === 0) {
+            // Significant digits is always 5 in this case
+            const significantDigits = 5;
+            // Integer digits is always 0 in this case (0 doesn't count)
+            const integerDigits = 0;
+            // Calculate the price precision
+            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
+        } else if (price > 0 && price < 1) {
+            // Significant digits is always 5 in this case
+            const significantDigits = 5;
             // Get the leading zeros after the decimal separator, add the significant digits
             const leadingZerosAfterDecimalPoint = this.numberToString (Math.abs (Math.log10 (price)));
             pricePrecision = Math.floor (this.parseNumber ((Precise.stringAdd (leadingZerosAfterDecimalPoint, this.numberToString (significantDigits)))));
             // Calculate the price precision
             pricePrecision = Math.min (maxDecimals - amountPrecision, pricePrecision);
         } else {
+            const significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
             // Get the amount of numbers before the decimal separator
             let integerDigits = 0;
             if (price === 0) {
