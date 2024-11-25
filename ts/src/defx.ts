@@ -1464,6 +1464,38 @@ export default class defx extends Exchange {
         return this.parsePosition (first, market);
     }
 
+    async fetchPositions (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#fetchPositions
+         * @description fetch all open positions
+         * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
+         * @param {string[]} [symbols] list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v1PrivateGetApiPositionActive (params);
+        //
+        // {
+        //     "data": [
+        //         {
+        //             "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+        //             "symbol": "SOL_USDC",
+        //             "positionSide": "SHORT",
+        //             "entryPrice": "172.34300000",
+        //             "quantity": "0.80",
+        //             "marginAmount": "20.11561173",
+        //             "marginAsset": "USDC",
+        //             "pnl": "0.00000000"
+        //         }
+        //     ]
+        // }
+        //
+        const positions = this.safeList (response, 'data', []);
+        return this.parsePositions (positions, symbols);
+    }
+
     parsePosition (position: Dict, market: Market = undefined) {
         //
         // {
