@@ -55,6 +55,7 @@ class coinex extends coinex$1 {
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,

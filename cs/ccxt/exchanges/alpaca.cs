@@ -42,6 +42,8 @@ public partial class alpaca : Exchange
                 { "closeAllPositions", false },
                 { "closePosition", false },
                 { "createOrder", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", true },
                 { "fetchBalance", false },
                 { "fetchBidsAsks", false },

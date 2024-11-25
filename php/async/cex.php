@@ -22,7 +22,7 @@ class cex extends Exchange {
             'id' => 'cex',
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
-            'rateLimit' => 1667, // 100 req/min
+            'rateLimit' => 300, // 200 req/min
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -34,6 +34,8 @@ class cex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
@@ -891,7 +893,7 @@ class cex extends Exchange {
             $code = $this->safe_currency_code($key);
             $account = array(
                 'used' => $this->safe_string($balance, 'balanceOnHold'),
-                'free' => $this->safe_string($balance, 'balance'),
+                'total' => $this->safe_string($balance, 'balance'),
             );
             $result[$code] = $account;
         }
@@ -979,7 +981,7 @@ class cex extends Exchange {
             //            ),
             //            ...
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -1062,10 +1064,16 @@ class cex extends Exchange {
 
     public function parse_order_status(?string $status) {
         $statuses = array(
+            'PENDING_NEW' => 'open',
+            'NEW' => 'open',
+            'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
+            'EXPIRED' => 'expired',
+            'REJECTED' => 'rejected',
+            'PENDING_CANCEL' => 'canceling',
             'CANCELLED' => 'canceled',
         );
-        return $this->safe_string($statuses, $status, null);
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1116,7 +1124,7 @@ class cex extends Exchange {
             $currencyId = $this->safe_string($order, 'feeCurrency');
             $feeCode = $this->safe_currency_code($currencyId);
             $fee['currency'] = $feeCode;
-            $fee['fee'] = $feeAmount;
+            $fee['cost'] = $feeAmount;
         }
         $timestamp = $this->safe_integer($order, 'serverCreateTimestamp');
         $requestedBase = $this->safe_number($order, 'requestedAmountCcy1');
@@ -1163,6 +1171,7 @@ class cex extends Exchange {
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->accountId] account-id to use (default is empty string)
+             * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             $accountId = null;

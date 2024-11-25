@@ -1176,6 +1176,98 @@ export default class okx extends Exchange {
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
+            'features': {
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention': true,
+                        'trailing': true,
+                        'twap': true,
+                        'iceberg': true,
+                        'oco': true,
+                    },
+                    'createOrders': {
+                        'max': 20,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': 90,
+                        'limit': 100,
+                        'untilDays': 10000,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBackClosed': 90,
+                        'daysBackCanceled': 1 / 12,
+                        'untilDays': undefined,
+                        'trigger': true,
+                        'trailing': true,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET',
@@ -1726,7 +1818,7 @@ export default class okx extends Exchange {
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': this.safeNumber(chain, 'minFee'),
+                        'fee': this.safeNumber(chain, 'fee'),
                         'precision': this.parseNumber(precision),
                         'limits': {
                             'withdraw': {
@@ -3221,7 +3313,7 @@ export default class okx extends Exchange {
                 request['newPx'] = this.priceToPrecision(symbol, price);
             }
         }
-        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit']);
+        params = this.omit(params, ['clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly']);
         return this.extend(request, params);
     }
     /**
@@ -6401,7 +6493,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -6428,14 +6520,12 @@ export default class okx extends Exchange {
             'mgnMode': marginMode,
             'instId': market['id'],
         };
-        const posSide = this.safeString(params, 'posSide');
+        const posSide = this.safeString(params, 'posSide', 'net');
         if (marginMode === 'isolated') {
-            if (posSide === undefined) {
-                throw new ArgumentsRequired(this.id + ' setLeverage() requires a posSide argument for isolated margin');
-            }
             if (posSide !== 'long' && posSide !== 'short' && posSide !== 'net') {
                 throw new BadRequest(this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
+            request['posSide'] = posSide;
         }
         const response = await this.privatePostAccountSetLeverage(this.extend(request, params));
         //
@@ -7386,7 +7476,12 @@ export default class okx extends Exchange {
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
-        const response = await this.privateGetAssetCurrencies(params);
+        const request = {};
+        if (codes !== undefined) {
+            const ids = this.currencyIds(codes);
+            request['ccy'] = ids.join(',');
+        }
+        const response = await this.privateGetAssetCurrencies(this.extend(request, params));
         //
         //    {
         //        "code": "0",
@@ -7473,7 +7568,7 @@ export default class okx extends Exchange {
                 }
                 const chainSplit = chain.split('-');
                 const networkId = this.safeValue(chainSplit, 1);
-                const withdrawFee = this.safeNumber(feeInfo, 'minFee');
+                const withdrawFee = this.safeNumber(feeInfo, 'fee');
                 const withdrawResult = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,

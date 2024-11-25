@@ -48,6 +48,8 @@ class hyperliquid extends hyperliquid$1 {
                 'createOrder': true,
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,

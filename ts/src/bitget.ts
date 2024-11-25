@@ -1442,6 +1442,141 @@ export default class bitget extends Exchange {
                 },
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             },
+            'features': {
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false, // not on spot
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true, // but not yet implemented in spot
+                        'takeProfitPrice': true, // but not yet implemented in spot
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': false,
+                                'mark': false,
+                                'index': false,
+                            },
+                            'limitPrice': true,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        'marketBuyRequiresPrice': true,
+                        'marketBuyByCost': true,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'createOrders': {
+                        'max': 50,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBack': undefined,
+                        'untilDays': 90,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 100,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 90,
+                        'trigger': true,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000, // variable timespans for recent endpoint, 200 for historical
+                    },
+                },
+                'forPerps': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': false, // not on spot
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': false,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'trailing': true,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        // exchange-supported features
+                        // 'selfTradePrevention': true,
+                        // 'trailing': true,
+                        // 'twap': false,
+                        // 'iceberg': false,
+                        // 'oco': false,
+                    },
+                    'fetchMyTrades': {
+                        'untilDays': 7,
+                    },
+                    'fetchClosedOrders': {
+                        'trailing': true,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forPerps',
+                    },
+                    'inverse': {
+                        'extends': 'forPerps',
+                    },
+                },
+            },
         });
     }
 
@@ -4251,7 +4386,7 @@ export default class bitget extends Exchange {
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const triggerType = this.safeString (params, 'triggerType', 'mark_price');
+        const triggerPriceType = this.safeString2 (params, 'triggerPriceType', 'triggerType', 'mark_price');
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         const exchangeSpecificTifParam = this.safeString2 (params, 'force', 'timeInForce');
@@ -4279,7 +4414,7 @@ export default class bitget extends Exchange {
                 request['clientOid'] = clientOrderId;
             }
             if (isTriggerOrder || isStopLossOrTakeProfitTrigger || isTrailingPercentOrder) {
-                request['triggerType'] = triggerType;
+                request['triggerType'] = triggerPriceType;
             }
             if (isTrailingPercentOrder) {
                 if (!isMarketOrder) {
@@ -4412,7 +4547,7 @@ export default class bitget extends Exchange {
                 }
                 if (triggerPrice !== undefined) {
                     request['planType'] = planType;
-                    request['triggerType'] = triggerType;
+                    request['triggerType'] = triggerPriceType;
                     request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                     if (price !== undefined) {
                         request['executePrice'] = this.priceToPrecision (symbol, price);
@@ -4717,7 +4852,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-     * @param {boolean} [params.stop] set to true for canceling trigger orders
+     * @param {boolean} [params.trigger] set to true for canceling trigger orders
      * @param {string} [params.planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4740,19 +4875,19 @@ export default class bitget extends Exchange {
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         const request: Dict = {};
         const trailing = this.safeValue (params, 'trailing');
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
-        if (!(market['spot'] && stop)) {
+        if (!(market['spot'] && trigger)) {
             request['symbol'] = market['id'];
         }
-        if (!((market['swap'] || market['future']) && stop)) {
+        if (!((market['swap'] || market['future']) && trigger)) {
             request['orderId'] = id;
         }
         if ((market['swap']) || (market['future'])) {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (stop || trailing) {
+            if (trigger || trailing) {
                 const orderIdList = [];
                 const orderId: Dict = {
                     'orderId': id,
@@ -4764,7 +4899,7 @@ export default class bitget extends Exchange {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
-            } else if (stop) {
+            } else if (trigger) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderCancelOrder (this.extend (request, params));
@@ -4777,7 +4912,7 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginPostV2MarginCrossedCancelOrder (this.extend (request, params));
                 }
             } else {
-                if (stop) {
+                if (trigger) {
                     response = await this.privateSpotPostV2SpotTradeCancelPlanOrder (this.extend (request, params));
                 } else {
                     response = await this.privateSpotPostV2SpotTradeCancelOrder (this.extend (request, params));
@@ -4829,7 +4964,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let order = undefined;
-        if ((market['swap'] || market['future']) && stop) {
+        if ((market['swap'] || market['future']) && trigger) {
             const orderInfo = this.safeValue (data, 'successList', []);
             order = orderInfo[0];
         } else {
@@ -4851,7 +4986,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-     * @param {boolean} [params.stop] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -4869,7 +5004,7 @@ export default class bitget extends Exchange {
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrders', params);
-        const stop = this.safeValue2 (params, 'stop', 'trigger');
+        const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const orderIdList = [];
         for (let i = 0; i < ids.length; i++) {
@@ -4902,7 +5037,7 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
@@ -4941,7 +5076,7 @@ export default class bitget extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
-     * @param {boolean} [params.stop] *contract only* set to true for canceling trigger orders
+     * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -4962,7 +5097,7 @@ export default class bitget extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let response = undefined;
         if (market['spot']) {
@@ -4989,7 +5124,7 @@ export default class bitget extends Exchange {
                 //     }
                 //
             } else {
-                if (stop) {
+                if (trigger) {
                     const stopRequest: Dict = {
                         'symbolList': [ market['id'] ],
                     };
@@ -5023,7 +5158,7 @@ export default class bitget extends Exchange {
             let productType = undefined;
             [ productType, params ] = this.handleProductTypeAndParams (market, params);
             request['productType'] = productType;
-            if (stop) {
+            if (trigger) {
                 response = await this.privateMixPostV2MixOrderCancelPlanOrder (this.extend (request, params));
             } else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
@@ -5188,7 +5323,7 @@ export default class bitget extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
-     * @param {boolean} [params.stop] set to true for fetching trigger orders
+     * @param {boolean} [params.trigger] set to true for fetching trigger orders
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
@@ -5232,9 +5367,9 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const trailing = this.safeBool (params, 'trailing');
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         const planTypeDefined = this.safeString (params, 'planType') !== undefined;
-        const isStop = (stop || planTypeDefined);
+        const isTrigger = (trigger || planTypeDefined);
         params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -5264,7 +5399,7 @@ export default class bitget extends Exchange {
                     response = await this.privateMarginGetV2MarginCrossedOpenOrders (this.extend (request, query));
                 }
             } else {
-                if (stop) {
+                if (trigger) {
                     response = await this.privateSpotGetV2SpotTradeCurrentPlanOrder (this.extend (request, query));
                 } else {
                     response = await this.privateSpotGetV2SpotTradeUnfilledOrders (this.extend (request, query));
@@ -5278,7 +5413,7 @@ export default class bitget extends Exchange {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
-            } else if (isStop) {
+            } else if (isTrigger) {
                 const planType = this.safeString (query, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanPending (this.extend (request, query));
@@ -5463,7 +5598,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         if (type === 'spot') {
-            if ((marginMode !== undefined) || stop) {
+            if ((marginMode !== undefined) || trigger) {
                 const resultList = this.safeList (data, 'orderList', []);
                 return this.parseOrders (resultList, market, since, limit);
             }
@@ -5578,7 +5713,7 @@ export default class bitget extends Exchange {
         }
         let response = undefined;
         const trailing = this.safeValue (params, 'trailing');
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger', 'trailing' ]);
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -5606,24 +5741,22 @@ export default class bitget extends Exchange {
                 } else if (marginMode === 'cross') {
                     response = await this.privateMarginGetV2MarginCrossedHistoryOrders (this.extend (request, params));
                 }
-            } else {
-                if (stop) {
-                    if (symbol === undefined) {
-                        throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
-                    }
-                    const endTime = this.safeIntegerN (params, [ 'endTime', 'until' ]);
-                    params = this.omit (params, [ 'until' ]);
-                    if (since === undefined) {
-                        since = now - 7776000000;
-                        request['startTime'] = since;
-                    }
-                    if (endTime === undefined) {
-                        request['endTime'] = now;
-                    }
-                    response = await this.privateSpotGetV2SpotTradeHistoryPlanOrder (this.extend (request, params));
-                } else {
-                    response = await this.privateSpotGetV2SpotTradeHistoryOrders (this.extend (request, params));
+            } else if (trigger) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                 }
+                const endTime = this.safeIntegerN (params, [ 'endTime', 'until' ]);
+                params = this.omit (params, [ 'until' ]);
+                if (since === undefined) {
+                    since = now - 7776000000;
+                    request['startTime'] = since;
+                }
+                if (endTime === undefined) {
+                    request['endTime'] = now;
+                }
+                response = await this.privateSpotGetV2SpotTradeHistoryPlanOrder (this.extend (request, params));
+            } else {
+                response = await this.privateSpotGetV2SpotTradeHistoryOrders (this.extend (request, params));
             }
         } else {
             let productType = undefined;
@@ -5633,7 +5766,7 @@ export default class bitget extends Exchange {
                 const planType = this.safeString (params, 'planType', 'track_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
-            } else if (stop) {
+            } else if (trigger) {
                 const planType = this.safeString (params, 'planType', 'normal_plan');
                 request['planType'] = planType;
                 response = await this.privateMixGetV2MixOrderOrdersPlanHistory (this.extend (request, params));
@@ -5821,7 +5954,7 @@ export default class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         if (marketType === 'spot') {
-            if ((marginMode !== undefined) || stop) {
+            if ((marginMode !== undefined) || trigger) {
                 return this.parseOrders (this.safeValue (data, 'orderList', []), market, since, limit);
             }
         } else {

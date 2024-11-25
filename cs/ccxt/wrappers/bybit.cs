@@ -104,6 +104,12 @@ public partial class bybit
     /// string : *contract only* 'linear', 'inverse'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.baseCoin</term>
+    /// <description>
+    /// string : *option only* base coin, default is 'BTC'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>

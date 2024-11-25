@@ -1437,6 +1437,141 @@ class bitget extends Exchange {
                 ),
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false, // not on spot
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true, // but not yet implemented in spot
+                        'takeProfitPrice' => true, // but not yet implemented in spot
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => false,
+                                'mark' => false,
+                                'index' => false,
+                            ),
+                            'limitPrice' => true,
+                        ),
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'marketBuyRequiresPrice' => true,
+                        'marketBuyByCost' => true,
+                        // exchange-supported features
+                        // 'selfTradePrevention' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'createOrders' => array(
+                        'max' => 50,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBack' => null,
+                        'untilDays' => 90,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOrders' => null,
+                    'fetchClosedOrders' => array(
+                        'marginMode' => true,
+                        'limit' => 100,
+                        'daysBackClosed' => null,
+                        'daysBackCanceled' => null,
+                        'untilDays' => 90,
+                        'trigger' => true,
+                        'trailing' => false,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 1000, // variable timespans for recent endpoint, 200 for historical
+                    ),
+                ),
+                'forPerps' => array(
+                    'extends' => 'spot',
+                    'createOrder' => array(
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false, // not on spot
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'limitPrice' => false,
+                        ),
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        'trailing' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'marketBuyByCost' => false,
+                        // exchange-supported features
+                        // 'selfTradePrevention' => true,
+                        // 'trailing' => true,
+                        // 'twap' => false,
+                        // 'iceberg' => false,
+                        // 'oco' => false,
+                    ),
+                    'fetchMyTrades' => array(
+                        'untilDays' => 7,
+                    ),
+                    'fetchClosedOrders' => array(
+                        'trailing' => true,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'forPerps',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'forPerps',
+                    ),
+                ),
+            ),
         ));
     }
 
@@ -4244,7 +4379,7 @@ class bitget extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $triggerType = $this->safe_string($params, 'triggerType', 'mark_price');
+        $triggerPriceType = $this->safe_string_2($params, 'triggerPriceType', 'triggerType', 'mark_price');
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
         $exchangeSpecificTifParam = $this->safe_string_2($params, 'force', 'timeInForce');
@@ -4272,7 +4407,7 @@ class bitget extends Exchange {
                 $request['clientOid'] = $clientOrderId;
             }
             if ($isTriggerOrder || $isStopLossOrTakeProfitTrigger || $isTrailingPercentOrder) {
-                $request['triggerType'] = $triggerType;
+                $request['triggerType'] = $triggerPriceType;
             }
             if ($isTrailingPercentOrder) {
                 if (!$isMarketOrder) {
@@ -4405,7 +4540,7 @@ class bitget extends Exchange {
                 }
                 if ($triggerPrice !== null) {
                     $request['planType'] = $planType;
-                    $request['triggerType'] = $triggerType;
+                    $request['triggerType'] = $triggerPriceType;
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     if ($price !== null) {
                         $request['executePrice'] = $this->price_to_precision($symbol, $price);
@@ -4711,7 +4846,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
-         * @param {boolean} [$params->stop] set to true for canceling trigger orders
+         * @param {boolean} [$params->trigger] set to true for canceling $trigger orders
          * @param {string} [$params->planType] *swap only* either profit_plan, loss_plan, normal_plan, pos_profit, pos_loss, moving_plan or track_plan
          * @param {boolean} [$params->trailing] set to true if you want to cancel a $trailing $order
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -4733,19 +4868,19 @@ class bitget extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $request = array();
         $trailing = $this->safe_value($params, 'trailing');
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
-        if (!($market['spot'] && $stop)) {
+        if (!($market['spot'] && $trigger)) {
             $request['symbol'] = $market['id'];
         }
-        if (!(($market['swap'] || $market['future']) && $stop)) {
+        if (!(($market['swap'] || $market['future']) && $trigger)) {
             $request['orderId'] = $id;
         }
         if (($market['swap']) || ($market['future'])) {
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
-            if ($stop || $trailing) {
+            if ($trigger || $trailing) {
                 $orderIdList = array();
                 $orderId = array(
                     'orderId' => $id,
@@ -4757,7 +4892,7 @@ class bitget extends Exchange {
                 $planType = $this->safe_string($params, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixPostV2MixOrderCancelPlanOrder ($this->extend($request, $params));
-            } elseif ($stop) {
+            } elseif ($trigger) {
                 $response = $this->privateMixPostV2MixOrderCancelPlanOrder ($this->extend($request, $params));
             } else {
                 $response = $this->privateMixPostV2MixOrderCancelOrder ($this->extend($request, $params));
@@ -4770,7 +4905,7 @@ class bitget extends Exchange {
                     $response = $this->privateMarginPostV2MarginCrossedCancelOrder ($this->extend($request, $params));
                 }
             } else {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->privateSpotPostV2SpotTradeCancelPlanOrder ($this->extend($request, $params));
                 } else {
                     $response = $this->privateSpotPostV2SpotTradeCancelOrder ($this->extend($request, $params));
@@ -4792,7 +4927,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        // swap trigger
+        // swap $trigger
         //
         //     {
         //         "code" => "00000",
@@ -4809,7 +4944,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        // spot trigger
+        // spot $trigger
         //
         //     {
         //         "code" => "00000",
@@ -4822,7 +4957,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $order = null;
-        if (($market['swap'] || $market['future']) && $stop) {
+        if (($market['swap'] || $market['future']) && $trigger) {
             $orderInfo = $this->safe_value($data, 'successList', array());
             $order = $orderInfo[0];
         } else {
@@ -4845,7 +4980,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
-         * @param {boolean} [$params->stop] *contract only* set to true for canceling trigger $orders
+         * @param {boolean} [$params->trigger] *contract only* set to true for canceling $trigger $orders
          * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
@@ -4862,7 +4997,7 @@ class bitget extends Exchange {
         }
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_value_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $orderIdList = array();
         for ($i = 0; $i < count($ids); $i++) {
@@ -4895,7 +5030,7 @@ class bitget extends Exchange {
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateMixPostV2MixOrderCancelPlanOrder ($this->extend($request, $params));
             } else {
                 $response = $this->privateMixPostV2MixOrderBatchCancelOrders ($this->extend($request, $params));
@@ -4935,7 +5070,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'isolated' or 'cross' for spot margin trading
-         * @param {boolean} [$params->stop] *contract only* set to true for canceling trigger orders
+         * @param {boolean} [$params->trigger] *contract only* set to true for canceling $trigger orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         if ($symbol === null) {
@@ -4955,7 +5090,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         if ($market['spot']) {
@@ -4982,7 +5117,7 @@ class bitget extends Exchange {
                 //     }
                 //
             } else {
-                if ($stop) {
+                if ($trigger) {
                     $stopRequest = array(
                         'symbolList' => [ $market['id'] ],
                     );
@@ -5016,7 +5151,7 @@ class bitget extends Exchange {
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
             $request['productType'] = $productType;
-            if ($stop) {
+            if ($trigger) {
                 $response = $this->privateMixPostV2MixOrderCancelPlanOrder ($this->extend($request, $params));
             } else {
                 $response = $this->privateMixPostV2MixOrderBatchCancelOrders ($this->extend($request, $params));
@@ -5181,10 +5316,10 @@ class bitget extends Exchange {
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
-         * @param {string} [$params->planType] *contract $stop only* 'normal_plan' => average trigger order, 'profit_loss' => opened tp/sl orders, 'track_plan' => $trailing $stop order, default is 'normal_plan'
-         * @param {boolean} [$params->stop] set to true for fetching trigger orders
+         * @param {string} [$params->planType] *contract stop only* 'normal_plan' => average $trigger order, 'profit_loss' => opened tp/sl orders, 'track_plan' => $trailing stop order, default is 'normal_plan'
+         * @param {boolean} [$params->trigger] set to true for fetching $trigger orders
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @param {string} [$params->isPlan] *swap only* 'plan' for $stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
+         * @param {string} [$params->isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
          * @param {boolean} [$params->trailing] set to true if you want to fetch $trailing orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
@@ -5225,9 +5360,9 @@ class bitget extends Exchange {
         }
         $response = null;
         $trailing = $this->safe_bool($params, 'trailing');
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $planTypeDefined = $this->safe_string($params, 'planType') !== null;
-        $isStop = ($stop || $planTypeDefined);
+        $isTrigger = ($trigger || $planTypeDefined);
         $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
@@ -5257,7 +5392,7 @@ class bitget extends Exchange {
                     $response = $this->privateMarginGetV2MarginCrossedOpenOrders ($this->extend($request, $query));
                 }
             } else {
-                if ($stop) {
+                if ($trigger) {
                     $response = $this->privateSpotGetV2SpotTradeCurrentPlanOrder ($this->extend($request, $query));
                 } else {
                     $response = $this->privateSpotGetV2SpotTradeUnfilledOrders ($this->extend($request, $query));
@@ -5271,7 +5406,7 @@ class bitget extends Exchange {
                 $planType = $this->safe_string($params, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanPending ($this->extend($request, $query));
-            } elseif ($isStop) {
+            } elseif ($isTrigger) {
                 $planType = $this->safe_string($query, 'planType', 'normal_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanPending ($this->extend($request, $query));
@@ -5308,7 +5443,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        // spot $stop
+        // spot stop
         //
         //     {
         //         "code" => "00000",
@@ -5413,7 +5548,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        // swap and future $stop
+        // swap and future stop
         //
         //     {
         //         "code" => "00000",\
@@ -5456,7 +5591,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         if ($type === 'spot') {
-            if (($marginMode !== null) || $stop) {
+            if (($marginMode !== null) || $trigger) {
                 $resultList = $this->safe_list($data, 'orderList', array());
                 return $this->parse_orders($resultList, $market, $since, $limit);
             }
@@ -5571,7 +5706,7 @@ class bitget extends Exchange {
         }
         $response = null;
         $trailing = $this->safe_value($params, 'trailing');
-        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger', 'trailing' ));
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
@@ -5599,24 +5734,22 @@ class bitget extends Exchange {
                 } elseif ($marginMode === 'cross') {
                     $response = $this->privateMarginGetV2MarginCrossedHistoryOrders ($this->extend($request, $params));
                 }
-            } else {
-                if ($stop) {
-                    if ($symbol === null) {
-                        throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
-                    }
-                    $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
-                    $params = $this->omit($params, array( 'until' ));
-                    if ($since === null) {
-                        $since = $now - 7776000000;
-                        $request['startTime'] = $since;
-                    }
-                    if ($endTime === null) {
-                        $request['endTime'] = $now;
-                    }
-                    $response = $this->privateSpotGetV2SpotTradeHistoryPlanOrder ($this->extend($request, $params));
-                } else {
-                    $response = $this->privateSpotGetV2SpotTradeHistoryOrders ($this->extend($request, $params));
+            } elseif ($trigger) {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                 }
+                $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                $params = $this->omit($params, array( 'until' ));
+                if ($since === null) {
+                    $since = $now - 7776000000;
+                    $request['startTime'] = $since;
+                }
+                if ($endTime === null) {
+                    $request['endTime'] = $now;
+                }
+                $response = $this->privateSpotGetV2SpotTradeHistoryPlanOrder ($this->extend($request, $params));
+            } else {
+                $response = $this->privateSpotGetV2SpotTradeHistoryOrders ($this->extend($request, $params));
             }
         } else {
             $productType = null;
@@ -5626,7 +5759,7 @@ class bitget extends Exchange {
                 $planType = $this->safe_string($params, 'planType', 'track_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanHistory ($this->extend($request, $params));
-            } elseif ($stop) {
+            } elseif ($trigger) {
                 $planType = $this->safe_string($params, 'planType', 'normal_plan');
                 $request['planType'] = $planType;
                 $response = $this->privateMixGetV2MixOrderOrdersPlanHistory ($this->extend($request, $params));
@@ -5664,7 +5797,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        // spot $stop
+        // spot stop
         //
         //     {
         //         "code" => "00000",
@@ -5769,7 +5902,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        // swap and future $stop
+        // swap and future stop
         //
         //     {
         //         "code" => "00000",
@@ -5814,7 +5947,7 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         if ($marketType === 'spot') {
-            if (($marginMode !== null) || $stop) {
+            if (($marginMode !== null) || $trigger) {
                 return $this->parse_orders($this->safe_value($data, 'orderList', array()), $market, $since, $limit);
             }
         } else {

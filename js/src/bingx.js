@@ -46,6 +46,7 @@ export default class bingx extends Exchange {
                 'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTrailingAmountOrder': true,
                 'createTrailingPercentOrder': true,
@@ -199,6 +200,8 @@ export default class bingx extends Exchange {
                             'get': {
                                 'ticker/price': 1,
                                 'market/historicalTrades': 1,
+                                'market/markPriceKlines': 1,
+                                'trade/multiAssetsRules': 1,
                             },
                         },
                         'private': {
@@ -207,12 +210,24 @@ export default class bingx extends Exchange {
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'maintMarginRatio': 2,
+                                'trade/positionHistory': 2,
                                 'positionMargin/history': 2,
+                                'twap/openOrders': 5,
+                                'twap/historyOrders': 5,
+                                'twap/orderDetail': 5,
+                                'trade/assetMode': 5,
+                                'user/marginAssets': 5,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
+                                'trade/batchCancelReplace': 5,
                                 'trade/closePosition': 2,
+                                'trade/getVst': 5,
+                                'twap/order': 5,
+                                'twap/cancelOrder': 5,
+                                'trade/assetMode': 5,
                             },
                         },
                     },
@@ -245,6 +260,7 @@ export default class bingx extends Exchange {
                                 'trade/forceOrders': 1,
                                 'trade/allOrders': 2,
                                 'trade/allFillOrders': 2,
+                                'trade/fillHistory': 2,
                                 'user/income/export': 2,
                                 'user/commissionRate': 2,
                                 'quote/bookTicker': 1,
@@ -302,6 +318,7 @@ export default class bingx extends Exchange {
                             'post': {
                                 'trade/order': 2,
                                 'trade/leverage': 2,
+                                'trade/allOpenOrders': 2,
                                 'trade/closeAllPositions': 2,
                                 'trade/marginType': 2,
                                 'trade/positionMargin': 2,
@@ -498,6 +515,136 @@ export default class bingx extends Exchange {
                 'networks': {
                     'ARB': 'ARBITRUM',
                     'MATIC': 'POLYGON',
+                },
+            },
+            'features': {
+                'defaultForLinear': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'triggerPriceType': {
+                                'last': true,
+                                'mark': true,
+                                'index': true,
+                            },
+                            'limitPrice': true,
+                        },
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'trailing': true,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 512,
+                        'daysBack': 30,
+                        'untilDays': 30, // 30 for 'allFillOrders', 7 for 'fillHistory'
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': 20000,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                },
+                'defaultForInverse': {
+                    'extends': 'defaultForLinear',
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': undefined,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1440,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                },
+                //
+                'spot': {
+                    'extends': 'defaultForLinear',
+                    'createOrder': {
+                        'triggerPriceType': undefined,
+                        'attachedStopLossTakeProfit': undefined,
+                        'trailing': false,
+                    },
+                    'fetchMyTrades': {
+                        'limit': 1000,
+                        'daysBack': 1,
+                        'untilDays': 1,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': {
+                        'limit': 100,
+                        'untilDays': undefined,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'defaultForLinear',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForInverse',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'defaultForLinear',
+                    },
+                    'inverse': {
+                        'extends': 'defaultForInverse',
+                    },
                 },
             },
         });
@@ -3957,7 +4104,8 @@ export default class bingx extends Exchange {
      * @method
      * @name bingx#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3968,7 +4116,7 @@ export default class bingx extends Exchange {
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const request = {};
+        let request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3985,12 +4133,7 @@ export default class bingx extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const until = this.safeInteger(params, 'until'); // unified in milliseconds
-        const endTime = this.safeInteger(params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit(params, ['endTime', 'until']);
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        }
+        [request, params] = this.handleUntilOption('endTime', request, params);
         const response = await this.swapV1PrivateGetTradeFullOrder(this.extend(request, params));
         //
         //     {
@@ -4276,6 +4419,9 @@ export default class bingx extends Exchange {
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, params));
         }
         else if (type === 'spot') {
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, params));
             //
             //    {
@@ -5098,6 +5244,7 @@ export default class bingx extends Exchange {
      * @description fetch all trades made by the user
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -5161,7 +5308,7 @@ export default class bingx extends Exchange {
                 request[startTimeReq] = since;
             }
             else if (market['swap']) {
-                request['startTs'] = now - 7776000000; // 90 days
+                request['startTs'] = now - 30 * 24 * 60 * 60 * 1000; // 30 days for swap
             }
             const until = this.safeInteger(params, 'until');
             params = this.omit(params, 'until');

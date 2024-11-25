@@ -63,6 +63,7 @@ class ImplicitAPI:
     public_get_pulse_hist = publicGetPulseHist = Entry('pulse/hist', 'public', 'GET', {'cost': 2.7})
     public_get_pulse_profile_nickname = publicGetPulseProfileNickname = Entry('pulse/profile/{nickname}', 'public', 'GET', {'cost': 2.7})
     public_get_funding_stats_symbol_hist = publicGetFundingStatsSymbolHist = Entry('funding/stats/{symbol}/hist', 'public', 'GET', {'cost': 10})
+    public_get_ext_vasps = publicGetExtVasps = Entry('ext/vasps', 'public', 'GET', {'cost': 1})
     public_post_calc_trade_avg = publicPostCalcTradeAvg = Entry('calc/trade/avg', 'public', 'POST', {'cost': 2.7})
     public_post_calc_fx = publicPostCalcFx = Entry('calc/fx', 'public', 'POST', {'cost': 2.7})
     private_post_auth_r_wallets = privatePostAuthRWallets = Entry('auth/r/wallets', 'private', 'POST', {'cost': 2.7})

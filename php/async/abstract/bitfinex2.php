@@ -190,6 +190,9 @@ abstract class bitfinex2 extends \ccxt\async\Exchange {
     public function public_get_funding_stats_symbol_hist($params = array()) {
         return $this->request('funding/stats/{symbol}/hist', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_ext_vasps($params = array()) {
+        return $this->request('ext/vasps', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_post_calc_trade_avg($params = array()) {
         return $this->request('calc/trade/avg', 'public', 'POST', $params, null, null, array("cost" => 2.7));
     }
@@ -594,6 +597,9 @@ abstract class bitfinex2 extends \ccxt\async\Exchange {
     }
     public function publicGetFundingStatsSymbolHist($params = array()) {
         return $this->request('funding/stats/{symbol}/hist', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function publicGetExtVasps($params = array()) {
+        return $this->request('ext/vasps', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicPostCalcTradeAvg($params = array()) {
         return $this->request('calc/trade/avg', 'public', 'POST', $params, null, null, array("cost" => 2.7));

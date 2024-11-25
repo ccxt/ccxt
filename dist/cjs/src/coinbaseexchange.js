@@ -116,7 +116,8 @@ class coinbaseexchange extends coinbaseexchange$1 {
                         'products/{id}/ticker',
                         'products/{id}/trades',
                         'time',
-                        'products/spark-lines', // experimental
+                        'products/spark-lines',
+                        'products/volume-summary',
                     ],
                 },
                 'private': {

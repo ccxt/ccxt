@@ -57,6 +57,7 @@ export default class coinex extends Exchange {
                 'createOrders': true,
                 'createReduceOnlyOrder': true,
                 'createStopLossOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,

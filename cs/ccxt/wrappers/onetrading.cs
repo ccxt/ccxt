@@ -10,6 +10,7 @@ public partial class onetrading
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class onetrading
     /// retrieves data on all markets for onetrading
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,8 @@ public partial class onetrading
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#fee-groups"/>  <br/>
+    /// See <see href="https://docs.onetrading.com/#fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

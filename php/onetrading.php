@@ -304,6 +304,9 @@ class onetrading extends Exchange {
     public function fetch_time($params = array ()) {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://docs.onetrading.com/#time
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -320,6 +323,9 @@ class onetrading extends Exchange {
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available currencies on an exchange
+         *
+         * @see https://docs.onetrading.com/#currencies
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
@@ -360,6 +366,9 @@ class onetrading extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all markets for onetrading
+         *
+         * @see https://docs.onetrading.com/#instruments
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
@@ -442,6 +451,10 @@ class onetrading extends Exchange {
     public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
+         *
+         * @see https://docs.onetrading.com/#fee-groups
+         * @see https://docs.onetrading.com/#fees
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
          */
@@ -451,7 +464,13 @@ class onetrading extends Exchange {
             $options = $this->safe_value($this->options, 'fetchTradingFees', array());
             $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
         }
-        return $this->$method ($params);
+        if ($method === 'fetchPrivateTradingFees') {
+            return $this->fetch_private_trading_fees($params);
+        } elseif ($method === 'fetchPublicTradingFees') {
+            return $this->fetch_public_trading_fees($params);
+        } else {
+            throw new NotSupported($this->id . ' fetchTradingFees() does not support ' . $method . ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
+        }
     }
 
     public function fetch_public_trading_fees($params = array ()) {

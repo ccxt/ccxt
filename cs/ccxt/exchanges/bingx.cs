@@ -36,6 +36,7 @@ public partial class bingx : Exchange
                 { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", true },
                 { "createStopLossOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTrailingAmountOrder", true },
                 { "createTrailingPercentOrder", true },
@@ -189,6 +190,8 @@ public partial class bingx : Exchange
                             { "get", new Dictionary<string, object>() {
                                 { "ticker/price", 1 },
                                 { "market/historicalTrades", 1 },
+                                { "market/markPriceKlines", 1 },
+                                { "trade/multiAssetsRules", 1 },
                             } },
                         } },
                         { "private", new Dictionary<string, object>() {
@@ -197,12 +200,24 @@ public partial class bingx : Exchange
                                 { "market/markPriceKlines", 1 },
                                 { "trade/batchCancelReplace", 5 },
                                 { "trade/fullOrder", 2 },
+                                { "maintMarginRatio", 2 },
+                                { "trade/positionHistory", 2 },
                                 { "positionMargin/history", 2 },
+                                { "twap/openOrders", 5 },
+                                { "twap/historyOrders", 5 },
+                                { "twap/orderDetail", 5 },
+                                { "trade/assetMode", 5 },
+                                { "user/marginAssets", 5 },
                             } },
                             { "post", new Dictionary<string, object>() {
                                 { "trade/cancelReplace", 2 },
                                 { "positionSide/dual", 5 },
+                                { "trade/batchCancelReplace", 5 },
                                 { "trade/closePosition", 2 },
+                                { "trade/getVst", 5 },
+                                { "twap/order", 5 },
+                                { "twap/cancelOrder", 5 },
+                                { "trade/assetMode", 5 },
                             } },
                         } },
                     } },
@@ -235,6 +250,7 @@ public partial class bingx : Exchange
                                 { "trade/forceOrders", 1 },
                                 { "trade/allOrders", 2 },
                                 { "trade/allFillOrders", 2 },
+                                { "trade/fillHistory", 2 },
                                 { "user/income/export", 2 },
                                 { "user/commissionRate", 2 },
                                 { "quote/bookTicker", 1 },
@@ -292,6 +308,7 @@ public partial class bingx : Exchange
                             { "post", new Dictionary<string, object>() {
                                 { "trade/order", 2 },
                                 { "trade/leverage", 2 },
+                                { "trade/allOpenOrders", 2 },
                                 { "trade/closeAllPositions", 2 },
                                 { "trade/marginType", 2 },
                                 { "trade/positionMargin", 2 },
@@ -488,6 +505,135 @@ public partial class bingx : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "ARB", "ARBITRUM" },
                     { "MATIC", "POLYGON" },
+                } },
+            } },
+            { "features", new Dictionary<string, object>() {
+                { "defaultForLinear", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", true },
+                            } },
+                            { "limitPrice", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "trailing", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 512 },
+                        { "daysBack", 30 },
+                        { "untilDays", 30 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", 20000 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                } },
+                { "defaultForInverse", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1440 },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "defaultForLinear" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "triggerPriceType", null },
+                        { "attachedStopLossTakeProfit", null },
+                        { "trailing", false },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                        { "daysBack", 1 },
+                        { "untilDays", 1 },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "limit", 100 },
+                        { "untilDays", null },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "defaultForLinear" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "defaultForInverse" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "defaultForLinear" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "defaultForInverse" },
+                    } },
                 } },
             } },
         });
@@ -3751,7 +3897,8 @@ public partial class bingx : Exchange
      * @method
      * @name bingx#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#User's%20All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3787,13 +3934,9 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
         }
-        object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-        object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
-        parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (isTrue(!isEqual(endTime, null)))
-        {
-            ((IDictionary<string,object>)request)["endTime"] = endTime;
-        }
+        var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
         object response = await this.swapV1PrivateGetTradeFullOrder(this.extend(request, parameters));
         //
         //     {
@@ -4106,6 +4249,10 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllOrders(this.extend(request, parameters));
         } else if (isTrue(isEqual(type, "spot")))
         {
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = limit;
+            }
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters));
         } else
         {
@@ -4834,6 +4981,7 @@ public partial class bingx : Exchange
      * @description fetch all trades made by the user
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4879,7 +5027,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)[(string)startTimeReq] = since;
             } else if (isTrue(getValue(market, "swap")))
             {
-                ((IDictionary<string,object>)request)["startTs"] = subtract(now, 7776000000); // 90 days
+                ((IDictionary<string,object>)request)["startTs"] = subtract(now, multiply(multiply(multiply(multiply(30, 24), 60), 60), 1000)); // 30 days for swap
             }
             object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");

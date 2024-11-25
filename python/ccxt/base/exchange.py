@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.32'
+__version__ = '4.4.33'
 
 # -----------------------------------------------------------------------------
 
@@ -2407,6 +2407,10 @@ class Exchange(object):
         return self.filter_by_limit(result, limit, key, sinceIsDefined)
 
     def set_sandbox_mode(self, enabled: bool):
+        """
+        set the sandbox mode for the exchange
+        :param boolean enabled: True to enable sandbox mode, False to disable it
+        """
         if enabled:
             if 'test' in self.urls:
                 if isinstance(self.urls['api'], str):
@@ -2726,6 +2730,83 @@ class Exchange(object):
 
     def after_construct(self):
         self.create_networks_by_id_object()
+        self.features_generator()
+
+    def features_generator(self):
+        #
+        # the exchange-specific features can be something like self, where we support 'string' aliases too:
+        #
+        #     {
+        #         'myItem' : {
+        #             'createOrder' : {...},
+        #             'fetchOrders' : {...},
+        #         },
+        #         'swap': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         },
+        #         'future': {
+        #             'linear': 'myItem',
+        #             'inverse': 'myItem',
+        #         }
+        #     }
+        #
+        #
+        #
+        # self method would regenerate the blank features tree, eg:
+        #
+        #     {
+        #         "spot": {
+        #             "createOrder": None,
+        #             "fetchBalance": None,
+        #             ...
+        #         },
+        #         "swap": {
+        #             ...
+        #         }
+        #     }
+        #
+        if self.features is None:
+            return
+        # reconstruct
+        initialFeatures = self.features
+        self.features = {}
+        unifiedMarketTypes = ['spot', 'swap', 'future', 'option']
+        subTypes = ['linear', 'inverse']
+        # atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for i in range(0, len(unifiedMarketTypes)):
+            marketType = unifiedMarketTypes[i]
+            # if marketType is not filled for self exchange, don't add that in `features`
+            if not (marketType in initialFeatures):
+                self.features[marketType] = None
+            else:
+                if marketType == 'spot':
+                    self.features[marketType] = self.features_mapper(initialFeatures, marketType, None)
+                else:
+                    self.features[marketType] = {}
+                    for j in range(0, len(subTypes)):
+                        subType = subTypes[j]
+                        self.features[marketType][subType] = self.features_mapper(initialFeatures, marketType, subType)
+
+    def features_mapper(self, initialFeatures: Any, marketType: Str, subType: Str = None):
+        featuresObj = initialFeatures[marketType][subType] if (subType is not None) else initialFeatures[marketType]
+        extendsStr: Str = self.safe_string(featuresObj, 'extends')
+        if extendsStr is not None:
+            featuresObj = self.omit(featuresObj, 'extends')
+            extendObj = self.features_mapper(initialFeatures, extendsStr)
+            featuresObj = self.deep_extend(extendObj, featuresObj)
+        #
+        # corrections
+        #
+        if 'createOrder' in featuresObj:
+            value = self.safe_dict(featuresObj['createOrder'], 'attachedStopLossTakeProfit')
+            if value is not None:
+                featuresObj['createOrder']['stopLoss'] = value
+                featuresObj['createOrder']['takeProfit'] = value
+            # False 'hedged' for spot
+            if marketType == 'spot':
+                featuresObj['createOrder']['hedged'] = False
+        return featuresObj
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
@@ -3667,6 +3748,14 @@ class Exchange(object):
             result.append(self.market_id(symbols[i]))
         return result
 
+    def currency_ids(self, codes: Strings = None):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.currency_id(codes[i]))
+        return result
+
     def markets_for_symbols(self, symbols: Strings = None):
         if symbols is None:
             return symbols
@@ -4019,6 +4108,14 @@ class Exchange(object):
 
     def set_headers(self, headers):
         return headers
+
+    def currency_id(self, code: str):
+        currency = self.safe_dict(self.currencies, code)
+        if currency is None:
+            currency = self.safe_currency(code)
+        if currency is not None:
+            return currency['id']
+        return code
 
     def market_id(self, symbol: str):
         market = self.market(symbol)
