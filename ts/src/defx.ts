@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder } from './base/errors.js';
-import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position } from './base/types.js';
+import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1794,6 +1794,94 @@ export default class defx extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parsePositions (data, undefined, params);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        /**
+         * @method
+         * @name defx#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @see https://api-docs.defx.com/#38cc8974-794f-48c0-b959-db045a0ee565
+         * @param {string} [code] unified currency code
+         * @param {int} [since] timestamp in ms of the earliest ledger entry
+         * @param {int} [limit] max number of ledger entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params) as LedgerEntry[];
+        }
+        const request: Dict = {};
+        if (since !== undefined) {
+            request['start'] = since;
+        } else {
+            request['start'] = 0;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['end'] = until;
+        } else {
+            request['end'] = this.milliseconds ();
+        }
+        const response = await this.v1PrivateGetApiWalletTransactions (this.extend (request, params));
+        const data = this.safeList (response, 'transactions', []);
+        return this.parseLedger (data, undefined, since, limit);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+        //
+        // {
+        //     "id": "01JCSZS6H5VQND3GF5P98SJ29C",
+        //     "timestamp": 1731744012054,
+        //     "type": "FundingFee",
+        //     "amount": "0.02189287",
+        //     "asset": "USDC",
+        //     "operation": "CREDIT"
+        // }
+        //
+        const amount = this.safeString (item, 'amount');
+        const currencyId = this.safeString (item, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const type = this.safeString (item, 'type');
+        return this.safeLedgerEntry ({
+            'info': item,
+            'id': this.safeString (item, 'id'),
+            'direction': undefined,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': undefined,
+            'type': this.parseLedgerEntryType (type),
+            'currency': code,
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': undefined,
+            'status': undefined,
+            'fee': undefined,
+        }, currency) as LedgerEntry;
+    }
+
+    parseLedgerEntryType (type) {
+        const ledgerType: Dict = {
+            'FundingFee': 'fee',
+            'FeeRebate': 'fee',
+            'FeeKickback': 'fee',
+            'RealizedPnl': 'trade',
+            'LiquidationClearance': 'trade',
+            'Transfer': 'transfer',
+            'ReferralPayout': 'referral',
+            'Commission': 'commission',
+        };
+        return this.safeString (ledgerType, type, type);
     }
 
     nonce () {
