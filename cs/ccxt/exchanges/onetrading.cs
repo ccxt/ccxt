@@ -242,6 +242,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.onetrading.com/#time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -262,6 +263,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://docs.onetrading.com/#currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -313,6 +315,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchMarkets
      * @description retrieves data on all markets for onetrading
+     * @see https://docs.onetrading.com/#instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -400,6 +403,8 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTradingFees
      * @description fetch the trading fees for multiple markets
+     * @see https://docs.onetrading.com/#fee-groups
+     * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
@@ -413,7 +418,16 @@ public partial class onetrading : Exchange
             object options = this.safeValue(this.options, "fetchTradingFees", new Dictionary<string, object>() {});
             method = this.safeString(options, "method", "fetchPrivateTradingFees");
         }
-        return await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
+        {
+            return await this.fetchPrivateTradingFees(parameters);
+        } else if (isTrue(isEqual(method, "fetchPublicTradingFees")))
+        {
+            return await this.fetchPublicTradingFees(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
+        }
     }
 
     public async virtual Task<object> fetchPublicTradingFees(object parameters = null)
