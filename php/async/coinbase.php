@@ -2310,7 +2310,8 @@ class coinbase extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
-             * @param {array} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {string} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {int} [$params->limit] default 250, maximum number of accounts to return
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2327,7 +2328,7 @@ class coinbase extends Exchange {
                 $request['limit'] = 250;
                 $response = Async\await($this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params)));
             } else {
-                $request['limit'] = 100;
+                $request['limit'] = 250;
                 $response = Async\await($this->v2PrivateGetAccounts ($this->extend($request, $params)));
             }
             //
