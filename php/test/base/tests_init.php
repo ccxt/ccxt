@@ -11,15 +11,27 @@ include_once __DIR__ . '/test_number.php';
 include_once __DIR__ . '/test_datetime.php';
 include_once __DIR__ . '/test_cryptography.php';
 include_once __DIR__ . '/test_extend.php';
-include_once __DIR__ . '/test_language_specific.php';
+include_once __DIR__ . '/test_deep_extend.php';
+include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
+include_once __DIR__ . '/test_sort_by.php';
+include_once __DIR__ . '/test_sum.php';
+include_once __DIR__ . '/test_omit.php';
+include_once __DIR__ . '/test_group_by.php';
+include_once __DIR__ . '/test_filter_by.php';
 
-// import testJson from './test.json.js';
 function base_tests_init() {
     test_language_specific();
     test_extend();
+    test_deep_extend();
     test_cryptography();
     test_datetime();
     test_number();
     test_safe_methods();
+    // testJson ();
+    test_sort_by();
+    test_sum();
+    test_omit();
+    test_group_by();
+    test_filter_by();
 }

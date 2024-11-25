@@ -1939,6 +1939,32 @@
                 ]
             }
         ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetchMarkPrices",
+                "method": "fetchMarkPrices",
+                "url": "https://fapi.binance.com/fapi/v1/premiumIndex",
+                "input": []
+            }
+        ],
+        "fetchMarkPrice": [
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://fapi.binance.com/fapi/v1/premiumIndex?symbol=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetchMarkPrice",
+                "method": "fetchMarkPrice",
+                "url": "https://dapi.binance.com/dapi/v1/premiumIndex?symbol=ETHUSD_PERP",
+                "input": [
+                    "ETH/USD:ETH"
+                ]
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "spot fetch tickers with symbols",
@@ -3267,6 +3293,24 @@
                 ]
             }
         ],
+        "fetchMarginMode": [
+            {
+                "description": "linear swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://fapi.binance.com/fapi/v1/symbolConfig?timestamp=1731574341128&symbol=BTCUSDT&recvWindow=10000&signature=1413a17133ec9b4fddda726366f68c69f6b7328eef9dc40879718e24540b78b1",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap fetch margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://dapi.binance.com/dapi/v1/account?timestamp=1731574391030&recvWindow=10000&signature=f4a9d536dff966ecab5d3499be85bab1422fb9526db45715b38aaabb6d415000",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -3575,6 +3619,64 @@
                 "url": "https://eapi.binance.com/sapi/v1/margin/interestRateHistory?timestamp=1721628239072&recvWindow=10000&signature=sig&asset=BTC&limit=93",
                 "input": [
                     "BTC"
+                ]
+            }
+        ],
+        "fetchFundingIntervals": [
+            {
+                "description": "swap linear funding interval",
+                "method": "fetchFundingIntervals",
+                "url": "https://fapi.binance.com/fapi/v1/fundingInfo",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            },
+            {
+                "description": "swap inverse funding intervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://dapi.binance.com/dapi/v1/fundingInfo",
+                "input": [
+                  [
+                    "BTC/USD:BTC"
+                  ]
+                ]
+            }
+        ],
+        "fetchFundingInterval": [
+            {
+                "description": "swap linear fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://fapi.binance.com/fapi/v1/fundingInfo",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap inverse fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://dapi.binance.com/dapi/v1/fundingInfo",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchLongShortRatioHistory": [
+            {
+                "description": "inverse swap fetch long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://dapi.binance.com/futures/data/globalLongShortAccountRatio?period=1d&pair=BTCUSD",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            },
+            {
+                "description": "linear swap fetch long short ratio history",
+                "method": "fetchLongShortRatioHistory",
+                "url": "https://fapi.binance.com/futures/data/globalLongShortAccountRatio?period=1d&symbol=BTCUSDT",
+                "input": [
+                  "BTC/USDT:USDT"
                 ]
             }
         ]

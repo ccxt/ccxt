@@ -951,6 +951,8 @@
                     "average": 65334.43,
                     "baseVolume": 840.82448,
                     "quoteVolume": 54553459.3478067,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1721910147500",
                         "s": "BTCUSDT",
@@ -1005,6 +1007,8 @@
                     "average": 2541.34,
                     "baseVolume": 1561096,
                     "quoteVolume": 4138307.86688,
+                    "markPrice":  null,
+                    "indexPrice": null,
                     "info": {
                         "t": "1723212900000",
                         "s": "ETHUSDT-PERPETUAL",

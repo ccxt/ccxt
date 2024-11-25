@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -18,6 +18,7 @@ class upbit(ccxt.async_support.upbit):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchTicker': True,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchOrders': True,
@@ -60,20 +61,66 @@ class upbit(ccxt.async_support.upbit):
         messageHash = channel + ':' + marketId
         return await self.watch(url, messageHash, request, messageHash)
 
+    async def watch_public_multiple(self, symbols: Strings, channel, params={}):
+        await self.load_markets()
+        if symbols is None:
+            symbols = self.symbols
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        url = self.implode_params(self.urls['api']['ws'], {
+            'hostname': self.hostname,
+        })
+        messageHashes = []
+        for i in range(0, len(marketIds)):
+            messageHashes.append(channel + ':' + marketIds[i])
+        request = [
+            {
+                'ticket': self.uuid(),
+            },
+            {
+                'type': channel,
+                'codes': marketIds,
+                # 'isOnlySnapshot': False,
+                # 'isOnlyRealtime': False,
+            },
+        ]
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
+
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://global-docs.upbit.com/reference/websocket-ticker
+
+        https://global-docs.upbit.com/reference/websocket-ticker
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         return await self.watch_public(symbol, 'ticker')
 
+    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://global-docs.upbit.com/reference/websocket-ticker
+
+ @param symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        newTickers = await self.watch_public_multiple(symbols, 'ticker')
+        if self.newUpdates:
+            tickers: dict = {}
+            tickers[newTickers['symbol']] = newTickers
+            return tickers
+        return self.filter_by_array(self.tickers, 'symbol', symbols)
+
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://global-docs.upbit.com/reference/websocket-trade
+
+        https://global-docs.upbit.com/reference/websocket-trade
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -85,7 +132,9 @@ class upbit(ccxt.async_support.upbit):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
-        :see: https://global-docs.upbit.com/reference/websocket-trade
+
+        https://global-docs.upbit.com/reference/websocket-trade
+
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -130,7 +179,9 @@ class upbit(ccxt.async_support.upbit):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://global-docs.upbit.com/reference/websocket-orderbook
+
+        https://global-docs.upbit.com/reference/websocket-orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -311,7 +362,9 @@ class upbit(ccxt.async_support.upbit):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
-        :see: https://global-docs.upbit.com/reference/websocket-myorder
+
+        https://global-docs.upbit.com/reference/websocket-myorder
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -329,7 +382,9 @@ class upbit(ccxt.async_support.upbit):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
-        :see: https://global-docs.upbit.com/reference/websocket-myorder
+
+        https://global-docs.upbit.com/reference/websocket-myorder
+
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -502,7 +557,9 @@ class upbit(ccxt.async_support.upbit):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://global-docs.upbit.com/reference/websocket-myasset
+
+        https://global-docs.upbit.com/reference/websocket-myasset
+
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`

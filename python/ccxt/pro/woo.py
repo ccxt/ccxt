@@ -27,6 +27,7 @@ class woo(ccxt.async_support.woo):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
+                'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': False,
                 'watchPositions': True,
@@ -34,14 +35,14 @@ class woo(ccxt.async_support.woo):
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://wss.woo.org/ws/stream',
-                        'private': 'wss://wss.woo.org/v2/ws/private/stream',
+                        'public': 'wss://wss.woox.io/ws/stream',
+                        'private': 'wss://wss.woox.io/v2/ws/private/stream',
                     },
                 },
                 'test': {
                     'ws': {
-                        'public': 'wss://wss.staging.woo.org/ws/stream',
-                        'private': 'wss://wss.staging.woo.org/v2/ws/private/stream',
+                        'public': 'wss://wss.staging.woox.io/ws/stream',
+                        'private': 'wss://wss.staging.woox.io/v2/ws/private/stream',
                     },
                 },
             },
@@ -91,8 +92,10 @@ class woo(ccxt.async_support.woo):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
-        :see: https://docs.woo.org/#orderbookupdate
-        :see: https://docs.woo.org/#orderbook
+
+        https://docs.woox.io/#orderbookupdate
+        https://docs.woox.io/#orderbook
+
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
@@ -323,7 +326,9 @@ class woo(ccxt.async_support.woo):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://docs.woo.org/#24h-tickers
+
+        https://docs.woox.io/#24h-tickers
+
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -383,10 +388,81 @@ class woo(ccxt.async_support.woo):
             result.append(ticker)
         client.resolve(result, topic)
 
+    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+
+        https://docs.woox.io/#bbos
+
+        watches best bid & ask for symbols
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'bbos'
+        topic = name
+        request: dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        }
+        message = self.extend(request, params)
+        tickers = await self.watch_public(topic, message)
+        if self.newUpdates:
+            return tickers
+        return self.filter_by_array(self.bidsasks, 'symbol', symbols)
+
+    def handle_bid_ask(self, client: Client, message):
+        #
+        #     {
+        #         "topic": "bbos",
+        #         "ts": 1618822376000,
+        #         "data": [
+        #             {
+        #                 "symbol": "SPOT_FIL_USDT",
+        #                 "ask": 159.0318,
+        #                 "askSize": 370.43,
+        #                 "bid": 158.9158,
+        #                 "bidSize": 16
+        #             }
+        #         ]
+        #     }
+        #
+        topic = self.safe_string(message, 'topic')
+        data = self.safe_list(message, 'data', [])
+        timestamp = self.safe_integer(message, 'ts')
+        result: dict = {}
+        for i in range(0, len(data)):
+            ticker = self.safe_dict(data, i)
+            ticker['ts'] = timestamp
+            parsedTicker = self.parse_ws_bid_ask(ticker)
+            symbol = parsedTicker['symbol']
+            self.bidsasks[symbol] = parsedTicker
+            result[symbol] = parsedTicker
+        client.resolve(result, topic)
+
+    def parse_ws_bid_ask(self, ticker, market=None):
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = self.safe_string(market, 'symbol')
+        timestamp = self.safe_integer(ticker, 'ts')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'ask': self.safe_string(ticker, 'ask'),
+            'askVolume': self.safe_string(ticker, 'askSize'),
+            'bid': self.safe_string(ticker, 'bid'),
+            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'info': ticker,
+        }, market)
+
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-        :see: https://docs.woo.org/#k-line
+
+        https://docs.woox.io/#k-line
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -457,7 +533,9 @@ class woo(ccxt.async_support.woo):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
-        :see: https://docs.woo.org/#trade
+
+        https://docs.woox.io/#trade
+
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -637,8 +715,10 @@ class woo(ccxt.async_support.woo):
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
-        :see: https://docs.woo.org/#executionreport
-        :see: https://docs.woo.org/#algoexecutionreportv2
+
+        https://docs.woox.io/#executionreport
+        https://docs.woox.io/#algoexecutionreportv2
+
         watches information on multiple orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -668,8 +748,10 @@ class woo(ccxt.async_support.woo):
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
-        :see: https://docs.woo.org/#executionreport
-        :see: https://docs.woo.org/#algoexecutionreportv2
+
+        https://docs.woox.io/#executionreport
+        https://docs.woox.io/#algoexecutionreportv2
+
         watches information on multiple trades made by the user
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -891,9 +973,13 @@ class woo(ccxt.async_support.woo):
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
-        :see: https://docs.woo.org/#position-push
+
+        https://docs.woox.io/#position-push
+
         watch all open positions
         :param str[]|None symbols: list of unified market symbols
+ @param since
+ @param limit
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
@@ -993,7 +1079,9 @@ class woo(ccxt.async_support.woo):
 
     async def watch_balance(self, params={}) -> Balances:
         """
-        :see: https://docs.woo.org/#balance
+
+        https://docs.woox.io/#balance
+
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1101,6 +1189,7 @@ class woo(ccxt.async_support.woo):
             'trade': self.handle_trade,
             'balance': self.handle_balance,
             'position': self.handle_positions,
+            'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
         method = self.safe_value(methods, event)

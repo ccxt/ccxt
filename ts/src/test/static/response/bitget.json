@@ -1395,6 +1395,8 @@
                     "average": 72769.88,
                     "baseVolume": 16956.244304,
                     "quoteVolume": 1214716952.009746,
+                    "markPrice": null,
+                    "indexPrice": null,
                     "info": {
                         "open": "72170.63",
                         "symbol": "BTCUSDT",
@@ -1458,6 +1460,239 @@
                   "marginRatio": null,
                   "stopLossPrice": null,
                   "takeProfitPrice": null
+                }
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "cross fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT",
+                  "BTC/USDT"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731480251909",
+                  "data": {
+                    "resultList": [
+                      {
+                        "interestId": "1240483507970117633",
+                        "interestCoin": "USDT",
+                        "dailyInterestRate": "0.00014",
+                        "loanCoin": "USDT",
+                        "interestAmount": "0.00003034",
+                        "interstType": "first",
+                        "cTime": "1731480236046",
+                        "uTime": "1731480236046"
+                      }
+                    ],
+                    "maxId": "1240483507970117633",
+                    "minId": "1240483507970117633"
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "interestId": "1240483507970117633",
+                      "interestCoin": "USDT",
+                      "dailyInterestRate": "0.00014",
+                      "loanCoin": "USDT",
+                      "interestAmount": "0.00003034",
+                      "interstType": "first",
+                      "cTime": "1731480236046",
+                      "uTime": "1731480236046"
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "USDT",
+                    "interest": 0.00003034,
+                    "interestRate": 0.00014,
+                    "amountBorrowed": null,
+                    "marginMode": "cross",
+                    "timestamp": 1731480236046,
+                    "datetime": "2024-11-13T06:43:56.046Z"
+                  }
+                ]
+            },
+            {
+                "description": "isolated fetch borrow interest",
+                "method": "fetchBorrowInterest",
+                "input": [
+                  "USDT",
+                  "BTC/USDT",
+                  null,
+                  null,
+                  {
+                    "marginMode": "isolated"
+                  }
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731480120096",
+                  "data": {
+                    "resultList": [
+                      {
+                        "interestId": "1240482481565208581",
+                        "interestCoin": "USDT",
+                        "dailyInterestRate": "0.00014",
+                        "loanCoin": "USDT",
+                        "interestAmount": "0.00006125",
+                        "interstType": "first",
+                        "symbol": "BTCUSDT",
+                        "cTime": "1731479991332",
+                        "uTime": "1731479991332"
+                      }
+                    ],
+                    "maxId": "1240482481565208581",
+                    "minId": "1240482481565208581"
+                  }
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "interestId": "1240482481565208581",
+                      "interestCoin": "USDT",
+                      "dailyInterestRate": "0.00014",
+                      "loanCoin": "USDT",
+                      "interestAmount": "0.00006125",
+                      "interstType": "first",
+                      "symbol": "BTCUSDT",
+                      "cTime": "1731479991332",
+                      "uTime": "1731479991332"
+                    },
+                    "symbol": "BTC/USDT",
+                    "currency": "USDT",
+                    "interest": 0.00006125,
+                    "interestRate": 0.00014,
+                    "amountBorrowed": null,
+                    "marginMode": "isolated",
+                    "timestamp": 1731479991332,
+                    "datetime": "2024-11-13T06:39:51.332Z"
+                  }
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731569715346",
+                  "data": {
+                    "marginCoin": "USDT",
+                    "locked": "0",
+                    "available": "19.88811074",
+                    "crossedMaxAvailable": "19.88811074",
+                    "isolatedMaxAvailable": "19.88811074",
+                    "maxTransferOut": "19.88811074",
+                    "accountEquity": "19.88811074",
+                    "usdtEquity": "19.888110749166",
+                    "btcEquity": "0.000221569208",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "marginCoin": "USDT",
+                    "locked": "0",
+                    "available": "19.88811074",
+                    "crossedMaxAvailable": "19.88811074",
+                    "isolatedMaxAvailable": "19.88811074",
+                    "maxTransferOut": "19.88811074",
+                    "accountEquity": "19.88811074",
+                    "usdtEquity": "19.888110749166",
+                    "btcEquity": "0.000221569208",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "cross"
+                }
+            },
+            {
+                "description": "fetch inverse swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                  "code": "00000",
+                  "msg": "success",
+                  "requestTime": "1731569580954",
+                  "data": {
+                    "marginCoin": "BTC",
+                    "locked": "0",
+                    "available": "0",
+                    "crossedMaxAvailable": "0",
+                    "isolatedMaxAvailable": "0",
+                    "maxTransferOut": "0",
+                    "accountEquity": "0",
+                    "usdtEquity": "0.000028085535",
+                    "btcEquity": "0.000000000312",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "marginCoin": "BTC",
+                    "locked": "0",
+                    "available": "0",
+                    "crossedMaxAvailable": "0",
+                    "isolatedMaxAvailable": "0",
+                    "maxTransferOut": "0",
+                    "accountEquity": "0",
+                    "usdtEquity": "0.000028085535",
+                    "btcEquity": "0.000000000312",
+                    "crossedRiskRate": "0",
+                    "crossedMarginLeverage": "10",
+                    "isolatedLongLever": "10",
+                    "isolatedShortLever": "10",
+                    "marginMode": "crossed",
+                    "posMode": "hedge_mode",
+                    "unrealizedPL": "0",
+                    "coupon": "0",
+                    "crossedUnrealizedPL": "0",
+                    "isolatedUnrealizedPL": "",
+                    "grant": ""
+                  },
+                  "symbol": "BTC/USD:BTC",
+                  "marginMode": "cross"
                 }
             }
         ]

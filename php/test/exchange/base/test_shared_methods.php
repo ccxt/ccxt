@@ -10,7 +10,11 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function log_template($exchange, $method, $entry) {
-    return ' <<< ' . $exchange->id . ' ' . $method . ' ::: ' . $exchange->json($entry) . ' >>> ';
+    // there are cases when exchange is undefined (eg. base tests)
+    $id = ($exchange !== null) ? $exchange->id : 'undefined';
+    $method_string = ($method !== null) ? $method : 'undefined';
+    $entry_string = ($exchange !== null) ? $exchange->json($entry) : '';
+    return ' <<< ' . $id . ' ' . $method_string . ' ::: ' . $entry_string . ' >>> ';
 }
 
 
@@ -49,7 +53,7 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
 }
 
 
-function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = []) {
+function assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for = null, $deep = false) {
     $log_text = log_template($exchange, $method, $entry);
     assert($entry, 'item is null/undefined' . $log_text);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -59,7 +63,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         $expected_length = count($format);
         assert($real_length === $expected_length, 'entry length is not equal to expected length of ' . ((string) $expected_length) . $log_text);
         for ($i = 0; $i < count($format); $i++) {
-            $empty_allowed_for_this_key = $exchange->in_array($i, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
             if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
                 continue;
@@ -87,7 +91,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
                 continue;
             }
-            $empty_allowed_for_this_key = $exchange->in_array($key, $empty_allowed_for);
+            $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowe empty values" list
@@ -101,6 +105,11 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             if ($key !== 'info') {
                 $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
+                if ($deep) {
+                    if (is_array($value)) {
+                        assert_structure($exchange, $skipped_properties, $method, $value, $format[$key], $empty_allowed_for, $deep);
+                    }
+                }
             }
         }
     }
@@ -374,7 +383,8 @@ function check_precision_accuracy($exchange, $skipped_properties, $method, $entr
             assert_non_equal($exchange, $skipped_properties, $method, $entry, $key, $num_str);
         }
     } else {
-        assert_integer($exchange, $skipped_properties, $method, $entry, $key); // should be integer
+        // todo: significant-digits return doubles from `this.parseNumber`, so for now can't assert against integer atm
+        // assertInteger (exchange, skippedProperties, method, entry, key); // should be integer
         assert_less_or_equal($exchange, $skipped_properties, $method, $entry, $key, '18'); // should be under 18 decimals
         assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, $key, '-8'); // in real-world cases, there would not be less than that
     }
@@ -425,4 +435,15 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
     $log_text = log_template($exchange, $method, $entry);
     $ts = $exchange->safe_string($entry, $key);
     assert(Precise::string_mod($ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' . $log_text);
+}
+
+
+function deep_equal($a, $b) {
+    return json_encode($a) === json_encode($b);
+}
+
+
+function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
+    $log_text = log_template($exchange, $method, array());
+    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }

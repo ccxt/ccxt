@@ -65,7 +65,7 @@ class oxfun extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposit' => false,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
@@ -82,7 +82,7 @@ class oxfun extends Exchange {
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => 'emulated',
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -322,7 +322,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitmex
+             *
              * @see https://docs.ox.fun/?json#get-v3-$markets
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -503,7 +505,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
              * @see https://docs.ox.fun/?json#get-v3-assets
+             *
              * @param {dict} [$params] extra parameters specific to the exchange API endpoint
              * @return {dict} an associative dictionary of currencies
              */
@@ -729,7 +733,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+             *
              * @see https://docs.ox.fun/?json#get-v3-$tickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -793,7 +799,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://docs.ox.fun/?json#get-v3-tickers
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -871,6 +879,7 @@ class oxfun extends Exchange {
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'currencyVolume24h'),
             'quoteVolume' => null, // the exchange returns cost in OX
+            'markPrice' => $this->safe_string($ticker, 'markPrice'),
             'info' => $ticker,
         ), $market);
     }
@@ -879,7 +888,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://docs.ox.fun/?json#get-v3-candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch (default 24 hours ago)
@@ -967,7 +978,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             *
              * @see https://docs.ox.fun/?json#get-v3-depth
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (default 5, max 100)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1016,7 +1029,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rates for multiple markets
+             *
              * @see https://docs.ox.fun/?json#get-v3-funding-estimates
+             *
              * @param {string[]} $symbols unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} an array of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -1085,7 +1100,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * Fetches the history of funding rates
+             *
              * @see https://docs.ox.fun/?json#get-v3-funding-rates
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1167,7 +1184,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches the history of funding payments
+             *
              * @see https://docs.ox.fun/?json#get-v3-funding
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1254,11 +1273,13 @@ class oxfun extends Exchange {
         );
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
+             *
              * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
+             *
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
@@ -1311,7 +1332,7 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         //
         //     {
         //         marketCode => 'SOL-USD-SWAP-LIN',
@@ -1336,6 +1357,7 @@ class oxfun extends Exchange {
             $tier = $listOfTiers[$j];
             $tiers[] = array(
                 'tier' => $this->safe_number($tier, 'tier'),
+                'symbol' => $this->safe_symbol($marketId, $market),
                 'currency' => $market['settle'],
                 'minNotional' => $this->safe_number($tier, 'positionFloor'),
                 'maxNotional' => $this->safe_number($tier, 'positionCap'),
@@ -1351,7 +1373,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://docs.ox.fun/?json#get-v3-exchange-trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch (default 24 hours ago)
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1403,7 +1427,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://docs.ox.fun/?json#get-v3-trades
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1520,7 +1546,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for $balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://docs.ox.fun/?json#get-v3-balances
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->asset] currency id, if empty the exchange returns info about all currencies
              * @param {string} [$params->subAcc] Name of sub account. If no $subAcc is given, then the $response contains only the account linked to the API-Key.
@@ -1619,7 +1647,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch subaccounts associated with a profile
+             *
              * @see https://docs.ox.fun/?json#get-v3-account-names
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
              */
@@ -1662,7 +1692,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://docs.ox.fun/?json#post-v3-transfer
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account id to transfer from
@@ -1706,7 +1738,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
+             *
              * @see https://docs.ox.fun/?json#get-v3-transfer
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
              * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1794,11 +1828,13 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
+             *
              * @see https://docs.ox.fun/?json#get-v3-deposit-addresses
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] network for fetch deposit address
@@ -1825,18 +1861,18 @@ class oxfun extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         //
         //     array("address":"0x998dEc76151FB723963Bd8AFD517687b38D33dE8")
         //
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $currency['code'],
+            'network' => null,
             'address' => $address,
             'tag' => null,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -1844,7 +1880,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://docs.ox.fun/?json#get-v3-deposit
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
              * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1900,7 +1938,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://docs.ox.fun/?json#get-v3-withdrawal
+             *
              * @param {string} $code unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for (default 24 hours ago)
              * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -2079,18 +2119,20 @@ class oxfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://docs.ox.fun/?json#post-v3-withdrawal
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] network for withdraw
              * @param {bool} [$params->externalFee] if false, then the fee is taken from the quantity, also with the burn fee for asset SOLO
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
@@ -2142,7 +2184,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
+             *
              * @see https://docs.ox.fun/?json#get-v3-$positions
+             *
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->subAcc]
@@ -2260,7 +2304,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
+             *
              * @see https://docs.ox.fun/?json#post-v3-orders-place
+             *
              * @param {string} $symbol unified $symbol of the market to create an $order in
              * @param {string} $type 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
              * @param {string} $side 'buy' or 'sell'
@@ -2420,7 +2466,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
+             *
              * @see https://docs.ox.fun/?json#post-v3-$orders-place
+             *
              * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->timestamp] *for all $orders* in milliseconds. If $orders reach the matching engine and the current timestamp exceeds timestamp . recvWindow, then all $orders will be rejected.
@@ -2513,7 +2561,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a $market buy order by providing the $symbol and $cost
+             *
              * @see https://open.big.one/docs/spot_orders.html#create-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2534,7 +2584,9 @@ class oxfun extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
+             *
              * @see https://docs.ox.fun/?json#get-v3-orders-status
+             *
              * fetches information on an order made by the user
              * @param {string} $id a unique $id for the order
              * @param {string} [$symbol] not used by oxfun fetchOrder
@@ -2579,7 +2631,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://docs.ox.fun/?json#get-v3-orders-working
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2604,7 +2658,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open $order
+             *
              * @see https://docs.ox.fun/?json#delete-v3-orders-cancel
+             *
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2643,7 +2699,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
              * @see https://docs.ox.fun/?json#delete-v3-orders-cancel-all
+             *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from exchange
@@ -2672,7 +2730,9 @@ class oxfun extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple $orders
+             *
              * @see https://docs.ox.fun/?json#delete-v3-$orders-cancel
+             *
              * @param {string[]} $ids $order $ids
              * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

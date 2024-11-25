@@ -265,7 +265,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 function get_test_files_sync ($properties, $ws = false) {
     $func = function() use ($properties, $ws){
         $tests = array();
-        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME]);
+        $finalPropList = array_merge ($properties, [PROXY_TEST_FILE_NAME, 'features']);
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
             $name_snake_case = convert_to_snake_case($methodName);
@@ -307,6 +307,26 @@ function close($exchange) {
     } else {
         return Async\async ($func)();
     }
+}
+
+function is_sync(){
+    return IS_SYNCHRONOUS;
+}
+
+function get_root_dir(){
+    return ROOT_DIR;
+}
+
+function get_lang() {
+    return LANG;
+}
+
+function get_ext(){
+    return EXT;
+}
+
+function get_env_vars() {
+    return ENV_VARS;
 }
 
 function set_fetch_response($exchange, $data) {

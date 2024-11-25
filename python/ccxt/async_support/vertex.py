@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.vertex import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -55,6 +55,8 @@ class vertex(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'createReduceOnlyOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
@@ -348,7 +350,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/assets
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -507,7 +511,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for vertex
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/symbols
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -562,7 +568,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/status
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -713,7 +721,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/trades
+
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -756,7 +766,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all trades made by the user
-        :see: https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+
+        https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/matches
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
@@ -961,7 +973,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/orderbook
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1021,7 +1035,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/fee-rates
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -1098,7 +1114,9 @@ class vertex(Exchange, ImplicitAPI):
 
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
-        :see: https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+
+        https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/candlesticks
+
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1214,7 +1232,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
         fetch the current funding rate
-        :see: https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+
+        https://docs.vertexprotocol.com/developer-resources/api/archive-indexer/funding-rate
+
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1239,7 +1259,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         fetches funding rates for multiple markets
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
         :param str[] symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-structure>`
@@ -1320,7 +1342,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_open_interest(self, symbol: str, params={}):
         """
         Retrieves the open interest of a derivative trading pair
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/contracts
+
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
@@ -1402,7 +1426,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+
+        https://docs.vertexprotocol.com/developer-resources/api/v2/tickers
+
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1571,8 +1597,10 @@ class vertex(Exchange, ImplicitAPI):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
         create a trade order
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/place-order
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/place-order
+
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1666,7 +1694,9 @@ class vertex(Exchange, ImplicitAPI):
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-and-place
+
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1886,7 +1916,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1924,8 +1956,10 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/orders
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -2035,7 +2069,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple orders made by the user
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/queries/list-trigger-orders
+
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open orders structures to retrieve
@@ -2115,8 +2151,10 @@ class vertex(Exchange, ImplicitAPI):
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-product-orders
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-product-orders
+
         cancel all open orders in a market
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2194,8 +2232,10 @@ class vertex(Exchange, ImplicitAPI):
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
         cancels an open order
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2206,8 +2246,10 @@ class vertex(Exchange, ImplicitAPI):
     async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/executes/cancel-orders
+        https://docs.vertexprotocol.com/developer-resources/api/trigger/executes/cancel-orders
+
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2287,7 +2329,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_balance(self, params={}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -2692,7 +2736,9 @@ class vertex(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+
+        https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/subaccount-info
+
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
@@ -2735,10 +2781,12 @@ class vertex(Exchange, ImplicitAPI):
         #
         return self.safe_dict(response, 'data', {})
 
-    async def withdraw(self, code: str, amount, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
         """
         make a withdrawal
-        :see: https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+
+        https://docs.vertexprotocol.com/developer-resources/api/withdrawing-on-chain
+
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -2773,13 +2821,57 @@ class vertex(Exchange, ImplicitAPI):
         }
         response = await self.v1GatewayPostExecute(self.extend(request, params))
         #
-        # {
-        #     "status": "success",
-        #     "signature": {signature},
-        #     "request_type": "execute_withdraw_collateral"
-        # }
+        #     {
+        #         "status": "success",
+        #         "signature": {signature},
+        #         "request_type": "execute_withdraw_collateral"
+        #     }
         #
-        return response
+        transaction = self.parse_transaction(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'address': address,
+        })
+
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
+        #
+        #     {
+        #         "status": "success",
+        #         "signature": {signature},
+        #         "request_type": "execute_withdraw_collateral"
+        #     }
+        #
+        code = None
+        if currency is not None:
+            code = currency['code']
+        return {
+            'info': transaction,
+            'id': None,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'type': 'withdrawal',
+            'amount': None,
+            'currency': code,
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
+            'updated': None,
+            'network': None,
+            'comment': None,
+            'internal': None,
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def handle_public_address(self, methodName: str, params: dict):
         userAux = None
@@ -2821,4 +2913,12 @@ class vertex(Exchange, ImplicitAPI):
         else:
             if params:
                 url += '?' + self.urlencode(params)
+        if path != 'execute':
+            # required encoding for public methods
+            if headers is not None:
+                headers['Accept-Encoding'] = 'gzip'
+            else:
+                headers = {
+                    'Accept-Encoding': 'gzip',
+                }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

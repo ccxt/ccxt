@@ -54,16 +54,16 @@ public partial class bitrue : ccxt.bitrue
         });
     }
 
+    /**
+     * @method
+     * @name bitrue#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     public async override Task<object> watchBalance(object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#watchBalance
-        * @description watch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         object url = await this.authenticate();
         object messageHash = "balance";
@@ -177,19 +177,19 @@ public partial class bitrue : ccxt.bitrue
         this.balance = this.safeBalance(this.balance);
     }
 
+    /**
+     * @method
+     * @name bitrue#watchOrders
+     * @description watches information on user orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+     * @param {string} symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum amount of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+     */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name bitrue#watchOrders
-        * @description watches information on user orders
-        * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-        * @param {string[]} symbols unified symbols of the market to watch the orders for
-        * @param {int} [since] timestamp in ms of the earliest order
-        * @param {int} [limit] the maximum amount of orders to return
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
-        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         if (isTrue(!isEqual(symbol, null)))

@@ -277,11 +277,26 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_unified_get_currency_discount_tiers($params = array()) {
         return $this->request('currency_discount_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_unified_get_risk_units($params = array()) {
+        return $this->request('risk_units', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_get_unified_mode($params = array()) {
+        return $this->request('unified_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_get_loan_margin_tiers($params = array()) {
+        return $this->request('loan_margin_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_unified_post_account_mode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_unified_post_loans($params = array()) {
         return $this->request('loans', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
+    }
+    public function private_unified_post_portfolio_calculator($params = array()) {
+        return $this->request('portfolio_calculator', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_unified_put_unified_mode($params = array()) {
+        return $this->request('unified_mode', array('private', 'unified'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function private_spot_get_fee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -1060,11 +1075,26 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateUnifiedGetCurrencyDiscountTiers($params = array()) {
         return $this->request('currency_discount_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateUnifiedGetRiskUnits($params = array()) {
+        return $this->request('risk_units', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedGetUnifiedMode($params = array()) {
+        return $this->request('unified_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedGetLoanMarginTiers($params = array()) {
+        return $this->request('loan_margin_tiers', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateUnifiedPostAccountMode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateUnifiedPostLoans($params = array()) {
         return $this->request('loans', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 13.333333333333334));
+    }
+    public function privateUnifiedPostPortfolioCalculator($params = array()) {
+        return $this->request('portfolio_calculator', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateUnifiedPutUnifiedMode($params = array()) {
+        return $this->request('unified_mode', array('private', 'unified'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
     }
     public function privateSpotGetFee($params = array()) {
         return $this->request('fee', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));

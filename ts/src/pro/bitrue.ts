@@ -54,15 +54,15 @@ export default class bitrue extends bitrueRest {
         });
     }
 
+    /**
+     * @method
+     * @name bitrue#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name bitrue#watchBalance
-         * @description watch balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         const url = await this.authenticate ();
         const messageHash = 'balance';
         const message: Dict = {
@@ -169,18 +169,18 @@ export default class bitrue extends bitrueRest {
         this.balance = this.safeBalance (this.balance);
     }
 
+    /**
+     * @method
+     * @name bitrue#watchOrders
+     * @description watches information on user orders
+     * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
+     * @param {string} symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum amount of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name bitrue#watchOrders
-         * @description watches information on user orders
-         * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#order-update
-         * @param {string[]} symbols unified symbols of the market to watch the orders for
-         * @param {int} [since] timestamp in ms of the earliest order
-         * @param {int} [limit] the maximum amount of orders to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         if (symbol !== undefined) {
             const market = this.market (symbol);

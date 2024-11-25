@@ -10,6 +10,7 @@ public partial class onetrading
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +30,7 @@ public partial class onetrading
     /// retrieves data on all markets for onetrading
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +50,8 @@ public partial class onetrading
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.onetrading.com/#fee-groups"/>  <br/>
+    /// See <see href="https://docs.onetrading.com/#fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -236,10 +240,10 @@ public partial class onetrading
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -255,10 +259,10 @@ public partial class onetrading
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account

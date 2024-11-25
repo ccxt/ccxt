@@ -10,6 +10,7 @@ public partial class phemex
     /// retrieves data on all markets for phemex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-product-information-3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -524,10 +525,10 @@ public partial class phemex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -610,7 +611,7 @@ public partial class phemex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>param.method</term>
+    /// <term>params.method</term>
     /// <description>
     /// string : *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
     /// </description>
@@ -700,6 +701,7 @@ public partial class phemex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#set-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -796,6 +798,8 @@ public partial class phemex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#transfer-between-spot-and-futures"/>  <br/>
+    /// See <see href="https://phemex-docs.github.io/#universal-transfer-main-account-only-transfer-between-sub-to-main-main-to-sub-or-sub-to-sub"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -821,6 +825,7 @@ public partial class phemex
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -921,5 +926,25 @@ public partial class phemex
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
+    }
+    /// <summary>
+    /// retrieves the open interest of a trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://phemex-docs.github.io/#query-24-hours-ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
     }
 }

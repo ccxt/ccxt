@@ -10,6 +10,7 @@ use ccxt\async\abstract\onetrading as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -55,6 +56,7 @@ class onetrading extends Exchange {
                 'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
@@ -120,8 +122,8 @@ class onetrading extends Exchange {
             'urls' => array(
                 'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api' => array(
-                    'public' => 'https://api.onetrading.com/public',
-                    'private' => 'https://api.onetrading.com/public',
+                    'public' => 'https://api.onetrading.com/fast',
+                    'private' => 'https://api.onetrading.com/fast',
                 ),
                 'www' => 'https://onetrading.com/',
                 'doc' => array(
@@ -310,6 +312,9 @@ class onetrading extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             *
+             * @see https://docs.onetrading.com/#time
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -328,6 +333,9 @@ class onetrading extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             *
+             * @see https://docs.onetrading.com/#currencies
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -370,6 +378,9 @@ class onetrading extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for onetrading
+             *
+             * @see https://docs.onetrading.com/#instruments
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
@@ -454,6 +465,10 @@ class onetrading extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
+             * @see https://docs.onetrading.com/#fee-groups
+             * @see https://docs.onetrading.com/#fees
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
              */
@@ -463,7 +478,13 @@ class onetrading extends Exchange {
                 $options = $this->safe_value($this->options, 'fetchTradingFees', array());
                 $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
             }
-            return Async\await($this->$method ($params));
+            if ($method === 'fetchPrivateTradingFees') {
+                return Async\await($this->fetch_private_trading_fees($params));
+            } elseif ($method === 'fetchPublicTradingFees') {
+                return Async\await($this->fetch_public_trading_fees($params));
+            } else {
+                throw new NotSupported($this->id . ' fetchTradingFees() does not support ' . $method . ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
+            }
         }) ();
     }
 
@@ -1051,7 +1072,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
         $code = null;
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1060,11 +1081,11 @@ class onetrading extends Exchange {
         $tag = $this->safe_string($depositAddress, 'destination_tag');
         $this->check_address($address);
         return array(
+            'info' => $depositAddress,
             'currency' => $code,
+            'network' => null,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
-            'info' => $depositAddress,
         );
     }
 
@@ -1094,7 +1115,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()) {
+    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1252,7 +1273,7 @@ class onetrading extends Exchange {
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1531,7 +1552,9 @@ class onetrading extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://docs.onetrading.com/#create-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
