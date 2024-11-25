@@ -309,7 +309,7 @@ public partial class cryptocom
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : price to trigger a stop order
     /// </description>

@@ -58,6 +58,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrders': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': False,
@@ -520,8 +522,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        resultResponse = self.safe_value(response, 'result', {})
-        data = self.safe_value(resultResponse, 'data', [])
+        resultResponse = self.safe_dict(response, 'result', {})
+        data = self.safe_list(resultResponse, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -538,8 +540,8 @@ class cryptocom(Exchange, ImplicitAPI):
             settle = None if spot else self.safe_currency_code(settleId)
             optionType = self.safe_string_lower(market, 'put_call')
             strike = self.safe_string(market, 'strike')
-            marginBuyEnabled = self.safe_value(market, 'margin_buy_enabled')
-            marginSellEnabled = self.safe_value(market, 'margin_sell_enabled')
+            marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
+            marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
             expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
             expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
@@ -576,7 +578,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'swap': swap,
                 'future': future,
                 'option': option,
-                'active': self.safe_value(market, 'tradable'),
+                'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
                 'linear': True if (contract) else None,
                 'inverse': False if (contract) else None,
@@ -662,7 +664,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_tickers(data, symbols)
 
@@ -753,7 +755,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -809,7 +811,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -876,7 +878,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
@@ -917,15 +919,15 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         orderBook = self.safe_value(data, 0)
         timestamp = self.safe_integer(orderBook, 't')
         return self.parse_order_book(orderBook, symbol, timestamp)
 
     def parse_balance(self, response) -> Balances:
-        responseResult = self.safe_value(response, 'result', {})
-        data = self.safe_value(responseResult, 'data', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        data = self.safe_list(responseResult, 'data', [])
         positionBalances = self.safe_value(data[0], 'position_balances', [])
         result: dict = {'info': response}
         for i in range(0, len(positionBalances)):
@@ -1145,7 +1147,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-        :param float [params.stopPrice]: price to trigger a stop order
+        :param float [params.triggerPrice]: price to trigger a stop order
         :param float [params.stopLossPrice]: price to trigger a stop-loss trigger order
         :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1188,7 +1190,7 @@ class cryptocom(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         contigency = self.safe_string(params, 'contingency_type', 'LIST')
@@ -1510,7 +1512,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         orders = self.safe_list(data, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -1576,7 +1578,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         trades = self.safe_list(result, 'data', [])
         return self.parse_trades(trades, market, since, limit)
 
@@ -1675,14 +1677,14 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        addresses = self.safe_value(data, 'deposit_address_list', [])
+        data = self.safe_dict(response, 'result', {})
+        addresses = self.safe_list(data, 'deposit_address_list', [])
         addressesLength = len(addresses)
         if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result: dict = {}
         for i in range(0, addressesLength):
-            value = self.safe_value(addresses, i)
+            value = self.safe_dict(addresses, i)
             addressString = self.safe_string(value, 'address')
             currencyId = self.safe_string(value, 'currency')
             responseCode = self.safe_currency_code(currencyId)
@@ -1769,7 +1771,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         depositList = self.safe_list(data, 'deposit_list', [])
         return self.parse_transactions(depositList, currency, since, limit)
 
@@ -1826,7 +1828,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
+        data = self.safe_dict(response, 'result', {})
         withdrawalList = self.safe_list(data, 'withdrawal_list', [])
         return self.parse_transactions(withdrawalList, currency, since, limit)
 
@@ -2225,7 +2227,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'network_list')
+        networkList = self.safe_list(fee, 'network_list', [])
         networkListLength = len(networkList)
         result: dict = {
             'info': fee,
@@ -2326,8 +2328,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        ledger = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        ledger = self.safe_list(result, 'data', [])
         return self.parse_ledger(ledger, currency, since, limit)
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None) -> LedgerEntry:
@@ -2451,9 +2453,9 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        masterAccount = self.safe_value(result, 'master_account', {})
-        accounts = self.safe_value(result, 'sub_account_list', [])
+        result = self.safe_dict(response, 'result', {})
+        masterAccount = self.safe_dict(result, 'master_account', {})
+        accounts = self.safe_list(result, 'sub_account_list', [])
         accounts.append(masterAccount)
         return self.parse_accounts(accounts, params)
 
@@ -2533,8 +2535,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         settlements = self.parse_settlements(data, market)
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -2627,8 +2629,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result', {})
-        data = self.safe_value(result, 'data', [])
+        result = self.safe_dict(response, 'result', {})
+        data = self.safe_list(result, 'data', [])
         marketId = self.safe_string(result, 'instrument_name')
         rates = []
         for i in range(0, len(data)):
@@ -2734,8 +2736,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseResult = self.safe_value(response, 'result', {})
-        positions = self.safe_value(responseResult, 'data', [])
+        responseResult = self.safe_dict(response, 'result', {})
+        positions = self.safe_list(responseResult, 'data', [])
         result = []
         for i in range(0, len(positions)):
             entry = positions[i]

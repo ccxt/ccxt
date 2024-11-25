@@ -929,6 +929,7 @@ class gate extends Exchange {
                 $this->options['unifiedAccount'] = false;
             }
         }
+        return $this->options['unifiedAccount'];
     }
 
     public function upgrade_unified_trade_account($params = array ()) {

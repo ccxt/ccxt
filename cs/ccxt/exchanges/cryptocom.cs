@@ -34,6 +34,8 @@ public partial class cryptocom : Exchange
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createOrders", true },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", false },
@@ -474,8 +476,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object resultResponse = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(resultResponse, "data", new List<object>() {});
+        object resultResponse = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(resultResponse, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -493,8 +495,8 @@ public partial class cryptocom : Exchange
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
             object optionType = this.safeStringLower(market, "put_call");
             object strike = this.safeString(market, "strike");
-            object marginBuyEnabled = this.safeValue(market, "margin_buy_enabled");
-            object marginSellEnabled = this.safeValue(market, "margin_sell_enabled");
+            object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
+            object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
@@ -536,7 +538,7 @@ public partial class cryptocom : Exchange
                 { "swap", swap },
                 { "future", future },
                 { "option", option },
-                { "active", this.safeValue(market, "tradable") },
+                { "active", this.safeBool(market, "tradable") },
                 { "contract", contract },
                 { "linear", ((bool) isTrue((contract))) ? true : null },
                 { "inverse", ((bool) isTrue((contract))) ? false : null },
@@ -633,7 +635,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
@@ -742,7 +744,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -811,7 +813,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeList(result, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -896,7 +898,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
@@ -942,8 +944,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object orderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(orderBook, "t");
         return this.parseOrderBook(orderBook, symbol, timestamp);
@@ -951,8 +953,8 @@ public partial class cryptocom : Exchange
 
     public override object parseBalance(object response)
     {
-        object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(responseResult, "data", new List<object>() {});
+        object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(responseResult, "data", new List<object>() {});
         object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
         object result = new Dictionary<string, object>() {
             { "info", response },
@@ -1237,7 +1239,7 @@ public partial class cryptocom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
      * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
-     * @param {float} [params.stopPrice] price to trigger a stop order
+     * @param {float} [params.triggerPrice] price to trigger a stop order
      * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
      * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1287,7 +1289,7 @@ public partial class cryptocom : Exchange
             object side = this.safeString(rawOrder, "side");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object orderRequest = this.createAdvancedOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -1699,7 +1701,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "data", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
@@ -1780,7 +1782,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeList(result, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -1900,8 +1902,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object addresses = this.safeValue(data, "deposit_address_list", new List<object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object addresses = this.safeList(data, "deposit_address_list", new List<object>() {});
         object addressesLength = getArrayLength(addresses);
         if (isTrue(isEqual(addressesLength, 0)))
         {
@@ -1910,7 +1912,7 @@ public partial class cryptocom : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
         {
-            object value = this.safeValue(addresses, i);
+            object value = this.safeDict(addresses, i);
             object addressString = this.safeString(value, "address");
             object currencyId = this.safeString(value, "currency");
             object responseCode = this.safeCurrencyCode(currencyId);
@@ -2017,7 +2019,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object depositList = this.safeList(data, "deposit_list", new List<object>() {});
         return this.parseTransactions(depositList, currency, since, limit);
     }
@@ -2085,7 +2087,7 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object withdrawalList = this.safeList(data, "withdrawal_list", new List<object>() {});
         return this.parseTransactions(withdrawalList, currency, since, limit);
     }
@@ -2528,7 +2530,7 @@ public partial class cryptocom : Exchange
         //        ]
         //    }
         //
-        object networkList = this.safeValue(fee, "network_list");
+        object networkList = this.safeList(fee, "network_list", new List<object>() {});
         object networkListLength = getArrayLength(networkList);
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -2655,8 +2657,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object ledger = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object ledger = this.safeList(result, "data", new List<object>() {});
         return this.parseLedger(ledger, currency, since, limit);
     }
 
@@ -2790,9 +2792,9 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object masterAccount = this.safeValue(result, "master_account", new Dictionary<string, object>() {});
-        object accounts = this.safeValue(result, "sub_account_list", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object masterAccount = this.safeDict(result, "master_account", new Dictionary<string, object>() {});
+        object accounts = this.safeList(result, "sub_account_list", new List<object>() {});
         ((IList<object>)accounts).Add(masterAccount);
         return this.parseAccounts(accounts, parameters);
     }
@@ -2883,8 +2885,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object settlements = this.parseSettlements(data, market);
         object sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
@@ -3000,8 +3002,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object data = this.safeValue(result, "data", new List<object>() {});
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object data = this.safeList(result, "data", new List<object>() {});
         object marketId = this.safeString(result, "instrument_name");
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -3122,8 +3124,8 @@ public partial class cryptocom : Exchange
         //         }
         //     }
         //
-        object responseResult = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        object positions = this.safeValue(responseResult, "data", new List<object>() {});
+        object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        object positions = this.safeList(responseResult, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {

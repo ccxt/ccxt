@@ -193,6 +193,7 @@ public partial class bitfinex2 : Exchange
                         { "pulse/hist", 2.7 },
                         { "pulse/profile/{nickname}", 2.7 },
                         { "funding/stats/{symbol}/hist", 10 },
+                        { "ext/vasps", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "calc/trade/avg", 2.7 },

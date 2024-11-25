@@ -1560,13 +1560,13 @@ class binance extends binance$1 {
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
-                        'marginMode': true,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1584,6 +1584,7 @@ class binance extends binance$1 {
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 1, // days between start-end
@@ -1594,25 +1595,25 @@ class binance extends binance$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': undefined,
                         'marginMode': true,
+                        'limit': undefined,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 10000,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
                         'untilDays': 10000,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
@@ -1623,6 +1624,7 @@ class binance extends binance$1 {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'mark': true,
@@ -1632,7 +1634,6 @@ class binance extends binance$1 {
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
-                        'marginMode': false,
                         'timeInForce': {
                             'GTC': true,
                             'IOC': true,
@@ -1653,6 +1654,7 @@ class binance extends binance$1 {
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'daysBack': undefined,
                         'limit': 1000,
                         'untilDays': 7,
@@ -1663,25 +1665,25 @@ class binance extends binance$1 {
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
-                        'limit': 500,
                         'marginMode': true,
+                        'limit': 500,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'marginMode': true,
                         'trigger': false,
                         'trailing': false,
                     },
@@ -2109,6 +2111,7 @@ class binance extends binance$1 {
                         '-4141': errors.OperationRejected,
                         '-4144': errors.BadSymbol,
                         '-4164': errors.InvalidOrder,
+                        '-4136': errors.InvalidOrder,
                         '-4165': errors.BadRequest,
                         '-4167': errors.BadRequest,
                         '-4168': errors.BadRequest,
@@ -6387,6 +6390,7 @@ class binance extends binance$1 {
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        const closePosition = this.safeBool(params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -6466,14 +6470,15 @@ class binance extends binance$1 {
             priceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeBool(params, 'closePosition');
-            if (closePosition === undefined) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         }
         else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            if (!closePosition) {
+                quantityIsRequired = true;
+            }
             if (trailingPercent === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
@@ -11924,13 +11929,13 @@ class binance extends binance$1 {
     getExceptionsByUrl(url, exactOrBroad) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith('https://api.' + hostname + '/')) {
+        if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://testnet.binance.vision')) {
             marketType = 'spot';
         }
-        else if (url.startsWith('https://dapi.' + hostname + '/')) {
+        else if (url.startsWith('https://dapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
         }
-        else if (url.startsWith('https://fapi.' + hostname + '/')) {
+        else if (url.startsWith('https://fapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         }
         else if (url.startsWith('https://eapi.' + hostname + '/')) {

@@ -51,6 +51,8 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'cancelOrders': True,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRateHistories': False,
@@ -216,7 +218,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
-                    'Unavailable': InsufficientFunds,              # Insufficient funds in Futures account [withdraw]
+                    'Unavailable': ExchangeNotAvailable,              # https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
                     'Json Parse Error': ExchangeError,
                     'nonceBelowThreshold': InvalidNonce,

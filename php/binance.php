@@ -1554,13 +1554,13 @@ class binance extends Exchange {
                 'spot' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => true,
                         'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
-                        'marginMode' => true,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -1578,6 +1578,7 @@ class binance extends Exchange {
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 1, // days between start-end
@@ -1588,25 +1589,25 @@ class binance extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => null,
                         'marginMode' => true,
+                        'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 10000,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchClosedOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBackClosed' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
@@ -1617,6 +1618,7 @@ class binance extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'mark' => true,
@@ -1626,7 +1628,6 @@ class binance extends Exchange {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
-                        'marginMode' => false,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -1647,6 +1648,7 @@ class binance extends Exchange {
                         'max' => 5,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'daysBack' => null,
                         'limit' => 1000,
                         'untilDays' => 7,
@@ -1657,25 +1659,25 @@ class binance extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 500,
                         'marginMode' => true,
+                        'limit' => 500,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBack' => 90,
                         'untilDays' => 7,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchClosedOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBackClosed' => 90,
                         'daysBackCanceled' => 3,
                         'untilDays' => 7,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
@@ -2102,7 +2104,8 @@ class binance extends Exchange {
                         '-4140' => '\\ccxt\\BadRequest', // Invalid symbol status for opening position
                         '-4141' => '\\ccxt\\OperationRejected', // Symbol is closed
                         '-4144' => '\\ccxt\\BadSymbol', // Invalid pair
-                        '-4164' => '\\ccxt\\InvalidOrder', // array("code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only).")
+                        '-4164' => '\\ccxt\\InvalidOrder', // array("code":-4164,"msg":"Order's notional must be no smaller than 20 (unless you choose reduce only)."),
+                        '-4136' => '\\ccxt\\InvalidOrder', // array("code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition true")
                         '-4165' => '\\ccxt\\BadRequest', // Invalid time interval
                         '-4167' => '\\ccxt\\BadRequest', // Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168' => '\\ccxt\\BadRequest', // Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -6297,6 +6300,7 @@ class binance extends Exchange {
         $typeRequest = $isPortfolioMarginConditional ? 'strategyType' : 'type';
         $request[$typeRequest] = $uppercaseType;
         // additional required fields depending on the order $type
+        $closePosition = $this->safe_bool($params, 'closePosition', false);
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
         $stopPriceIsRequired = false;
@@ -6366,13 +6370,14 @@ class binance extends Exchange {
             $stopPriceIsRequired = true;
             $priceIsRequired = true;
         } elseif (($uppercaseType === 'STOP_MARKET') || ($uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            $closePosition = $this->safe_bool($params, 'closePosition');
-            if ($closePosition === null) {
+            if (!$closePosition) {
                 $quantityIsRequired = true;
             }
             $stopPriceIsRequired = true;
         } elseif ($uppercaseType === 'TRAILING_STOP_MARKET') {
-            $quantityIsRequired = true;
+            if (!$closePosition) {
+                $quantityIsRequired = true;
+            }
             if ($trailingPercent === null) {
                 throw new InvalidOrder($this->id . ' createOrder() requires a $trailingPercent param for a ' . $type . ' order');
             }
@@ -11722,11 +11727,11 @@ class binance extends Exchange {
     public function get_exceptions_by_url(string $url, string $exactOrBroad) {
         $marketType = null;
         $hostname = ($this->hostname !== null) ? $this->hostname : 'binance.com';
-        if (str_starts_with($url, 'https://api.' . $hostname . '/')) {
+        if (str_starts_with($url, 'https://api.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binance.vision')) {
             $marketType = 'spot';
-        } elseif (str_starts_with($url, 'https://dapi.' . $hostname . '/')) {
+        } elseif (str_starts_with($url, 'https://dapi.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binancefuture.com/dapi')) {
             $marketType = 'inverse';
-        } elseif (str_starts_with($url, 'https://fapi.' . $hostname . '/')) {
+        } elseif (str_starts_with($url, 'https://fapi.' . $hostname . '/') || str_starts_with($url, 'https://testnet.binancefuture.com/fapi')) {
             $marketType = 'linear';
         } elseif (str_starts_with($url, 'https://eapi.' . $hostname . '/')) {
             $marketType = 'option';

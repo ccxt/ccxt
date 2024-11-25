@@ -33,7 +33,7 @@ class woo(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
-            'hostname': 'woo.org',
+            'hostname': 'woox.io',
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -142,24 +142,24 @@ class woo(Exchange, ImplicitAPI):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg',
                 'api': {
-                    'pub': 'https://api-pub.woo.org',
+                    'pub': 'https://api-pub.woox.io',
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
                 'test': {
-                    'pub': 'https://api-pub.staging.woo.org',
-                    'public': 'https://api.staging.woo.org',
-                    'private': 'https://api.staging.woo.org',
+                    'pub': 'https://api-pub.staging.woox.io',
+                    'public': 'https://api.staging.woox.io',
+                    'private': 'https://api.staging.woox.io',
                 },
-                'www': 'https://woo.org/',
+                'www': 'https://woox.io/',
                 'doc': [
-                    'https://docs.woo.org/',
+                    'https://docs.woox.io/',
                 ],
                 'fees': [
-                    'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
+                    'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
+                    'url': 'https://woox.io/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -357,7 +357,7 @@ class woo(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://docs.woo.org/#get-system-maintenance-status-public
+        https://docs.woox.io/#get-system-maintenance-status-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
@@ -393,7 +393,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.woo.org/#get-system-maintenance-status-public
+        https://docs.woox.io/#get-system-maintenance-status-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -415,7 +415,7 @@ class woo(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for woo
 
-        https://docs.woo.org/#exchange-information
+        https://docs.woox.io/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -530,7 +530,7 @@ class woo(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.woo.org/#market-trades-public
+        https://docs.woox.io/#market-trades-public
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -657,7 +657,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://docs.woo.org/#get-account-information-new
+        https://docs.woox.io/#get-account-information-new
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -712,7 +712,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://docs.woo.org/#available-token-public
+        https://docs.woox.io/#available-token-public
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -846,7 +846,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol and cost
 
-        https://docs.woo.org/#send-order
+        https://docs.woox.io/#send-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -863,7 +863,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a market sell order by providing the symbol and cost
 
-        https://docs.woo.org/#send-order
+        https://docs.woox.io/#send-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -880,7 +880,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
 
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -904,7 +904,7 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
 
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -928,8 +928,8 @@ class woo(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.woo.org/#send-order
-        https://docs.woo.org/#send-algo-order
+        https://docs.woox.io/#send-order
+        https://docs.woox.io/#send-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1112,10 +1112,10 @@ class woo(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.woo.org/#edit-order
-        https://docs.woo.org/#edit-order-by-client_order_id
-        https://docs.woo.org/#edit-algo-order
-        https://docs.woo.org/#edit-algo-order-by-client_order_id
+        https://docs.woox.io/#edit-order
+        https://docs.woox.io/#edit-order-by-client_order_id
+        https://docs.woox.io/#edit-algo-order
+        https://docs.woox.io/#edit-algo-order-by-client_order_id
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -1195,9 +1195,9 @@ class woo(Exchange, ImplicitAPI):
     def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#cancel-algo-order
-        https://docs.woo.org/#cancel-order
-        https://docs.woo.org/#cancel-order-by-client_order_id
+        https://docs.woox.io/#cancel-algo-order
+        https://docs.woox.io/#cancel-order
+        https://docs.woox.io/#cancel-order-by-client_order_id
 
         cancels an open order
         :param str id: order id
@@ -1244,9 +1244,9 @@ class woo(Exchange, ImplicitAPI):
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#cancel-all-pending-orders
-        https://docs.woo.org/#cancel-orders
-        https://docs.woo.org/#cancel-all-pending-algo-orders
+        https://docs.woox.io/#cancel-all-pending-orders
+        https://docs.woox.io/#cancel-orders
+        https://docs.woox.io/#cancel-all-pending-algo-orders
 
         cancel all open orders in a market
         :param str symbol: unified market symbol
@@ -1280,7 +1280,7 @@ class woo(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.woo.org/#cancel-all-after
+        https://docs.woox.io/#cancel-all-after
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1307,8 +1307,8 @@ class woo(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
 
-        https://docs.woo.org/#get-algo-order
-        https://docs.woo.org/#get-order
+        https://docs.woox.io/#get-algo-order
+        https://docs.woox.io/#get-order
 
         fetches information on an order made by the user
         :param str id: the order id
@@ -1375,8 +1375,8 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1459,8 +1459,8 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1481,8 +1481,8 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://docs.woo.org/#get-orders
-        https://docs.woo.org/#get-algo-orders
+        https://docs.woox.io/#get-orders
+        https://docs.woox.io/#get-algo-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1636,7 +1636,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.woo.org/#orderbook-snapshot-public
+        https://docs.woox.io/#orderbook-snapshot-public
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1674,8 +1674,8 @@ class woo(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-        https://docs.woo.org/#kline-public
-        https://docs.woo.org/#kline-historical-data-public
+        https://docs.woox.io/#kline-public
+        https://docs.woox.io/#kline-historical-data-public
 
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1766,7 +1766,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://docs.woo.org/#get-trades
+        https://docs.woox.io/#get-trades
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1808,7 +1808,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.woo.org/#get-trades
+        https://docs.woox.io/#get-trades
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1864,7 +1864,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all the accounts associated with a profile
 
-        https://docs.woo.org/#get-assets-of-subaccounts
+        https://docs.woox.io/#get-assets-of-subaccounts
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
@@ -1910,7 +1910,7 @@ class woo(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.woo.org/#get-current-holding-get-balance-new
+        https://docs.woox.io/#get-current-holding-get-balance-new
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1961,7 +1961,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://docs.woo.org/#get-token-deposit-address
+        https://docs.woox.io/#get-token-deposit-address
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2050,7 +2050,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -2113,7 +2113,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2130,7 +2130,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -2147,7 +2147,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch history of deposits and withdrawals
 
-        https://docs.woo.org/#get-asset-history
+        https://docs.woox.io/#get-asset-history
 
         :param str [code]: unified currency code for the currency of the deposit/withdrawals, default is None
         :param int [since]: timestamp in ms of the earliest deposit/withdrawal, default is None
@@ -2221,7 +2221,7 @@ class woo(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://docs.woo.org/#get-transfer-history
+        https://docs.woox.io/#get-transfer-history
 
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -2258,7 +2258,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch a history of internal transfers made on an account
 
-        https://docs.woo.org/#get-transfer-history
+        https://docs.woox.io/#get-transfer-history
 
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
@@ -2360,7 +2360,7 @@ class woo(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.woo.org/#token-withdraw
+        https://docs.woox.io/#token-withdraw
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -2401,7 +2401,7 @@ class woo(Exchange, ImplicitAPI):
         """
         repay borrowed margin and interest
 
-        https://docs.woo.org/#repay-interest
+        https://docs.woox.io/#repay-interest
 
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
@@ -2562,7 +2562,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the history of funding payments paid and received on self account
 
-        https://docs.woo.org/#get-funding-fee-history
+        https://docs.woox.io/#get-funding-fee-history
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch funding history for
@@ -2744,7 +2744,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://docs.woo.org/#get-funding-rate-history-for-one-market-public
+        https://docs.woox.io/#get-funding-rate-history-for-one-market-public
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -2807,7 +2807,7 @@ class woo(Exchange, ImplicitAPI):
         """
         set hedged to True or False for a market
 
-        https://docs.woo.org/#update-position-mode
+        https://docs.woox.io/#update-position-mode
 
         :param bool hedged: set to True to use HEDGE_MODE, False for ONE_WAY
         :param str symbol: not used by woo setPositionMode
@@ -2836,7 +2836,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
 
-        https://docs.woo.org/#get-account-information-new
+        https://docs.woox.io/#get-account-information-new
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2961,8 +2961,8 @@ class woo(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
 
-        https://docs.woo.org/#update-leverage-setting
-        https://docs.woo.org/#update-futures-leverage-setting
+        https://docs.woox.io/#update-leverage-setting
+        https://docs.woox.io/#update-futures-leverage-setting
 
         :param float leverage: the rate of leverage(1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
         :param str [symbol]: unified market symbol(is mandatory for swap markets)
@@ -2993,7 +2993,7 @@ class woo(Exchange, ImplicitAPI):
         """
         add margin
 
-        https://docs.woo.org/#update-isolated-margin-setting
+        https://docs.woox.io/#update-isolated-margin-setting
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
@@ -3007,7 +3007,7 @@ class woo(Exchange, ImplicitAPI):
         """
         remove margin from a position
 
-        https://docs.woo.org/#update-isolated-margin-setting
+        https://docs.woox.io/#update-isolated-margin-setting
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to remove
@@ -3221,7 +3221,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch a quote for converting from one currency to another
 
-        https://docs.woo.org/#get-quote-rfq
+        https://docs.woox.io/#get-quote-rfq
 
         :param str fromCode: the currency that you want to sell and convert from
         :param str toCode: the currency that you want to buy and convert into
@@ -3263,7 +3263,7 @@ class woo(Exchange, ImplicitAPI):
         """
         convert from one currency to another
 
-        https://docs.woo.org/#send-quote-rft
+        https://docs.woox.io/#send-quote-rft
 
         :param str id: the id of the trade that you want to make
         :param str fromCode: the currency that you want to sell and convert from
@@ -3294,7 +3294,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the data for a conversion trade
 
-        https://docs.woo.org/#get-quote-trade
+        https://docs.woox.io/#get-quote-trade
 
         :param str id: the id of the trade that you want to fetch
         :param str [code]: the unified currency code of the conversion trade
@@ -3335,7 +3335,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetch the users history of conversion trades
 
-        https://docs.woo.org/#get-quote-trades
+        https://docs.woox.io/#get-quote-trades
 
         :param str [code]: the unified currency code
         :param int [since]: the earliest time in ms to fetch conversions for
@@ -3434,7 +3434,7 @@ class woo(Exchange, ImplicitAPI):
         """
         fetches all available currencies that can be converted
 
-        https://docs.woo.org/#get-quote-asset-info
+        https://docs.woox.io/#get-quote-asset-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies

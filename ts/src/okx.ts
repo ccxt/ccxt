@@ -1180,6 +1180,7 @@ export default class okx extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
+                        'marginMode': true,
                         'triggerPrice': true,
                         'triggerPriceType': {
                             'last': true,
@@ -1189,7 +1190,6 @@ export default class okx extends Exchange {
                         'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
-                        'marginMode': true,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': true,
@@ -1217,6 +1217,7 @@ export default class okx extends Exchange {
                         'max': 20,
                     },
                     'fetchMyTrades': {
+                        'marginMode': false,
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
@@ -1227,18 +1228,18 @@ export default class okx extends Exchange {
                         'trailing': true,
                     },
                     'fetchOpenOrders': {
-                        'limit': 100,
                         'marginMode': false,
+                        'limit': 100,
                         'trigger': true,
                         'trailing': true,
                     },
                     'fetchOrders': undefined, // not supported
                     'fetchClosedOrders': {
+                        'marginMode': false,
                         'limit': 100,
                         'daysBackClosed': 90, // 3 months
                         'daysBackCanceled': 1 / 12, // 2 hour
                         'untilDays': undefined,
-                        'marginMode': false,
                         'trigger': true,
                         'trailing': true,
                     },
@@ -1821,7 +1822,7 @@ export default class okx extends Exchange {
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
+                        'fee': this.safeNumber (chain, 'fee'),
                         'precision': this.parseNumber (precision),
                         'limits': {
                             'withdraw': {
@@ -7477,7 +7478,12 @@ export default class okx extends Exchange {
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAssetCurrencies (params);
+        const request = {};
+        if (codes !== undefined) {
+            const ids = this.currencyIds (codes);
+            request['ccy'] = ids.join (',');
+        }
+        const response = await this.privateGetAssetCurrencies (this.extend (request, params));
         //
         //    {
         //        "code": "0",
@@ -7565,7 +7571,7 @@ export default class okx extends Exchange {
                 }
                 const chainSplit = chain.split ('-');
                 const networkId = this.safeValue (chainSplit, 1);
-                const withdrawFee = this.safeNumber (feeInfo, 'minFee');
+                const withdrawFee = this.safeNumber (feeInfo, 'fee');
                 const withdrawResult: Dict = {
                     'fee': withdrawFee,
                     'percentage': (withdrawFee !== undefined) ? false : undefined,

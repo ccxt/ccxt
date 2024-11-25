@@ -39,6 +39,8 @@ class bitbns(Exchange, ImplicitAPI):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchBalance': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,

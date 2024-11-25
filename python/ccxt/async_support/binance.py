@@ -1584,13 +1584,13 @@ class binance(Exchange, ImplicitAPI):
                 'spot': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': True,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1608,6 +1608,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'createOrders': None,
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 1,  # days between start-end
@@ -1618,25 +1619,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': None,
                         'marginMode': True,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 10000,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -1647,6 +1648,7 @@ class binance(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'mark': True,
@@ -1656,7 +1658,6 @@ class binance(Exchange, ImplicitAPI):
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,  # not supported
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1677,6 +1678,7 @@ class binance(Exchange, ImplicitAPI):
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'daysBack': None,
                         'limit': 1000,
                         'untilDays': 7,
@@ -1687,25 +1689,25 @@ class binance(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': 500,
                         'marginMode': True,
+                        'limit': 500,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': True,
                         'limit': 1000,
                         'daysBackClosed': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'marginMode': True,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -2132,7 +2134,8 @@ class binance(Exchange, ImplicitAPI):
                         '-4140': BadRequest,  # Invalid symbol status for opening position
                         '-4141': OperationRejected,  # Symbol is closed
                         '-4144': BadSymbol,  # Invalid pair
-                        '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 20(unless you choose reduce only)."}
+                        '-4164': InvalidOrder,  # {"code":-4164,"msg":"Order's notional must be no smaller than 20(unless you choose reduce only)."},
+                        '-4136': InvalidOrder,  # {"code":-4136,"msg":"Target strategy invalid for orderType TRAILING_STOP_MARKET,closePosition True"}
                         '-4165': BadRequest,  # Invalid time interval
                         '-4167': BadRequest,  # Unable to adjust to Multi-Assets mode with symbols of USDⓈ-M Futures under isolated-margin mode.
                         '-4168': BadRequest,  # Unable to adjust to isolated-margin mode under the Multi-Assets mode.
@@ -6111,6 +6114,7 @@ class binance(Exchange, ImplicitAPI):
         typeRequest = 'strategyType' if isPortfolioMarginConditional else 'type'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
+        closePosition = self.safe_bool(params, 'closePosition', False)
         timeInForceIsRequired = False
         priceIsRequired = False
         stopPriceIsRequired = False
@@ -6176,12 +6180,12 @@ class binance(Exchange, ImplicitAPI):
             stopPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            closePosition = self.safe_bool(params, 'closePosition')
-            if closePosition is None:
+            if not closePosition:
                 quantityIsRequired = True
             stopPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
-            quantityIsRequired = True
+            if not closePosition:
+                quantityIsRequired = True
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
         if quantityIsRequired:
@@ -11130,11 +11134,11 @@ class binance(Exchange, ImplicitAPI):
     def get_exceptions_by_url(self, url: str, exactOrBroad: str):
         marketType = None
         hostname = self.hostname if (self.hostname is not None) else 'binance.com'
-        if url.startswith('https://api.' + hostname + '/'):
+        if url.startswith('https://api.' + hostname + '/') or url.startswith('https://testnet.binance.vision'):
             marketType = 'spot'
-        elif url.startswith('https://dapi.' + hostname + '/'):
+        elif url.startswith('https://dapi.' + hostname + '/') or url.startswith('https://testnet.binancefuture.com/dapi'):
             marketType = 'inverse'
-        elif url.startswith('https://fapi.' + hostname + '/'):
+        elif url.startswith('https://fapi.' + hostname + '/') or url.startswith('https://testnet.binancefuture.com/fapi'):
             marketType = 'linear'
         elif url.startswith('https://eapi.' + hostname + '/'):
             marketType = 'option'

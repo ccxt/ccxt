@@ -1973,6 +1973,12 @@ class Exchange {
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
+    /**
+     * @method
+     * @name Exchange#setSandboxMode
+     * @description set the sandbox mode for the exchange
+     * @param {boolean} enabled true to enable sandbox mode, false to disable it
+     */
     setSandboxMode(enabled) {
         if (enabled) {
             if ('test' in this.urls) {
@@ -3510,6 +3516,16 @@ class Exchange {
         }
         return result;
     }
+    currencyIds(codes = undefined) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push(this.currencyId(codes[i]));
+        }
+        return result;
+    }
     marketsForSymbols(symbols = undefined) {
         if (symbols === undefined) {
             return symbols;
@@ -3935,6 +3951,16 @@ class Exchange {
     }
     setHeaders(headers) {
         return headers;
+    }
+    currencyId(code) {
+        let currency = this.safeDict(this.currencies, code);
+        if (currency === undefined) {
+            currency = this.safeCurrency(code);
+        }
+        if (currency !== undefined) {
+            return currency['id'];
+        }
+        return code;
     }
     marketId(symbol) {
         const market = this.market(symbol);

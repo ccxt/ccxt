@@ -4040,6 +4040,17 @@ export default class Exchange {
         return result;
     }
 
+    currencyIds (codes: Strings = undefined) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push (this.currencyId (codes[i]));
+        }
+        return result;
+    }
+
     marketsForSymbols (symbols: Strings = undefined) {
         if (symbols === undefined) {
             return symbols;
@@ -4483,6 +4494,17 @@ export default class Exchange {
 
     setHeaders (headers) {
         return headers;
+    }
+
+    currencyId (code: string): string {
+        let currency = this.safeDict (this.currencies, code);
+        if (currency === undefined) {
+            currency = this.safeCurrency (code);
+        }
+        if (currency !== undefined) {
+            return currency['id'];
+        }
+        return code;
     }
 
     marketId (symbol: string): string {

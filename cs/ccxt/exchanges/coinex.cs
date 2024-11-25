@@ -38,6 +38,7 @@ public partial class coinex : Exchange
                 { "createOrders", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLossOrder", true },
+                { "createStopOrder", true },
                 { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
                 { "editOrder", true },

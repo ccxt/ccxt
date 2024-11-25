@@ -1582,13 +1582,13 @@ public partial class binance : Exchange
                 { "spot", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
-                        { "marginMode", true },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
                             { "IOC", true },
@@ -1605,6 +1605,7 @@ public partial class binance : Exchange
                     } },
                     { "createOrders", null },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 1 },
@@ -1615,25 +1616,25 @@ public partial class binance : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", null },
                         { "marginMode", true },
+                        { "limit", null },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "limit", 1000 },
                         { "daysBack", null },
                         { "untilDays", 10000 },
-                        { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "limit", 1000 },
                         { "daysBackClosed", null },
                         { "daysBackCanceled", null },
                         { "untilDays", 10000 },
-                        { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                     } },
@@ -1644,6 +1645,7 @@ public partial class binance : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "mark", true },
@@ -1653,7 +1655,6 @@ public partial class binance : Exchange
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
-                        { "marginMode", false },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
                             { "IOC", true },
@@ -1672,6 +1673,7 @@ public partial class binance : Exchange
                         { "max", 5 },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "daysBack", null },
                         { "limit", 1000 },
                         { "untilDays", 7 },
@@ -1682,25 +1684,25 @@ public partial class binance : Exchange
                         { "trailing", false },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", 500 },
                         { "marginMode", true },
+                        { "limit", 500 },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "limit", 1000 },
                         { "daysBack", 90 },
                         { "untilDays", 7 },
-                        { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                     } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "limit", 1000 },
                         { "daysBackClosed", 90 },
                         { "daysBackCanceled", 3 },
                         { "untilDays", 7 },
-                        { "marginMode", true },
                         { "trigger", false },
                         { "trailing", false },
                     } },
@@ -2086,6 +2088,7 @@ public partial class binance : Exchange
                         { "-4141", typeof(OperationRejected) },
                         { "-4144", typeof(BadSymbol) },
                         { "-4164", typeof(InvalidOrder) },
+                        { "-4136", typeof(InvalidOrder) },
                         { "-4165", typeof(BadRequest) },
                         { "-4167", typeof(BadRequest) },
                         { "-4168", typeof(BadRequest) },
@@ -6584,6 +6587,7 @@ public partial class binance : Exchange
         object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        object closePosition = this.safeBool(parameters, "closePosition", false);
         object timeInForceIsRequired = false;
         object priceIsRequired = false;
         object stopPriceIsRequired = false;
@@ -6668,15 +6672,17 @@ public partial class binance : Exchange
             priceIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_MARKET"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
-            object closePosition = this.safeBool(parameters, "closePosition");
-            if (isTrue(isEqual(closePosition, null)))
+            if (!isTrue(closePosition))
             {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "TRAILING_STOP_MARKET")))
         {
-            quantityIsRequired = true;
+            if (!isTrue(closePosition))
+            {
+                quantityIsRequired = true;
+            }
             if (isTrue(isEqual(trailingPercent, null)))
             {
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a trailingPercent param for a "), type), " order")) ;
@@ -12405,13 +12411,13 @@ public partial class binance : Exchange
     {
         object marketType = null;
         object hostname = ((bool) isTrue((!isEqual(this.hostname, null)))) ? this.hostname : "binance.com";
-        if (isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))))
+        if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binance.vision")))))
         {
             marketType = "spot";
-        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://dapi.", hostname), "/")))))
+        } else if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://dapi.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binancefuture.com/dapi")))))
         {
             marketType = "inverse";
-        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://fapi.", hostname), "/")))))
+        } else if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://fapi.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binancefuture.com/fapi")))))
         {
             marketType = "linear";
         } else if (isTrue(((string)url).StartsWith(((string)add(add("https://eapi.", hostname), "/")))))

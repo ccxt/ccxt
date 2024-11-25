@@ -508,6 +508,7 @@ class bitrue extends Exchange {
                     '-4051' => '\\ccxt\\InsufficientFunds', // array("code":-4051,"msg":"Isolated balance insufficient.")
                 ),
                 'broad' => array(
+                    'Insufficient account balance' => '\\ccxt\\InsufficientFunds', // array("code":-2010,"msg":"Insufficient account balance.","data":null)
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
                     'MAX_POSITION' => '\\ccxt\\InvalidOrder', // array("code":-2010,"msg":"Filter failure => MAX_POSITION")
                 ),

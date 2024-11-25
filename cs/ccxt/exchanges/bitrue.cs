@@ -464,6 +464,7 @@ public partial class bitrue : Exchange
                     { "-4051", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Insufficient account balance", typeof(InsufficientFunds) },
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(InvalidOrder) },
                 } },

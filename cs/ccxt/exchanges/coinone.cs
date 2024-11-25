@@ -161,7 +161,7 @@ public partial class coinone : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object currencies = this.safeValue(response, "currencies", new List<object>() {});
+        object currencies = this.safeList(response, "currencies", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object entry = getValue(currencies, i);
@@ -246,7 +246,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object tickers = this.safeValue(response, "tickers", new List<object>() {});
+        object tickers = this.safeList(response, "tickers", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -517,7 +517,7 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "tickers", new List<object>() {});
+        object data = this.safeList(response, "tickers", new List<object>() {});
         object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
@@ -552,8 +552,8 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(ticker, "timestamp");
         object last = this.safeString(ticker, "last");
-        object asks = this.safeValue(ticker, "best_asks");
-        object bids = this.safeValue(ticker, "best_bids");
+        object asks = this.safeList(ticker, "best_asks", new List<object>() {});
+        object bids = this.safeList(ticker, "best_bids", new List<object>() {});
         object baseId = this.safeString(ticker, "target_currency");
         object quoteId = this.safeString(ticker, "quote_currency");
         object bs = this.safeCurrencyCode(baseId);
@@ -609,7 +609,7 @@ public partial class coinone : Exchange
         //
         object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        object isSellerMaker = this.safeValue(trade, "is_seller_maker");
+        object isSellerMaker = this.safeBool(trade, "is_seller_maker");
         object side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
@@ -1082,7 +1082,7 @@ public partial class coinone : Exchange
         //         }
         //     }
         //
-        object walletAddress = this.safeValue(response, "walletAddress", new Dictionary<string, object>() {});
+        object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
         object keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

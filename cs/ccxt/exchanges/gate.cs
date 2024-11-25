@@ -817,13 +817,13 @@ public partial class gate : Exchange
 
     /**
      * @method
-     * @name gate#isUnifiedEnabled
+     * @name gate#loadUnifiedStatus
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @description returns unifiedAccount so the user can check if the unified account is enabled
      * @see https://www.gate.io/docs/developers/apiv4/#get-account-detail
      * @returns {boolean} true or false if the enabled unified account is enabled or not and sets the unifiedAccount option if it is undefined
      */
-    public async virtual Task loadUnifiedStatus(object parameters = null)
+    public async virtual Task<object> loadUnifiedStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
@@ -853,6 +853,7 @@ public partial class gate : Exchange
                 ((IDictionary<string,object>)this.options)["unifiedAccount"] = false;
             }
         }
+        return getValue(this.options, "unifiedAccount");
     }
 
     public async virtual Task<object> upgradeUnifiedTradeAccount(object parameters = null)

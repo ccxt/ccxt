@@ -1100,6 +1100,7 @@ public partial class okx : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", true },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -1109,7 +1110,6 @@ public partial class okx : Exchange
                         { "triggerDirection", false },
                         { "stopLossPrice", true },
                         { "takeProfitPrice", true },
-                        { "marginMode", true },
                         { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
                             { "triggerPriceType", new Dictionary<string, object>() {
                                 { "last", true },
@@ -1136,6 +1136,7 @@ public partial class okx : Exchange
                         { "max", 20 },
                     } },
                     { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "daysBack", 90 },
                         { "limit", 100 },
                         { "untilDays", 10000 },
@@ -1146,18 +1147,18 @@ public partial class okx : Exchange
                         { "trailing", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
-                        { "limit", 100 },
                         { "marginMode", false },
+                        { "limit", 100 },
                         { "trigger", true },
                         { "trailing", true },
                     } },
                     { "fetchOrders", null },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "limit", 100 },
                         { "daysBackClosed", 90 },
                         { "daysBackCanceled", divide(1, 12) },
                         { "untilDays", null },
-                        { "marginMode", false },
                         { "trigger", true },
                         { "trailing", true },
                     } },
@@ -1783,7 +1784,7 @@ public partial class okx : Exchange
                         { "active", active },
                         { "deposit", canDeposit },
                         { "withdraw", canWithdraw },
-                        { "fee", this.safeNumber(chain, "minFee") },
+                        { "fee", this.safeNumber(chain, "fee") },
                         { "precision", this.parseNumber(precision) },
                         { "limits", new Dictionary<string, object>() {
                             { "withdraw", new Dictionary<string, object>() {
@@ -6750,7 +6751,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -6785,17 +6786,14 @@ public partial class okx : Exchange
             { "mgnMode", marginMode },
             { "instId", getValue(market, "id") },
         };
-        object posSide = this.safeString(parameters, "posSide");
+        object posSide = this.safeString(parameters, "posSide", "net");
         if (isTrue(isEqual(marginMode, "isolated")))
         {
-            if (isTrue(isEqual(posSide, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a posSide argument for isolated margin")) ;
-            }
             if (isTrue(isTrue(isTrue(!isEqual(posSide, "long")) && isTrue(!isEqual(posSide, "short"))) && isTrue(!isEqual(posSide, "net"))))
             {
                 throw new BadRequest ((string)add(this.id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
             }
+            ((IDictionary<string,object>)request)["posSide"] = posSide;
         }
         object response = await this.privatePostAccountSetLeverage(this.extend(request, parameters));
         //
@@ -7849,7 +7847,13 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAssetCurrencies(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(codes, null)))
+        {
+            object ids = this.currencyIds(codes);
+            ((IDictionary<string,object>)request)["ccy"] = String.Join(",", ((IList<object>)ids).ToArray());
+        }
+        object response = await this.privateGetAssetCurrencies(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",
@@ -7942,7 +7946,7 @@ public partial class okx : Exchange
                 }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
-                object withdrawFee = this.safeNumber(feeInfo, "minFee");
+                object withdrawFee = this.safeNumber(feeInfo, "fee");
                 object withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
                     { "percentage", ((bool) isTrue((!isEqual(withdrawFee, null)))) ? false : null },

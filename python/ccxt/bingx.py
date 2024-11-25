@@ -58,6 +58,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createStopLossOrder': True,
+                'createStopOrder': True,
                 'createTakeProfitOrder': True,
                 'createTrailingAmountOrder': True,
                 'createTrailingPercentOrder': True,
@@ -211,6 +212,8 @@ class bingx(Exchange, ImplicitAPI):
                             'get': {
                                 'ticker/price': 1,
                                 'market/historicalTrades': 1,
+                                'market/markPriceKlines': 1,
+                                'trade/multiAssetsRules': 1,
                             },
                         },
                         'private': {
@@ -219,12 +222,24 @@ class bingx(Exchange, ImplicitAPI):
                                 'market/markPriceKlines': 1,
                                 'trade/batchCancelReplace': 5,
                                 'trade/fullOrder': 2,
+                                'maintMarginRatio': 2,
+                                'trade/positionHistory': 2,
                                 'positionMargin/history': 2,
+                                'twap/openOrders': 5,
+                                'twap/historyOrders': 5,
+                                'twap/orderDetail': 5,
+                                'trade/assetMode': 5,
+                                'user/marginAssets': 5,
                             },
                             'post': {
                                 'trade/cancelReplace': 2,
                                 'positionSide/dual': 5,
+                                'trade/batchCancelReplace': 5,
                                 'trade/closePosition': 2,
+                                'trade/getVst': 5,
+                                'twap/order': 5,
+                                'twap/cancelOrder': 5,
+                                'trade/assetMode': 5,
                             },
                         },
                     },
@@ -257,6 +272,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'trade/forceOrders': 1,
                                 'trade/allOrders': 2,
                                 'trade/allFillOrders': 2,
+                                'trade/fillHistory': 2,
                                 'user/income/export': 2,
                                 'user/commissionRate': 2,
                                 'quote/bookTicker': 1,
@@ -314,12 +330,13 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/order': 2,
                                 'trade/leverage': 2,
+                                'trade/allOpenOrders': 2,
                                 'trade/closeAllPositions': 2,
                                 'trade/marginType': 2,
                                 'trade/positionMargin': 2,
                             },
                             'delete': {
-                                'trade/allOpenOrders': 2,
+                                'trade/allOpenOrders': 2,  # post method in doc
                                 'trade/cancelOrder': 2,
                             },
                         },
@@ -516,6 +533,7 @@ class bingx(Exchange, ImplicitAPI):
                 'defaultForLinear': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -533,7 +551,6 @@ class bingx(Exchange, ImplicitAPI):
                             },
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -548,6 +565,7 @@ class bingx(Exchange, ImplicitAPI):
                         'max': 5,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 512,  # 512 days for 'allFillOrders', 1000 days for 'fillOrders'
                         'daysBack': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
                         'untilDays': 30,  # 30 for 'allFillOrders', 7 for 'fillHistory'
@@ -558,25 +576,25 @@ class bingx(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': None,
                         'marginMode': False,
+                        'limit': None,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBack': 20000,  # since epoch
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },
@@ -596,11 +614,11 @@ class bingx(Exchange, ImplicitAPI):
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 1000,
                         'daysBackClosed': None,
                         'daysBackCanceled': None,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': False,
                         'trailing': False,
                     },

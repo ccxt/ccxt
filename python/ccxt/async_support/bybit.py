@@ -1077,6 +1077,7 @@ class bybit(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -1094,7 +1095,6 @@ class bybit(Exchange, ImplicitAPI):
                             },
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1114,6 +1114,7 @@ class bybit(Exchange, ImplicitAPI):
                         'max': 10,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'limit': 100,
                         'daysBack': 365 * 2,  # 2 years
                         'untilDays': 7,  # days between start-end
@@ -1124,18 +1125,18 @@ class bybit(Exchange, ImplicitAPI):
                         'trailing': False,
                     },
                     'fetchOpenOrders': {
-                        'limit': 50,
                         'marginMode': False,
+                        'limit': 50,
                         'trigger': True,
                         'trailing': False,
                     },
                     'fetchOrders': None,
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 50,
                         'daysBackClosed': 365 * 2,  # 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
-                        'marginMode': False,
                         'trigger': True,
                         'trailing': False,
                     },
@@ -1146,6 +1147,7 @@ class bybit(Exchange, ImplicitAPI):
                 'spot': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
@@ -1155,7 +1157,6 @@ class bybit(Exchange, ImplicitAPI):
                             'triggerPriceType': None,
                             'limitPrice': True,
                         },
-                        'marginMode': False,
                         'timeInForce': {
                             'GTC': True,
                             'IOC': True,
@@ -1229,7 +1230,7 @@ class bybit(Exchange, ImplicitAPI):
 
     def add_pagination_cursor_to_result(self, response):
         result = self.safe_dict(response, 'result', {})
-        data = self.safe_value_n(result, ['list', 'rows', 'data', 'dataList'], [])
+        data = self.safe_list_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
         dataLength = len(data)
         if (paginationCursor is not None) and (dataLength > 0):
@@ -1240,12 +1241,12 @@ class bybit(Exchange, ImplicitAPI):
 
     async def is_unified_enabled(self, params={}):
         """
-        :param dict [params]: extra parameters specific to the exchange API endpoint
 
         https://bybit-exchange.github.io/docs/v5/user/apikey-info#http-request
         https://bybit-exchange.github.io/docs/v5/account/account-info
 
         returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if unified account is enabled
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: [enableUnifiedMargin, enableUnifiedAccount]
         """
         # The API key of user id must own one of permissions will be allowed to call following API endpoints.
@@ -2278,6 +2279,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str[] symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: *contract only* 'linear', 'inverse'
+        :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
@@ -2319,10 +2321,11 @@ class bybit(Exchange, ImplicitAPI):
         # only if passedSubType is None, then use spot
         if type == 'spot' and passedSubType is None:
             request['category'] = 'spot'
-        elif type == 'swap' or type == 'future' or subType is not None:
-            request['category'] = subType
         elif type == 'option':
             request['category'] = 'option'
+            request['baseCoin'] = self.safe_string(params, 'baseCoin', 'BTC')
+        elif type == 'swap' or type == 'future' or subType is not None:
+            request['category'] = subType
         response = await self.publicGetV5MarketTickers(self.extend(request, params))
         #
         #     {
@@ -3109,7 +3112,7 @@ class bybit(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         responseResult = self.safe_dict(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'balance'])
+        currencyList = self.safe_list_n(responseResult, ['loanAccountList', 'list', 'balance'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -3879,7 +3882,7 @@ class bybit(Exchange, ImplicitAPI):
             side = self.safe_string(rawOrder, 'side')
             amount = self.safe_value(rawOrder, 'amount')
             price = self.safe_value(rawOrder, 'price')
-            orderParams = self.safe_value(rawOrder, 'params', {})
+            orderParams = self.safe_dict(rawOrder, 'params', {})
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams, isUta)
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)

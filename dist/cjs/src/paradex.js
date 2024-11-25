@@ -48,6 +48,8 @@ class paradex extends paradex$1 {
                 'createOrder': true,
                 'createOrders': false,
                 'createReduceOnlyOrder': false,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
                 'fetchBalance': true,

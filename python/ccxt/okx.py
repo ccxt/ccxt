@@ -1204,6 +1204,7 @@ class okx(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': True,
                     'createOrder': {
+                        'marginMode': True,
                         'triggerPrice': True,
                         'triggerPriceType': {
                             'last': True,
@@ -1213,7 +1214,6 @@ class okx(Exchange, ImplicitAPI):
                         'triggerDirection': False,
                         'stopLossPrice': True,
                         'takeProfitPrice': True,
-                        'marginMode': True,
                         'attachedStopLossTakeProfit': {
                             'triggerPriceType': {
                                 'last': True,
@@ -1241,6 +1241,7 @@ class okx(Exchange, ImplicitAPI):
                         'max': 20,
                     },
                     'fetchMyTrades': {
+                        'marginMode': False,
                         'daysBack': 90,
                         'limit': 100,
                         'untilDays': 10000,
@@ -1251,18 +1252,18 @@ class okx(Exchange, ImplicitAPI):
                         'trailing': True,
                     },
                     'fetchOpenOrders': {
-                        'limit': 100,
                         'marginMode': False,
+                        'limit': 100,
                         'trigger': True,
                         'trailing': True,
                     },
                     'fetchOrders': None,  # not supported
                     'fetchClosedOrders': {
+                        'marginMode': False,
                         'limit': 100,
                         'daysBackClosed': 90,  # 3 months
                         'daysBackCanceled': 1 / 12,  # 2 hour
                         'untilDays': None,
-                        'marginMode': False,
                         'trigger': True,
                         'trailing': True,
                     },
@@ -1817,7 +1818,7 @@ class okx(Exchange, ImplicitAPI):
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
-                        'fee': self.safe_number(chain, 'minFee'),
+                        'fee': self.safe_number(chain, 'fee'),
                         'precision': self.parse_number(precision),
                         'limits': {
                             'withdraw': {
@@ -6175,7 +6176,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :param str [params.posSide]: 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+        :param str [params.posSide]: 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
         :returns dict: response from the exchange
         """
         if symbol is None:
@@ -6197,12 +6198,11 @@ class okx(Exchange, ImplicitAPI):
             'mgnMode': marginMode,
             'instId': market['id'],
         }
-        posSide = self.safe_string(params, 'posSide')
+        posSide = self.safe_string(params, 'posSide', 'net')
         if marginMode == 'isolated':
-            if posSide is None:
-                raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
             if posSide != 'long' and posSide != 'short' and posSide != 'net':
                 raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
+            request['posSide'] = posSide
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
@@ -7105,7 +7105,11 @@ class okx(Exchange, ImplicitAPI):
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
         """
         self.load_markets()
-        response = self.privateGetAssetCurrencies(params)
+        request = {}
+        if codes is not None:
+            ids = self.currency_ids(codes)
+            request['ccy'] = ','.join(ids)
+        response = self.privateGetAssetCurrencies(self.extend(request, params))
         #
         #    {
         #        "code": "0",
@@ -7190,7 +7194,7 @@ class okx(Exchange, ImplicitAPI):
                     continue
                 chainSplit = chain.split('-')
                 networkId = self.safe_value(chainSplit, 1)
-                withdrawFee = self.safe_number(feeInfo, 'minFee')
+                withdrawFee = self.safe_number(feeInfo, 'fee')
                 withdrawResult: dict = {
                     'fee': withdrawFee,
                     'percentage': False if (withdrawFee is not None) else None,

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/onetrading.js';
-import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -308,6 +308,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.onetrading.com/#time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -325,6 +326,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://docs.onetrading.com/#currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -366,6 +368,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchMarkets
      * @description retrieves data on all markets for onetrading
+     * @see https://docs.onetrading.com/#instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -448,6 +451,8 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchTradingFees
      * @description fetch the trading fees for multiple markets
+     * @see https://docs.onetrading.com/#fee-groups
+     * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
@@ -458,7 +463,15 @@ export default class onetrading extends Exchange {
             const options = this.safeValue(this.options, 'fetchTradingFees', {});
             method = this.safeString(options, 'method', 'fetchPrivateTradingFees');
         }
-        return await this[method](params);
+        if (method === 'fetchPrivateTradingFees') {
+            return await this.fetchPrivateTradingFees(params);
+        }
+        else if (method === 'fetchPublicTradingFees') {
+            return await this.fetchPublicTradingFees(params);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
+        }
     }
     async fetchPublicTradingFees(params = {}) {
         await this.loadMarkets();

@@ -557,7 +557,7 @@ class coinsph extends Exchange {
             //         )
             //     }
             //
-            $markets = $this->safe_value($response, 'symbols');
+            $markets = $this->safe_list($response, 'symbols', array());
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
@@ -566,7 +566,7 @@ class coinsph extends Exchange {
                 $quoteId = $this->safe_string($market, 'quoteAsset');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $limits = $this->index_by($this->safe_value($market, 'filters'), 'filterType');
+                $limits = $this->index_by($this->safe_list($market, 'filters', array()), 'filterType');
                 $amountLimits = $this->safe_value($limits, 'LOT_SIZE', array());
                 $priceLimits = $this->safe_value($limits, 'PRICE_FILTER', array());
                 $costLimits = $this->safe_value($limits, 'NOTIONAL', array());
@@ -652,7 +652,7 @@ class coinsph extends Exchange {
                 $request['symbols'] = $ids;
             }
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-            $options = $this->safe_value($this->options, 'fetchTickers', array());
+            $options = $this->safe_dict($this->options, 'fetchTickers', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $tickers = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -685,7 +685,7 @@ class coinsph extends Exchange {
                 'symbol' => $market['id'],
             );
             $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
-            $options = $this->safe_value($this->options, 'fetchTicker', array());
+            $options = $this->safe_dict($this->options, 'fetchTicker', array());
             $method = $this->safe_string($options, 'method', $defaultMethod);
             $ticker = null;
             if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
@@ -1044,7 +1044,7 @@ class coinsph extends Exchange {
                 'currency' => $this->safe_currency_code($feeCurrencyId),
             );
         }
-        $isBuyer = $this->safe_value_2($trade, 'isBuyer', 'isBuyerMaker', null);
+        $isBuyer = $this->safe_bool_2($trade, 'isBuyer', 'isBuyerMaker', null);
         $side = null;
         if ($isBuyer !== null) {
             $side = ($isBuyer === true) ? 'buy' : 'sell';
@@ -1113,7 +1113,7 @@ class coinsph extends Exchange {
     }
 
     public function parse_balance($response): array {
-        $balances = $this->safe_value($response, 'balances', array());
+        $balances = $this->safe_list($response, 'balances', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1578,7 +1578,7 @@ class coinsph extends Exchange {
             //       }
             //     )
             //
-            $tradingFee = $this->safe_value($response, 0, array());
+            $tradingFee = $this->safe_dict($response, 0, array());
             return $this->parse_trading_fee($tradingFee, $market);
         }) ();
     }

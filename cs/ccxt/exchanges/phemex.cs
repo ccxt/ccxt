@@ -2744,6 +2744,35 @@ public partial class phemex : Exchange
             {
                 object triggerType = this.safeString(parameters, "triggerType", "ByMarkPrice");
                 ((IDictionary<string,object>)request)["triggerType"] = triggerType;
+                // set direction & exchange specific order type
+                object triggerDirection = null;
+                var triggerDirectionparametersVariable = this.handleParamString(parameters, "triggerDirection");
+                triggerDirection = ((IList<object>)triggerDirectionparametersVariable)[0];
+                parameters = ((IList<object>)triggerDirectionparametersVariable)[1];
+                if (isTrue(isEqual(triggerDirection, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value")) ;
+                }
+                // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
+                if (isTrue(isEqual(triggerDirection, "up")))
+                {
+                    if (isTrue(isEqual(side, "sell")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "MarketIfTouched" : "LimitIfTouched";
+                    } else if (isTrue(isEqual(side, "buy")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "Stop" : "StopLimit";
+                    }
+                } else if (isTrue(isEqual(triggerDirection, "down")))
+                {
+                    if (isTrue(isEqual(side, "sell")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "Stop" : "StopLimit";
+                    } else if (isTrue(isEqual(side, "buy")))
+                    {
+                        ((IDictionary<string,object>)request)["ordType"] = ((bool) isTrue((isEqual(type, "Market")))) ? "MarketIfTouched" : "LimitIfTouched";
+                    }
+                }
             }
             if (isTrue(isTrue(stopLossDefined) || isTrue(takeProfitDefined)))
             {
