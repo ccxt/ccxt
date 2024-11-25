@@ -62,7 +62,7 @@ interface Exchange {
     v1PrivatePostApiUsersApikeys (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostApiUsersProfileWallets (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostApiTransfersWithdrawal (params?: {}): Promise<implicitReturnType>;
-    v1PrivatePostApiTransfersBridgeWithdrawa (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostApiTransfersBridgeWithdrawal (params?: {}): Promise<implicitReturnType>;
     v1PrivatePutApiPositionUpdatePositionMargin (params?: {}): Promise<implicitReturnType>;
     v1PrivatePutApiUsersSocketListenKeysListenKey (params?: {}): Promise<implicitReturnType>;
     v1PrivatePutApiUsersApikeysAccessKeyStatus (params?: {}): Promise<implicitReturnType>;

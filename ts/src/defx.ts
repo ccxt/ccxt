@@ -2,14 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/defx.js';
-// import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, ExchangeError, InvalidOrder, ArgumentsRequired, NotSupported, OnMaintenance } from './base/errors.js';
-// import { Precise } from './base/Precise.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
 import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder } from './base/errors.js';
 import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position } from './base/types.js';
-import { Precise } from '../ccxt.js';
 
 // ---------------------------------------------------------------------------
 
@@ -253,29 +250,6 @@ export default class defx extends Exchange {
             },
             'options': {
                 'sandboxMode': false,
-                'createMarketBuyOrderRequiresPrice': true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens': {
-                    'HT': 'ERC20',
-                    'OMG': 'ERC20',
-                    'UATOM': 'ATOM',
-                    'ZRX': 'ZRX',
-                },
-                'networks': {
-                    'TRX': 'TRON',
-                    'TRC20': 'TRON',
-                    'ERC20': 'ETH',
-                    'BEP20': 'BSC',
-                },
-                // override defaultNetworkCodePriorities for a specific currency
-                'defaultNetworkCodeForCurrencies': {
-                    // 'USDT': 'TRC20',
-                    // 'BTC': 'BTC',
-                },
-                'transfer': {
-                    'fillResponseFromRequest': true,
-                },
-                'brokerId': 'bc830de7-50f3-460b-9ee0-f430f83f9dad',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -1008,10 +982,12 @@ export default class defx extends Exchange {
         if (limit === undefined) {
             limit = 10; // limit must be one of [5, 10, 20]
         }
+        const marketInfo = this.safeDict (market, 'info', {});
+        const slab = this.safeList (marketInfo, 'depthSlabs', []);
         const request: Dict = {
             'symbol': market['id'],
             'level': limit,
-            'slab': 0.001,
+            'slab': this.safeString (slab, 0),
         };
         const response = await this.v1PublicGetSymbolsSymbolDepthLevelSlab (this.extend (request, params));
         //
