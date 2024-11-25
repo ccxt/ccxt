@@ -1567,13 +1567,13 @@ class binance extends Exchange {
                 'spot' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => true,
                         'triggerPrice' => true,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
-                        'marginMode' => true,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -1591,6 +1591,7 @@ class binance extends Exchange {
                     ),
                     'createOrders' => null,
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 1, // days between start-end
@@ -1601,25 +1602,25 @@ class binance extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => null,
                         'marginMode' => true,
+                        'limit' => null,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBack' => null,
                         'untilDays' => 10000,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchClosedOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBackClosed' => null,
                         'daysBackCanceled' => null,
                         'untilDays' => 10000,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
@@ -1630,6 +1631,7 @@ class binance extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'mark' => true,
@@ -1639,7 +1641,6 @@ class binance extends Exchange {
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
                         'attachedStopLossTakeProfit' => null, // not supported
-                        'marginMode' => false,
                         'timeInForce' => array(
                             'GTC' => true,
                             'IOC' => true,
@@ -1660,6 +1661,7 @@ class binance extends Exchange {
                         'max' => 5,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'daysBack' => null,
                         'limit' => 1000,
                         'untilDays' => 7,
@@ -1670,25 +1672,25 @@ class binance extends Exchange {
                         'trailing' => false,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 500,
                         'marginMode' => true,
+                        'limit' => 500,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBack' => 90,
                         'untilDays' => 7,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),
                     'fetchClosedOrders' => array(
+                        'marginMode' => true,
                         'limit' => 1000,
                         'daysBackClosed' => 90,
                         'daysBackCanceled' => 3,
                         'untilDays' => 7,
-                        'marginMode' => true,
                         'trigger' => false,
                         'trailing' => false,
                     ),

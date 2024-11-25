@@ -39,6 +39,8 @@ public partial class paradex : Exchange
                 { "createOrder", true },
                 { "createOrders", false },
                 { "createReduceOnlyOrder", false },
+                { "createStopOrder", true },
+                { "createTriggerOrder", true },
                 { "editOrder", false },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },

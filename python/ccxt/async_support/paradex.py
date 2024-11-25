@@ -53,6 +53,8 @@ class paradex(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': False,
                 'createReduceOnlyOrder': False,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'editOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,

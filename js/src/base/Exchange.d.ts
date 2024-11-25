@@ -894,6 +894,7 @@ export default class Exchange {
     convertOHLCVToTradingView(ohlcvs: number[][], timestamp?: string, open?: string, high?: string, low?: string, close?: string, volume?: string, ms?: boolean): {};
     fetchWebEndpoint(method: any, endpointMethod: any, returnAsJson: any, startRegex?: any, endRegex?: any): Promise<any>;
     marketIds(symbols?: Strings): any[];
+    currencyIds(codes?: Strings): any[];
     marketsForSymbols(symbols?: Strings): any[];
     marketSymbols(symbols?: Strings, type?: Str, allowEmpty?: boolean, sameTypeOnly?: boolean, sameSubTypeOnly?: boolean): any[];
     marketCodes(codes?: Strings): any[];
@@ -922,6 +923,7 @@ export default class Exchange {
     parseLedger(data: any, currency?: Currency, since?: Int, limit?: Int, params?: {}): LedgerEntry[];
     nonce(): number;
     setHeaders(headers: any): any;
+    currencyId(code: string): string;
     marketId(symbol: string): string;
     symbol(symbol: string): string;
     handleParamString(params: object, paramName: string, defaultValue?: Str): [string, object];

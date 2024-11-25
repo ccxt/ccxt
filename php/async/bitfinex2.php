@@ -212,6 +212,7 @@ class bitfinex2 extends Exchange {
                         'pulse/hist' => 2.7,
                         'pulse/profile/{nickname}' => 2.7,
                         'funding/stats/{symbol}/hist' => 10, // ratelimit not in docs
+                        'ext/vasps' => 1,
                     ),
                     'post' => array(
                         'calc/trade/avg' => 2.7,

@@ -316,6 +316,11 @@ public partial class bitfinex2 : Exchange
         return await this.callAsync ("publicGetFundingStatsSymbolHist",parameters);
     }
 
+    public async Task<object> publicGetExtVasps (object parameters = null)
+    {
+        return await this.callAsync ("publicGetExtVasps",parameters);
+    }
+
     public async Task<object> publicPostCalcTradeAvg (object parameters = null)
     {
         return await this.callAsync ("publicPostCalcTradeAvg",parameters);

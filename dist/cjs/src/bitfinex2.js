@@ -204,7 +204,8 @@ class bitfinex2 extends bitfinex2$1 {
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
                         'pulse/hist': 2.7,
                         'pulse/profile/{nickname}': 2.7,
-                        'funding/stats/{symbol}/hist': 10, // ratelimit not in docs
+                        'funding/stats/{symbol}/hist': 10,
+                        'ext/vasps': 1,
                     },
                     'post': {
                         'calc/trade/avg': 2.7,

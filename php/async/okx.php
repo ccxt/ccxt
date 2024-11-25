@@ -1186,6 +1186,7 @@ class okx extends Exchange {
                 'default' => array(
                     'sandbox' => true,
                     'createOrder' => array(
+                        'marginMode' => true,
                         'triggerPrice' => true,
                         'triggerPriceType' => array(
                             'last' => true,
@@ -1195,7 +1196,6 @@ class okx extends Exchange {
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
                         'takeProfitPrice' => true,
-                        'marginMode' => true,
                         'attachedStopLossTakeProfit' => array(
                             'triggerPriceType' => array(
                                 'last' => true,
@@ -1223,6 +1223,7 @@ class okx extends Exchange {
                         'max' => 20,
                     ),
                     'fetchMyTrades' => array(
+                        'marginMode' => false,
                         'daysBack' => 90,
                         'limit' => 100,
                         'untilDays' => 10000,
@@ -1233,18 +1234,18 @@ class okx extends Exchange {
                         'trailing' => true,
                     ),
                     'fetchOpenOrders' => array(
-                        'limit' => 100,
                         'marginMode' => false,
+                        'limit' => 100,
                         'trigger' => true,
                         'trailing' => true,
                     ),
                     'fetchOrders' => null, // not supported
                     'fetchClosedOrders' => array(
+                        'marginMode' => false,
                         'limit' => 100,
                         'daysBackClosed' => 90, // 3 months
                         'daysBackCanceled' => 1 / 12, // 2 hour
                         'untilDays' => null,
-                        'marginMode' => false,
                         'trigger' => true,
                         'trailing' => true,
                     ),
@@ -1838,7 +1839,7 @@ class okx extends Exchange {
                             'active' => $active,
                             'deposit' => $canDeposit,
                             'withdraw' => $canWithdraw,
-                            'fee' => $this->safe_number($chain, 'minFee'),
+                            'fee' => $this->safe_number($chain, 'fee'),
                             'precision' => $this->parse_number($precision),
                             'limits' => array(
                                 'withdraw' => array(
@@ -7613,7 +7614,12 @@ class okx extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAssetCurrencies ($params));
+            $request = array();
+            if ($codes !== null) {
+                $ids = $this->currency_ids($codes);
+                $request['ccy'] = implode(',', $ids);
+            }
+            $response = Async\await($this->privateGetAssetCurrencies ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "0",
@@ -7702,7 +7708,7 @@ class okx extends Exchange {
                 }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
-                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawFee = $this->safe_number($feeInfo, 'fee');
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,

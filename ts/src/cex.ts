@@ -20,7 +20,7 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
-            'rateLimit': 1667, // 100 req/min
+            'rateLimit': 300, // 200 req/min
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -32,6 +32,8 @@ export default class cex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': true,
@@ -956,7 +958,7 @@ export default class cex extends Exchange {
         //            },
         //            ...
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1030,10 +1032,16 @@ export default class cex extends Exchange {
 
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         };
-        return this.safeString (statuses, status, undefined);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1084,7 +1092,7 @@ export default class cex extends Exchange {
             const currencyId = this.safeString (order, 'feeCurrency');
             const feeCode = this.safeCurrencyCode (currencyId);
             fee['currency'] = feeCode;
-            fee['fee'] = feeAmount;
+            fee['cost'] = feeAmount;
         }
         const timestamp = this.safeInteger (order, 'serverCreateTimestamp');
         const requestedBase = this.safeNumber (order, 'requestedAmountCcy1');
@@ -1129,6 +1137,7 @@ export default class cex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
+     * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

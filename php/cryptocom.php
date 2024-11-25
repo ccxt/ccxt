@@ -38,6 +38,8 @@ class cryptocom extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrders' => true,
+                'createStopOrder' => true,
+                'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
@@ -1174,7 +1176,7 @@ class cryptocom extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
-         * @param {float} [$params->stopPrice] $price to trigger a stop order
+         * @param {float} [$params->triggerPrice] $price to trigger a stop order
          * @param {float} [$params->stopLossPrice] $price to trigger a stop-loss trigger order
          * @param {float} [$params->takeProfitPrice] $price to trigger a take-profit trigger order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~

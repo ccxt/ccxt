@@ -47,6 +47,7 @@ public partial class testMainClass : BaseTest
         object format = new Dictionary<string, object>() {
             { "sandbox", false },
             { "createOrder", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "triggerPrice", false },
                 { "triggerPriceType", new Dictionary<string, object>() {
                     { "mark", false },
@@ -63,7 +64,6 @@ public partial class testMainClass : BaseTest
                     } },
                     { "limitPrice", false },
                 } },
-                { "marginMode", false },
                 { "timeInForce", new Dictionary<string, object>() {
                     { "GTC", false },
                     { "IOC", false },
@@ -78,6 +78,7 @@ public partial class testMainClass : BaseTest
                 { "max", 5 },
             } },
             { "fetchMyTrades", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "daysBack", 0 },
                 { "limit", 0 },
                 { "untilDays", 0 },
@@ -88,25 +89,25 @@ public partial class testMainClass : BaseTest
                 { "trailing", false },
             } },
             { "fetchOpenOrders", new Dictionary<string, object>() {
-                { "limit", 0 },
                 { "marginMode", false },
+                { "limit", 0 },
                 { "trigger", false },
                 { "trailing", false },
             } },
             { "fetchOrders", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "limit", 0 },
                 { "daysBack", 0 },
                 { "untilDays", 0 },
-                { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
             } },
             { "fetchClosedOrders", new Dictionary<string, object>() {
+                { "marginMode", false },
                 { "limit", 0 },
                 { "daysBackClosed", 0 },
                 { "daysBackCanceled", 0 },
                 { "untilDays", 0 },
-                { "marginMode", false },
                 { "trigger", false },
                 { "trailing", false },
             } },
