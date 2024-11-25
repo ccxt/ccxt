@@ -765,9 +765,11 @@ export default class defx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const maxLimit = 1000;
         if (limit === undefined) {
-            limit = 100;
+            limit = maxLimit;
         }
+        limit = Math.min (maxLimit, limit);
         const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -835,9 +837,11 @@ export default class defx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const maxLimit = 50;
         if (limit === undefined) {
-            limit = 50;
+            limit = maxLimit;
         }
+        limit = Math.min (maxLimit, limit);
         const request: Dict = {
             'symbol': market['id'],
             'limit': limit,
@@ -876,6 +880,8 @@ export default class defx extends Exchange {
             request['symbols'] = market['id'];
         }
         if (limit !== undefined) {
+            const maxLimit = 100;
+            limit = Math.min (maxLimit, limit);
             request['pageSize'] = limit;
         }
         const response = await this.v1PrivateGetApiTrades (this.extend (request, params));
