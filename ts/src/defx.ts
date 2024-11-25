@@ -256,6 +256,7 @@ export default class defx extends Exchange {
                 'exact': {
                     '404': BadRequest, // {"errorCode":404,"errorMessage":"Not Found"}
                     'missing_auth_signature': AuthenticationError, // {"msg":"Missing auth signature","code":"missing_auth_signature"}
+                    'order_rejected': InvalidOrder, // {"success":false,"err":{"msg":"Order has already been rejected","code":"order_rejected"}}
                     'invalid_order_id': InvalidOrder, // {"success":false,"err":{"msg":"Invalid order id","code":"invalid_order_id"}}
                     'filter_lotsize_maxqty': InvalidOrder, // {"errorCode":"filter_lotsize_maxqty","errorMessage":"LOT_SIZE filter failed, quantity more than maxQty","errorData":{"maxQty":"5000.00"}}
                     'filter_notional_min': InvalidOrder, // {"errorCode":"filter_notional_min","errorMessage":"NOTIONAL filter failed, Notional value of quote asset less than minNotional","errorData":{"minNotional":"100.00000000"}}
@@ -1633,6 +1634,8 @@ export default class defx extends Exchange {
             request['start'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
+            const maxLimit = 100;
+            limit = Math.min (maxLimit, limit);
             request['pageSize'] = limit;
         }
         const response = await this.v1PrivateGetApiOrders (this.extend (request, params));
