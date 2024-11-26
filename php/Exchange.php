@@ -2169,6 +2169,11 @@ class Exchange {
     }
 
     function array_slice($array, $first, $second = null){
+        if (is_string($array)) {
+            // this is needed because we convert
+            // base64ToBinary to base64_decode in php
+            return substr($array, $first, $second);
+        }
         if ($second === null) {
             return array_slice($array, $first);
         } else {
@@ -2932,7 +2937,7 @@ class Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
