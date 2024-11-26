@@ -548,7 +548,8 @@ class probit extends \ccxt\async\probit {
         $result = $this->safe_string($message, 'result');
         $future = $client->subscriptions['authenticated'];
         if ($result === 'ok') {
-            $future->resolve (true);
+            $messageHash = 'authenticated';
+            $client->resolve ($message, $messageHash);
         } else {
             $future->reject ($message);
             unset($client->subscriptions['authenticated']);

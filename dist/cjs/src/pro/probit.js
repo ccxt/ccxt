@@ -510,7 +510,8 @@ class probit extends probit$1 {
         const result = this.safeString(message, 'result');
         const future = client.subscriptions['authenticated'];
         if (result === 'ok') {
-            future.resolve(true);
+            const messageHash = 'authenticated';
+            client.resolve(message, messageHash);
         }
         else {
             future.reject(message);

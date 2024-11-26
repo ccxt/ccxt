@@ -493,7 +493,8 @@ class probit(ccxt.async_support.probit):
         result = self.safe_string(message, 'result')
         future = client.subscriptions['authenticated']
         if result == 'ok':
-            future.resolve(True)
+            messageHash = 'authenticated'
+            client.resolve(message, messageHash)
         else:
             future.reject(message)
             del client.subscriptions['authenticated']

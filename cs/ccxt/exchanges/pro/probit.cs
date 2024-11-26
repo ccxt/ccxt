@@ -589,7 +589,8 @@ public partial class probit : ccxt.probit
         var future = getValue(((WebSocketClient)client).subscriptions, "authenticated");
         if (isTrue(isEqual(result, "ok")))
         {
-            (future as Future).resolve(true);
+            object messageHash = "authenticated";
+            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
         } else
         {
             ((Future)future).reject(message);
