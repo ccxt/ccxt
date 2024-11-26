@@ -233,7 +233,7 @@ class coinone extends coinone$1 {
         //     }
         //
         const result = {};
-        const currencies = this.safeValue(response, 'currencies', []);
+        const currencies = this.safeList(response, 'currencies', []);
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
             const id = this.safeString(entry, 'symbol');
@@ -314,7 +314,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const tickers = this.safeValue(response, 'tickers', []);
+        const tickers = this.safeList(response, 'tickers', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = this.safeValue(tickers, i);
@@ -569,7 +569,7 @@ class coinone extends coinone$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'tickers', []);
+        const data = this.safeList(response, 'tickers', []);
         const ticker = this.safeDict(data, 0, {});
         return this.parseTicker(ticker, market);
     }
@@ -602,8 +602,8 @@ class coinone extends coinone$1 {
         //
         const timestamp = this.safeInteger(ticker, 'timestamp');
         const last = this.safeString(ticker, 'last');
-        const asks = this.safeValue(ticker, 'best_asks');
-        const bids = this.safeValue(ticker, 'best_bids');
+        const asks = this.safeList(ticker, 'best_asks', []);
+        const bids = this.safeList(ticker, 'best_bids', []);
         const baseId = this.safeString(ticker, 'target_currency');
         const quoteId = this.safeString(ticker, 'quote_currency');
         const base = this.safeCurrencyCode(baseId);
@@ -657,7 +657,7 @@ class coinone extends coinone$1 {
         //
         const timestamp = this.safeInteger(trade, 'timestamp');
         market = this.safeMarket(undefined, market);
-        const isSellerMaker = this.safeValue(trade, 'is_seller_maker');
+        const isSellerMaker = this.safeBool(trade, 'is_seller_maker');
         let side = undefined;
         if (isSellerMaker !== undefined) {
             side = isSellerMaker ? 'sell' : 'buy';
@@ -1090,7 +1090,7 @@ class coinone extends coinone$1 {
         //         }
         //     }
         //
-        const walletAddress = this.safeValue(response, 'walletAddress', {});
+        const walletAddress = this.safeDict(response, 'walletAddress', {});
         const keys = Object.keys(walletAddress);
         const result = {};
         for (let i = 0; i < keys.length; i++) {

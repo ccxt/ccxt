@@ -511,6 +511,7 @@ class bitrue extends bitrue$1 {
                     '-4051': errors.InsufficientFunds, // {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': errors.InsufficientFunds,
                     'has no operation privilege': errors.PermissionDenied,
                     'MAX_POSITION': errors.InvalidOrder, // {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },

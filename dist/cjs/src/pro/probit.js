@@ -523,11 +523,13 @@ class probit extends probit$1 {
             this.handleTicker(client, message);
         }
         const trades = this.safeValue(message, 'recent_trades', []);
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength) {
             this.handleTrades(client, message);
         }
         const orderBook = this.safeValueN(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], []);
-        if (orderBook.length) {
+        const orderBookLength = orderBook.length;
+        if (orderBookLength) {
             this.handleOrderBook(client, message, orderBook);
         }
     }
