@@ -917,7 +917,8 @@ export default class ellipx extends Exchange {
         }
         const bidOrder = this.safeDict (trade, 'bid');
         const askOrder = this.safeDict (trade, 'ask');
-        const orderId = side === 'buy' ? this.safeString (bidOrder, 'id') : this.safeString (askOrder, 'id');
+        const isBuy = (side === 'buy');
+        const orderId = isBuy ? this.safeString (bidOrder, 'id') : this.safeString (askOrder, 'id');
         return this.safeTrade ({
             'id': id,
             'info': trade,
