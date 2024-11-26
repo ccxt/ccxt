@@ -1017,18 +1017,19 @@ export default class ellipx extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const dataArray = this.safeValue (response, 'data', []);
+        const dataArray = this.safeList (response, 'data', []);
         // Use first item's timestamp if available
-        if (dataArray.length > 0) {
+        const dataArrayLength = dataArray.length;
+        if (dataArrayLength > 0) {
             const firstItem = dataArray[0];
-            const balanceDate = this.safeValue (firstItem, 'Balance_Date', {});
+            const balanceDate = this.safeDict (firstItem, 'Balance_Date', {});
             result['timestamp'] = this.safeInteger (balanceDate, 'unixms');
             result['datetime'] = this.iso8601 (result['timestamp']);
         }
         // Process each balance entry
         for (let i = 0; i < dataArray.length; i++) {
             const entry = dataArray[i];
-            const balance = this.safeValue (entry, 'Balance', {});
+            const balance = this.safeDict (entry, 'Balance', {});
             const currency = this.safeString (balance, 'currency');
             if (currency !== undefined) {
                 const account = {
@@ -1851,7 +1852,7 @@ export default class ellipx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseAmount (amount: Dict): Str {
+    parseAmount (amount): Str {
         const v = this.safeString (amount, 'v', undefined);
         const e = this.safeInteger (amount, 'e', undefined);
         if (v === undefined || e === undefined) {
