@@ -84,7 +84,6 @@ export default class ellipx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOrderTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -92,6 +91,7 @@ export default class ellipx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -1274,20 +1274,14 @@ export default class ellipx extends Exchange {
         if (orderType === 'bid') {
             side = 'buy';
         }
-        const status = this.safeString (order, 'Status');
-        const amount = this.parseAmount (this.safeDict (order, 'Amount'));
-        const price = this.parseAmount (this.safeDict (order, 'Price'));
+        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        const amount = this.parseNumber (this.parseAmount (this.safeDict (order, 'Amount')));
+        const price = this.parseNumber (this.parseAmount (this.safeDict (order, 'Price')));
         const type = (price === undefined) ? 'market' : 'limit';
-        const executed = this.parseAmount (this.safeDict (order, 'Executed'));
+        const executed = this.parseNumber (this.parseAmount (this.safeDict (order, 'Executed')));
         const filled = executed;
-        let remaining = undefined;
-        let cost = undefined;
-        if (status === 'pending') {
-            remaining = this.parseAmount (this.safeDict (order, 'Secured'));
-        } else {
-            remaining = (amount !== undefined && filled !== undefined) ? Precise.stringSub (filled, amount) : undefined;
-            cost = this.parseAmount (this.safeDict (order, 'Total_Spent'));
-        }
+        const remaining = this.parseNumber (this.parseAmount (this.safeDict (order, 'Secured')));
+        const cost = this.parseNumber (this.parseAmount (this.safeDict (order, 'Total_Spent')));
         const symbol = market ? market['symbol'] : undefined;
         const clientOrderId = undefined;
         const timeInForce = 'GTC'; // default to Good Till Cancelled
