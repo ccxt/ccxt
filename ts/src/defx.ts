@@ -5,7 +5,7 @@ import Exchange from './abstract/defx.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder } from './base/errors.js';
+import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, ExchangeError } from './base/errors.js';
 import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -265,6 +265,7 @@ export default class defx extends Exchange {
                     'active_position_not_found': InvalidOrder, // {"errorCode":"active_position_not_found","errorMessage":"Active position not found"}
                     'position_inactive': InvalidOrder, // {"errorCode":"position_inactive","errorMessage":"Position is already inactive"}
                     'invalid_position_id': InvalidOrder, // {"errorCode":"invalid_position_id","errorMessage":"Position id is invalid"}
+                    'Internal server error': ExchangeError, // {"msg":"Internal server error","code":"internal_server_error"}
                 },
                 'broad': {
                     'Bad Request': BadRequest, // {"errorMessage":"Bad Request","data":[{"param":"symbol","message":"\"symbol\" must be one of [ETH_USDC, BTC_USDC, BNB_USDC, SOL_USDC, DOGE_USDC, TON_USDC, AVAX_USDC, WIF_USDC, KPEPE_USDC, KSHIB_USDC, KBONK_USDC, MOODENG_USDC, POPCAT_USDC, MOTHER_USDC]"}]}
