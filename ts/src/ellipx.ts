@@ -287,7 +287,7 @@ export default class ellipx extends Exchange {
             const paddingLength = remainder ? 4 - remainder : 0;
             const secretWithPadding = this.secret.replaceAll ('-', '+').replaceAll ('_', '/').padEnd (this.secret.length + paddingLength, '=');
             const secretBytes = this.base64ToBinary (secretWithPadding);
-            const seed = secretBytes.slice (0, 32); // Extract first 32 bytes as seed
+            const seed = this.arraySlice (secretBytes, 0, 32); // Extract first 32 bytes as seed
             const signature = eddsa (signString, seed, ed25519);
             params['_sign'] = signature;
         }
@@ -1842,7 +1842,7 @@ export default class ellipx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseAmount (amount: NullableDict): Str {
+    parseAmount (amount: Dict): Str {
         const v = this.safeString (amount, 'v', undefined);
         const e = this.safeInteger (amount, 'e', undefined);
         if (v === undefined || e === undefined) {
