@@ -1026,6 +1026,72 @@
                 }
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "SOL/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                            "symbol": "SOL_USDC",
+                            "positionSide": "SHORT",
+                            "entryPrice": "172.34300000",
+                            "quantity": "0.80",
+                            "marginAmount": "20.11561173",
+                            "marginAsset": "USDC",
+                            "pnl": "0.00000000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                            "symbol": "SOL_USDC",
+                            "positionSide": "SHORT",
+                            "entryPrice": "172.34300000",
+                            "quantity": "0.80",
+                            "marginAmount": "20.11561173",
+                            "marginAsset": "USDC",
+                            "pnl": "0.00000000"
+                        },
+                        "id": "0192c495-4a68-70ee-9081-9d368bd16dfc",
+                        "symbol": "SOL/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 20.11561173,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 172.343,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "contracts": 0.8,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": null
+                    }
+                ]
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetchOrder",
@@ -1594,6 +1660,151 @@
                         "hedged": null
                     }
                 ]
+            }
+        ],
+        "closeAllPositions": [
+            {
+                "description": "closeAllPositions",
+                "method": "closeAllPositions",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "positionId": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
+                            "success": true
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "positionId": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
+                            "success": true
+                        },
+                        "id": "d6ca1a27-28ad-47ae-b244-0bda5ac37b2b",
+                        "symbol": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": null,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "contracts": null,
+                        "contractSize": null,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": null,
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": null
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    1730265905312,
+                    null,
+                    {
+                        "until": 1730703590000
+                    }
+                ],
+                "httpResponse": {
+                    "transactions": [
+                        {
+                            "id": "01JBT7HMPQ214718VH9ZRNDTQW",
+                            "timestamp": 1730678411990,
+                            "type": "FundingFee",
+                            "amount": "0.01280334",
+                            "asset": "USDC",
+                            "operation": "CREDIT"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "01JBT7HMPQ214718VH9ZRNDTQW",
+                        "timestamp": 1730678411990,
+                        "datetime": "2024-11-04T00:00:11.990Z",
+                        "direction": null,
+                        "account": null,
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "fee",
+                        "currency": "USDC",
+                        "amount": 0.01280334,
+                        "before": null,
+                        "after": null,
+                        "status": null,
+                        "fee": null,
+                        "info": {
+                            "id": "01JBT7HMPQ214718VH9ZRNDTQW",
+                            "timestamp": 1730678411990,
+                            "type": "FundingFee",
+                            "amount": "0.01280334",
+                            "asset": "USDC",
+                            "operation": "CREDIT"
+                        }
+                    }
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "input": [
+                    "USDC",
+                    5,
+                    null,
+                    null,
+                    {
+                        "network": "ARB_SEPOLIA",
+                        "chainId": "421614"
+                    }
+                ],
+                "httpResponse": {
+                    "transactionId": "0x301e5851e5aefa733abfbc8b30817ca3b61601e0ddf1df8c59656fb888b0bc9c"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transactionId": "0x301e5851e5aefa733abfbc8b30817ca3b61601e0ddf1df8c59656fb888b0bc9c"
+                    },
+                    "id": null,
+                    "txid": "0x301e5851e5aefa733abfbc8b30817ca3b61601e0ddf1df8c59656fb888b0bc9c",
+                    "timestamp": null,
+                    "datetime": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": null,
+                    "amount": null,
+                    "currency": "USDC",
+                    "status": null,
+                    "updated": null,
+                    "internal": null,
+                    "comment": null,
+                    "fee": null
+                }
             }
         ]
     }

@@ -190,6 +190,18 @@
                 ]
             }
         ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://api.defx.com/v1/auth/api/position/active",
+                "input": [
+                    [
+                        "SOL/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetchPosition",
@@ -313,6 +325,39 @@
                 "url": "https://api.defx.com/v1/auth/api/position/all",
                 "input": [],
                 "output": "{}"
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://api.defx.com/v1/auth/api/wallet/transactions?end=1730703590000&start=1730265905312",
+                "input": [
+                    null,
+                    1730265905312,
+                    null,
+                    {
+                        "until": 1730703590000
+                    }
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "https://api.defx.com/v1/auth/api/transfers/bridge/withdrawal",
+                "input": [
+                    "USDC",
+                    5,
+                    null,
+                    null,
+                    {
+                        "network": "ARB_SEPOLIA",
+                        "chainId": "421614"
+                    }
+                ],
+                "output": "{\"amount\":\"5\",\"asset\":\"USDC\",\"chainId\":\"421614\",\"network\":\"ARB_SEPOLIA\"}"
             }
         ]
     }
