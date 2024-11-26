@@ -605,12 +605,14 @@ public partial class probit : ccxt.probit
             this.handleTicker(client as WebSocketClient, message);
         }
         object trades = this.safeValue(message, "recent_trades", new List<object>() {});
-        if (isTrue(getArrayLength(trades)))
+        object tradesLength = getArrayLength(trades);
+        if (isTrue(tradesLength))
         {
             this.handleTrades(client as WebSocketClient, message);
         }
         object orderBook = this.safeValueN(message, new List<object>() {"order_books", "order_books_l1", "order_books_l2", "order_books_l3", "order_books_l4"}, new List<object>() {});
-        if (isTrue(getArrayLength(orderBook)))
+        object orderBookLength = getArrayLength(orderBook);
+        if (isTrue(orderBookLength))
         {
             this.handleOrderBook(client as WebSocketClient, message, orderBook);
         }
