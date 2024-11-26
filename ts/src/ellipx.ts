@@ -127,7 +127,7 @@ export default class ellipx extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'logo': '', // todo
+                'logo': 'https://github.com/user-attachments/assets/e07c3f40-281c-4cdf-bacf-fa1c58218a2c',
                 'api': {
                     'public': 'https://data.ellipx.com',
                     'private': 'https://app.ellipx.com/_rest',
