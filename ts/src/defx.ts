@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { NotSupported, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder } from './base/errors.js';
-import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency } from './base/types.js';
+import type { Dict, int, Num, Strings, Int, Str, Market, OrderType, OrderSide, Order, Ticker, Tickers, OHLCV, Trade, OrderBook, FundingRate, Balances, Position, LedgerEntry, Currency, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ export default class defx extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
@@ -117,7 +117,7 @@ export default class defx extends Exchange {
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -1882,6 +1882,69 @@ export default class defx extends Exchange {
             'Commission': 'commission',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name defx#withdraw
+         * @description make a withdrawal
+         * @see https://api-docs.defx.com/#2600f503-63ed-4672-b8f6-69ea5f03203b
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'amount': this.currencyToPrecision (code, amount),
+            'asset': currency['id'],
+            // 'network': 'ARB_SEPOLIA',
+            // 'chainId': '421614',
+        };
+        const response = await this.v1PrivatePostApiTransfersBridgeWithdrawal (this.extend (request, params));
+        //
+        // {
+        //     "transactionId": "0x301e5851e5aefa733abfbc8b30817ca3b61601e0ddf1df8c59656fb888b0bc9c"
+        // }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        // withdraw
+        //
+        // {
+        //     "transactionId": "0x301e5851e5aefa733abfbc8b30817ca3b61601e0ddf1df8c59656fb888b0bc9c"
+        // }
+        //
+        const txid = this.safeString (transaction, 'transactionId');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': txid,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': undefined,
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'status': undefined,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
     }
 
     nonce () {
