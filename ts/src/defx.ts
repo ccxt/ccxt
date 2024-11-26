@@ -787,7 +787,8 @@ export default class defx extends Exchange {
             if (until === undefined) {
                 const timeframeInSeconds = this.parseTimeframe (timeframe);
                 const timeframeInMilliseconds = timeframeInSeconds * 1000;
-                request['endTime'] = this.sum (since, (limit * timeframeInMilliseconds));
+                const totalTimeframeInMilliseconds = limit * timeframeInMilliseconds;
+                request['endTime'] = this.sum (since, totalTimeframeInMilliseconds);
             }
         }
         const response = await this.v1PublicGetSymbolsSymbolOhlc (this.extend (request, params));
