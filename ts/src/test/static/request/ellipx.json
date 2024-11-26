@@ -1,11 +1,16 @@
 {
     "exchange": "ellipx",
-    "skipKeys": ["_key", "_time", "_nonce", "_sign"],
+    "skipKeys": [
+        "_key",
+        "_time",
+        "_nonce",
+        "_sign"
+    ],
     "outputType": "both",
     "apiKey": "key-hwlf2a-u2hj-fh7m-is6j-5vbu5ta3",
     "secret": "vSQk28OnxEED39SxG5aiLNgPQaVm8wRvU-XY_loL7g374GLRGrbZzRm-5dgW_GFX3Eu079FmxWF8Rc1ed0uioQ",
     "methods": {
-    "fetchOrder": [
+        "fetchOrder": [
             {
                 "description": "fetch order",
                 "method": "fetchOrder",
@@ -15,8 +20,8 @@
                 ],
                 "output": null
             }
-    ],
-    "createOrder": [
+        ],
+        "createOrder": [
             {
                 "description": "limit buy order",
                 "method": "createOrder",
@@ -42,8 +47,8 @@
                 ],
                 "output": "{\"currencyPair\":\"DOGE_USDC\",\"Type\":\"bid\",\"Amount\":\"10\"}"
             }
-    ],
-    "fetchOHLCV": [
+        ],
+        "fetchOHLCV": [
             {
                 "description": "fetch ohlcv",
                 "method": "fetchOHLCV",
@@ -53,8 +58,8 @@
                 ],
                 "output": null
             }
-    ],
-    "fetchTrades": [
+        ],
+        "fetchTrades": [
             {
                 "description": "fetch ticker",
                 "method": "fetchTrades",
@@ -64,8 +69,8 @@
                 ],
                 "output": null
             }
-    ],
-    "fetchTicker": [
+        ],
+        "fetchTicker": [
             {
                 "description": "fetch ticker",
                 "method": "fetchTicker",
@@ -75,8 +80,8 @@
                 ],
                 "output": null
             }
-    ],
-    "fetchBalance": [
+        ],
+        "fetchBalance": [
             {
                 "description": "fetch balance",
                 "method": "fetchBalance",
@@ -84,6 +89,6 @@
                 "input": [],
                 "output": null
             }
-    ]
+        ]
     }
 }
