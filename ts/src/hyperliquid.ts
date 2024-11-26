@@ -372,31 +372,36 @@ export default class hyperliquid extends Exchange {
      */
     calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
         let pricePrecision = 0;
+        // We might get 2 dots, doesn't matter
+        const priceStr = this.numberToString (price) + '.';
         if (price === 0) {
             // Significant digits is always 5 in this case
-            const significantDigits = 5;
+            const significantDigits = this.parseToInt ('5');
             // Integer digits is always 0 in this case (0 doesn't count)
-            const integerDigits = 0;
+            const integerDigits = this.parseToInt ('0');
             // Calculate the price precision
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
         } else if (price > 0 && price < 1) {
-            // Significant digits is always 5 in this case
-            const significantDigits = 5;
-            // Get the leading zeros after the decimal separator, add the significant digits
-            const leadingZerosAfterDecimalPoint = this.numberToString (Math.abs (Math.log10 (price)));
-            pricePrecision = Math.floor (this.parseNumber ((Precise.stringAdd (leadingZerosAfterDecimalPoint, this.numberToString (significantDigits)))));
-            // Calculate the price precision
+            // Significant digits, always 5 in this case
+            const significantDigits = this.parseToInt ('5');
+            // Get the part after the decimal separator
+            const decimalPart = priceStr.split ('.')[1];
+            // Count the number of leading zeros in the decimal part. Other options don't ranspile
+            let leadingZeros = 0;
+            while (leadingZeros <= decimalPart.length && decimalPart[leadingZeros] === '0') {
+                leadingZeros = leadingZeros + 1;
+            }
+            // Calculate decimal places based on leading zeros and significant digits
+            pricePrecision = leadingZeros + significantDigits;
+            // Take the min() of the calculated decimal places and (maxDecimals - szDecimals)
             pricePrecision = Math.min (maxDecimals - amountPrecision, pricePrecision);
         } else {
-            const significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
-            // Get the amount of numbers before the decimal separator
-            let integerDigits = 0;
-            if (price === 0) {
-                integerDigits = 1;
-            } else {
-                integerDigits = Math.floor (Math.log10 (price)) + 1;
-            }
-            // Calculate the price precision
+            // Count the numbers before the decimal separator. Doing this in one go doesn't transpile
+            const integerPart = priceStr.split ('.')[0];
+            const integerDigits = integerPart.length;
+            // Get significant digits (5 or the integer digits count, whichever is higher)
+            const significantDigits = Math.max (5, integerDigits);
+            // Calculate decimal places based on significant digits and integer digits
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
         }
         return pricePrecision;
@@ -1098,15 +1103,12 @@ export default class hyperliquid extends Exchange {
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
-        let significantDigits = this.parseToInt ('5');
-        if (price === 0) {
-            significantDigits = 5;
-        } else {
-            // Calculate the number of digits before the decimal separator. If larger than 5, take that
-            significantDigits = Math.max (5, Math.floor (Math.log10 (price)) + 1);
-        }
+        const priceStr = this.numberToString (price) + '.';
+        const integerPart = priceStr.split ('.')[0];
+        const integerDigits = integerPart.length;
+        const significantDigits = Math.max (5, integerDigits);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
-        const maxDecimals = market['spot'] ? this.parseToInt ('8') : this.parseToInt ('6');
+        const maxDecimals = market['spot'] ? 8 : 6;
         return this.decimalToPrecision (result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
