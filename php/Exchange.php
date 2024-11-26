@@ -2169,6 +2169,11 @@ class Exchange {
     }
 
     function array_slice($array, $first, $second = null){
+        if (is_string($array)) {
+            // this is needed because we convert
+            // base64ToBinary to base64_decode in php
+            return substr($array, $first, $second);
+        }
         if ($second === null) {
             return array_slice($array, $first);
         } else {
