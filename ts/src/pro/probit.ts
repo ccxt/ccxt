@@ -530,7 +530,8 @@ export default class probit extends probitRest {
         const result = this.safeString (message, 'result');
         const future = client.subscriptions['authenticated'];
         if (result === 'ok') {
-            future.resolve (true);
+            const messageHash = 'authenticated';
+            client.resolve (message, messageHash);
         } else {
             future.reject (message);
             delete client.subscriptions['authenticated'];
