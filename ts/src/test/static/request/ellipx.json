@@ -18,6 +18,19 @@
     ],
     "createOrder": [
             {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://app.ellipx.com/_rest/Market/DOGE_USDC/Order?_key=key-hwlf2a-u2hj-fh7m-is6j-5vbu5tr4&_time=1732625297&_nonce=f990cba1-08a7-485e-bc91-e45059d8b8a9&currencyPair=DOGE_USDC&Type=bid&Amount=10&Price=0.3&_sign=SMLaV4UhvdkadAHvKuNW7U%2FuCL%2Fx%2Fg2Ie1yupZE1HpsPca4xNbuufTSTunZ8BOa5IAj053dB9Wj4LAnXeCLECA%3D%3D",
+                "input": [
+                    "DOGE/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    0.3
+                ],
+                "output": "{\"currencyPair\":\"DOGE_USDC\",\"Type\":\"bid\",\"Amount\":\"10\",\"Price\":\"0.3\"}"
+            },
+            {
                 "description": "market buy order",
                 "method": "createOrder",
                 "url": "https://app.ellipx.com/_rest/Market/DOGE_USDC/Order?_key=key-hwlf2a-u2hj-fh7m-is6j-5vbu5tr4&_time=1732369899&_nonce=10cc21f1-6574-4488-975d-de8f477e893d&currencyPair=DOGE_USDC&Type=bid&Amount=10&_sign=n8uvGz28t0yP7XtGWPpVTWuvwmPaXRCN940RH7zWGUAH%2BlXNiueZfuJ3%2FR5UulW9LKM0up8WC3SA2jowYcLBCg%3D%3D",

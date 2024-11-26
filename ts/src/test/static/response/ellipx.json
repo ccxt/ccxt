@@ -1733,6 +1733,148 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetch limit order",
+                "method": "fetchOrder",
+                "input": [
+                    "mktor-h6o3s5-fxzf-g6zh-7tgm-mlluayne"
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "request_id": "0a31c32a-9692-4b5b-9dda-ba12598dd3ca",
+                    "time": "0.03424406051635742",
+                    "data": {
+                        "Market_Order__": "mktor-h6o3s5-fxzf-g6zh-7tgm-mlluayne",
+                        "Market__": "mkt-xrkg5l-akjz-cxxl-3a2e-mul5gfo4",
+                        "User__": "usr-fcbizu-hgqf-djhd-w4ix-2p7ae6vu",
+                        "Uniq": "order:1732625299:16510443:0",
+                        "Type": "bid",
+                        "Status": "open",
+                        "Flags": {},
+                        "Amount": {
+                            "v": "1000000000",
+                            "e": "8",
+                            "f": "10"
+                        },
+                        "Price": {
+                            "v": "300000",
+                            "e": "6",
+                            "f": "0.3"
+                        },
+                        "Spend_Limit": null,
+                        "Executed": {
+                            "v": "0",
+                            "e": "0",
+                            "f": "0"
+                        },
+                        "Total_Spent": null,
+                        "Secured": {
+                            "v": "3000000",
+                            "e": "6",
+                            "f": "3"
+                        },
+                        "Version": "2",
+                        "Created": {
+                            "unix": "1732625297",
+                            "us": "701141",
+                            "iso": "2024-11-26 12:48:17.701141",
+                            "tz": "UTC",
+                            "full": "1732625297701141",
+                            "unixms": "1732625297701"
+                        },
+                        "Updated": {
+                            "unix": "1732625297",
+                            "us": "701141",
+                            "iso": "2024-11-26 12:48:17.701141",
+                            "tz": "UTC",
+                            "full": "1732625297701141",
+                            "unixms": "1732625297701"
+                        }
+                    },
+                    "access": {
+                        "mktor-h6o3s5-fxzf-g6zh-7tgm-mlluayne": {
+                            "required": "R",
+                            "available": "O"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "mktor-h6o3s5-fxzf-g6zh-7tgm-mlluayne",
+                    "clientOrderId": null,
+                    "info": {
+                        "Market_Order__": "mktor-h6o3s5-fxzf-g6zh-7tgm-mlluayne",
+                        "Market__": "mkt-xrkg5l-akjz-cxxl-3a2e-mul5gfo4",
+                        "User__": "usr-fcbizu-hgqf-djhd-w4ix-2p7ae6vu",
+                        "Uniq": "order:1732625299:16510443:0",
+                        "Type": "bid",
+                        "Status": "open",
+                        "Flags": {},
+                        "Amount": {
+                            "v": "1000000000",
+                            "e": "8",
+                            "f": "10"
+                        },
+                        "Price": {
+                            "v": "300000",
+                            "e": "6",
+                            "f": "0.3"
+                        },
+                        "Spend_Limit": null,
+                        "Executed": {
+                            "v": "0",
+                            "e": "0",
+                            "f": "0"
+                        },
+                        "Total_Spent": null,
+                        "Secured": {
+                            "v": "3000000",
+                            "e": "6",
+                            "f": "3"
+                        },
+                        "Version": "2",
+                        "Created": {
+                            "unix": "1732625297",
+                            "us": "701141",
+                            "iso": "2024-11-26 12:48:17.701141",
+                            "tz": "UTC",
+                            "full": "1732625297701141",
+                            "unixms": "1732625297701"
+                        },
+                        "Updated": {
+                            "unix": "1732625297",
+                            "us": "701141",
+                            "iso": "2024-11-26 12:48:17.701141",
+                            "tz": "UTC",
+                            "full": "1732625297701141",
+                            "unixms": "1732625297701"
+                        }
+                    },
+                    "timestamp": 1732625297701,
+                    "datetime": "2024-11-26T12:48:17.701Z",
+                    "lastTradeTimestamp": 1732625297701,
+                    "status": "open",
+                    "symbol": null,
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 0.3,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 10,
+                    "filled": 0,
+                    "remaining": 3,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
                 "input": [
