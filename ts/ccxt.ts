@@ -101,6 +101,7 @@ import currencycom from  './src/currencycom.js'
 import delta from  './src/delta.js'
 import deribit from  './src/deribit.js'
 import digifinex from  './src/digifinex.js'
+import ellipx from  './src/ellipx.js'
 import exmo from  './src/exmo.js'
 import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
@@ -288,6 +289,7 @@ const exchanges = {
     'delta':                  delta,
     'deribit':                deribit,
     'digifinex':              digifinex,
+    'ellipx':                 ellipx,
     'exmo':                   exmo,
     'fmfwio':                 fmfwio,
     'gate':                   gate,
@@ -614,6 +616,7 @@ export {
     delta,
     deribit,
     digifinex,
+    ellipx,
     exmo,
     fmfwio,
     gate,
