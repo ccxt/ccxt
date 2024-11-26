@@ -373,7 +373,7 @@ export default class hyperliquid extends Exchange {
     calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
         let pricePrecision = 0;
         // We might get 2 dots, doesn't matter
-        const priceStr = this.numberToString (price) + '.';
+        const priceStr = this.numberToString (price);
         if (price === 0) {
             // Significant digits is always 5 in this case
             const significantDigits = this.parseToInt ('5');
@@ -398,11 +398,10 @@ export default class hyperliquid extends Exchange {
         } else {
             // Count the numbers before the decimal separator. Doing this in one go doesn't transpile
             const integerPart = priceStr.split ('.')[0];
-            const integerDigits = integerPart.length;
             // Get significant digits (5 or the integer digits count, whichever is higher)
-            const significantDigits = Math.max (5, integerDigits);
+            const significantDigits = Math.max (5, integerPart.length);
             // Calculate decimal places based on significant digits and integer digits
-            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
+            pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerPart.length);
         }
         return pricePrecision;
     }
@@ -1103,10 +1102,9 @@ export default class hyperliquid extends Exchange {
 
     priceToPrecision (symbol: string, price): string {
         const market = this.market (symbol);
-        const priceStr = this.numberToString (price) + '.';
+        const priceStr = this.numberToString (price);
         const integerPart = priceStr.split ('.')[0];
-        const integerDigits = integerPart.length;
-        const significantDigits = Math.max (5, integerDigits);
+        const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         const maxDecimals = market['spot'] ? 8 : 6;
         return this.decimalToPrecision (result, ROUND, maxDecimals - market['precision']['amount'], this.precisionMode, this.paddingMode);
