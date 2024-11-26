@@ -283,7 +283,8 @@ export default class ellipx extends Exchange {
             ];
             // Join with null byte separator using encode
             const signString = this.binaryConcatArray (components);
-            const remainder = this.secret.length % 4;
+            const sec = this.secret;
+            const remainder = this.calculateMod (sec.length, 4);
             const paddingLength = remainder ? 4 - remainder : 0;
             const secretWithPadding = this.secret.replaceAll ('-', '+').replaceAll ('_', '/').padEnd (this.secret.length + paddingLength, '=');
             const secretBytes = this.base64ToBinary (secretWithPadding);
@@ -302,6 +303,11 @@ export default class ellipx extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    calculateMod (a, b) {
+        // trick to fix php transpiling error
+        return a % b;
     }
 
     /**
