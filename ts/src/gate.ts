@@ -695,10 +695,10 @@ export default class gate extends Exchange {
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': true, //for contract :false
+                        'marginMode': true,
                         'triggerPrice': true,
+                        'triggerDirection': true, // todo: implementation edit needed
                         'triggerPriceType': undefined,
-                        'triggerDirection': false,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
@@ -716,10 +716,10 @@ export default class gate extends Exchange {
                         'selfTradePrevention': true,
                     },
                     'createOrders': {
-                        'max': 5,
+                        'max': 40, // NOTE! max 10 per symbol
                     },
                     'fetchMyTrades': {
-                        'marginMode': true, // false for swap
+                        'marginMode': true,
                         'limit': 1000,
                         'daysBack': undefined,
                         'untilDays': 30,
@@ -747,6 +747,35 @@ export default class gate extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                        },
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'untilDays': undefined
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'untilDays': undefined,
+                        'limit': 1000
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1999,
                     },
                 },
                 // 'swap': {
@@ -1625,25 +1654,25 @@ export default class gate extends Exchange {
         return [ request, params ];
     }
 
-    spotOrderPrepareRequest (market = undefined, stop = false, params = {}) {
+    spotOrderPrepareRequest (market = undefined, trigger = false, params = {}) {
         /**
          * @ignore
          * @method
          * @name gate#multiOrderSpotPrepareRequest
          * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {object} market CCXT market
-         * @param {bool} stop true if for a stop order
+         * @param {bool} trigger true if for a trigger order
          * @param {object} [params] request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
-        const [ marginMode, query ] = this.getMarginMode (stop, params);
+        const [ marginMode, query ] = this.getMarginMode (trigger, params);
         const request: Dict = {};
-        if (!stop) {
+        if (!trigger) {
             if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders');
+                throw new ArgumentsRequired (this.id + ' spotOrderPrepareRequest() requires a market argument for non-trigger orders');
             }
             request['account'] = marginMode;
-            request['currency_pair'] = market['id']; // Should always be set for non-stop
+            request['currency_pair'] = market['id']; // Should always be set for non-trigger
         }
         return [ request, query ];
     }
@@ -1655,7 +1684,7 @@ export default class gate extends Exchange {
          * @name gate#multiOrderSpotPrepareRequest
          * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
          * @param {object} market CCXT market
-         * @param {bool} stop true if for a stop order
+         * @param {bool} trigger true if for a trigger order
          * @param {object} [params] request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
@@ -1665,7 +1694,7 @@ export default class gate extends Exchange {
         };
         if (market !== undefined) {
             if (trigger) {
-                // gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 request['market'] = market['id'];
             } else {
                 request['currency_pair'] = market['id'];
@@ -3180,7 +3209,6 @@ export default class gate extends Exchange {
         }
         let response = undefined;
         if (market['contract']) {
-            maxLimit = 1999;
             const isMark = (price === 'mark');
             const isIndex = (price === 'index');
             if (isMark || isIndex) {
@@ -3522,7 +3550,7 @@ export default class gate extends Exchange {
             }
         } else {
             if (market !== undefined) {
-                request['currency_pair'] = market['id']; // Should always be set for non-stop
+                request['currency_pair'] = market['id']; // Should always be set for non-trigger
             }
             [ marginMode, params ] = this.getMarginMode (false, params);
             request['account'] = marginMode;
@@ -4884,7 +4912,7 @@ export default class gate extends Exchange {
 
     fetchOrderRequest (id: string, symbol: Str = undefined, params = {}) {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
+        const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         let clientOrderId = this.safeString2 (params, 'text', 'clientOrderId');
         let orderId = id;
@@ -4897,7 +4925,7 @@ export default class gate extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const contract = (type === 'swap') || (type === 'future') || (type === 'option');
-        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, stop, query);
+        const [ request, requestParams ] = contract ? this.prepareRequest (market, type, query) : this.spotOrderPrepareRequest (market, trigger, query);
         request['order_id'] = orderId.toString ();
         return [ request, requestParams ];
     }
@@ -4965,7 +4993,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
@@ -4991,7 +5019,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
@@ -5187,7 +5215,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        // spot stop
+        // spot trigger
         //
         //    [
         //        {
@@ -5284,7 +5312,7 @@ export default class gate extends Exchange {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -5292,26 +5320,26 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
+        const trigger = this.safeBoolN (params, [ 'is_stop_order', 'stop', 'trigger' ], false);
         params = this.omit (params, [ 'is_stop_order', 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        const [ request, requestParams ] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
         request['order_id'] = id;
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateSpotDeletePriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateSpotDeleteOrdersOrderId (this.extend (request, requestParams));
             }
         } else if (type === 'swap') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateFuturesDeleteSettleOrdersOrderId (this.extend (request, requestParams));
             }
         } else if (type === 'future') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateDeliveryDeleteSettleOrdersOrderId (this.extend (request, requestParams));
@@ -5513,25 +5541,25 @@ export default class gate extends Exchange {
         await this.loadMarkets ();
         await this.loadUnifiedStatus ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const stop = this.safeBool2 (params, 'stop', 'trigger');
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, query) : this.prepareRequest (market, type, query);
+        const [ request, requestParams ] = (type === 'spot') ? this.multiOrderSpotPrepareRequest (market, trigger, query) : this.prepareRequest (market, type, query);
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateSpotDeletePriceOrders (this.extend (request, requestParams));
             } else {
                 response = await this.privateSpotDeleteOrders (this.extend (request, requestParams));
             }
         } else if (type === 'swap') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateFuturesDeleteSettlePriceOrders (this.extend (request, requestParams));
             } else {
                 response = await this.privateFuturesDeleteSettleOrders (this.extend (request, requestParams));
             }
         } else if (type === 'future') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeliveryDeleteSettlePriceOrders (this.extend (request, requestParams));
             } else {
                 response = await this.privateDeliveryDeleteSettleOrders (this.extend (request, requestParams));
