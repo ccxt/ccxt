@@ -530,7 +530,8 @@ export default class probit extends probitRest {
         const result = this.safeString (message, 'result');
         const future = client.subscriptions['authenticated'];
         if (result === 'ok') {
-            future.resolve (true);
+            const messageHash = 'authenticated';
+            client.resolve (message, messageHash);
         } else {
             future.reject (message);
             delete client.subscriptions['authenticated'];
@@ -543,11 +544,13 @@ export default class probit extends probitRest {
             this.handleTicker (client, message);
         }
         const trades = this.safeValue (message, 'recent_trades', []);
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook.length) {
+        const orderBookLength = orderBook.length;
+        if (orderBookLength) {
             this.handleOrderBook (client, message, orderBook);
         }
     }

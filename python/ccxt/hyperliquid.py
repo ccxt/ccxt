@@ -11,6 +11,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -210,6 +211,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'User or API Wallet ': InvalidOrder,
                     'Order has invalid size': InvalidOrder,
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
+                    'Order has zero size.': InvalidOrder,
+                    'Insufficient spot balance asset': InsufficientFunds,
                 },
             },
             'precisionMode': DECIMAL_PLACES,
@@ -361,6 +364,48 @@ class hyperliquid(Exchange, ImplicitAPI):
             result.append(data)
         return self.parse_markets(result)
 
+    def calculate_price_precision(self, price: float, amountPrecision: float, maxDecimals: float):
+        """
+        Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+        :param float price: the price to use in the calculation
+        :param int amountPrecision: the amountPrecision to use in the calculation
+        :param int maxDecimals: the maxDecimals to use in the calculation
+        :returns int: The calculated price precision
+        """
+        pricePrecision = 0
+        priceStr = self.number_to_string(price)
+        if priceStr is None:
+            return 0
+        priceSplitted = priceStr.split('.')
+        if Precise.string_eq(priceStr, '0'):
+            # Significant digits is always hasattr(self, 5) case
+            significantDigits = 5
+            # Integer digits is always hasattr(self, 0) case(0 doesn't count)
+            integerDigits = 0
+            # Calculate the price precision
+            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - integerDigits)
+        elif Precise.string_gt(priceStr, '0') and Precise.string_lt(priceStr, '1'):
+            # Significant digits, always hasattr(self, 5) case
+            significantDigits = 5
+            # Get the part after the decimal separator
+            decimalPart = self.safe_string(priceSplitted, 1, '')
+            # Count the number of leading zeros in the decimal part
+            leadingZeros = 0
+            while((leadingZeros <= len(decimalPart)) and (decimalPart[leadingZeros] == '0')):
+                leadingZeros = leadingZeros + 1
+            # Calculate price precision based on leading zeros and significant digits
+            pricePrecision = leadingZeros + significantDigits
+            # Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = min(maxDecimals - amountPrecision, pricePrecision)
+        else:
+            # Count the numbers before the decimal separator
+            integerPart = self.safe_string(priceSplitted, 0, '')
+            # Get significant digits, take the max() of 5 and the integer digits count
+            significantDigits = max(5, len(integerPart))
+            # Calculate price precision based on maxDecimals - szDecimals and significantDigits - len(integerPart)
+            pricePrecision = min(maxDecimals - amountPrecision, significantDigits - len(integerPart))
+        return self.parse_to_int(pricePrecision)
+
     def fetch_spot_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all spot markets for hyperliquid
@@ -451,6 +496,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             innerBaseTokenInfo = self.safe_dict(baseTokenInfo, 'spec', baseTokenInfo)
             # innerQuoteTokenInfo = self.safe_dict(quoteTokenInfo, 'spec', quoteTokenInfo)
             amountPrecision = self.safe_integer(innerBaseTokenInfo, 'szDecimals')
+            price = self.safe_number(extraData, 'midPx')
+            pricePrecision = self.calculate_price_precision(price, amountPrecision, 8)
             # quotePrecision = self.parse_number(self.parse_precision(self.safe_string(innerQuoteTokenInfo, 'szDecimals')))
             baseId = self.number_to_string(i + 10000)
             markets.append(self.safe_market_structure({
@@ -481,8 +528,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,  # decimal places
-                    'price': 8 - amountPrecision,  # MAX_DECIMALS is 8
+                    'amount': amountPrecision,
+                    'price': pricePrecision,
                 },
                 'limits': {
                     'leverage': {
@@ -544,6 +591,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         taker = self.safe_number(fees, 'taker')
         maker = self.safe_number(fees, 'maker')
         amountPrecision = self.safe_integer(market, 'szDecimals')
+        price = self.safe_number(market, 'markPx', 0)
+        pricePrecision = self.calculate_price_precision(price, amountPrecision, 6)
         return self.safe_market_structure({
             'id': baseId,
             'symbol': symbol,
@@ -571,8 +620,8 @@ class hyperliquid(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': amountPrecision,  # decimal places
-                'price': 6 - amountPrecision,  # MAX_DECIMALS is 6
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
@@ -1039,10 +1088,12 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def price_to_precision(self, symbol: str, price) -> str:
         market = self.market(symbol)
-        # https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        result = self.decimal_to_precision(price, ROUND, 5, SIGNIFICANT_DIGITS, self.paddingMode)
-        decimalParsedResult = self.decimal_to_precision(result, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
-        return decimalParsedResult
+        priceStr = self.number_to_string(price)
+        integerPart = priceStr.split('.')[0]
+        significantDigits = max(5, len(integerPart))
+        result = self.decimal_to_precision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, self.paddingMode)
+        maxDecimals = 8 if market['spot'] else 6
+        return self.decimal_to_precision(result, ROUND, maxDecimals - market['precision']['amount'], self.precisionMode, self.paddingMode)
 
     def hash_message(self, message):
         return '0x' + self.hash(message, 'keccak', 'hex')

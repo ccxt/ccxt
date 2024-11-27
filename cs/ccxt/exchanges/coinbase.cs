@@ -2350,7 +2350,8 @@ public partial class coinbase : Exchange
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @param {object} [params.type] "spot" (default) or "swap" or "future"
+     * @param {string} [params.type] "spot" (default) or "swap" or "future"
+     * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2375,7 +2376,7 @@ public partial class coinbase : Exchange
             response = await this.v3PrivateGetBrokerageAccounts(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["limit"] = 100;
+            ((IDictionary<string,object>)request)["limit"] = 250;
             response = await this.v2PrivateGetAccounts(this.extend(request, parameters));
         }
         //

@@ -493,7 +493,8 @@ class probit(ccxt.async_support.probit):
         result = self.safe_string(message, 'result')
         future = client.subscriptions['authenticated']
         if result == 'ok':
-            future.resolve(True)
+            messageHash = 'authenticated'
+            client.resolve(message, messageHash)
         else:
             future.reject(message)
             del client.subscriptions['authenticated']
@@ -503,10 +504,12 @@ class probit(ccxt.async_support.probit):
         if ticker is not None:
             self.handle_ticker(client, message)
         trades = self.safe_value(message, 'recent_trades', [])
-        if len(trades):
+        tradesLength = len(trades)
+        if tradesLength:
             self.handle_trades(client, message)
         orderBook = self.safe_value_n(message, ['order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4'], [])
-        if len(orderBook):
+        orderBookLength = len(orderBook)
+        if orderBookLength:
             self.handle_order_book(client, message, orderBook)
 
     def handle_message(self, client: Client, message):

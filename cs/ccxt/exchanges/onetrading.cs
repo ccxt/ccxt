@@ -78,7 +78,7 @@ public partial class onetrading : Exchange
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
-                { "fetchTrades", true },
+                { "fetchTrades", false },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactionFee", false },
@@ -119,7 +119,7 @@ public partial class onetrading : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "price-ticks/{instrument_code}", "time"} },
+                    { "get", new List<object>() {"currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time"} },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new List<object>() {"account/balances", "account/deposit/crypto/{currency_code}", "account/deposit/fiat/EUR", "account/deposits", "account/deposits/bitpanda", "account/withdrawals", "account/withdrawals/bitpanda", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/{order_id}/trades", "account/trades", "account/trades/{trade_id}", "account/trading-volume"} },
@@ -242,6 +242,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://docs.onetrading.com/#time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -262,6 +263,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://docs.onetrading.com/#currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -313,6 +315,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchMarkets
      * @description retrieves data on all markets for onetrading
+     * @see https://docs.onetrading.com/#instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -400,6 +403,8 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTradingFees
      * @description fetch the trading fees for multiple markets
+     * @see https://docs.onetrading.com/#fee-groups
+     * @see https://docs.onetrading.com/#fees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
@@ -413,7 +418,16 @@ public partial class onetrading : Exchange
             object options = this.safeValue(this.options, "fetchTradingFees", new Dictionary<string, object>() {});
             method = this.safeString(options, "method", "fetchPrivateTradingFees");
         }
-        return await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
+        {
+            return await this.fetchPrivateTradingFees(parameters);
+        } else if (isTrue(isEqual(method, "fetchPublicTradingFees")))
+        {
+            return await this.fetchPublicTradingFees(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
+        }
     }
 
     public async virtual Task<object> fetchPublicTradingFees(object parameters = null)
@@ -590,6 +604,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.onetrading.com/#market-ticker-for-instrument
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -628,7 +643,8 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @see https://docs.onetrading.com/#market-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -672,6 +688,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.onetrading.com/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -790,6 +807,7 @@ public partial class onetrading : Exchange
      * @method
      * @name onetrading#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.onetrading.com/#candlesticks
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -922,49 +940,6 @@ public partial class onetrading : Exchange
             { "fee", fee },
             { "info", trade },
         }, market);
-    }
-
-    /**
-     * @method
-     * @name onetrading#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "instrument_code", getValue(market, "id") },
-        };
-        if (isTrue(!isEqual(since, null)))
-        {
-            // returns price ticks for a specific market with an interval of maximum of 4 hours
-            // sorted by latest first
-            ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
-            ((IDictionary<string,object>)request)["to"] = this.iso8601(this.sum(since, 14400000));
-        }
-        object response = await this.publicGetPriceTicksInstrumentCode(this.extend(request, parameters));
-        //
-        //     [
-        //         {
-        //             "instrument_code":"BTC_EUR",
-        //             "price":"8137.28",
-        //             "amount":"0.22269",
-        //             "taker_side":"BUY",
-        //             "volume":"1812.0908832",
-        //             "time":"2020-07-10T14:44:32.299Z",
-        //             "trade_timestamp":1594392272299,
-        //             "sequence":603047
-        //         }
-        //     ]
-        //
-        return this.parseTrades(response, market, since, limit);
     }
 
     public override object parseBalance(object response)

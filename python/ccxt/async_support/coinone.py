@@ -240,7 +240,7 @@ class coinone(Exchange, ImplicitAPI):
         #     }
         #
         result: dict = {}
-        currencies = self.safe_value(response, 'currencies', [])
+        currencies = self.safe_list(response, 'currencies', [])
         for i in range(0, len(currencies)):
             entry = currencies[i]
             id = self.safe_string(entry, 'symbol')
@@ -320,7 +320,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        tickers = self.safe_value(response, 'tickers', [])
+        tickers = self.safe_list(response, 'tickers', [])
         result = []
         for i in range(0, len(tickers)):
             entry = self.safe_value(tickers, i)
@@ -570,7 +570,7 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'tickers', [])
+        data = self.safe_list(response, 'tickers', [])
         ticker = self.safe_dict(data, 0, {})
         return self.parse_ticker(ticker, market)
 
@@ -603,8 +603,8 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        asks = self.safe_value(ticker, 'best_asks')
-        bids = self.safe_value(ticker, 'best_bids')
+        asks = self.safe_list(ticker, 'best_asks', [])
+        bids = self.safe_list(ticker, 'best_bids', [])
         baseId = self.safe_string(ticker, 'target_currency')
         quoteId = self.safe_string(ticker, 'quote_currency')
         base = self.safe_currency_code(baseId)
@@ -658,7 +658,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(trade, 'timestamp')
         market = self.safe_market(None, market)
-        isSellerMaker = self.safe_value(trade, 'is_seller_maker')
+        isSellerMaker = self.safe_bool(trade, 'is_seller_maker')
         side = None
         if isSellerMaker is not None:
             side = 'sell' if isSellerMaker else 'buy'
@@ -1063,7 +1063,7 @@ class coinone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        walletAddress = self.safe_value(response, 'walletAddress', {})
+        walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
         result: dict = {}
         for i in range(0, len(keys)):

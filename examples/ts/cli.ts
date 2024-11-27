@@ -5,7 +5,7 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
-import add_static_result from '../../utils/update-static-request-response.js'
+import { add_static_result } from '../../utils/update-static-tests-data.js'
 
 const fsPromises = fs.promises;
 ansi.nice

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.4.33'
+__version__ = '4.4.34'
 
 # ----------------------------------------------------------------------------
 
@@ -138,6 +138,7 @@ from ccxt.currencycom import currencycom                              # noqa: F4
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
+from ccxt.ellipx import ellipx                                        # noqa: F401
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
@@ -249,6 +250,7 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
+    'ellipx',
     'exmo',
     'fmfwio',
     'gate',

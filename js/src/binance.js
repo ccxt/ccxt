@@ -2114,6 +2114,7 @@ export default class binance extends Exchange {
                         '-4141': OperationRejected,
                         '-4144': BadSymbol,
                         '-4164': InvalidOrder,
+                        '-4136': InvalidOrder,
                         '-4165': BadRequest,
                         '-4167': BadRequest,
                         '-4168': BadRequest,
@@ -6392,6 +6393,7 @@ export default class binance extends Exchange {
         const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        const closePosition = this.safeBool(params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -6471,14 +6473,15 @@ export default class binance extends Exchange {
             priceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            const closePosition = this.safeBool(params, 'closePosition');
-            if (closePosition === undefined) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         }
         else if (uppercaseType === 'TRAILING_STOP_MARKET') {
-            quantityIsRequired = true;
+            if (!closePosition) {
+                quantityIsRequired = true;
+            }
             if (trailingPercent === undefined) {
                 throw new InvalidOrder(this.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order');
             }
@@ -11929,13 +11932,13 @@ export default class binance extends Exchange {
     getExceptionsByUrl(url, exactOrBroad) {
         let marketType = undefined;
         const hostname = (this.hostname !== undefined) ? this.hostname : 'binance.com';
-        if (url.startsWith('https://api.' + hostname + '/')) {
+        if (url.startsWith('https://api.' + hostname + '/') || url.startsWith('https://testnet.binance.vision')) {
             marketType = 'spot';
         }
-        else if (url.startsWith('https://dapi.' + hostname + '/')) {
+        else if (url.startsWith('https://dapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/dapi')) {
             marketType = 'inverse';
         }
-        else if (url.startsWith('https://fapi.' + hostname + '/')) {
+        else if (url.startsWith('https://fapi.' + hostname + '/') || url.startsWith('https://testnet.binancefuture.com/fapi')) {
             marketType = 'linear';
         }
         else if (url.startsWith('https://eapi.' + hostname + '/')) {

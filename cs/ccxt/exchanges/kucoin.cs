@@ -998,7 +998,7 @@ public partial class kucoin : Exchange
                 { "type", "spot" },
                 { "spot", true },
                 { "margin", isMarginable },
-                { "marginMode", new Dictionary<string, object>() {
+                { "marginModes", new Dictionary<string, object>() {
                     { "cross", hasCrossMargin },
                     { "isolated", hasIsolatedMargin },
                 } },

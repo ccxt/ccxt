@@ -28,9 +28,6 @@ abstract class onetrading extends \ccxt\async\Exchange {
     public function public_get_market_ticker_instrument_code($params = array()) {
         return $this->request('market-ticker/{instrument_code}', 'public', 'GET', $params, null, null, array());
     }
-    public function public_get_price_ticks_instrument_code($params = array()) {
-        return $this->request('price-ticks/{instrument_code}', 'public', 'GET', $params, null, null, array());
-    }
     public function public_get_time($params = array()) {
         return $this->request('time', 'public', 'GET', $params, null, null, array());
     }
@@ -120,9 +117,6 @@ abstract class onetrading extends \ccxt\async\Exchange {
     }
     public function publicGetMarketTickerInstrumentCode($params = array()) {
         return $this->request('market-ticker/{instrument_code}', 'public', 'GET', $params, null, null, array());
-    }
-    public function publicGetPriceTicksInstrumentCode($params = array()) {
-        return $this->request('price-ticks/{instrument_code}', 'public', 'GET', $params, null, null, array());
     }
     public function publicGetTime($params = array()) {
         return $this->request('time', 'public', 'GET', $params, null, null, array());

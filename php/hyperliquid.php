@@ -198,6 +198,8 @@ class hyperliquid extends Exchange {
                     'User or API Wallet ' => '\\ccxt\\InvalidOrder',
                     'Order has invalid size' => '\\ccxt\\InvalidOrder',
                     'Order price cannot be more than 80% away from the reference price' => '\\ccxt\\InvalidOrder',
+                    'Order has zero size.' => '\\ccxt\\InvalidOrder',
+                    'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
             'precisionMode' => DECIMAL_PLACES,
@@ -356,6 +358,52 @@ class hyperliquid extends Exchange {
         return $this->parse_markets($result);
     }
 
+    public function calculate_price_precision(float $price, float $amountPrecision, float $maxDecimals) {
+        /**
+         * Helper function to calculate the Hyperliquid DECIMAL_PLACES $price precision
+         * @param {float} $price the $price to use in the calculation
+         * @param {int} $amountPrecision the $amountPrecision to use in the calculation
+         * @param {int} $maxDecimals the $maxDecimals to use in the calculation
+         * @return {int} The calculated $price precision
+         */
+        $pricePrecision = 0;
+        $priceStr = $this->number_to_string($price);
+        if ($priceStr === null) {
+            return 0;
+        }
+        $priceSplitted = explode('.', $priceStr);
+        if (Precise::string_eq($priceStr, '0')) {
+            // Significant digits is always property_exists($this, 5) case
+            $significantDigits = 5;
+            // Integer digits is always property_exists($this, 0) case (0 doesn't count)
+            $integerDigits = 0;
+            // Calculate the $price precision
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $significantDigits - $integerDigits);
+        } elseif (Precise::string_gt($priceStr, '0') && Precise::string_lt($priceStr, '1')) {
+            // Significant digits, always property_exists($this, 5) case
+            $significantDigits = 5;
+            // Get the part after the decimal separator
+            $decimalPart = $this->safe_string($priceSplitted, 1, '');
+            // Count the number of leading zeros in the decimal part
+            $leadingZeros = 0;
+            while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
+                $leadingZeros = $leadingZeros + 1;
+            }
+            // Calculate $price precision based on leading zeros and significant digits
+            $pricePrecision = $leadingZeros . $significantDigits;
+            // Calculate the $price precision based on $maxDecimals - szDecimals and the calculated $price precision from the previous step
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $pricePrecision);
+        } else {
+            // Count the numbers before the decimal separator
+            $integerPart = $this->safe_string($priceSplitted, 0, '');
+            // Get significant digits, take the max() of 5 and the integer digits count
+            $significantDigits = max (5, strlen($integerPart));
+            // Calculate $price precision based on $maxDecimals - szDecimals and $significantDigits - strlen($integerPart)
+            $pricePrecision = min ($maxDecimals - $amountPrecision, $significantDigits - strlen($integerPart));
+        }
+        return $this->parse_to_int($pricePrecision);
+    }
+
     public function fetch_spot_markets($params = array ()): array {
         /**
          * retrieves data on all spot $markets for hyperliquid
@@ -446,6 +494,8 @@ class hyperliquid extends Exchange {
             $innerBaseTokenInfo = $this->safe_dict($baseTokenInfo, 'spec', $baseTokenInfo);
             // $innerQuoteTokenInfo = $this->safe_dict($quoteTokenInfo, 'spec', $quoteTokenInfo);
             $amountPrecision = $this->safe_integer($innerBaseTokenInfo, 'szDecimals');
+            $price = $this->safe_number($extraData, 'midPx');
+            $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 8);
             // $quotePrecision = $this->parse_number($this->parse_precision($this->safe_string($innerQuoteTokenInfo, 'szDecimals')));
             $baseId = $this->number_to_string($i + 10000);
             $markets[] = $this->safe_market_structure(array(
@@ -476,8 +526,8 @@ class hyperliquid extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $amountPrecision, // decimal places
-                    'price' => 8 - $amountPrecision, // MAX_DECIMALS is 8
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -543,6 +593,8 @@ class hyperliquid extends Exchange {
         $taker = $this->safe_number($fees, 'taker');
         $maker = $this->safe_number($fees, 'maker');
         $amountPrecision = $this->safe_integer($market, 'szDecimals');
+        $price = $this->safe_number($market, 'markPx', 0);
+        $pricePrecision = $this->calculate_price_precision($price, $amountPrecision, 6);
         return $this->safe_market_structure(array(
             'id' => $baseId,
             'symbol' => $symbol,
@@ -570,8 +622,8 @@ class hyperliquid extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision, // decimal places
-                'price' => 6 - $amountPrecision, // MAX_DECIMALS is 6
+                'amount' => $amountPrecision,
+                'price' => $pricePrecision,
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1058,10 +1110,12 @@ class hyperliquid extends Exchange {
 
     public function price_to_precision(string $symbol, $price): string {
         $market = $this->market($symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        $result = $this->decimal_to_precision($price, ROUND, 5, SIGNIFICANT_DIGITS, $this->paddingMode);
-        $decimalParsedResult = $this->decimal_to_precision($result, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
-        return $decimalParsedResult;
+        $priceStr = $this->number_to_string($price);
+        $integerPart = explode('.', $priceStr)[0];
+        $significantDigits = max (5, strlen($integerPart));
+        $result = $this->decimal_to_precision($price, ROUND, $significantDigits, SIGNIFICANT_DIGITS, $this->paddingMode);
+        $maxDecimals = $market['spot'] ? 8 : 6;
+        return $this->decimal_to_precision($result, ROUND, $maxDecimals - $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
     }
 
     public function hash_message($message) {
