@@ -932,7 +932,103 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "twap closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "success",
+                    "timestamp": 1732697991924,
+                    "data": {
+                        "list": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "mainOrderId": "774133392271760467",
+                                "side": "BUY",
+                                "positionSide": "LONG",
+                                "priceType": "constant",
+                                "priceVariance": "10.00",
+                                "triggerPrice": "120.00",
+                                "interval": 8,
+                                "amountPerOrder": "0.5",
+                                "totalAmount": "1.0",
+                                "orderStatus": "Filled",
+                                "executedQty": "1.0",
+                                "duration": 16,
+                                "maxDuration": 86400,
+                                "createdTime": 1732695030000,
+                                "updateTime": 1732695046000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "mainOrderId": "774133392271760467",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "priceType": "constant",
+                            "priceVariance": "10.00",
+                            "triggerPrice": "120.00",
+                            "interval": 8,
+                            "amountPerOrder": "0.5",
+                            "totalAmount": "1.0",
+                            "orderStatus": "Filled",
+                            "executedQty": "1.0",
+                            "duration": 16,
+                            "maxDuration": 86400,
+                            "createdTime": 1732695030000,
+                            "updateTime": 1732695046000
+                        },
+                        "id": "774133392271760467",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1732695030000,
+                        "datetime": "2024-11-27T08:10:30.000Z",
+                        "lastTradeTimestamp": 1732695046000,
+                        "lastUpdateTimestamp": 1732695046000,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": null
+                            }
+                        ]
+                    }
+                ]
             }
+
         ],
         "fetchBalance": [
             {
@@ -1327,7 +1423,7 @@
                 ]
             },
             {
-                "description": "spot open orders",
+                "description": "twap open orders",
                 "method": "fetchOpenOrders",
                 "input": [
                     "LTC/USDT:USDT",
