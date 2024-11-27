@@ -690,6 +690,88 @@ export default class gate extends Exchange {
                     },
                 },
             },
+            
+            'features': {
+                // 
+                'spot': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': true, //for contract :false
+                        'triggerPrice': true,
+                        'triggerPriceType': undefined,
+                        'triggerDirection': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                        // exchange-supported features
+                        'iceberg': true,
+                        'selfTradePrevention': true,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 1, // days between start-end
+                    },
+                    'fetchOrder': {
+                        'marginMode': true,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': true,
+                        'limit': undefined,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBack': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': true,
+                        'limit': 1000,
+                        'daysBackClosed': undefined,
+                        'daysBackCanceled': undefined,
+                        'untilDays': 10000,
+                        'trigger': false,
+                        'trailing': false,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': {
+                        'extends': 'default',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
@@ -1598,13 +1680,13 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    getMarginMode (stop, params) {
+    getMarginMode (trigger, params) {
         /**
          * @ignore
          * @method
          * @name gate#getMarginMode
          * @description Gets the margin type for this api call
-         * @param {bool} stop True if for a stop order
+         * @param {bool} trigger True if for a trigger order
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
@@ -1618,13 +1700,13 @@ export default class gate extends Exchange {
         } else if (marginMode === '') {
             marginMode = 'spot';
         }
-        if (stop) {
+        if (trigger) {
             if (marginMode === 'spot') {
-                // gate spot stop orders use the term normal instead of spot
+                // gate spot trigger orders use the term normal instead of spot
                 marginMode = 'normal';
             }
             if (marginMode === 'cross_margin') {
-                throw new BadRequest (this.id + ' getMarginMode() does not support stop orders for cross margin');
+                throw new BadRequest (this.id + ' getMarginMode() does not support trigger orders for cross margin');
             }
         }
         let isUnifiedAccount = false;
@@ -3996,8 +4078,8 @@ export default class gate extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
-        const nonTriggerOrder = !isStopOrder && (trigger === undefined);
+        const isTriggerOrder = isStopLossOrder || isTakeProfitOrder;
+        const nonTriggerOrder = !isTriggerOrder && (trigger === undefined);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot'] || market['margin']) {
@@ -4159,7 +4241,7 @@ export default class gate extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const isTriggerOrder = isStopLossOrder || isTakeProfitOrder;
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
@@ -4204,7 +4286,7 @@ export default class gate extends Exchange {
             }
         }
         let request = undefined;
-        const nonTriggerOrder = !isStopOrder && (trigger === undefined);
+        const nonTriggerOrder = !isTriggerOrder && (trigger === undefined);
         if (nonTriggerOrder) {
             if (contract) {
                 // contract order
