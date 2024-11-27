@@ -103,6 +103,17 @@
     "live-tests-ws-php": "npm run live-tests -- --php    --ws",
     "live-tests-rest-csharp": "npm run live-tests -- --csharp",
     "live-tests-ws-csharp": "npm run live-tests -- --csharp --ws",
+    
+    "test-request-ts": "npm run runtests -- --ts --request",
+    "test-request-js": "npm run runtests -- --js --request",
+    "test-request-py-sync": "npm run runtests -- --python --request",
+    "test-request-py-async": "npm run runtests -- --python-async --request",
+    "test-request-php-sync": "npm run runtests -- --php --request",
+    "test-request-php-async": "npm run runtests -- --php-async --request",
+    "test-request-php": "npm run test-request-php-sync && npm run test-request-php-async",
+    "test-request-cs": "npm run runtests -- --csharp --request",
+    "test-request": "npm run test-request-js && npm run test-request-py && npm run test-request-php && npm test-run request-cs",
+
     "ti-ts": "tsx ts/src/test/tests.init.ts",
     "ti-js": "node js/src/test/tests.init.js",
     "ti-py": "python3 python/ccxt/test/tests_init.py",
