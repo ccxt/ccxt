@@ -1199,7 +1199,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'type': 'spot',
                 'spot': True,
                 'margin': isMarginable,
-                'marginMode': {
+                'marginModes': {
                     'cross': hasCrossMargin,
                     'isolated': hasIsolatedMargin,
                 },

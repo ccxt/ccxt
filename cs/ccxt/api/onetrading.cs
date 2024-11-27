@@ -46,11 +46,6 @@ public partial class onetrading : Exchange
         return await this.callAsync ("publicGetMarketTickerInstrumentCode",parameters);
     }
 
-    public async Task<object> publicGetPriceTicksInstrumentCode (object parameters = null)
-    {
-        return await this.callAsync ("publicGetPriceTicksInstrumentCode",parameters);
-    }
-
     public async Task<object> publicGetTime (object parameters = null)
     {
         return await this.callAsync ("publicGetTime",parameters);
