@@ -4011,13 +4011,13 @@ export default class gate extends Exchange {
             // undocumented api call for creating an SLTP embeddable order
             if (this.safeString (params, 'method') === 'privateFuturesPostSettlePriceOrdersOrderStopOrder') {
                 orderRequest['text'] = 'web';
-                let newRequest = {
+                const newRequest = {
                     'order': orderRequest,
                     'settle': orderRequest['settle'],
                     'stop_loss': this.safeDict (params, 'stop_loss'),
                     'stop_profit': this.safeDict (params, 'stop_profit'),
                 };
-                newRequest['order'] = this.omit (newRequest['order'], ['stop_loss', 'stop_profit', 'method', 'settle']);
+                newRequest['order'] = this.omit (newRequest['order'], [ 'stop_loss', 'stop_profit', 'method', 'settle' ]);
                 if (!this.handleOption ('createOrder', 'confirm_swap_tpsl_warning', false)) {
                     throw new ExchangeError (this.id + ' createOrder() : this is an undocumented feature which can change anytime without warning. If you want to use this feature before official API is released, set exchange.options["createOrder"]["confirm_swap_tpsl_warning"] = true');
                 }
