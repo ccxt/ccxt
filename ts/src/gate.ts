@@ -458,6 +458,7 @@ export default class gate extends Exchange {
                             '{settle}/countdown_cancel_all': 0.4,
                             '{settle}/batch_cancel_orders': 0.4,
                             '{settle}/price_orders': 0.4,
+                            '{settle}/price_orders/order_stop_order': 0.4,
                         },
                         'put': {
                             '{settle}/orders/{order_id}': 1,
@@ -4007,7 +4008,21 @@ export default class gate extends Exchange {
                 response = await this.privateSpotPostPriceOrders (orderRequest);
             }
         } else if (market['swap']) {
-            if (nonTriggerOrder) {
+            // undocumented api call for creating an SLTP embeddable order
+            if (this.safeString (params, 'method') === 'privateFuturesPostSettlePriceOrdersOrderStopOrder') {
+                let newRequest = {
+                    'order': orderRequest,
+                    'settle': orderRequest['settle'],
+                    'text': 'web',
+                    'stop_loss': this.safeDict (params, 'stop_loss'),
+                    'stop_profit': this.safeDict (params, 'stop_profit'),
+                };
+                newRequest['order'] = this.omit (newRequest['order'], ['stop_loss', 'stop_profit', 'method', 'settle']);
+                if (!this.handleOption ('createOrder', 'confirm_swap_tpsl_warning', false)) {
+                    throw new ExchangeError (this.id + ' createOrder() : this is an undocumented feature which can change anytime without warning. If you want to use this feature before official API is released, set exchange.options["createOrder"]["confirm_swap_tpsl_warning"] = true');
+                }
+                response = await this.privateFuturesPostSettlePriceOrdersOrderStopOrder (newRequest);
+            } else if (nonTriggerOrder) {
                 response = await this.privateFuturesPostSettleOrders (orderRequest);
             } else {
                 response = await this.privateFuturesPostSettlePriceOrders (orderRequest);
