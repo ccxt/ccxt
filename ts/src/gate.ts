@@ -4010,10 +4010,10 @@ export default class gate extends Exchange {
         } else if (market['swap']) {
             // undocumented api call for creating an SLTP embeddable order
             if (this.safeString (params, 'method') === 'privateFuturesPostSettlePriceOrdersOrderStopOrder') {
+                orderRequest['text'] = 'web';
                 let newRequest = {
                     'order': orderRequest,
                     'settle': orderRequest['settle'],
-                    'text': 'web',
                     'stop_loss': this.safeDict (params, 'stop_loss'),
                     'stop_profit': this.safeDict (params, 'stop_profit'),
                 };
