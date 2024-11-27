@@ -778,22 +778,22 @@ export default class gate extends Exchange {
                         'limit': 1999,
                     },
                 },
-                // 'swap': {
-                //     'linear': {
-                //         'extends': 'default',
-                //     },
-                //     'inverse': {
-                //         'extends': 'default',
-                //     },
-                // },
-                // 'future': {
-                //     'linear': {
-                //         'extends': 'default',
-                //     },
-                //     'inverse': {
-                //         'extends': 'default',
-                //     },
-                // },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
             },
             'precisionMode': TICK_SIZE,
             'fees': {
