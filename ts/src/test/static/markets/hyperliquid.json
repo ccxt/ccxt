@@ -23,7 +23,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 0,
-            "price": 6
+            "price": 5
         },
         "limits": {
             "leverage": {
@@ -40,18 +40,17 @@
             "szDecimals": "0",
             "name": "MEME",
             "maxLeverage": "10",
-            "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "40171458.0",
-            "prevDayPx": "0.009559",
-            "dayNtlVlm": "630891.175177",
-            "premium": "-0.00085197",
-            "oraclePx": "0.00939",
-            "markPx": "0.00938",
-            "midPx": "0.009379",
+            "openInterest": "44958732.0",
+            "prevDayPx": "0.013914",
+            "dayNtlVlm": "949468.191114",
+            "premium": "0.0",
+            "oraclePx": "0.01356",
+            "markPx": "0.013569",
+            "midPx": "0.013568",
             "impactPxs": [
-                "0.009376",
-                "0.009382"
+                "0.013558",
+                "0.013575"
             ],
             "baseId": 75
         }
@@ -80,7 +79,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 5,
-            "price": 1
+            "price": 0
         },
         "limits": {
             "leverage": {
@@ -97,18 +96,17 @@
             "szDecimals": "5",
             "name": "BTC",
             "maxLeverage": "50",
-            "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "4860.76306",
-            "prevDayPx": "59020.0",
-            "dayNtlVlm": "403052868.24544066",
-            "premium": "-0.00025449",
-            "oraclePx": "58941.0",
-            "markPx": "58923.0",
-            "midPx": "58925.5",
+            "openInterest": "5463.98286",
+            "prevDayPx": "93035.0",
+            "dayNtlVlm": "889309082.25619972",
+            "premium": "0.00037404",
+            "oraclePx": "93574.0",
+            "markPx": "93618.0",
+            "midPx": "93612.5",
             "impactPxs": [
-                "58925.0",
-                "58926.0"
+                "93609.0",
+                "93613.0"
             ],
             "baseId": 0
         }
@@ -137,7 +135,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 2,
-            "price": 4
+            "price": 2
         },
         "limits": {
             "leverage": {
@@ -154,18 +152,17 @@
             "szDecimals": "2",
             "name": "SOL",
             "maxLeverage": "20",
-            "onlyIsolated": false,
-            "funding": "0.0000125",
-            "openInterest": "670378.48",
-            "prevDayPx": "132.2",
-            "dayNtlVlm": "69242191.25269997",
-            "premium": "0.00015102",
-            "oraclePx": "132.43",
-            "markPx": "132.39",
-            "midPx": "132.455",
+            "funding": "0.00003931",
+            "openInterest": "1122499.2",
+            "prevDayPx": "232.31",
+            "dayNtlVlm": "213212881.74470013",
+            "premium": "0.00094013",
+            "oraclePx": "234.01",
+            "markPx": "234.21",
+            "midPx": "234.235",
             "impactPxs": [
-                "132.45",
-                "132.4695"
+                "234.23",
+                "234.24"
             ],
             "baseId": 5
         }
@@ -194,7 +191,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 4,
-            "price": 2
+            "price": 1
         },
         "limits": {
             "leverage": {
@@ -211,18 +208,17 @@
             "szDecimals": "4",
             "name": "ETH",
             "maxLeverage": "50",
-            "onlyIsolated": false,
-            "funding": "0.0000125",
-            "openInterest": "82260.911",
-            "prevDayPx": "2316.4",
-            "dayNtlVlm": "180940345.04384011",
-            "premium": "0.00004325",
-            "oraclePx": "2311.9",
-            "markPx": "2312.4",
-            "midPx": "2312.45",
+            "funding": "0.00003492",
+            "openInterest": "154981.1298",
+            "prevDayPx": "3349.4",
+            "dayNtlVlm": "715488909.88699019",
+            "premium": "0.00072878",
+            "oraclePx": "3430.4",
+            "markPx": "3433.0",
+            "midPx": "3433.0",
             "impactPxs": [
-                "2312.0",
-                "2312.5"
+                "3432.9",
+                "3433.1"
             ],
             "baseId": 1
         }
@@ -251,7 +247,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 0,
-            "price": 6
+            "price": 5
         },
         "limits": {
             "leverage": {
@@ -268,18 +264,17 @@
             "szDecimals": "0",
             "name": "ADA",
             "maxLeverage": "20",
-            "onlyIsolated": false,
             "funding": "0.0000125",
-            "openInterest": "5069486.0",
-            "prevDayPx": "0.33606",
-            "dayNtlVlm": "237499.13368",
-            "premium": "-0.00048438",
-            "oraclePx": "0.33445",
-            "markPx": "0.33417",
-            "midPx": "0.334215",
+            "openInterest": "6434276.0",
+            "prevDayPx": "0.93139",
+            "dayNtlVlm": "7566861.96999",
+            "premium": "0.00071512",
+            "oraclePx": "0.98585",
+            "markPx": "0.98658",
+            "midPx": "0.986655",
             "impactPxs": [
-                "0.334135",
-                "0.334288"
+                "0.986555",
+                "0.986807"
             ],
             "baseId": 65
         }
@@ -303,7 +298,7 @@
         "maker": 0.0001,
         "precision": {
             "amount": 0,
-            "price": 8
+            "price": 5
         },
         "limits": {
             "leverage": {},
@@ -315,11 +310,11 @@
         },
         "marginModes": {},
         "info": {
-            "prevDayPx": "0.13414",
-            "dayNtlVlm": "1804263.16197",
-            "markPx": "0.13172",
-            "midPx": "0.131725",
-            "circulatingSupply": "598447701.53980005",
+            "prevDayPx": "0.2385",
+            "dayNtlVlm": "3082830.33517",
+            "markPx": "0.26019",
+            "midPx": "0.2604",
+            "circulatingSupply": "598221812.38455999",
             "coin": "PURR/USDC",
             "tokens": [
                 1,

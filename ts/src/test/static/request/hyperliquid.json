@@ -39,6 +39,19 @@
     ],
         "createOrder": [
             {
+                "description": "limit order with more than 5 sig digs",
+                "method": "createOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/exchange",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0014,
+                    100000.42343243
+                ],
+                "output": "{\"action\":{\"type\":\"order\",\"orders\":[{\"a\":0,\"b\":true,\"p\":\"100000\",\"s\":\"0.0014\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}}}],\"grouping\":\"na\",\"brokerCode\":1},\"nonce\":1732702700305,\"signature\":{\"r\":\"0xf9ca85459036d333814b93d3516a238e330be7d4dd0780269236bf9154056cba\",\"s\":\"0x2bbe382c0dfa04d21bf65b701c128aad31886f932b319d4c3ef37e930b30bb5b\",\"v\":28}}"
+            },
+            {
                 "description": "swap limit order",
                 "method": "createOrder",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",
