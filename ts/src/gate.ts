@@ -4100,8 +4100,8 @@ export default class gate extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isTriggerOrder = isStopLossOrder || isTakeProfitOrder;
-        const nonTriggerOrder = !isTriggerOrder && (trigger === undefined);
+        const isTpsl = isStopLossOrder || isTakeProfitOrder;
+        const nonTriggerOrder = !isTpsl && (trigger === undefined);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
         if (market['spot'] || market['margin']) {
@@ -4263,7 +4263,7 @@ export default class gate extends Exchange {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isTriggerOrder = isStopLossOrder || isTakeProfitOrder;
+        const isTpsl = isStopLossOrder || isTakeProfitOrder;
         if (isStopLossOrder && isTakeProfitOrder) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
@@ -4308,7 +4308,7 @@ export default class gate extends Exchange {
             }
         }
         let request = undefined;
-        const nonTriggerOrder = !isTriggerOrder && (trigger === undefined);
+        const nonTriggerOrder = !isTpsl && (trigger === undefined);
         if (nonTriggerOrder) {
             if (contract) {
                 // contract order
