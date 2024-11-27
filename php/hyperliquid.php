@@ -386,7 +386,7 @@ class hyperliquid extends Exchange {
             $decimalPart = $this->safe_string($priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
             $leadingZeros = 0;
-            while (($leadingZeros <= strlen($decimalPart)) && $this->safe_string($decimalPart, $leadingZeros) === '0') {
+            while (($leadingZeros <= strlen($decimalPart)) && ($decimalPart[$leadingZeros] === '0')) {
                 $leadingZeros = $leadingZeros + 1;
             }
             // Calculate $price precision based on leading zeros and significant digits

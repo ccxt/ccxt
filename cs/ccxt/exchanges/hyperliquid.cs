@@ -389,7 +389,7 @@ public partial class hyperliquid : Exchange
             object decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
             object leadingZeros = 0;
-            while (isTrue((isLessThanOrEqual(leadingZeros, ((string)decimalPart).Length))) && isTrue(isEqual(this.safeString(decimalPart, leadingZeros), "0")))
+            while (isTrue((isLessThanOrEqual(leadingZeros, ((string)decimalPart).Length))) && isTrue((isEqual(getValue(decimalPart, leadingZeros), "0"))))
             {
                 leadingZeros = add(leadingZeros, 1);
             }

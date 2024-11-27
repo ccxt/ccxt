@@ -392,7 +392,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             decimalPart = self.safe_string(priceSplitted, 1, '')
             # Count the number of leading zeros in the decimal part
             leadingZeros = 0
-            while((leadingZeros <= len(decimalPart)) and self.safe_string(decimalPart, leadingZeros) == '0'):
+            while((leadingZeros <= len(decimalPart)) and (decimalPart[leadingZeros] == '0')):
                 leadingZeros = leadingZeros + 1
             # Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits

@@ -387,7 +387,7 @@ export default class hyperliquid extends Exchange {
             const decimalPart = this.safeString(priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
             let leadingZeros = 0;
-            while ((leadingZeros <= decimalPart.length) && this.safeString(decimalPart, leadingZeros) === '0') {
+            while ((leadingZeros <= decimalPart.length) && (decimalPart[leadingZeros] === '0')) {
                 leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
