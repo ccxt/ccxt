@@ -543,6 +543,25 @@
                     "reduceOnly": true
                   }
                 ]
+            },
+            {
+                "description": "swap create TWAP order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/order?amountPerOrder=0.5&interval=8&positionSide=LONG&priceType=constant&priceVariance=10&side=BUY&symbol=LTC-USDT&timestamp=1732693774172&totalAmount=1&triggerPrice=120&signature=628848cc3080ef44034deb561c9ca5015171de1717458378bea67df657131795",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "twap",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "priceType": "constant",
+                        "priceVariance": "10",
+                        "triggerPrice": "120",
+                        "interval": 8,
+                        "amountPerOrder": "0.5"
+                    }
+                ]
             }
         ],
         "createOrders": [

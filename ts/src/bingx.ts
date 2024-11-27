@@ -2695,6 +2695,10 @@ export default class bingx extends Exchange {
         };
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
+        const isTwapOrder = type === 'TWAP';
+        if (isTwapOrder && isSpot) {
+            throw new BadSymbol (this.id + ' createOrder() twap order supports swap contracts only');
+        }
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
@@ -2752,6 +2756,27 @@ export default class bingx extends Exchange {
                 request['stopPrice'] = this.parseToNumeric (this.priceToPrecision (symbol, stopTakePrice));
             }
         } else {
+            if (isTwapOrder) {
+                const twapRequest : Dict = {
+                    'symbol': request['symbol'],
+                    'side': request['side'],
+                    'positionSide': (side === 'buy') ? 'LONG' : 'SHORT',
+                    'triggerPrice': this.parseToNumeric (this.priceToPrecision (symbol, triggerPrice)),
+                    'totalAmount': this.parseToNumeric (this.amountToPrecision (symbol, amount)),
+                };
+                //     {
+                //         "symbol": "LTC-USDT",
+                //         "side": "BUY",
+                //         "positionSide": "LONG",
+                //         "priceType": "constant",
+                //         "priceVariance": "10",
+                //         "triggerPrice": "120",
+                //         "interval": 8,
+                //         "amountPerOrder": "0.5",
+                //         "totalAmount": "1"
+                //     }
+                return this.extend (twapRequest, params);
+            }
             if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
@@ -2903,6 +2928,8 @@ export default class bingx extends Exchange {
                 response = await this.swapV2PrivatePostTradeOrderTest (request);
             } else if (market['inverse']) {
                 response = await this.cswapV1PrivatePostTradeOrder (request);
+            } else if (type === 'twap') {
+                response = await this.swapV1PrivatePostTwapOrder (request);
             } else {
                 response = await this.swapV2PrivatePostTradeOrder (request);
             }
@@ -2962,6 +2989,17 @@ export default class bingx extends Exchange {
         //         "timeInForce": ""
         //     }
         //
+        // twap order
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1732693774386,
+        //         "data": {
+        //             "mainOrderId": "4633860139993029715"
+        //         }
+        //     }
+        //
         if (typeof response === 'string') {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
@@ -2975,7 +3013,7 @@ export default class bingx extends Exchange {
             if (market['inverse']) {
                 result = response;
             } else {
-                result = this.safeDict (data, 'order', {});
+                result = this.safeDict (data, 'order', data);
             }
         } else {
             result = data;
@@ -3460,7 +3498,7 @@ export default class bingx extends Exchange {
         }
         return this.safeOrder ({
             'info': info,
-            'id': this.safeString2 (order, 'orderId', 'i'),
+            'id': this.safeStringN (order, [ 'orderId', 'i', 'mainOrderId' ]),
             'clientOrderId': this.safeStringN (order, [ 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' ]),
             'symbol': this.safeSymbol (marketId, market, '-', marketType),
             'timestamp': timestamp,

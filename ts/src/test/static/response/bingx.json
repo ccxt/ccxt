@@ -642,6 +642,69 @@
                     }
                   ]
                 }
+            },
+            {
+                "description": "swap create TWAP order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "twap",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "priceType": "constant",
+                        "priceVariance": "10",
+                        "triggerPrice": "120",
+                        "interval": 8,
+                        "amountPerOrder": "0.5"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1732693774386,
+                    "data": {
+                        "mainOrderId": "4633860139993029715"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {},
+                    "id": null,
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "fetchClosedOrders": [
