@@ -23,7 +23,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 0,
-            "price": 5
+            "price": 6
         },
         "limits": {
             "leverage": {
@@ -41,16 +41,16 @@
             "name": "MEME",
             "maxLeverage": "10",
             "funding": "0.0000125",
-            "openInterest": "44958732.0",
-            "prevDayPx": "0.013914",
-            "dayNtlVlm": "949468.191114",
-            "premium": "0.0",
-            "oraclePx": "0.01356",
-            "markPx": "0.013569",
-            "midPx": "0.013568",
+            "openInterest": "45238394.0",
+            "prevDayPx": "0.013332",
+            "dayNtlVlm": "474386.148907",
+            "premium": "0.00114457",
+            "oraclePx": "0.013979",
+            "markPx": "0.013995",
+            "midPx": "0.013999",
             "impactPxs": [
-                "0.013558",
-                "0.013575"
+                "0.013995",
+                "0.014004"
             ],
             "baseId": 75
         }
@@ -96,17 +96,17 @@
             "szDecimals": "5",
             "name": "BTC",
             "maxLeverage": "50",
-            "funding": "0.0000125",
-            "openInterest": "5463.98286",
-            "prevDayPx": "93035.0",
-            "dayNtlVlm": "889309082.25619972",
-            "premium": "0.00037404",
-            "oraclePx": "93574.0",
-            "markPx": "93618.0",
-            "midPx": "93612.5",
+            "funding": "0.00001533",
+            "openInterest": "5243.4927",
+            "prevDayPx": "94290.0",
+            "dayNtlVlm": "783783312.49554014",
+            "premium": "0.00060552",
+            "oraclePx": "95785.0",
+            "markPx": "95849.0",
+            "midPx": "95843.5",
             "impactPxs": [
-                "93609.0",
-                "93613.0"
+                "95843.0",
+                "95844.0"
             ],
             "baseId": 0
         }
@@ -152,17 +152,17 @@
             "szDecimals": "2",
             "name": "SOL",
             "maxLeverage": "20",
-            "funding": "0.00003931",
-            "openInterest": "1122499.2",
-            "prevDayPx": "232.31",
-            "dayNtlVlm": "213212881.74470013",
-            "premium": "0.00094013",
-            "oraclePx": "234.01",
-            "markPx": "234.21",
-            "midPx": "234.235",
+            "funding": "0.00005292",
+            "openInterest": "1151638.18",
+            "prevDayPx": "231.75",
+            "dayNtlVlm": "125763562.02999993",
+            "premium": "0.00104136",
+            "oraclePx": "240.07",
+            "markPx": "240.29",
+            "midPx": "240.325",
             "impactPxs": [
-                "234.23",
-                "234.24"
+                "240.32",
+                "240.33"
             ],
             "baseId": 5
         }
@@ -208,17 +208,17 @@
             "szDecimals": "4",
             "name": "ETH",
             "maxLeverage": "50",
-            "funding": "0.00003492",
-            "openInterest": "154981.1298",
-            "prevDayPx": "3349.4",
-            "dayNtlVlm": "715488909.88699019",
-            "premium": "0.00072878",
-            "oraclePx": "3430.4",
-            "markPx": "3433.0",
-            "midPx": "3433.0",
+            "funding": "0.00004811",
+            "openInterest": "155061.4908",
+            "prevDayPx": "3330.5",
+            "dayNtlVlm": "740022045.59444058",
+            "premium": "0.00092528",
+            "oraclePx": "3566.5",
+            "markPx": "3569.9",
+            "midPx": "3569.85",
             "impactPxs": [
-                "3432.9",
-                "3433.1"
+                "3569.8",
+                "3569.9"
             ],
             "baseId": 1
         }
@@ -247,7 +247,7 @@
         "contractSize": 1,
         "precision": {
             "amount": 0,
-            "price": 5
+            "price": 4
         },
         "limits": {
             "leverage": {
@@ -264,17 +264,17 @@
             "szDecimals": "0",
             "name": "ADA",
             "maxLeverage": "20",
-            "funding": "0.0000125",
-            "openInterest": "6434276.0",
-            "prevDayPx": "0.93139",
-            "dayNtlVlm": "7566861.96999",
-            "premium": "0.00071512",
-            "oraclePx": "0.98585",
-            "markPx": "0.98658",
-            "midPx": "0.986655",
+            "funding": "0.00002047",
+            "openInterest": "6330484.0",
+            "prevDayPx": "0.93752",
+            "dayNtlVlm": "9771196.27087999",
+            "premium": "0.00027615",
+            "oraclePx": "1.0248",
+            "markPx": "1.0254",
+            "midPx": "1.02515",
             "impactPxs": [
-                "0.986555",
-                "0.986807"
+                "1.025083",
+                "1.025214"
             ],
             "baseId": 65
         }
@@ -310,11 +310,11 @@
         },
         "marginModes": {},
         "info": {
-            "prevDayPx": "0.2385",
-            "dayNtlVlm": "3082830.33517",
-            "markPx": "0.26019",
-            "midPx": "0.2604",
-            "circulatingSupply": "598221812.38455999",
+            "prevDayPx": "0.24528",
+            "dayNtlVlm": "2948706.85772",
+            "markPx": "0.25351",
+            "midPx": "0.253375",
+            "circulatingSupply": "598221312.02837002",
             "coin": "PURR/USDC",
             "tokens": [
                 1,
