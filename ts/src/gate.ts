@@ -691,7 +691,6 @@ export default class gate extends Exchange {
                 },
             },
             'features': {
-                // 
                 'spot': {
                     'sandbox': true,
                     'createOrder': {
@@ -764,7 +763,7 @@ export default class gate extends Exchange {
                     },
                     'fetchMyTrades': {
                         'marginMode': false,
-                        'untilDays': undefined
+                        'untilDays': undefined,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,
@@ -772,7 +771,7 @@ export default class gate extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'untilDays': undefined,
-                        'limit': 1000
+                        'limit': 1000,
                     },
                     'fetchOHLCV': {
                         'limit': 1999,
