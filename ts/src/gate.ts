@@ -690,7 +690,6 @@ export default class gate extends Exchange {
                     },
                 },
             },
-            
             'features': {
                 // 
                 'spot': {
@@ -712,65 +711,60 @@ export default class gate extends Exchange {
                         },
                         'hedged': false,
                         'trailing': false,
-                        // exchange-supported features
+                        // exchange-specific features
                         'iceberg': true,
                         'selfTradePrevention': true,
                     },
-                    'createOrders': undefined,
+                    'createOrders': {
+                        'max': 5,
+                    },
                     'fetchMyTrades': {
-                        'marginMode': false,
+                        'marginMode': true, // false for swap
                         'limit': 1000,
                         'daysBack': undefined,
-                        'untilDays': 1, // days between start-end
+                        'untilDays': 30,
                     },
                     'fetchOrder': {
-                        'marginMode': true,
-                        'trigger': false,
+                        'marginMode': false,
+                        'trigger': true,
                         'trailing': false,
                     },
                     'fetchOpenOrders': {
                         'marginMode': true,
-                        'limit': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
+                        'limit': 100,
                     },
-                    'fetchOrders': {
-                        'marginMode': true,
-                        'limit': 1000,
-                        'daysBack': undefined,
-                        'untilDays': 10000,
-                        'trigger': false,
-                        'trailing': false,
-                    },
+                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
-                        'limit': 1000,
+                        'trigger': true,
+                        'trailing': false,
+                        'limit': 100,
+                        'untilDays': 30,
                         'daysBackClosed': undefined,
                         'daysBackCanceled': undefined,
-                        'untilDays': 10000,
-                        'trigger': false,
-                        'trailing': false,
                     },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
                 },
-                'swap': {
-                    'linear': {
-                        'extends': 'default',
-                    },
-                    'inverse': {
-                        'extends': 'default',
-                    },
-                },
-                'future': {
-                    'linear': {
-                        'extends': 'default',
-                    },
-                    'inverse': {
-                        'extends': 'default',
-                    },
-                },
+                // 'swap': {
+                //     'linear': {
+                //         'extends': 'default',
+                //     },
+                //     'inverse': {
+                //         'extends': 'default',
+                //     },
+                // },
+                // 'future': {
+                //     'linear': {
+                //         'extends': 'default',
+                //     },
+                //     'inverse': {
+                //         'extends': 'default',
+                //     },
+                // },
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -4932,23 +4926,23 @@ export default class gate extends Exchange {
         const market = (symbol === undefined) ? undefined : this.market (symbol);
         const result = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const type = this.safeString (result, 0);
-        const stop = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
+        const trigger = this.safeBoolN (params, [ 'trigger', 'is_stop_order', 'stop' ], false);
         const [ request, requestParams ] = this.fetchOrderRequest (id, symbol, params);
         let response = undefined;
         if (type === 'spot' || type === 'margin') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateSpotGetPriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateSpotGetOrdersOrderId (this.extend (request, requestParams));
             }
         } else if (type === 'swap') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateFuturesGetSettleOrdersOrderId (this.extend (request, requestParams));
             }
         } else if (type === 'future') {
-            if (stop) {
+            if (trigger) {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId (this.extend (request, requestParams));
             } else {
                 response = await this.privateDeliveryGetSettleOrdersOrderId (this.extend (request, requestParams));
