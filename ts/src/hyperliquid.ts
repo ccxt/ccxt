@@ -372,7 +372,6 @@ export default class hyperliquid extends Exchange {
      */
     calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
         let pricePrecision = 0;
-        // We might get 2 dots, doesn't matter
         const priceStr = this.numberToString (price);
         if (price === 0) {
             // Significant digits is always 5 in this case
@@ -386,21 +385,21 @@ export default class hyperliquid extends Exchange {
             const significantDigits = this.parseToInt ('5');
             // Get the part after the decimal separator
             const decimalPart = priceStr.split ('.')[1];
-            // Count the number of leading zeros in the decimal part. Other options don't ranspile
+            // Count the number of leading zeros in the decimal part
             let leadingZeros = 0;
             while (leadingZeros <= decimalPart.length && decimalPart[leadingZeros] === '0') {
                 leadingZeros = leadingZeros + 1;
             }
-            // Calculate decimal places based on leading zeros and significant digits
+            // Calculate price precision based on leading zeros and significant digits
             pricePrecision = leadingZeros + significantDigits;
-            // Take the min() of the calculated decimal places and (maxDecimals - szDecimals)
+            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
             pricePrecision = Math.min (maxDecimals - amountPrecision, pricePrecision);
         } else {
-            // Count the numbers before the decimal separator. Doing this in one go doesn't transpile
+            // Count the numbers before the decimal separator
             const integerPart = priceStr.split ('.')[0];
-            // Get significant digits (5 or the integer digits count, whichever is higher)
+            // Get significant digits, take the max() of 5 and the integer digits count
             const significantDigits = Math.max (5, integerPart.length);
-            // Calculate decimal places based on significant digits and integer digits
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerPart.length);
         }
         return pricePrecision;
