@@ -373,21 +373,25 @@ export default class hyperliquid extends Exchange {
     calculatePricePrecision (price: number, amountPrecision: number, maxDecimals: number) {
         let pricePrecision = 0;
         const priceStr = this.numberToString (price);
-        if (price === 0) {
+        if (priceStr === undefined) {
+            return 0;
+        }
+        const priceSplitted = priceStr.split ('.');
+        if (Precise.stringEq (priceStr, '0')) {
             // Significant digits is always 5 in this case
-            const significantDigits = this.parseToInt ('5');
+            const significantDigits = 5;
             // Integer digits is always 0 in this case (0 doesn't count)
-            const integerDigits = this.parseToInt ('0');
+            const integerDigits = 0;
             // Calculate the price precision
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerDigits);
-        } else if (price > 0 && price < 1) {
+        } else if (Precise.stringGt (priceStr, '0') && Precise.stringLt (priceStr, '1')) {
             // Significant digits, always 5 in this case
-            const significantDigits = this.parseToInt ('5');
+            const significantDigits = 5;
             // Get the part after the decimal separator
-            const decimalPart = priceStr.split ('.')[1];
+            const decimalPart = this.safeString (priceSplitted, 1, '');
             // Count the number of leading zeros in the decimal part
             let leadingZeros = 0;
-            while (leadingZeros <= decimalPart.length && decimalPart[leadingZeros] === '0') {
+            while ((leadingZeros <= decimalPart.length) && this.safeString (decimalPart, leadingZeros) === '0') {
                 leadingZeros = leadingZeros + 1;
             }
             // Calculate price precision based on leading zeros and significant digits
@@ -396,13 +400,13 @@ export default class hyperliquid extends Exchange {
             pricePrecision = Math.min (maxDecimals - amountPrecision, pricePrecision);
         } else {
             // Count the numbers before the decimal separator
-            const integerPart = priceStr.split ('.')[0];
+            const integerPart = this.safeString (priceSplitted, 0, '');
             // Get significant digits, take the max() of 5 and the integer digits count
             const significantDigits = Math.max (5, integerPart.length);
             // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
             pricePrecision = Math.min (maxDecimals - amountPrecision, significantDigits - integerPart.length);
         }
-        return pricePrecision;
+        return this.parseToInt (pricePrecision);
     }
 
     /**
