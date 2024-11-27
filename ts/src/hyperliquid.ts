@@ -203,6 +203,7 @@ export default class hyperliquid extends Exchange {
                     'User or API Wallet ': InvalidOrder,
                     'Order has invalid size': InvalidOrder,
                     'Order price cannot be more than 80% away from the reference price': InvalidOrder,
+                    'Order has zero size.': InvalidOrder,
                 },
             },
             'precisionMode': DECIMAL_PLACES,
