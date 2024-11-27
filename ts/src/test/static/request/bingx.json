@@ -930,6 +930,19 @@
                 "input": [
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "twap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/openOrders?symbol=LTC-USDT&timestamp=1732695725572&twap=true&signature=11f93b06b30cefdf494d0d651514beccb0790650d9ad1f30dfb2fa4acf00f06f",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [

@@ -4223,6 +4223,7 @@ export default class bingx extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.twap] if fetching twap open orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -4241,7 +4242,10 @@ export default class bingx extends Exchange {
         if (type === 'spot') {
             response = await this.spotV1PrivateGetTradeOpenOrders (this.extend (request, params));
         } else {
-            if (subType === 'inverse') {
+            const isTwapOrder = this.safeBool (params, 'twap', false);
+            if (isTwapOrder) {
+                response = await this.swapV1PrivateGetTwapOpenOrders (this.extend (request, params));
+            } else if (subType === 'inverse') {
                 response = await this.cswapV1PrivateGetTradeOpenOrders (this.extend (request, params));
             } else {
                 response = await this.swapV2PrivateGetTradeOpenOrders (this.extend (request, params));
@@ -4356,8 +4360,38 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
+        // twap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1702731661854,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BNB-USDT",
+        //                     "side": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "priceType": "constant",
+        //                     "priceVariance": "2000",
+        //                     "triggerPrice": "68000",
+        //                     "interval": 8,
+        //                     "amountPerOrder": "0.111",
+        //                     "totalAmount": "0.511",
+        //                     "orderStatus": "Running",
+        //                     "executedQty": "0.1",
+        //                     "duration": 800,
+        //                     "maxDuration": 9000,
+        //                     "createdTime": 1702731661854,
+        //                     "updateTime": 1702731661854
+        //                 }
+        //             ],
+        //             "total": 1
+        //         }
+        //     }
+        //
         const data = this.safeDict (response, 'data', {});
-        const orders = this.safeList (data, 'orders', []);
+        const orders = this.safeList2 (data, 'orders', 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 

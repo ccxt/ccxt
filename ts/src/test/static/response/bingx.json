@@ -669,8 +669,10 @@
                     }
                 },
                 "parsedResponse": {
-                    "info": {},
-                    "id": null,
+                    "info": {
+                        "mainOrderId": "4633860139993029715"
+                    },
+                    "id": "4633860139993029715",
                     "clientOrderId": null,
                     "symbol": "LTC/USDT:USDT",
                     "timestamp": null,
@@ -1323,6 +1325,46 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "spot open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                      "list": [
+                        {
+                          "symbol": "BNB-USDT",
+                          "side": "BUY",
+                          "positionSide": "LONG",
+                          "priceType": "constant",
+                          "priceVariance": "2000",
+                          "triggerPrice": "68000",
+                          "interval": 8,
+                          "amountPerOrder": "0.111",
+                          "totalAmount": "0.511",
+                          "orderStatus": "Running",
+                          "executedQty": "0.1",
+                          "duration": 800,
+                          "maxDuration": 9000,
+                          "createdTime": 1702731661854,
+                          "updateTime": 1702731661854
+                        }
+                      ],
+                      "total": 1
+                    }
+                  },
+                "parsedResponse": []
             }
         ],
         "fetchDepositAddressesByNetwork": [
