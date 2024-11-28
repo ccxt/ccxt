@@ -96,14 +96,14 @@ export default class onetrading extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': true,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1/MINUTES',
@@ -144,21 +144,19 @@ export default class onetrading extends Exchange {
                 'private': {
                     'get': [
                         'account/balances',
+<<<<<<< HEAD
                         'account/withdrawals',
                         'account/withdrawals/bitpanda',
+=======
+>>>>>>> 6ce63a522e (fix(onetrading): remove obselete methods)
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
                         'account/trades/{trade_id}',
-                        'account/trading-volume',
                     ],
                     'post': [
-                        'account/deposit/crypto',
-                        'account/withdraw/crypto',
-                        'account/withdraw/fiat',
-                        'account/fees',
                         'account/orders',
                     ],
                     'delete': [
@@ -1015,6 +1013,7 @@ export default class onetrading extends Exchange {
         return this.parseBalance (response);
     }
 
+<<<<<<< HEAD
     /**
      * @method
      * @name onetrading#fetchWithdrawals
@@ -1221,6 +1220,8 @@ export default class onetrading extends Exchange {
         } as Transaction;
     }
 
+=======
+>>>>>>> 6ce63a522e (fix(onetrading): remove obselete methods)
     parseOrderStatus (status: Str) {
         const statuses: Dict = {
             'FILLED': 'open',
