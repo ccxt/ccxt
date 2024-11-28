@@ -1536,7 +1536,7 @@ export default class bitmex extends Exchange {
         }
         const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
-            params = this.omit (params, [ 'until' ]);
+            params = this.omit (params, [ 'until', 'endTime' ]);
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
