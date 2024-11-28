@@ -2757,7 +2757,7 @@ export default class bingx extends Exchange {
             }
         } else {
             if (isTwapOrder) {
-                const twapRequest : Dict = {
+                const twapRequest: Dict = {
                     'symbol': request['symbol'],
                     'side': request['side'],
                     'positionSide': (side === 'buy') ? 'LONG' : 'SHORT',
