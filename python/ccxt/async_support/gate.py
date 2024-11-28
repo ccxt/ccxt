@@ -709,6 +709,110 @@ class gate(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': True,
+                    'createOrder': {
+                        'marginMode': True,
+                        'triggerPrice': True,
+                        'triggerDirection': True,  # todo: implementation edit needed
+                        'triggerPriceType': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'GTC': True,
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        # exchange-specific features
+                        'iceberg': True,
+                        'selfTradePrevention': True,
+                    },
+                    'createOrders': {
+                        'max': 40,  # NOTE! max 10 per symbol
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': True,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': 30,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': True,
+                        'trailing': False,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': True,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 100,
+                    },
+                    'fetchOrders': None,
+                    'fetchClosedOrders': {
+                        'marginMode': True,
+                        'trigger': True,
+                        'trailing': False,
+                        'limit': 100,
+                        'untilDays': 30,
+                        'daysBackClosed': None,
+                        'daysBackCanceled': None,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1000,
+                    },
+                },
+                'forDerivatives': {
+                    'extends': 'spot',
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': True,
+                        },
+                    },
+                    'createOrders': {
+                        'max': 10,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'untilDays': None,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': False,
+                        'untilDays': None,
+                        'limit': 1000,
+                    },
+                    'fetchOHLCV': {
+                        'limit': 1999,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'forDerivatives',
+                    },
+                    'inverse': {
+                        'extends': 'forDerivatives',
+                    },
+                },
+            },
             'precisionMode': TICK_SIZE,
             'fees': {
                 'trading': {
@@ -1533,22 +1637,22 @@ class gate(Exchange, ImplicitAPI):
                 request['settle'] = settle
         return [request, params]
 
-    def spot_order_prepare_request(self, market=None, stop=False, params={}):
+    def spot_order_prepare_request(self, market=None, trigger=False, params={}):
         """
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         :param dict market: CCXT market
-        :param bool stop: True if for a stop order
+        :param bool trigger: True if for a trigger order
         :param dict [params]: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
-        marginMode, query = self.get_margin_mode(stop, params)
+        marginMode, query = self.get_margin_mode(trigger, params)
         request: dict = {}
-        if not stop:
+        if not trigger:
             if market is None:
-                raise ArgumentsRequired(self.id + ' spotOrderPrepareRequest() requires a market argument for non-stop orders')
+                raise ArgumentsRequired(self.id + ' spotOrderPrepareRequest() requires a market argument for non-trigger orders')
             request['account'] = marginMode
-            request['currency_pair'] = market['id']  # Should always be set for non-stop
+            request['currency_pair'] = market['id']  # Should always be set for non-trigger
         return [request, query]
 
     def multi_order_spot_prepare_request(self, market=None, trigger=False, params={}):
@@ -1556,7 +1660,7 @@ class gate(Exchange, ImplicitAPI):
  @ignore
         Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         :param dict market: CCXT market
-        :param bool stop: True if for a stop order
+        :param bool trigger: True if for a trigger order
         :param dict [params]: request parameters
         :returns: the api request object, and the new params object with non-needed parameters removed
         """
@@ -1566,17 +1670,17 @@ class gate(Exchange, ImplicitAPI):
         }
         if market is not None:
             if trigger:
-                # gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call self method
+                # gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call self method
                 request['market'] = market['id']
             else:
                 request['currency_pair'] = market['id']
         return [request, query]
 
-    def get_margin_mode(self, stop, params):
+    def get_margin_mode(self, trigger, params):
         """
  @ignore
         Gets the margin type for self api call
-        :param bool stop: True if for a stop order
+        :param bool trigger: True if for a trigger order
         :param dict [params]: Request params
         :returns: The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
         """
@@ -1589,12 +1693,12 @@ class gate(Exchange, ImplicitAPI):
             marginMode = 'margin'
         elif marginMode == '':
             marginMode = 'spot'
-        if stop:
+        if trigger:
             if marginMode == 'spot':
-                # gate spot stop orders use the term normal instead of spot
+                # gate spot trigger orders use the term normal instead of spot
                 marginMode = 'normal'
             if marginMode == 'cross_margin':
-                raise BadRequest(self.id + ' getMarginMode() does not support stop orders for cross margin')
+                raise BadRequest(self.id + ' getMarginMode() does not support trigger orders for cross margin')
         isUnifiedAccount = False
         isUnifiedAccount, params = self.handle_option_and_params(params, 'getMarginMode', 'unifiedAccount')
         if isUnifiedAccount:
@@ -2990,7 +3094,6 @@ class gate(Exchange, ImplicitAPI):
             request['limit'] = limit
         response = None
         if market['contract']:
-            maxLimit = 1999
             isMark = (price == 'mark')
             isIndex = (price == 'index')
             if isMark or isIndex:
@@ -3307,7 +3410,7 @@ class gate(Exchange, ImplicitAPI):
                 params = self.omit(params, 'order_id')
         else:
             if market is not None:
-                request['currency_pair'] = market['id']  # Should always be set for non-stop
+                request['currency_pair'] = market['id']  # Should always be set for non-trigger
             marginMode, params = self.get_margin_mode(False, params)
             request['account'] = marginMode
         if limit is not None:
@@ -3826,8 +3929,8 @@ class gate(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isStopLossOrder = stopLossPrice is not None
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
-        nonTriggerOrder = not isStopOrder and (trigger is None)
+        isTpsl = isStopLossOrder or isTakeProfitOrder
+        nonTriggerOrder = not isTpsl and (trigger is None)
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
         response = None
         if market['spot'] or market['margin']:
@@ -3976,7 +4079,7 @@ class gate(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isStopLossOrder = stopLossPrice is not None
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        isTpsl = isStopLossOrder or isTakeProfitOrder
         if isStopLossOrder and isTakeProfitOrder:
             raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
         reduceOnly = self.safe_value(params, 'reduceOnly')
@@ -4012,7 +4115,7 @@ class gate(Exchange, ImplicitAPI):
                 signedAmount = Precise.string_neg(amountToPrecision) if (side == 'sell') else amountToPrecision
                 amount = int(signedAmount)
         request = None
-        nonTriggerOrder = not isStopOrder and (trigger is None)
+        nonTriggerOrder = not isTpsl and (trigger is None)
         if nonTriggerOrder:
             if contract:
                 # contract order
@@ -4562,7 +4665,7 @@ class gate(Exchange, ImplicitAPI):
 
     def fetch_order_request(self, id: str, symbol: Str = None, params={}):
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
+        trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
         orderId = id
@@ -4573,7 +4676,7 @@ class gate(Exchange, ImplicitAPI):
             orderId = clientOrderId
         type, query = self.handle_market_type_and_params('fetchOrder', market, params)
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
-        request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
+        request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, trigger, query)
         request['order_id'] = str(orderId)
         return [request, requestParams]
 
@@ -4601,21 +4704,21 @@ class gate(Exchange, ImplicitAPI):
         market = None if (symbol is None) else self.market(symbol)
         result = self.handle_market_type_and_params('fetchOrder', market, params)
         type = self.safe_string(result, 0)
-        stop = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
+        trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         request, requestParams = self.fetch_order_request(id, symbol, params)
         response = None
         if type == 'spot' or type == 'margin':
-            if stop:
+            if trigger:
                 response = await self.privateSpotGetPriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateSpotGetOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if stop:
+            if trigger:
                 response = await self.privateFuturesGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateFuturesGetSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if stop:
+            if trigger:
                 response = await self.privateDeliveryGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateDeliveryGetSettleOrdersOrderId(self.extend(request, requestParams))
@@ -4636,7 +4739,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True for fetching stop orders
+        :param bool [params.trigger]: True for fetching trigger orders
         :param str [params.type]: spot, margin, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for type='margin', if not provided self.options['defaultMarginMode'] is used
         :param bool [params.unifiedAccount]: set to True for fetching unified account orders
@@ -4661,7 +4764,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.stop]: True for fetching stop orders
+        :param bool [params.trigger]: True for fetching trigger orders
         :param str [params.type]: spot, swap or future, if not provided self.options['defaultType'] is used
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param boolean [params.historical]: *swap only* True for using historical endpoint
@@ -4835,7 +4938,7 @@ class gate(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        # spot stop
+        # spot trigger
         #
         #    [
         #        {
@@ -4930,31 +5033,31 @@ class gate(Exchange, ImplicitAPI):
         :param str id: Order id
         :param str symbol: Unified market symbol
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order to be cancelled is a trigger order
+        :param bool [params.trigger]: True if the order to be cancelled is a trigger order
         :param bool [params.unifiedAccount]: set to True for canceling unified account orders
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        trigger = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
-        request, requestParams = self.spot_order_prepare_request(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
+        request, requestParams = self.spot_order_prepare_request(market, trigger, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
         request['order_id'] = id
         response = None
         if type == 'spot' or type == 'margin':
-            if stop:
+            if trigger:
                 response = await self.privateSpotDeletePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateSpotDeleteOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if stop:
+            if trigger:
                 response = await self.privateFuturesDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateFuturesDeleteSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if stop:
+            if trigger:
                 response = await self.privateDeliveryDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateDeliveryDeleteSettleOrdersOrderId(self.extend(request, requestParams))
@@ -5144,23 +5247,23 @@ class gate(Exchange, ImplicitAPI):
         await self.load_markets()
         await self.load_unified_status()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        trigger = self.safe_bool_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
-        request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if (type == 'spot') else self.prepare_request(market, type, query)
+        request, requestParams = self.multi_order_spot_prepare_request(market, trigger, query) if (type == 'spot') else self.prepare_request(market, type, query)
         response = None
         if type == 'spot' or type == 'margin':
-            if stop:
+            if trigger:
                 response = await self.privateSpotDeletePriceOrders(self.extend(request, requestParams))
             else:
                 response = await self.privateSpotDeleteOrders(self.extend(request, requestParams))
         elif type == 'swap':
-            if stop:
+            if trigger:
                 response = await self.privateFuturesDeleteSettlePriceOrders(self.extend(request, requestParams))
             else:
                 response = await self.privateFuturesDeleteSettleOrders(self.extend(request, requestParams))
         elif type == 'future':
-            if stop:
+            if trigger:
                 response = await self.privateDeliveryDeleteSettlePriceOrders(self.extend(request, requestParams))
             else:
                 response = await self.privateDeliveryDeleteSettleOrders(self.extend(request, requestParams))
