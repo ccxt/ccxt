@@ -543,6 +543,25 @@
                     "reduceOnly": true
                   }
                 ]
+            },
+            {
+                "description": "swap create TWAP order",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/order?amountPerOrder=0.5&interval=8&positionSide=LONG&priceType=constant&priceVariance=10&side=BUY&symbol=LTC-USDT&timestamp=1732693774172&totalAmount=1&triggerPrice=120&signature=628848cc3080ef44034deb561c9ca5015171de1717458378bea67df657131795",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "twap",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "priceType": "constant",
+                        "priceVariance": "10",
+                        "triggerPrice": "120",
+                        "interval": 8,
+                        "amountPerOrder": "0.5"
+                    }
+                ]
             }
         ],
         "createOrders": [
@@ -726,6 +745,18 @@
                 "input": [
                   "1816002957423951872",
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "twap cancel order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/cancelOrder?mainOrderId=5596903086063901779&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
                 ]
             }
         ],
@@ -911,6 +942,19 @@
                 "input": [
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "twap open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/openOrders?symbol=LTC-USDT&timestamp=1732695725572&signature=11f93b06b30cefdf494d0d651514beccb0790650d9ad1f30dfb2fa4acf00f06f",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -937,6 +981,20 @@
                 "input": [
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "fetch twap orders",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/historyOrders?endTime=1732697788022&pageIndex=1&pageSize=100&startTime=1&symbol=LTC-USDT&timestamp=1732697788123&signature=3868b3a579f21d348426ba3b38513b4e02fcf76dd932d56775b9f3fca694cace",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true,
+                        "until": 1732697788022
+                    }
+                ]
             }
         ],
         "fetchCanceledOrders": [
@@ -962,6 +1020,20 @@
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721962310068&signature=d29e60b0b0da7bd115a42881b27bc9e3cbe865734802badb1df6d12875ac89c8",
                 "input": [
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "fetch twap orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/historyOrders?endTime=1732697788022&pageIndex=1&pageSize=100&startTime=1&symbol=LTC-USDT&timestamp=1732697788123&signature=3868b3a579f21d348426ba3b38513b4e02fcf76dd932d56775b9f3fca694cace",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true,
+                        "until": 1732697788022
+                    }
                 ]
             }
         ],
@@ -1284,6 +1356,18 @@
                 "input": [
                   "1816342420721254400",
                   "SOL/USD:SOL"
+                ]
+            },
+            {
+                "description": "twap fetch order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/orderDetail?mainOrderId=5596903086063901779&timestamp=1732761562641&signature=c6e2add38151575bcbf8bdd8f813670679e61b63d5aa050b6b70d1f29f83c7f8",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
                 ]
             }
         ],

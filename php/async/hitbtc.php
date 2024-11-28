@@ -666,7 +666,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for hitbtc
+             *
              * @see https://api.hitbtc.com/#symbols
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
@@ -810,7 +812,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
+             *
              * @see https://api.hitbtc.com/#$currencies
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
@@ -923,7 +927,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit address
+             *
              * @see https://api.hitbtc.com/#generate-deposit-crypto-address
+             *
              * @param {string} $code unified $currency $code of the $currency for the deposit address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
@@ -961,7 +967,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
+             *
              * @see https://api.hitbtc.com/#get-deposit-crypto-$address
+             *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
@@ -1017,9 +1025,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://api.hitbtc.com/#wallet-balance
              * @see https://api.hitbtc.com/#get-spot-trading-balance
              * @see https://api.hitbtc.com/#get-trading-balance
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -1057,7 +1067,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://api.hitbtc.com/#tickers
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1089,7 +1101,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+             *
              * @see https://api.hitbtc.com/#tickers
+             *
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1179,7 +1193,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://api.hitbtc.com/#$trades
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -1223,9 +1239,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
+             *
              * @see https://api.hitbtc.com/#spot-trades-history
              * @see https://api.hitbtc.com/#futures-trades-history
              * @see https://api.hitbtc.com/#margin-trades-history
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades structures to retrieve
@@ -1529,7 +1547,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             *
              * @see https://api.hitbtc.com/#get-transactions-history
+             *
              * @param {string} [$code] unified currency $code for the currency of the deposit/withdrawals, default is null
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
@@ -1544,7 +1564,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             *
              * @see https://api.hitbtc.com/#get-transactions-history
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
@@ -1559,7 +1581,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
+             *
              * @see https://api.hitbtc.com/#get-transactions-history
+             *
              * @param {string} $code unified currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
@@ -1574,8 +1598,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+             *
              * @see https://api.hitbtc.com/#order-books
-             * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+             *
+             * @param {string[]} [$symbols] list of unified market $symbols, all $symbols fetched if null, default is null
              * @param {int} [$limit] max number of entries per $orderbook to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
@@ -1607,7 +1633,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
              * @see https://api.hitbtc.com/#order-books
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1653,8 +1681,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
+             *
              * @see https://api.hitbtc.com/#get-trading-commission
              * @see https://api.hitbtc.com/#get-trading-commission-2
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
@@ -1686,8 +1716,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
+             *
              * @see https://api.hitbtc.com/#get-all-trading-commissions
              * @see https://api.hitbtc.com/#get-all-trading-commissions-2
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by market symbols
              */
@@ -1724,10 +1756,12 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             *
              * @see https://api.hitbtc.com/#candles
              * @see https://api.hitbtc.com/#futures-index-$price-candles
              * @see https://api.hitbtc.com/#futures-mark-$price-candles
              * @see https://api.hitbtc.com/#futures-premium-index-candles
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1836,9 +1870,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
+             *
              * @see https://api.hitbtc.com/#spot-orders-history
              * @see https://api.hitbtc.com/#futures-orders-history
              * @see https://api.hitbtc.com/#margin-orders-history
+             *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1888,9 +1924,12 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
+             *
              * @see https://api.hitbtc.com/#spot-orders-history
              * @see https://api.hitbtc.com/#futures-orders-history
              * @see https://api.hitbtc.com/#margin-orders-history
+             *
+             * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -1952,9 +1991,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
+             *
              * @see https://api.hitbtc.com/#spot-trades-history
              * @see https://api.hitbtc.com/#futures-trades-history
              * @see https://api.hitbtc.com/#margin-trades-history
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -2037,9 +2078,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
+             *
              * @see https://api.hitbtc.com/#get-all-active-spot-orders
              * @see https://api.hitbtc.com/#get-active-futures-orders
              * @see https://api.hitbtc.com/#get-active-margin-orders
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
@@ -2101,9 +2144,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
+             *
              * @see https://api.hitbtc.com/#get-active-spot-order
              * @see https://api.hitbtc.com/#get-active-futures-order
              * @see https://api.hitbtc.com/#get-active-margin-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $market $symbol, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2146,9 +2191,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
+             *
              * @see https://api.hitbtc.com/#cancel-all-spot-orders
              * @see https://api.hitbtc.com/#cancel-futures-orders
              * @see https://api.hitbtc.com/#cancel-all-margin-orders
+             *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
@@ -2189,9 +2236,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
+             *
              * @see https://api.hitbtc.com/#cancel-spot-order
              * @see https://api.hitbtc.com/#cancel-futures-order
              * @see https://api.hitbtc.com/#cancel-margin-order
+             *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2274,9 +2323,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             *
              * @see https://api.hitbtc.com/#create-new-spot-order
              * @see https://api.hitbtc.com/#create-margin-order
              * @see https://api.hitbtc.com/#create-futures-order
+             *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -2517,9 +2568,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches margin mode of the user
+             *
              * @see https://api.hitbtc.com/#get-margin-position-parameters
              * @see https://api.hitbtc.com/#get-futures-position-parameters
-             * @param {string} symbol unified symbol of the $market the order was made in
+             *
+             * @param {string[]} $symbols unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structures~
              */
@@ -2591,7 +2644,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
+             *
              * @see https://api.hitbtc.com/#transfer-between-wallet-and-exchange
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -2683,7 +2738,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
+             *
              * @see https://api.hitbtc.com/#withdraw-crypto
+             *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
@@ -2731,7 +2788,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches funding rates for multiple markets
+             *
              * @see https://api.hitbtc.com/#futures-info
+             *
              * @param {string[]} $symbols unified $symbols of the markets to fetch the funding rates for, all $market funding rates are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
@@ -2785,7 +2844,9 @@ class hitbtc extends Exchange {
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             *
              * @see https://api.hitbtc.com/#funding-history
+             *
              * fetches historical funding rate prices
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
@@ -2868,8 +2929,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
+             *
              * @see https://api.hitbtc.com/#get-futures-margin-accounts
              * @see https://api.hitbtc.com/#get-all-margin-accounts
+             *
              * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -2942,8 +3005,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
+             *
              * @see https://api.hitbtc.com/#get-futures-margin-account
              * @see https://api.hitbtc.com/#get-isolated-margin-account
+             *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
@@ -3127,7 +3192,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open interest of a derivative trading pair
+             *
              * @see https://api.hitbtc.com/#futures-info
+             *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=interest-history-structure)
@@ -3164,7 +3231,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
+             *
              * @see https://api.hitbtc.com/#futures-info
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -3341,8 +3410,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
+             *
              * @see https://api.hitbtc.com/#create-update-margin-account-2
              * @see https://api.hitbtc.com/#create-update-margin-account
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3361,8 +3432,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
+             *
              * @see https://api.hitbtc.com/#create-update-margin-account-2
              * @see https://api.hitbtc.com/#create-update-margin-account
+             *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3378,8 +3451,10 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
+             *
              * @see https://api.hitbtc.com/#get-futures-margin-account
              * @see https://api.hitbtc.com/#get-isolated-margin-account
+             *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to the spot-margin endpoint if this is set
@@ -3458,7 +3533,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
+             *
              * @see https://api.hitbtc.com/#create-update-margin-account-2
+             *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3494,7 +3571,9 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
+             *
              * @see https://api.hitbtc.com/#currencies
+             *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
@@ -3585,7 +3664,11 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($symbol, $side, $params) {
             /**
              * closes open positions for a $market
+             *
              * @see https://api.hitbtc.com/#close-all-futures-margin-positions
+             *
+             * @param {string} $symbol unified ccxt $market $symbol
+             * @param {string} $side 'buy' or 'sell'
              * @param {array} [$params] extra parameters specific to the okx api endpoint
              * @param {string} [$params->symbol] *required* unified $market $symbol
              * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'

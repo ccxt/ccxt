@@ -73,6 +73,92 @@
                     ],
                     "reduceOnly": null
                 }
+            },
+            {
+                "description": "twap cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    },
+                    "id": null,
+                    "clientOrderId": null,
+                    "symbol": "BNB/USDT",
+                    "timestamp": 1702731661854,
+                    "datetime": "2023-12-16T13:01:01.854Z",
+                    "lastTradeTimestamp": 1702731661854,
+                    "lastUpdateTimestamp": 1702731661854,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 0.511,
+                    "filled": 0.1,
+                    "remaining": 0.411,
+                    "status": "open",
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "closeAllPositions": [
@@ -642,6 +728,71 @@
                     }
                   ]
                 }
+            },
+            {
+                "description": "swap create TWAP order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "twap",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "priceType": "constant",
+                        "priceVariance": "10",
+                        "triggerPrice": "120",
+                        "interval": 8,
+                        "amountPerOrder": "0.5"
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1732693774386,
+                    "data": {
+                        "mainOrderId": "4633860139993029715"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "mainOrderId": "4633860139993029715"
+                    },
+                    "id": "4633860139993029715",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "fetchClosedOrders": [
@@ -867,7 +1018,103 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "twap closed order",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "success",
+                    "timestamp": 1732697991924,
+                    "data": {
+                        "list": [
+                            {
+                                "symbol": "LTC-USDT",
+                                "mainOrderId": "774133392271760467",
+                                "side": "BUY",
+                                "positionSide": "LONG",
+                                "priceType": "constant",
+                                "priceVariance": "10.00",
+                                "triggerPrice": "120.00",
+                                "interval": 8,
+                                "amountPerOrder": "0.5",
+                                "totalAmount": "1.0",
+                                "orderStatus": "Filled",
+                                "executedQty": "1.0",
+                                "duration": 16,
+                                "maxDuration": 86400,
+                                "createdTime": 1732695030000,
+                                "updateTime": 1732695046000
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTC-USDT",
+                            "mainOrderId": "774133392271760467",
+                            "side": "BUY",
+                            "positionSide": "LONG",
+                            "priceType": "constant",
+                            "priceVariance": "10.00",
+                            "triggerPrice": "120.00",
+                            "interval": 8,
+                            "amountPerOrder": "0.5",
+                            "totalAmount": "1.0",
+                            "orderStatus": "Filled",
+                            "executedQty": "1.0",
+                            "duration": 16,
+                            "maxDuration": 86400,
+                            "createdTime": 1732695030000,
+                            "updateTime": 1732695046000
+                        },
+                        "id": "774133392271760467",
+                        "clientOrderId": null,
+                        "symbol": "LTC/USDT:USDT",
+                        "timestamp": 1732695030000,
+                        "datetime": "2024-11-27T08:10:30.000Z",
+                        "lastTradeTimestamp": 1732695046000,
+                        "lastUpdateTimestamp": 1732695046000,
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "side": "buy",
+                        "price": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "average": null,
+                        "cost": null,
+                        "amount": 1,
+                        "filled": 1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": null
+                        },
+                        "trades": [],
+                        "reduceOnly": null,
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": null
+                            }
+                        ]
+                    }
+                ]
             }
+
         ],
         "fetchBalance": [
             {
@@ -1260,6 +1507,46 @@
                         "reduceOnly": null
                     }
                 ]
+            },
+            {
+                "description": "twap open orders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                      "list": [
+                        {
+                          "symbol": "BNB-USDT",
+                          "side": "BUY",
+                          "positionSide": "LONG",
+                          "priceType": "constant",
+                          "priceVariance": "2000",
+                          "triggerPrice": "68000",
+                          "interval": 8,
+                          "amountPerOrder": "0.111",
+                          "totalAmount": "0.511",
+                          "orderStatus": "Running",
+                          "executedQty": "0.1",
+                          "duration": 800,
+                          "maxDuration": 9000,
+                          "createdTime": 1702731661854,
+                          "updateTime": 1702731661854
+                        }
+                      ],
+                      "total": 1
+                    }
+                  },
+                "parsedResponse": []
             }
         ],
         "fetchDepositAddressesByNetwork": [
@@ -2015,6 +2302,94 @@
                       "cost": null
                     }
                   ]
+                }
+            },
+            {
+                "description": "twap order",
+                "method": "fetchOrder",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "success cancel order",
+                    "timestamp": 1732761562874,
+                    "data": {
+                        "symbol": "LTC-USDT",
+                        "mainOrderId": "5596903086063901779",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "10.00",
+                        "triggerPrice": "120.00",
+                        "interval": 8,
+                        "amountPerOrder": "0.5",
+                        "totalAmount": "1.0",
+                        "orderStatus": "Filled",
+                        "executedQty": "1.0",
+                        "duration": 16,
+                        "maxDuration": 86400,
+                        "createdTime": 1732693017000,
+                        "updateTime": 1732693033000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "LTC-USDT",
+                        "mainOrderId": "5596903086063901779",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "10.00",
+                        "triggerPrice": "120.00",
+                        "interval": 8,
+                        "amountPerOrder": "0.5",
+                        "totalAmount": "1.0",
+                        "orderStatus": "Filled",
+                        "executedQty": "1.0",
+                        "duration": 16,
+                        "maxDuration": 86400,
+                        "createdTime": 1732693017000,
+                        "updateTime": 1732693033000
+                    },
+                    "id": "5596903086063901779",
+                    "clientOrderId": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "timestamp": 1732693017000,
+                    "datetime": "2024-11-27T07:36:57.000Z",
+                    "lastTradeTimestamp": 1732693033000,
+                    "lastUpdateTimestamp": 1732693033000,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 1,
+                    "filled": 1,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ]
                 }
             }
         ],

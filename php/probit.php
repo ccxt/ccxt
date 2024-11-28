@@ -228,7 +228,9 @@ class probit extends Exchange {
 
     public function fetch_markets($params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/market
+         *
          * retrieves data on all $markets for probit
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -329,7 +331,9 @@ class probit extends Exchange {
 
     public function fetch_currencies($params = array ()): ?array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/currency
+         *
          * fetches all available $currencies on an exchange
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
@@ -521,7 +525,9 @@ class probit extends Exchange {
 
     public function fetch_balance($params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/balance
+         *
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -544,7 +550,9 @@ class probit extends Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/order_book
+         *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -573,7 +581,9 @@ class probit extends Exchange {
 
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/ticker
+         *
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -608,7 +618,9 @@ class probit extends Exchange {
 
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/ticker
+         *
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -690,7 +702,9 @@ class probit extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/trade
+         *
          * fetch all trades made by the user
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -743,7 +757,9 @@ class probit extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/trade-1
+         *
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -864,7 +880,9 @@ class probit extends Exchange {
 
     public function fetch_time($params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/time
+         *
          * fetches the current integer $timestamp in milliseconds from the exchange server
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer $timestamp in milliseconds from the exchange server
@@ -914,7 +932,9 @@ class probit extends Exchange {
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/candle
+         *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1003,7 +1023,9 @@ class probit extends Exchange {
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/open_order-1
+         *
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -1026,7 +1048,9 @@ class probit extends Exchange {
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/order
+         *
          * fetches information on multiple closed orders made by the user
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1058,7 +1082,9 @@ class probit extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/order-3
+         *
          * fetches information on an $order made by the user
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -1168,7 +1194,9 @@ class probit extends Exchange {
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * create a trade $order
+         *
          * @see https://docs-en.probit.com/reference/order-1
+         *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1260,7 +1288,9 @@ class probit extends Exchange {
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/order-2
+         *
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -1300,7 +1330,9 @@ class probit extends Exchange {
 
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/deposit_address
+         *
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1353,7 +1385,9 @@ class probit extends Exchange {
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/deposit_address
+         *
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified $currency $codes, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1376,7 +1410,9 @@ class probit extends Exchange {
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
         /**
+         *
          * @see https://docs-en.probit.com/reference/withdrawal
+         *
          * make a withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -1455,12 +1491,14 @@ class probit extends Exchange {
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
+         *
          * @see https://docs-en.probit.com/reference/transferpayment
+         *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch transactions for
          * @param {int} [$limit] the maximum number of transaction structures to retrieve
-         * @param {int} [$params->until] the latest time in ms to fetch transactions for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch transactions for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
@@ -1597,7 +1635,9 @@ class probit extends Exchange {
 
     public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/currency
+         *
          * fetch deposit and withdraw fees
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1782,7 +1822,9 @@ class probit extends Exchange {
 
     public function sign_in($params = array ()) {
         /**
+         *
          * @see https://docs-en.probit.com/reference/token
+         *
          * sign in, must be called prior to using other authenticated methods
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return $response from exchange

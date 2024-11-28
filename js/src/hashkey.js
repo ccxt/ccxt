@@ -512,15 +512,15 @@ export default class hashkey extends Exchange {
             'precisionMode': TICK_SIZE,
         });
     }
+    /**
+     * @method
+     * @name hashkey#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.publicGetApiV1Time(params);
         //
         //     {
@@ -529,15 +529,15 @@ export default class hashkey extends Exchange {
         //
         return this.safeInteger(response, 'serverTime');
     }
+    /**
+     * @method
+     * @name hashkey#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         const response = await this.publicGetApiV1Ping(params);
         //
         // {}
@@ -550,16 +550,16 @@ export default class hashkey extends Exchange {
             'info': response,
         };
     }
+    /**
+     * @method
+     * @name hashkey#fetchMarkets
+     * @description retrieves data on all markets for the exchange
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbol] the id of the market to fetch
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchMarkets
-         * @description retrieves data on all markets for the exchange
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.symbol] the id of the market to fetch
-         * @returns {object[]} an array of objects representing market data
-         */
         let symbol = undefined;
         const request = {};
         [symbol, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'symbol');
@@ -1020,15 +1020,15 @@ export default class hashkey extends Exchange {
             'info': market,
         });
     }
+    /**
+     * @method
+     * @name hashkey#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
     async fetchCurrencies(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchCurrencies
-         * @description fetches all available currencies on an exchange
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an associative dictionary of currencies
-         */
         const response = await this.publicGetApiV1ExchangeInfo(params);
         const coins = this.safeList(response, 'coins');
         //
@@ -1131,17 +1131,17 @@ export default class hashkey extends Exchange {
         };
         return this.safeString(types, type);
     }
+    /**
+     * @method
+     * @name hashkey#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1169,18 +1169,18 @@ export default class hashkey extends Exchange {
         const timestamp = this.safeInteger(response, 't');
         return this.parseOrderBook(response, symbol, timestamp, 'b', 'a');
     }
+    /**
+     * @method
+     * @name hashkey#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1203,26 +1203,26 @@ export default class hashkey extends Exchange {
         //
         return this.parseTrades(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name hashkey#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
+     * @param {string} symbol *is mandatory for swap markets* unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot')
+     * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+     * @param {string} [params.fromId] srarting trade id
+     * @param {string} [params.toId] ending trade id
+     * @param {string} [params.clientOrderId] *spot markets only* filter trades by orderId
+     * @param {string} [params.accountId] account id to fetch the orders from
+     * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
-         * @param {string} symbol *is mandatory for swap markets* unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot')
-         * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
-         * @param {string} [params.fromId] srarting trade id
-         * @param {string} [params.toId] ending trade id
-         * @param {string} [params.clientOrderId] *spot markets only* filter trades by orderId
-         * @param {string} [params.accountId] account id to fetch the orders from
-         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
-         */
         const methodName = 'fetchMyTrades';
         await this.loadMarkets();
         const request = {};
@@ -1426,21 +1426,21 @@ export default class hashkey extends Exchange {
             'info': trade,
         }, market);
     }
+    /**
+     * @method
+     * @name hashkey#fetchOHLCV
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchOHLCV
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-kline
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const methodName = 'fetchOHLCV';
         await this.loadMarkets();
         let paginate = false;
@@ -1507,16 +1507,16 @@ export default class hashkey extends Exchange {
             this.safeNumber(ohlcv, 5),
         ];
     }
+    /**
+     * @method
+     * @name hashkey#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1542,16 +1542,16 @@ export default class hashkey extends Exchange {
         const ticker = this.safeDict(response, 0, {});
         return this.parseTicker(ticker, market);
     }
+    /**
+     * @method
+     * @name hashkey#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetQuoteV1Ticker24hr(params);
@@ -1600,17 +1600,17 @@ export default class hashkey extends Exchange {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name hashkey#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbol] the id of the market to fetch last price for
+     * @returns {object} a dictionary of lastprices structures
+     */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchLastPrices
-         * @description fetches the last price for multiple markets
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.symbol] the id of the market to fetch last price for
-         * @returns {object} a dictionary of lastprices structures
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {};
@@ -1643,17 +1643,17 @@ export default class hashkey extends Exchange {
             'info': entry,
         };
     }
+    /**
+     * @method
+     * @name hashkey#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account ID, for Master Key only
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.accountId] account ID, for Master Key only
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const request = {};
         const methodName = 'fetchBalance';
@@ -1762,17 +1762,17 @@ export default class hashkey extends Exchange {
         result[code] = account;
         return this.safeBalance(result);
     }
+    /**
+     * @method
+     * @name hashkey#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+     * @param {string} code unified currency code (default is 'USDT')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
     async fetchDepositAddress(code, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
-         * @param {string} code unified currency code (default is 'USDT')
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -1828,20 +1828,20 @@ export default class hashkey extends Exchange {
             'tag': tag,
         };
     }
+    /**
+     * @method
+     * @name hashkey#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @param {int} [params.fromId] starting ID (To be released)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-history
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-         * @param {int} [params.fromId] starting ID (To be released)
-         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         const methodName = 'fetchDeposits';
         await this.loadMarkets();
         const request = {};
@@ -1878,19 +1878,19 @@ export default class hashkey extends Exchange {
         //
         return this.parseTransactions(response, currency, since, limit, { 'type': 'deposit' });
     }
+    /**
+     * @method
+     * @name hashkey#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+     * @param {string} code unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+     * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
-         * @param {string} code unified currency code of the currency transferred
-         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
-         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         const methodName = 'fetchWithdrawals';
         await this.loadMarkets();
         const request = {};
@@ -1934,22 +1934,22 @@ export default class hashkey extends Exchange {
         //
         return this.parseTransactions(response, currency, since, limit, { 'type': 'withdrawal' });
     }
+    /**
+     * @method
+     * @name hashkey#withdraw
+     * @description make a withdrawal
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] network for withdraw
+     * @param {string} [params.clientOrderId] client order id
+     * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#withdraw
-         * @description make a withdrawal
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/withdraw
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {string} [params.network] network for withdraw
-         * @param {string} [params.clientOrderId] client order id
-         * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         await this.loadMarkets();
         const currency = this.currency(code);
@@ -2096,21 +2096,21 @@ export default class hashkey extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
+    /**
+     * @method
+     * @name hashkey#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account id to transfer from
+     * @param {string} toAccount account id to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] a unique id for the transfer
+     * @param {string} [params.remark] a note for the transfer
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name hashkey#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account id to transfer from
-         * @param {string} toAccount account id to transfer to
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.clientOrderId] a unique id for the transfer
-         * @param {string} [params.remark] a note for the transfer
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
@@ -2160,15 +2160,15 @@ export default class hashkey extends Exchange {
             'info': transfer,
         };
     }
+    /**
+     * @method
+     * @name hashkey#fetchAccounts
+     * @description fetch all the accounts associated with a profile
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     */
     async fetchAccounts(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchAccounts
-         * @description fetch all the accounts associated with a profile
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
-         */
         await this.loadMarkets();
         const response = await this.privateGetApiV1AccountType(params);
         //
@@ -2229,21 +2229,21 @@ export default class hashkey extends Exchange {
         };
         return this.safeInteger(types, type, type);
     }
+    /**
+     * @method
+     * @name hashkey#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+     * @param {string} [code] unified currency code, default is undefined (not used)
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
+     * @param {int} [params.accountType] spot, swap, custody
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
-         * @param {string} [code] unified currency code, default is undefined (not used)
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entries to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
-         * @param {int} [params.accountType] spot, swap, custody
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         const methodName = 'fetchLedger';
         if (since === undefined) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a since argument');
@@ -2353,28 +2353,28 @@ export default class hashkey extends Exchange {
             'fee': undefined,
         }, currency);
     }
+    /**
+     * @method
+     * @name hashkey#createOrder
+     * @description create a trade order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {boolean} [params.test] *spot markets only* whether to use the test endpoint or not, default is false
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
+     * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
+     * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#createOrder
-         * @description create a trade order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {boolean} [params.test] *spot markets only* whether to use the test endpoint or not, default is false
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
-         * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
-         * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (market['spot']) {
@@ -2387,16 +2387,16 @@ export default class hashkey extends Exchange {
             throw new NotSupported(this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
         }
     }
+    /**
+     * @method
+     * @name hashkey#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        /**
-         * @method
-         * @name hashkey#createMarketBuyOrderWithCost
-         * @description create a market buy order by providing the symbol and cost
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {float} cost how much you want to trade in units of the quote currency
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['spot']) {
@@ -2405,26 +2405,26 @@ export default class hashkey extends Exchange {
         params['cost'] = cost;
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
+    /**
+     * @method
+     * @name hashkey#createSpotOrder
+     * @description create a trade order on spot market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {bool} [params.test] whether to use the test endpoint or not, default is false
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'PO'
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#createSpotOrder
-         * @description create a trade order on spot market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {bool} [params.test] whether to use the test endpoint or not, default is false
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {string} [params.timeInForce] 'GTC', 'IOC', or 'PO'
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
         if (triggerPrice !== undefined) {
             throw new NotSupported(this.id + ' trigger orders are not supported for spot markets');
@@ -2651,25 +2651,25 @@ export default class hashkey extends Exchange {
         }
         return this.extend(request, params);
     }
+    /**
+     * @method
+     * @name hashkey#createSwapOrder
+     * @description create a trade order on swap market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'STOP'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+     * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createSwapOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#createSwapOrder
-         * @description create a trade order on swap market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'STOP'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
@@ -2697,17 +2697,17 @@ export default class hashkey extends Exchange {
         //
         return this.parseOrder(response, market);
     }
+    /**
+     * @method
+     * @name hashkey#createOrders
+     * @description create a list of trade orders (all orders should be of the same symbol)
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrders(orders, params = {}) {
-        /**
-         * @method
-         * @name hashkey#createOrders
-         * @description create a list of trade orders (all orders should be of the same symbol)
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @param {object} [params] extra parameters specific to the api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -2812,22 +2812,22 @@ export default class hashkey extends Exchange {
         }
         return this.parseOrders(responseOrders);
     }
+    /**
+     * @method
+     * @name hashkey#cancelOrder
+     * @description cancels an open order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+     * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+     * @param {bool} [params.trigger] *swap markets only* true for canceling a trigger order (default false)
+     * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#cancelOrder
-         * @description cancels an open order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
-         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-         * @param {bool} [params.trigger] *swap markets only* true for canceling a trigger order (default false)
-         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'cancelOrder';
         this.checkTypeParam(methodName, params);
         await this.loadMarkets();
@@ -2904,18 +2904,18 @@ export default class hashkey extends Exchange {
         }
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name hashkey#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] 'buy' or 'sell'
+     * @returns {object} response from exchange
+     */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.side] 'buy' or 'sell'
-         * @returns {object} response from exchange
-         */
         // Does not cancel trigger orders. For canceling trigger order use cancelOrder() or cancelOrders()
         const methodName = 'cancelAllOrders';
         if (symbol === undefined) {
@@ -2950,18 +2950,19 @@ export default class hashkey extends Exchange {
         order['info'] = response;
         return [order];
     }
+    /**
+     * @method
+     * @name hashkey#cancelOrders
+     * @description cancel multiple orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
+     * @param {string[]} ids order ids
+     * @param {string} [symbol] unified market symbol (not used by hashkey)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#cancelOrders
-         * @description cancel multiple orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
-         * @param {string[]} ids order ids
-         * @param {string} [symbol] unified market symbol (not used by hashkey)
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'cancelOrders';
         await this.loadMarkets();
         const request = {};
@@ -2993,23 +2994,23 @@ export default class hashkey extends Exchange {
         order['info'] = response;
         return [order];
     }
+    /**
+     * @method
+     * @name hashkey#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+     * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+     * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
+     * @param {bool} [params.trigger] *swap markets only* true for fetching a trigger order (default false)
+     * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
-         * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
-         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-         * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
-         * @param {bool} [params.trigger] *swap markets only* true for fetching a trigger order (default false)
-         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'fetchOrder';
         this.checkTypeParam(methodName, params);
         await this.loadMarkets();
@@ -3102,28 +3103,28 @@ export default class hashkey extends Exchange {
         }
         return this.parseOrder(response);
     }
+    /**
+     * @method
+     * @name hashkey#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+     * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
+     * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+     * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
+     * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
+     * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+     * @param {string} [params.accountId] account id to fetch the orders from
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
-         * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
-         * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
-         * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
-         * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
-         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
-         * @param {string} [params.accountId] account id to fetch the orders from
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'fetchOpenOrders';
         this.checkTypeParam(methodName, params);
         await this.loadMarkets();
@@ -3144,23 +3145,23 @@ export default class hashkey extends Exchange {
             throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
     }
+    /**
+     * @method
+     * @ignore
+     * @name hashkey#fetchOpenSpotOrders
+     * @description fetch all unfilled currently open orders for spot markets
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.orderId] the id of the order to fetch
+     * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+     * @param {string} [params.accountId] account id to fetch the orders from
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @ignore
-         * @name hashkey#fetchOpenSpotOrders
-         * @description fetch all unfilled currently open orders for spot markets
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
-         * @param {string} [symbol] unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.orderId] the id of the order to fetch
-         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
-         * @param {string} [params.accountId] account id to fetch the orders from
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let methodName = 'fetchOpenSpotOrders';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
@@ -3223,24 +3224,24 @@ export default class hashkey extends Exchange {
         }
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @ignore
+     * @name hashkey#fetchOpenSwapOrders
+     * @description fetch all unfilled currently open orders for swap markets
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+     * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve - maximum 500
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.fromOrderId] the id of the order to start from
+     * @param {bool} [params.trigger] true for fetching trigger orders (default false)
+     * @param {bool} [params.stop] an alternative for trigger param
+     * @param {string} [params.accountId] account id to fetch the orders from
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenSwapOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @ignore
-         * @name hashkey#fetchOpenSwapOrders
-         * @description fetch all unfilled currently open orders for swap markets
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
-         * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - maximum 500
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.fromOrderId] the id of the order to start from
-         * @param {bool} [params.trigger] true for fetching trigger orders (default false)
-         * @param {bool} [params.stop] an alternative for trigger param
-         * @param {string} [params.accountId] account id to fetch the orders from
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         let methodName = 'fetchOpenSwapOrders';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
         if (symbol === undefined) {
@@ -3321,28 +3322,28 @@ export default class hashkey extends Exchange {
         }
         return this.parseOrders(response, market, since, limit);
     }
+    /**
+     * @method
+     * @name hashkey#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
+     * @param {string} symbol *is mandatory for swap markets* unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+     * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+     * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
+     * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+     * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
+     * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
+     * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
+     * @param {string} [params.accountId] account id to fetch the orders from
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchCanceledAndClosedOrders
-         * @description fetches information on multiple canceled and closed orders made by the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
-         * @param {string} symbol *is mandatory for swap markets* unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
-         * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
-         * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
-         * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
-         * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
-         * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
-         * @param {string} [params.accountId] account id to fetch the orders from
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         const methodName = 'fetchCanceledAndClosedOrders';
         this.checkTypeParam(methodName, params);
         await this.loadMarkets();
@@ -3712,16 +3713,16 @@ export default class hashkey extends Exchange {
         };
         return this.safeString(types, type, type);
     }
+    /**
+     * @method
+     * @name hashkey#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3737,16 +3738,16 @@ export default class hashkey extends Exchange {
         const rate = this.safeDict(response, 0, {});
         return this.parseFundingRate(rate, market);
     }
+    /**
+     * @method
+     * @name hashkey#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchFundingRates
-         * @description fetch the funding rate for multiple markets
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const request = {
@@ -3795,20 +3796,20 @@ export default class hashkey extends Exchange {
             'interval': undefined,
         };
     }
+    /**
+     * @method
+     * @name hashkey#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.fromId] the id of the entry to start from
+     * @param {int} [params.endId] the id of the entry to end with
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchFundingRateHistory
-         * @description fetches historical funding rate prices
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
-         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.fromId] the id of the entry to start from
-         * @param {int} [params.endId] the id of the entry to end with
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-         */
         await this.loadMarkets();
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
@@ -3847,18 +3848,18 @@ export default class hashkey extends Exchange {
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySinceLimit(sorted, since, limit);
     }
+    /**
+     * @method
+     * @description fetch open positions for a market
+     * @name hashkey#fetchPositions
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+     * @description fetch all open positions
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @description fetch open positions for a market
-         * @name hashkey#fetchPositions
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
-         * @description fetch all open positions
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         const methodName = 'fetchPositions';
         if ((symbols === undefined)) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument with one single market symbol');
@@ -3872,18 +3873,18 @@ export default class hashkey extends Exchange {
         await this.loadMarkets();
         return await this.fetchPositionsForSymbol(symbols[0], this.extend({ 'methodName': 'fetchPositions' }, params));
     }
+    /**
+     * @method
+     * @description fetch open positions for a single market
+     * @name hashkey#fetchPositionsForSymbol
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+     * @description fetch all open positions for specific symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositionsForSymbol(symbol, params = {}) {
-        /**
-         * @method
-         * @description fetch open positions for a single market
-         * @name hashkey#fetchPositionsForSymbol
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
-         * @description fetch all open positions for specific symbol
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let methodName = 'fetchPosition';
@@ -3958,16 +3959,16 @@ export default class hashkey extends Exchange {
             'info': position,
         });
     }
+    /**
+     * @method
+     * @name hashkey#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     async fetchLeverage(symbol, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchLeverage
-         * @description fetch the set leverage for a market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -3997,17 +3998,17 @@ export default class hashkey extends Exchange {
             'shortLeverage': leverageValue,
         };
     }
+    /**
+     * @method
+     * @name hashkey#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
-         * @param {float} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} response from the exchange
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4027,16 +4028,16 @@ export default class hashkey extends Exchange {
         //
         return this.parseLeverage(response, market);
     }
+    /**
+     * @method
+     * @name hashkey#fetchLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.publicGetApiV1ExchangeInfo(params);
         // response is the same as in fetchMarkets()
@@ -4142,17 +4143,17 @@ export default class hashkey extends Exchange {
         }
         return tiers;
     }
+    /**
+     * @method
+     * @name hashkey#fetchTradingFee
+     * @description fetch the trading fees for a market
+     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
     async fetchTradingFee(symbol, params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTradingFee
-         * @description fetch the trading fees for a market
-         * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
@@ -4177,15 +4178,15 @@ export default class hashkey extends Exchange {
             throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
     }
+    /**
+     * @method
+     * @name hashkey#fetchTradingFees
+     * @description *for spot markets only* fetch the trading fees for multiple markets
+     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     */
     async fetchTradingFees(params = {}) {
-        /**
-         * @method
-         * @name hashkey#fetchTradingFees
-         * @description *for spot markets only* fetch the trading fees for multiple markets
-         * @see https://developers.binance.com/docs/wallet/asset/trade-fee
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const response = await this.privateGetApiV1AccountVipInfo(params);
         //

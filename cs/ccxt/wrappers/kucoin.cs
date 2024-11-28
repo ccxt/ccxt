@@ -706,12 +706,6 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
-    /// <description>
-    /// bool : True if cancelling a stop order
-    /// </description>
-    /// </item>
-    /// <item>
     /// <term>params.hf</term>
     /// <description>
     /// bool : false, // true for hf order
@@ -756,12 +750,6 @@ public partial class kucoin
     /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stop</term>
-    /// <description>
-    /// bool : true if fetching stop orders
     /// </description>
     /// </item>
     /// <item>
@@ -962,12 +950,6 @@ public partial class kucoin
     /// <term>params.orderIds</term>
     /// <description>
     /// string : *stop orders only* comma seperated order ID list
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.stop</term>
-    /// <description>
-    /// bool : True if fetching a stop order
     /// </description>
     /// </item>
     /// <item>
@@ -1584,6 +1566,12 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

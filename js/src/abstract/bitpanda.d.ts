@@ -8,7 +8,6 @@ interface onetrading {
     publicGetOrderBookInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetMarketTicker(params?: {}): Promise<implicitReturnType>;
     publicGetMarketTickerInstrumentCode(params?: {}): Promise<implicitReturnType>;
-    publicGetPriceTicksInstrumentCode(params?: {}): Promise<implicitReturnType>;
     publicGetTime(params?: {}): Promise<implicitReturnType>;
     privateGetAccountBalances(params?: {}): Promise<implicitReturnType>;
     privateGetAccountDepositCryptoCurrencyCode(params?: {}): Promise<implicitReturnType>;

@@ -616,6 +616,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAssetMonthlyStatement",parameters);
     }
 
+    public async Task<object> privateGetAccountInstruments (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountInstruments",parameters);
+    }
+
     public async Task<object> privateGetAccountBalance (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountBalance",parameters);
