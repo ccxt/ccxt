@@ -3988,132 +3988,169 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        let type = undefined;
-        let subType = undefined;
+        const isTwapOrder = this.safeBool (params, 'twap', false);
+        params = this.omit (params, 'twap');
         let response = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
-        if (type === 'spot') {
-            response = await this.spotV1PrivateGetTradeQuery (this.extend (request, params));
+        let market = undefined;
+        if (isTwapOrder) {
+            const twapRequest: Dict = {
+                'mainOrderId': id,
+            };
+            response = await this.swapV1PrivateGetTwapOrderDetail (this.extend (twapRequest, params));
             //
             //     {
             //         "code": 0,
-            //         "msg": "",
+            //         "msg": "success cancel order",
+            //         "timestamp": 1732760856617,
             //         "data": {
-            //             "symbol": "XRP-USDT",
-            //             "orderId": 1514087361158316032,
-            //             "price": "0.5",
-            //             "origQty": "10",
-            //             "executedQty": "0",
-            //             "cummulativeQuoteQty": "0",
-            //             "status": "CANCELED",
-            //             "type": "LIMIT",
+            //             "symbol": "LTC-USDT",
+            //             "mainOrderId": "5596903086063901779",
             //             "side": "BUY",
-            //             "time": 1649821532000,
-            //             "updateTime": 1649821543000,
-            //             "origQuoteOrderQty": "0",
-            //             "fee": "0",
-            //             "feeAsset": "XRP"
+            //             "positionSide": "LONG",
+            //             "priceType": "constant",
+            //             "priceVariance": "10.00",
+            //             "triggerPrice": "120.00",
+            //             "interval": 8,
+            //             "amountPerOrder": "0.5",
+            //             "totalAmount": "1.0",
+            //             "orderStatus": "Filled",
+            //             "executedQty": "1.0",
+            //             "duration": 16,
+            //             "maxDuration": 86400,
+            //             "createdTime": 1732693017000,
+            //             "updateTime": 1732693033000
             //         }
             //     }
             //
         } else {
-            if (subType === 'inverse') {
-                response = await this.cswapV1PrivateGetTradeOrderDetail (this.extend (request, params));
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+            }
+            market = this.market (symbol);
+            const request: Dict = {
+                'symbol': market['id'],
+                'orderId': id,
+            };
+            let type = undefined;
+            let subType = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
+            if (type === 'spot') {
+                response = await this.spotV1PrivateGetTradeQuery (this.extend (request, params));
                 //
                 //     {
                 //         "code": 0,
                 //         "msg": "",
                 //         "data": {
-                //             "order": {
-                //                 "symbol": "SOL-USD",
-                //                 "orderId": "1816342420721254400",
-                //                 "side": "BUY",
-                //                 "positionSide": "Long",
-                //                 "type": "LIMIT",
-                //                 "quantity": 1,
-                //                 "origQty": "",
-                //                 "price": "150",
-                //                 "executedQty": "0",
-                //                 "avgPrice": "0.000",
-                //                 "cumQuote": "",
-                //                 "stopPrice": "",
-                //                 "profit": "0.0000",
-                //                 "commission": "0.0000",
-                //                 "status": "Pending",
-                //                 "time": 1721884753767,
-                //                 "updateTime": 1721884753786,
-                //                 "clientOrderId": "",
-                //                 "leverage": "",
-                //                 "takeProfit": {
-                //                     "type": "TAKE_PROFIT",
-                //                     "quantity": 0,
-                //                     "stopPrice": 0,
-                //                     "price": 0,
-                //                     "workingType": "MARK_PRICE",
-                //                     "stopGuaranteed": ""
-                //                 },
-                //                 "stopLoss": {
-                //                     "type": "STOP",
-                //                     "quantity": 0,
-                //                     "stopPrice": 0,
-                //                     "price": 0,
-                //                     "workingType": "MARK_PRICE",
-                //                     "stopGuaranteed": ""
-                //                 },
-                //                 "advanceAttr": 0,
-                //                 "positionID": 0,
-                //                 "takeProfitEntrustPrice": 0,
-                //                 "stopLossEntrustPrice": 0,
-                //                 "orderType": "",
-                //                 "workingType": "MARK_PRICE"
-                //             }
+                //             "symbol": "XRP-USDT",
+                //             "orderId": 1514087361158316032,
+                //             "price": "0.5",
+                //             "origQty": "10",
+                //             "executedQty": "0",
+                //             "cummulativeQuoteQty": "0",
+                //             "status": "CANCELED",
+                //             "type": "LIMIT",
+                //             "side": "BUY",
+                //             "time": 1649821532000,
+                //             "updateTime": 1649821543000,
+                //             "origQuoteOrderQty": "0",
+                //             "fee": "0",
+                //             "feeAsset": "XRP"
                 //         }
                 //     }
                 //
             } else {
-                response = await this.swapV2PrivateGetTradeOrder (this.extend (request, params));
-                //
-                //     {
-                //         "code": 0,
-                //         "msg": "",
-                //         "data": {
-                //             "order": {
-                //                 "symbol": "BTC-USDT",
-                //                 "orderId": 1597597642269917184,
-                //                 "side": "SELL",
-                //                 "positionSide": "LONG",
-                //                 "type": "TAKE_PROFIT_MARKET",
-                //                 "origQty": "1.0000",
-                //                 "price": "0.0",
-                //                 "executedQty": "0.0000",
-                //                 "avgPrice": "0.0",
-                //                 "cumQuote": "",
-                //                 "stopPrice": "16494.0",
-                //                 "profit": "",
-                //                 "commission": "",
-                //                 "status": "FILLED",
-                //                 "time": 1669731935000,
-                //                 "updateTime": 1669752524000
-                //             }
-                //         }
-                //     }
-                //
+                if (subType === 'inverse') {
+                    response = await this.cswapV1PrivateGetTradeOrderDetail (this.extend (request, params));
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "msg": "",
+                    //         "data": {
+                    //             "order": {
+                    //                 "symbol": "SOL-USD",
+                    //                 "orderId": "1816342420721254400",
+                    //                 "side": "BUY",
+                    //                 "positionSide": "Long",
+                    //                 "type": "LIMIT",
+                    //                 "quantity": 1,
+                    //                 "origQty": "",
+                    //                 "price": "150",
+                    //                 "executedQty": "0",
+                    //                 "avgPrice": "0.000",
+                    //                 "cumQuote": "",
+                    //                 "stopPrice": "",
+                    //                 "profit": "0.0000",
+                    //                 "commission": "0.0000",
+                    //                 "status": "Pending",
+                    //                 "time": 1721884753767,
+                    //                 "updateTime": 1721884753786,
+                    //                 "clientOrderId": "",
+                    //                 "leverage": "",
+                    //                 "takeProfit": {
+                    //                     "type": "TAKE_PROFIT",
+                    //                     "quantity": 0,
+                    //                     "stopPrice": 0,
+                    //                     "price": 0,
+                    //                     "workingType": "MARK_PRICE",
+                    //                     "stopGuaranteed": ""
+                    //                 },
+                    //                 "stopLoss": {
+                    //                     "type": "STOP",
+                    //                     "quantity": 0,
+                    //                     "stopPrice": 0,
+                    //                     "price": 0,
+                    //                     "workingType": "MARK_PRICE",
+                    //                     "stopGuaranteed": ""
+                    //                 },
+                    //                 "advanceAttr": 0,
+                    //                 "positionID": 0,
+                    //                 "takeProfitEntrustPrice": 0,
+                    //                 "stopLossEntrustPrice": 0,
+                    //                 "orderType": "",
+                    //                 "workingType": "MARK_PRICE"
+                    //             }
+                    //         }
+                    //     }
+                    //
+                } else {
+                    response = await this.swapV2PrivateGetTradeOrder (this.extend (request, params));
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "msg": "",
+                    //         "data": {
+                    //             "order": {
+                    //                 "symbol": "BTC-USDT",
+                    //                 "orderId": 1597597642269917184,
+                    //                 "side": "SELL",
+                    //                 "positionSide": "LONG",
+                    //                 "type": "TAKE_PROFIT_MARKET",
+                    //                 "origQty": "1.0000",
+                    //                 "price": "0.0",
+                    //                 "executedQty": "0.0000",
+                    //                 "avgPrice": "0.0",
+                    //                 "cumQuote": "",
+                    //                 "stopPrice": "16494.0",
+                    //                 "profit": "",
+                    //                 "commission": "",
+                    //                 "status": "FILLED",
+                    //                 "time": 1669731935000,
+                    //                 "updateTime": 1669752524000
+                    //             }
+                    //         }
+                    //     }
+                    //
+                }
             }
         }
         const data = this.safeDict (response, 'data', {});
@@ -4651,7 +4688,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});

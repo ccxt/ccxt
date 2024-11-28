@@ -1345,6 +1345,18 @@
                   "1816342420721254400",
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "twap fetch order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/orderDetail?mainOrderId=5596903086063901779&timestamp=1732761562641&signature=c6e2add38151575bcbf8bdd8f813670679e61b63d5aa050b6b70d1f29f83c7f8",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ]
             }
         ],
         "fetchPositionMode": [
