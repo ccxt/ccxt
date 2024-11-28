@@ -2597,6 +2597,9 @@ class bingx(Exchange, ImplicitAPI):
         }
         isMarketOrder = type == 'MARKET'
         isSpot = marketType == 'spot'
+        isTwapOrder = type == 'TWAP'
+        if isTwapOrder and isSpot:
+            raise BadSymbol(self.id + ' createOrder() twap order supports swap contracts only')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
@@ -2645,6 +2648,26 @@ class bingx(Exchange, ImplicitAPI):
                     request['type'] = 'TAKE_STOP_MARKET'
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, stopTakePrice))
         else:
+            if isTwapOrder:
+                twapRequest: dict = {
+                    'symbol': request['symbol'],
+                    'side': request['side'],
+                    'positionSide': 'LONG' if (side == 'buy') else 'SHORT',
+                    'triggerPrice': self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice)),
+                    'totalAmount': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+                }
+                #     {
+                #         "symbol": "LTC-USDT",
+                #         "side": "BUY",
+                #         "positionSide": "LONG",
+                #         "priceType": "constant",
+                #         "priceVariance": "10",
+                #         "triggerPrice": "120",
+                #         "interval": 8,
+                #         "amountPerOrder": "0.5",
+                #         "totalAmount": "1"
+                #     }
+                return self.extend(twapRequest, params)
             if timeInForce == 'FOK':
                 request['timeInForce'] = 'FOK'
             trailingAmount = self.safe_string(params, 'trailingAmount')
@@ -2742,6 +2765,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
         https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -2779,6 +2803,8 @@ class bingx(Exchange, ImplicitAPI):
                 response = self.swapV2PrivatePostTradeOrderTest(request)
             elif market['inverse']:
                 response = self.cswapV1PrivatePostTradeOrder(request)
+            elif type == 'twap':
+                response = self.swapV1PrivatePostTwapOrder(request)
             else:
                 response = self.swapV2PrivatePostTradeOrder(request)
         else:
@@ -2836,6 +2862,17 @@ class bingx(Exchange, ImplicitAPI):
         #         "timeInForce": ""
         #     }
         #
+        # twap order
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1732693774386,
+        #         "data": {
+        #             "mainOrderId": "4633860139993029715"
+        #         }
+        #     }
+        #
         if isinstance(response, str):
             # broken api engine : order-ids are too long numbers(i.e. 1742930526912864656)
             # and json.loadscan not handle them in JS, so we have to use .parseJson
@@ -2848,7 +2885,7 @@ class bingx(Exchange, ImplicitAPI):
             if market['inverse']:
                 result = response
             else:
-                result = self.safe_dict(data, 'order', {})
+                result = self.safe_dict(data, 'order', data)
         else:
             result = data
         return self.parse_order(result, market)
@@ -3265,9 +3302,9 @@ class bingx(Exchange, ImplicitAPI):
         if market is None:
             market = self.safe_market(marketId, None, None, marketType)
         side = self.safe_string_lower_2(order, 'side', 'S')
-        timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E'])
+        timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E', 'createdTime'])
         lastTradeTimestamp = self.safe_integer_2(order, 'updateTime', 'T')
-        statusId = self.safe_string_upper_2(order, 'status', 'X')
+        statusId = self.safe_string_upper_n(order, ['status', 'X', 'orderStatus'])
         feeCurrencyCode = self.safe_string_2(order, 'feeAsset', 'N')
         feeCost = self.safe_string_n(order, ['fee', 'commission', 'n'])
         if (feeCurrencyCode is None):
@@ -3308,7 +3345,7 @@ class bingx(Exchange, ImplicitAPI):
                 triggerPrice = None
         return self.safe_order({
             'info': info,
-            'id': self.safe_string_2(order, 'orderId', 'i'),
+            'id': self.safe_string_n(order, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': self.safe_string_n(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
@@ -3326,7 +3363,7 @@ class bingx(Exchange, ImplicitAPI):
             'takeProfitPrice': takeProfitPrice,
             'average': self.safe_string_2(order, 'avgPrice', 'ap'),
             'cost': self.safe_string(order, 'cummulativeQuoteQty'),
-            'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity']),
+            'amount': self.safe_string_n(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': self.safe_string_2(order, 'executedQty', 'z'),
             'remaining': None,
             'status': self.parse_order_status(statusId),
@@ -3343,6 +3380,7 @@ class bingx(Exchange, ImplicitAPI):
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
+            'RUNNING': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
@@ -3357,6 +3395,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
 
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
@@ -3364,31 +3403,64 @@ class bingx(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-        }
-        clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOrderID')
-        params = self.omit(params, ['clientOrderId'])
-        if clientOrderId is not None:
-            request['clientOrderID'] = clientOrderId
-        else:
-            request['orderId'] = id
+        isTwapOrder = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         response = None
-        type = None
-        subType = None
-        type, params = self.handle_market_type_and_params('cancelOrder', market, params)
-        subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
-        if type == 'spot':
-            response = self.spotV1PrivatePostTradeCancel(self.extend(request, params))
+        market = None
+        if isTwapOrder:
+            twapRequest: dict = {
+                'mainOrderId': id,
+            }
+            response = self.swapV1PrivatePostTwapCancelOrder(self.extend(twapRequest, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1702731661854,
+            #         "data": {
+            #             "symbol": "BNB-USDT",
+            #             "side": "BUY",
+            #             "positionSide": "LONG",
+            #             "priceType": "constant",
+            #             "priceVariance": "2000",
+            #             "triggerPrice": "68000",
+            #             "interval": 8,
+            #             "amountPerOrder": "0.111",
+            #             "totalAmount": "0.511",
+            #             "orderStatus": "Running",
+            #             "executedQty": "0.1",
+            #             "duration": 800,
+            #             "maxDuration": 9000,
+            #             "createdTime": 1702731661854,
+            #             "updateTime": 1702731661854
+            #         }
+            #     }
+            #
         else:
-            if subType == 'inverse':
-                response = self.cswapV1PrivateDeleteTradeCancelOrder(self.extend(request, params))
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
+            market = self.market(symbol)
+            request: dict = {
+                'symbol': market['id'],
+            }
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientOrderID')
+            params = self.omit(params, ['clientOrderId'])
+            if clientOrderId is not None:
+                request['clientOrderID'] = clientOrderId
             else:
-                response = self.swapV2PrivateDeleteTradeOrder(self.extend(request, params))
+                request['orderId'] = id
+            type = None
+            subType = None
+            type, params = self.handle_market_type_and_params('cancelOrder', market, params)
+            subType, params = self.handle_sub_type_and_params('cancelOrder', market, params)
+            if type == 'spot':
+                response = self.spotV1PrivatePostTradeCancel(self.extend(request, params))
+            else:
+                if subType == 'inverse':
+                    response = self.cswapV1PrivateDeleteTradeCancelOrder(self.extend(request, params))
+                else:
+                    response = self.swapV2PrivateDeleteTradeOrder(self.extend(request, params))
         #
         # spot
         #
@@ -3778,131 +3850,167 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
 
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.twap]: if fetching twap order
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'symbol': market['id'],
-            'orderId': id,
-        }
-        type = None
-        subType = None
+        isTwapOrder = self.safe_bool(params, 'twap', False)
+        params = self.omit(params, 'twap')
         response = None
-        type, params = self.handle_market_type_and_params('fetchOrder', market, params)
-        subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
-        if type == 'spot':
-            response = self.spotV1PrivateGetTradeQuery(self.extend(request, params))
+        market = None
+        if isTwapOrder:
+            twapRequest: dict = {
+                'mainOrderId': id,
+            }
+            response = self.swapV1PrivateGetTwapOrderDetail(self.extend(twapRequest, params))
             #
             #     {
             #         "code": 0,
-            #         "msg": "",
+            #         "msg": "success cancel order",
+            #         "timestamp": 1732760856617,
             #         "data": {
-            #             "symbol": "XRP-USDT",
-            #             "orderId": 1514087361158316032,
-            #             "price": "0.5",
-            #             "origQty": "10",
-            #             "executedQty": "0",
-            #             "cummulativeQuoteQty": "0",
-            #             "status": "CANCELED",
-            #             "type": "LIMIT",
+            #             "symbol": "LTC-USDT",
+            #             "mainOrderId": "5596903086063901779",
             #             "side": "BUY",
-            #             "time": 1649821532000,
-            #             "updateTime": 1649821543000,
-            #             "origQuoteOrderQty": "0",
-            #             "fee": "0",
-            #             "feeAsset": "XRP"
+            #             "positionSide": "LONG",
+            #             "priceType": "constant",
+            #             "priceVariance": "10.00",
+            #             "triggerPrice": "120.00",
+            #             "interval": 8,
+            #             "amountPerOrder": "0.5",
+            #             "totalAmount": "1.0",
+            #             "orderStatus": "Filled",
+            #             "executedQty": "1.0",
+            #             "duration": 16,
+            #             "maxDuration": 86400,
+            #             "createdTime": 1732693017000,
+            #             "updateTime": 1732693033000
             #         }
             #     }
             #
         else:
-            if subType == 'inverse':
-                response = self.cswapV1PrivateGetTradeOrderDetail(self.extend(request, params))
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+            market = self.market(symbol)
+            request: dict = {
+                'symbol': market['id'],
+                'orderId': id,
+            }
+            type = None
+            subType = None
+            type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
+            if type == 'spot':
+                response = self.spotV1PrivateGetTradeQuery(self.extend(request, params))
                 #
                 #     {
                 #         "code": 0,
                 #         "msg": "",
                 #         "data": {
-                #             "order": {
-                #                 "symbol": "SOL-USD",
-                #                 "orderId": "1816342420721254400",
-                #                 "side": "BUY",
-                #                 "positionSide": "Long",
-                #                 "type": "LIMIT",
-                #                 "quantity": 1,
-                #                 "origQty": "",
-                #                 "price": "150",
-                #                 "executedQty": "0",
-                #                 "avgPrice": "0.000",
-                #                 "cumQuote": "",
-                #                 "stopPrice": "",
-                #                 "profit": "0.0000",
-                #                 "commission": "0.0000",
-                #                 "status": "Pending",
-                #                 "time": 1721884753767,
-                #                 "updateTime": 1721884753786,
-                #                 "clientOrderId": "",
-                #                 "leverage": "",
-                #                 "takeProfit": {
-                #                     "type": "TAKE_PROFIT",
-                #                     "quantity": 0,
-                #                     "stopPrice": 0,
-                #                     "price": 0,
-                #                     "workingType": "MARK_PRICE",
-                #                     "stopGuaranteed": ""
-                #                 },
-                #                 "stopLoss": {
-                #                     "type": "STOP",
-                #                     "quantity": 0,
-                #                     "stopPrice": 0,
-                #                     "price": 0,
-                #                     "workingType": "MARK_PRICE",
-                #                     "stopGuaranteed": ""
-                #                 },
-                #                 "advanceAttr": 0,
-                #                 "positionID": 0,
-                #                 "takeProfitEntrustPrice": 0,
-                #                 "stopLossEntrustPrice": 0,
-                #                 "orderType": "",
-                #                 "workingType": "MARK_PRICE"
-                #             }
+                #             "symbol": "XRP-USDT",
+                #             "orderId": 1514087361158316032,
+                #             "price": "0.5",
+                #             "origQty": "10",
+                #             "executedQty": "0",
+                #             "cummulativeQuoteQty": "0",
+                #             "status": "CANCELED",
+                #             "type": "LIMIT",
+                #             "side": "BUY",
+                #             "time": 1649821532000,
+                #             "updateTime": 1649821543000,
+                #             "origQuoteOrderQty": "0",
+                #             "fee": "0",
+                #             "feeAsset": "XRP"
                 #         }
                 #     }
                 #
             else:
-                response = self.swapV2PrivateGetTradeOrder(self.extend(request, params))
-                #
-                #     {
-                #         "code": 0,
-                #         "msg": "",
-                #         "data": {
-                #             "order": {
-                #                 "symbol": "BTC-USDT",
-                #                 "orderId": 1597597642269917184,
-                #                 "side": "SELL",
-                #                 "positionSide": "LONG",
-                #                 "type": "TAKE_PROFIT_MARKET",
-                #                 "origQty": "1.0000",
-                #                 "price": "0.0",
-                #                 "executedQty": "0.0000",
-                #                 "avgPrice": "0.0",
-                #                 "cumQuote": "",
-                #                 "stopPrice": "16494.0",
-                #                 "profit": "",
-                #                 "commission": "",
-                #                 "status": "FILLED",
-                #                 "time": 1669731935000,
-                #                 "updateTime": 1669752524000
-                #             }
-                #         }
-                #     }
-                #
+                if subType == 'inverse':
+                    response = self.cswapV1PrivateGetTradeOrderDetail(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "msg": "",
+                    #         "data": {
+                    #             "order": {
+                    #                 "symbol": "SOL-USD",
+                    #                 "orderId": "1816342420721254400",
+                    #                 "side": "BUY",
+                    #                 "positionSide": "Long",
+                    #                 "type": "LIMIT",
+                    #                 "quantity": 1,
+                    #                 "origQty": "",
+                    #                 "price": "150",
+                    #                 "executedQty": "0",
+                    #                 "avgPrice": "0.000",
+                    #                 "cumQuote": "",
+                    #                 "stopPrice": "",
+                    #                 "profit": "0.0000",
+                    #                 "commission": "0.0000",
+                    #                 "status": "Pending",
+                    #                 "time": 1721884753767,
+                    #                 "updateTime": 1721884753786,
+                    #                 "clientOrderId": "",
+                    #                 "leverage": "",
+                    #                 "takeProfit": {
+                    #                     "type": "TAKE_PROFIT",
+                    #                     "quantity": 0,
+                    #                     "stopPrice": 0,
+                    #                     "price": 0,
+                    #                     "workingType": "MARK_PRICE",
+                    #                     "stopGuaranteed": ""
+                    #                 },
+                    #                 "stopLoss": {
+                    #                     "type": "STOP",
+                    #                     "quantity": 0,
+                    #                     "stopPrice": 0,
+                    #                     "price": 0,
+                    #                     "workingType": "MARK_PRICE",
+                    #                     "stopGuaranteed": ""
+                    #                 },
+                    #                 "advanceAttr": 0,
+                    #                 "positionID": 0,
+                    #                 "takeProfitEntrustPrice": 0,
+                    #                 "stopLossEntrustPrice": 0,
+                    #                 "orderType": "",
+                    #                 "workingType": "MARK_PRICE"
+                    #             }
+                    #         }
+                    #     }
+                    #
+                else:
+                    response = self.swapV2PrivateGetTradeOrder(self.extend(request, params))
+                    #
+                    #     {
+                    #         "code": 0,
+                    #         "msg": "",
+                    #         "data": {
+                    #             "order": {
+                    #                 "symbol": "BTC-USDT",
+                    #                 "orderId": 1597597642269917184,
+                    #                 "side": "SELL",
+                    #                 "positionSide": "LONG",
+                    #                 "type": "TAKE_PROFIT_MARKET",
+                    #                 "origQty": "1.0000",
+                    #                 "price": "0.0",
+                    #                 "executedQty": "0.0000",
+                    #                 "avgPrice": "0.0",
+                    #                 "cumQuote": "",
+                    #                 "stopPrice": "16494.0",
+                    #                 "profit": "",
+                    #                 "commission": "",
+                    #                 "status": "FILLED",
+                    #                 "time": 1669731935000,
+                    #                 "updateTime": 1669752524000
+                    #             }
+                    #         }
+                    #     }
+                    #
         data = self.safe_dict(response, 'data', {})
         order = self.safe_dict(data, 'order', data)
         return self.parse_order(order, market)
@@ -4001,11 +4109,13 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.twap]: if fetching twap open orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
@@ -4022,7 +4132,11 @@ class bingx(Exchange, ImplicitAPI):
         if type == 'spot':
             response = self.spotV1PrivateGetTradeOpenOrders(self.extend(request, params))
         else:
-            if subType == 'inverse':
+            isTwapOrder = self.safe_bool(params, 'twap', False)
+            params = self.omit(params, 'twap')
+            if isTwapOrder:
+                response = self.swapV1PrivateGetTwapOpenOrders(self.extend(request, params))
+            elif subType == 'inverse':
                 response = self.cswapV1PrivateGetTradeOpenOrders(self.extend(request, params))
             else:
                 response = self.swapV2PrivateGetTradeOpenOrders(self.extend(request, params))
@@ -4135,8 +4249,38 @@ class bingx(Exchange, ImplicitAPI):
         #        }
         #    }
         #
+        # twap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1702731661854,
+        #         "data": {
+        #             "list": [
+        #                 {
+        #                     "symbol": "BNB-USDT",
+        #                     "side": "BUY",
+        #                     "positionSide": "LONG",
+        #                     "priceType": "constant",
+        #                     "priceVariance": "2000",
+        #                     "triggerPrice": "68000",
+        #                     "interval": 8,
+        #                     "amountPerOrder": "0.111",
+        #                     "totalAmount": "0.511",
+        #                     "orderStatus": "Running",
+        #                     "executedQty": "0.1",
+        #                     "duration": 800,
+        #                     "maxDuration": 9000,
+        #                     "createdTime": 1702731661854,
+        #                     "updateTime": 1702731661854
+        #                 }
+        #             ],
+        #             "total": 1
+        #         }
+        #     }
+        #
         data = self.safe_dict(response, 'data', {})
-        orders = self.safe_list(data, 'orders', [])
+        orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -4189,6 +4333,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
         https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
         https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+        https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -4196,6 +4341,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.standard]: whether to fetch standard contract orders
+        :param boolean [params.twap]: if fetching twap orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
@@ -4243,7 +4389,46 @@ class bingx(Exchange, ImplicitAPI):
             #    }
             #
         else:
-            if subType == 'inverse':
+            isTwapOrder = self.safe_bool(params, 'twap', False)
+            params = self.omit(params, 'twap')
+            if isTwapOrder:
+                request['pageIndex'] = 1
+                request['pageSize'] = 100 if (limit is None) else limit
+                request['startTime'] = 1 if (since is None) else since
+                until = self.safe_integer(params, 'until', self.milliseconds())
+                params = self.omit(params, 'until')
+                request['endTime'] = until
+                response = self.swapV1PrivateGetTwapHistoryOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1702731661854,
+                #         "data": {
+                #             "list": [
+                #                 {
+                #                     "symbol": "BNB-USDT",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "priceType": "constant",
+                #                     "priceVariance": "2000",
+                #                     "triggerPrice": "68000",
+                #                     "interval": 8,
+                #                     "amountPerOrder": "0.111",
+                #                     "totalAmount": "0.511",
+                #                     "orderStatus": "Running",
+                #                     "executedQty": "0.1",
+                #                     "duration": 800,
+                #                     "maxDuration": 9000,
+                #                     "createdTime": 1702731661854,
+                #                     "updateTime": 1702731661854
+                #                 }
+                #             ],
+                #             "total": 1
+                #         }
+                #     }
+                #
+            elif subType == 'inverse':
                 response = self.cswapV1PrivateGetTradeOrderHistory(self.extend(request, params))
                 #
                 #     {
@@ -4329,7 +4514,7 @@ class bingx(Exchange, ImplicitAPI):
                 #     }
                 #
         data = self.safe_dict(response, 'data', {})
-        orders = self.safe_list(data, 'orders', [])
+        orders = self.safe_list_2(data, 'orders', 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

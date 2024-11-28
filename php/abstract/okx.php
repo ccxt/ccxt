@@ -370,6 +370,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_asset_monthly_statement($params = array()) {
         return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_get_account_instruments($params = array()) {
+        return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_account_balance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1359,6 +1362,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privateGetAssetMonthlyStatement($params = array()) {
         return $this->request('asset/monthly-statement', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function privateGetAccountInstruments($params = array()) {
+        return $this->request('account/instruments', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetAccountBalance($params = array()) {
         return $this->request('account/balance', 'private', 'GET', $params, null, null, array("cost" => 2));

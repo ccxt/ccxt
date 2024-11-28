@@ -680,6 +680,109 @@ public partial class gate : Exchange
                     } },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerDirection", true },
+                        { "triggerPriceType", null },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", false },
+                        { "trailing", false },
+                        { "iceberg", true },
+                        { "selfTradePrevention", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 40 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 30 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "limit", 100 },
+                        { "untilDays", 30 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "forDerivatives", new Dictionary<string, object>() {
+                    { "extends", "spot" },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 10 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "untilDays", null },
+                        { "limit", 1000 },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1999 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
+                } },
+            } },
             { "precisionMode", TICK_SIZE },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
@@ -1510,7 +1613,7 @@ public partial class gate : Exchange
         return new List<object>() {request, parameters};
     }
 
-    public virtual object spotOrderPrepareRequest(object market = null, object stop = null, object parameters = null)
+    public virtual object spotOrderPrepareRequest(object market = null, object trigger = null, object parameters = null)
     {
         /**
         * @ignore
@@ -1518,24 +1621,24 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
-        stop ??= false;
+        trigger ??= false;
         parameters ??= new Dictionary<string, object>();
-        var marginModequeryVariable = this.getMarginMode(stop, parameters);
+        var marginModequeryVariable = this.getMarginMode(trigger, parameters);
         var marginMode = ((IList<object>) marginModequeryVariable)[0];
         var query = ((IList<object>) marginModequeryVariable)[1];
         object request = new Dictionary<string, object>() {};
-        if (!isTrue(stop))
+        if (!isTrue(trigger))
         {
             if (isTrue(isEqual(market, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-stop orders")) ;
+                throw new ArgumentsRequired ((string)add(this.id, " spotOrderPrepareRequest() requires a market argument for non-trigger orders")) ;
             }
             ((IDictionary<string,object>)request)["account"] = marginMode;
-            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+            ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
         }
         return new List<object>() {request, query};
     }
@@ -1548,7 +1651,7 @@ public partial class gate : Exchange
         * @name gate#multiOrderSpotPrepareRequest
         * @description Fills request params currency_pair, market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
         * @param {object} market CCXT market
-        * @param {bool} stop true if for a stop order
+        * @param {bool} trigger true if for a trigger order
         * @param {object} [params] request parameters
         * @returns the api request object, and the new params object with non-needed parameters removed
         */
@@ -1564,7 +1667,7 @@ public partial class gate : Exchange
         {
             if (isTrue(trigger))
             {
-                // gate spot and margin stop orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single stop order, but createOrder does not call this method
+                // gate spot and margin trigger orders use the term market instead of currency_pair, and normal instead of spot. Neither parameter is used when fetching/cancelling a single order. They are used for creating a single trigger order, but createOrder does not call this method
                 ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
             } else
             {
@@ -1574,14 +1677,14 @@ public partial class gate : Exchange
         return new List<object>() {request, query};
     }
 
-    public virtual object getMarginMode(object stop, object parameters)
+    public virtual object getMarginMode(object trigger, object parameters)
     {
         /**
          * @ignore
          * @method
          * @name gate#getMarginMode
          * @description Gets the margin type for this api call
-         * @param {bool} stop True if for a stop order
+         * @param {bool} trigger True if for a trigger order
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
@@ -1598,16 +1701,16 @@ public partial class gate : Exchange
         {
             marginMode = "spot";
         }
-        if (isTrue(stop))
+        if (isTrue(trigger))
         {
             if (isTrue(isEqual(marginMode, "spot")))
             {
-                // gate spot stop orders use the term normal instead of spot
+                // gate spot trigger orders use the term normal instead of spot
                 marginMode = "normal";
             }
             if (isTrue(isEqual(marginMode, "cross_margin")))
             {
-                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support stop orders for cross margin")) ;
+                throw new BadRequest ((string)add(this.id, " getMarginMode() does not support trigger orders for cross margin")) ;
             }
         }
         object isUnifiedAccount = false;
@@ -3244,7 +3347,6 @@ public partial class gate : Exchange
         object response = null;
         if (isTrue(getValue(market, "contract")))
         {
-            maxLimit = 1999;
             object isMark = (isEqual(price, "mark"));
             object isIndex = (isEqual(price, "index"));
             if (isTrue(isTrue(isMark) || isTrue(isIndex)))
@@ -3630,7 +3732,7 @@ public partial class gate : Exchange
         {
             if (isTrue(!isEqual(market, null)))
             {
-                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-stop
+                ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id"); // Should always be set for non-trigger
             }
             var marginModeparametersVariable = this.getMarginMode(false, parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -4231,8 +4333,8 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "margin"))))
@@ -4417,7 +4519,7 @@ public partial class gate : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object isStopLossOrder = !isEqual(stopLossPrice, null);
         object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isStopOrder = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
         if (isTrue(isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
@@ -4475,7 +4577,7 @@ public partial class gate : Exchange
             }
         }
         object request = null;
-        object nonTriggerOrder = !isTrue(isStopOrder) && isTrue((isEqual(trigger, null)));
+        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {
             if (isTrue(contract))
@@ -5143,7 +5245,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         object orderId = id;
@@ -5160,7 +5262,7 @@ public partial class gate : Exchange
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
         object contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
-        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, stop, query);
+        var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         ((IDictionary<string,object>)request)["order_id"] = ((object)orderId).ToString();
@@ -5193,14 +5295,14 @@ public partial class gate : Exchange
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         object type = this.safeString(result, 0);
-        object stop = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotGetPriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5209,7 +5311,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5218,7 +5320,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryGetSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5245,7 +5347,7 @@ public partial class gate : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
@@ -5273,7 +5375,7 @@ public partial class gate : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
@@ -5516,7 +5618,7 @@ public partial class gate : Exchange
         //        }
         //    ]
         //
-        // spot stop
+        // spot trigger
         //
         //    [
         //        {
@@ -5615,7 +5717,7 @@ public partial class gate : Exchange
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -5625,19 +5727,19 @@ public partial class gate : Exchange
         await this.loadMarkets();
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        object trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         ((IDictionary<string,object>)request)["order_id"] = id;
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5646,7 +5748,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5655,7 +5757,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrdersOrderId(this.extend(request, requestParams));
             } else
@@ -5876,18 +5978,18 @@ public partial class gate : Exchange
         await this.loadMarkets();
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object stop = this.safeBool2(parameters, "stop", "trigger");
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
+        var requestrequestParamsVariable = ((bool) isTrue((isEqual(type, "spot")))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object response = null;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateSpotDeletePriceOrders(this.extend(request, requestParams));
             } else
@@ -5896,7 +5998,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "swap")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateFuturesDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else
@@ -5905,7 +6007,7 @@ public partial class gate : Exchange
             }
         } else if (isTrue(isEqual(type, "future")))
         {
-            if (isTrue(stop))
+            if (isTrue(trigger))
             {
                 response = await this.privateDeliveryDeleteSettlePriceOrders(this.extend(request, requestParams));
             } else

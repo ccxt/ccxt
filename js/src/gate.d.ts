@@ -97,9 +97,9 @@ export default class gate extends Exchange {
     fetchOptionMarkets(params?: {}): Promise<any[]>;
     fetchOptionUnderlyings(): Promise<any[]>;
     prepareRequest(market?: any, type?: any, params?: {}): Dict[];
-    spotOrderPrepareRequest(market?: any, stop?: boolean, params?: {}): any[];
+    spotOrderPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
     multiOrderSpotPrepareRequest(market?: any, trigger?: boolean, params?: {}): any[];
-    getMarginMode(stop: any, params: any): any[];
+    getMarginMode(trigger: any, params: any): any[];
     getSettlementCurrencies(type: any, method: any): any;
     /**
      * @method
@@ -522,7 +522,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
      * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
@@ -545,7 +545,7 @@ export default class gate extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.stop] true for fetching stop orders
+     * @param {bool} [params.trigger] true for fetching trigger orders
      * @param {string} [params.type] spot, swap or future, if not provided this.options['defaultType'] is used
      * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
      * @param {boolean} [params.historical] *swap only* true for using historical endpoint
@@ -566,7 +566,7 @@ export default class gate extends Exchange {
      * @param {string} id Order id
      * @param {string} symbol Unified market symbol
      * @param {object} [params] Parameters specified by the exchange api
-     * @param {bool} [params.stop] True if the order to be cancelled is a trigger order
+     * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
