@@ -3535,6 +3535,7 @@ export default class bingx extends Exchange {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
+            'RUNNING': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
@@ -3550,6 +3551,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3557,33 +3559,67 @@ export default class bingx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
-        params = this.omit (params, [ 'clientOrderId' ]);
-        if (clientOrderId !== undefined) {
-            request['clientOrderID'] = clientOrderId;
-        } else {
-            request['orderId'] = id;
-        }
+        const isTwapOrder = this.safeBool (params, 'twap', false);
+        params = this.omit (params, 'twap');
         let response = undefined;
-        let type = undefined;
-        let subType = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
-        if (type === 'spot') {
-            response = await this.spotV1PrivatePostTradeCancel (this.extend (request, params));
+        let market = undefined;
+        if (isTwapOrder) {
+            const twapRequest: Dict = {
+                'mainOrderId': id,
+            };
+            response = await this.swapV1PrivatePostTwapCancelOrder (this.extend (twapRequest, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1702731661854,
+            //         "data": {
+            //             "symbol": "BNB-USDT",
+            //             "side": "BUY",
+            //             "positionSide": "LONG",
+            //             "priceType": "constant",
+            //             "priceVariance": "2000",
+            //             "triggerPrice": "68000",
+            //             "interval": 8,
+            //             "amountPerOrder": "0.111",
+            //             "totalAmount": "0.511",
+            //             "orderStatus": "Running",
+            //             "executedQty": "0.1",
+            //             "duration": 800,
+            //             "maxDuration": 9000,
+            //             "createdTime": 1702731661854,
+            //             "updateTime": 1702731661854
+            //         }
+            //     }
+            //
         } else {
-            if (subType === 'inverse') {
-                response = await this.cswapV1PrivateDeleteTradeCancelOrder (this.extend (request, params));
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
+            market = this.market (symbol);
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientOrderID');
+            params = this.omit (params, [ 'clientOrderId' ]);
+            if (clientOrderId !== undefined) {
+                request['clientOrderID'] = clientOrderId;
             } else {
-                response = await this.swapV2PrivateDeleteTradeOrder (this.extend (request, params));
+                request['orderId'] = id;
+            }
+            let type = undefined;
+            let subType = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
+            if (type === 'spot') {
+                response = await this.spotV1PrivatePostTradeCancel (this.extend (request, params));
+            } else {
+                if (subType === 'inverse') {
+                    response = await this.cswapV1PrivateDeleteTradeCancelOrder (this.extend (request, params));
+                } else {
+                    response = await this.swapV2PrivateDeleteTradeOrder (this.extend (request, params));
+                }
             }
         }
         //

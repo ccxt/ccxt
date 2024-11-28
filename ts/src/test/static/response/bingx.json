@@ -73,6 +73,92 @@
                     ],
                     "reduceOnly": null
                 }
+            },
+            {
+                "description": "twap cancel order",
+                "method": "cancelOrder",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1702731661854,
+                    "data": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BNB-USDT",
+                        "side": "BUY",
+                        "positionSide": "LONG",
+                        "priceType": "constant",
+                        "priceVariance": "2000",
+                        "triggerPrice": "68000",
+                        "interval": 8,
+                        "amountPerOrder": "0.111",
+                        "totalAmount": "0.511",
+                        "orderStatus": "Running",
+                        "executedQty": "0.1",
+                        "duration": 800,
+                        "maxDuration": 9000,
+                        "createdTime": 1702731661854,
+                        "updateTime": 1702731661854
+                    },
+                    "id": null,
+                    "clientOrderId": null,
+                    "symbol": "BNB/USDT",
+                    "timestamp": 1702731661854,
+                    "datetime": "2023-12-16T13:01:01.854Z",
+                    "lastTradeTimestamp": 1702731661854,
+                    "lastUpdateTimestamp": 1702731661854,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": 0.511,
+                    "filled": 0.1,
+                    "remaining": 0.411,
+                    "status": "open",
+                    "fee": {
+                        "currency": null,
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": null,
+                    "fees": [
+                        {
+                            "currency": null,
+                            "cost": null
+                        }
+                    ]
+                }
             }
         ],
         "closeAllPositions": [

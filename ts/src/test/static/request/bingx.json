@@ -746,6 +746,18 @@
                   "1816002957423951872",
                   "SOL/USD:SOL"
                 ]
+            },
+            {
+                "description": "twap cancel order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/swap/v1/twap/cancelOrder?mainOrderId=5596903086063901779&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                    "5596903086063901779",
+                    null,
+                    {
+                        "twap": true
+                    }
+                ]
             }
         ],
         "cancelOrders": [
