@@ -2641,9 +2641,6 @@ export default class phemex extends Exchange {
                 let triggerDirection = undefined;
                 [ triggerDirection, params ] = this.handleParamString (params, 'triggerDirection');
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'up', 'down' ]);
-                if (triggerDirection === undefined) {
-                    throw new ArgumentsRequired (this.id + " createOrder() also requires a 'triggerDirection' parameter with either 'up' or 'down' value");
-                }
                 // the flow defined per https://phemex-docs.github.io/#more-order-type-examples
                 if (triggerDirection === 'up') {
                     if (side === 'sell') {
