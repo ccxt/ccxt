@@ -232,7 +232,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
     /// </description>
@@ -647,6 +647,30 @@ public partial class poloniexfutures
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.orderIdFills</term>
+    /// <description>
+    /// string : filles for a specific order (other parameters can be ignored if specified)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : buy or sell
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string :  limit, market, limit_stop or market_stop
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.endAt</term>
+    /// <description>
+    /// int : end time (milisecond)
     /// </description>
     /// </item>
     /// </list>

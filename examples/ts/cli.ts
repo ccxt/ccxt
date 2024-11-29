@@ -5,7 +5,7 @@ import asTable from 'as-table'
 import ololog from 'ololog'
 import ccxt from '../../ts/ccxt.js'
 import { Agent } from 'https'
-import add_static_result from '../../utils/update-static-request-response.js'
+import { add_static_result } from '../../utils/update-static-tests-data.js'
 
 const fsPromises = fs.promises;
 ansi.nice
@@ -47,7 +47,14 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
 let foundDescription = undefined;
 for (let i = 0; i < process.argv.length; i++) {
     if (process.argv[i] === '--name') {
-        foundDescription = process.argv[i + 1]; 
+        foundDescription = process.argv[i + 1];
+        // search that string in `params` and remove it
+        for (let j = 0; j < params.length; j++) {
+            if (params[j] === foundDescription) {
+                params.splice(j, 1);
+                break;
+            }
+        }
         break;
     }
 }

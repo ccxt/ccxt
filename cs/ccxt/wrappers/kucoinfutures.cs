@@ -319,6 +319,18 @@ public partial class kucoinfutures
     /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/get-positions-history"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch position history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -350,7 +362,7 @@ public partial class kucoinfutures
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/futures/#place-an-order"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-order"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -414,9 +426,15 @@ public partial class kucoinfutures
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : the cost of the order in units of USDT
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.leverage</term>
     /// <description>
-    /// float : Leverage size of the order
+    /// float : Leverage size of the order (mandatory param in request, default is 1)
     /// </description>
     /// </item>
     /// <item>
@@ -841,6 +859,8 @@ public partial class kucoinfutures
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1122,6 +1142,21 @@ public partial class kucoinfutures
         var res = await this.setMarginMode(marginMode, symbol, parameters);
         return new MarginMode(res);
     }
+    /// <summary>
+    /// fetch the set leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
     public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);

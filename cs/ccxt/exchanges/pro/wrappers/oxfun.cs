@@ -422,6 +422,12 @@ public partial class oxfun
     /// See <see href="https://docs.ox.fun/?json#modify-order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.timestamp</term>
     /// <description>
     /// int : in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -431,12 +437,6 @@ public partial class oxfun
     /// <term>params.recvWindow</term>
     /// <description>
     /// int : in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params</term>
-    /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

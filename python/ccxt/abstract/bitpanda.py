@@ -9,7 +9,6 @@ class ImplicitAPI:
     public_get_order_book_instrument_code = publicGetOrderBookInstrumentCode = Entry('order-book/{instrument_code}', 'public', 'GET', {})
     public_get_market_ticker = publicGetMarketTicker = Entry('market-ticker', 'public', 'GET', {})
     public_get_market_ticker_instrument_code = publicGetMarketTickerInstrumentCode = Entry('market-ticker/{instrument_code}', 'public', 'GET', {})
-    public_get_price_ticks_instrument_code = publicGetPriceTicksInstrumentCode = Entry('price-ticks/{instrument_code}', 'public', 'GET', {})
     public_get_time = publicGetTime = Entry('time', 'public', 'GET', {})
     private_get_account_balances = privateGetAccountBalances = Entry('account/balances', 'private', 'GET', {})
     private_get_account_deposit_crypto_currency_code = privateGetAccountDepositCryptoCurrencyCode = Entry('account/deposit/crypto/{currency_code}', 'private', 'GET', {})

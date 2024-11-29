@@ -27,6 +27,7 @@ class ImplicitAPI:
     trader_private_post_v2_watchlists_watchlist_id = traderPrivatePostV2WatchlistsWatchlistId = Entry('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'POST', {})
     trader_private_post_v2_watchlists_by_name = traderPrivatePostV2WatchlistsByName = Entry('v2/watchlists:by_name', ['trader', 'private'], 'POST', {})
     trader_private_post_v2_wallets_transfers = traderPrivatePostV2WalletsTransfers = Entry('v2/wallets/transfers', ['trader', 'private'], 'POST', {})
+    trader_private_put_v2_orders_order_id = traderPrivatePutV2OrdersOrderId = Entry('v2/orders/{order_id}', ['trader', 'private'], 'PUT', {})
     trader_private_put_v2_watchlists_watchlist_id = traderPrivatePutV2WatchlistsWatchlistId = Entry('v2/watchlists/{watchlist_id}', ['trader', 'private'], 'PUT', {})
     trader_private_put_v2_watchlists_by_name = traderPrivatePutV2WatchlistsByName = Entry('v2/watchlists:by_name', ['trader', 'private'], 'PUT', {})
     trader_private_patch_v2_orders_order_id = traderPrivatePatchV2OrdersOrderId = Entry('v2/orders/{order_id}', ['trader', 'private'], 'PATCH', {})

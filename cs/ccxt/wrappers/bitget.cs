@@ -820,7 +820,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for canceling trigger orders
     /// </description>
@@ -868,7 +868,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -904,7 +904,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
@@ -980,7 +980,7 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stop</term>
+    /// <term>params.trigger</term>
     /// <description>
     /// boolean : set to true for fetching trigger orders
     /// </description>
@@ -1434,6 +1434,38 @@ public partial class bitget
     {
         var res = await this.fetchFundingRate(symbol, parameters);
         return new FundingRate(res);
+    }
+    /// <summary>
+    /// fetch the current funding rates for all markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : *contract only* 'linear', 'inverse'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.productType</term>
+    /// <description>
+    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
     }
     /// <summary>
     /// fetch the funding history

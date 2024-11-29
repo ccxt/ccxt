@@ -349,15 +349,15 @@ class blofin extends blofin$1 {
             },
         });
     }
+    /**
+     * @method
+     * @name blofin#fetchMarkets
+     * @description retrieves data on all markets for blofin
+     * @see https://blofin.com/docs#get-instruments
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets(params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchMarkets
-         * @description retrieves data on all markets for blofin
-         * @see https://blofin.com/docs#get-instruments
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const response = await this.publicGetMarketInstruments(params);
         const data = this.safeList(response, 'data', []);
         return this.parseMarkets(data);
@@ -442,17 +442,17 @@ class blofin extends blofin$1 {
             'info': market,
         });
     }
+    /**
+     * @method
+     * @name blofin#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://blofin.com/docs#get-order-book
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://blofin.com/docs#get-order-book
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -545,16 +545,16 @@ class blofin extends blofin$1 {
             'info': ticker,
         }, market);
     }
+    /**
+     * @method
+     * @name blofin#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://blofin.com/docs#get-tickers
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://blofin.com/docs#get-tickers
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -565,17 +565,17 @@ class blofin extends blofin$1 {
         const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
+    /**
+     * @method
+     * @name blofin#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://docs.blofin.com/index.html#get-mark-price
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchMarkPrice(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchMarkPrice
-         * @description fetches mark price for the market
-         * @see https://docs.blofin.com/index.html#get-mark-price
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -586,16 +586,16 @@ class blofin extends blofin$1 {
         const first = this.safeDict(data, 0, {});
         return this.parseTicker(first, market);
     }
+    /**
+     * @method
+     * @name blofin#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://blofin.com/docs#get-tickers
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://blofin.com/docs#get-tickers
-         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetMarketTickers(params);
@@ -663,19 +663,19 @@ class blofin extends blofin$1 {
             'fee': fee,
         }, market);
     }
+    /**
+     * @method
+     * @name blofin#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://blofin.com/docs#get-trades
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://blofin.com/docs#get-trades
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
@@ -721,21 +721,21 @@ class blofin extends blofin$1 {
             this.safeNumber(ohlcv, 6),
         ];
     }
+    /**
+     * @method
+     * @name blofin#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://blofin.com/docs#get-candlesticks
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://blofin.com/docs#get-candlesticks
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         let paginate = false;
@@ -761,19 +761,19 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
+    /**
+     * @method
+     * @name blofin#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://blofin.com/docs#get-funding-rate-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchFundingRateHistory
-         * @description fetches historical funding rate prices
-         * @see https://blofin.com/docs#get-funding-rate-history
-         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
-         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -843,16 +843,16 @@ class blofin extends blofin$1 {
             'interval': undefined,
         };
     }
+    /**
+     * @method
+     * @name blofin#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://blofin.com/docs#get-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://blofin.com/docs#get-funding-rate
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         if (!market['swap']) {
@@ -986,17 +986,17 @@ class blofin extends blofin$1 {
             'tierBased': undefined,
         };
     }
+    /**
+     * @method
+     * @name blofin#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://blofin.com/docs#get-balance
+     * @see https://blofin.com/docs#get-futures-account-balance
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance(params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://blofin.com/docs#get-balance
-         * @see https://blofin.com/docs#get-futures-account-balance
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets();
         const accountType = this.safeString2(params, 'accountType', 'type');
         params = this.omit(params, ['accountType', 'type']);
@@ -1196,34 +1196,34 @@ class blofin extends blofin$1 {
             'reduceOnly': reduceOnly,
         }, market);
     }
+    /**
+     * @method
+     * @name blofin#createOrder
+     * @description create a trade order
+     * @see https://blofin.com/docs#place-order
+     * @see https://blofin.com/docs#place-tpsl-order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
+     * @param {bool} [params.postOnly] true to place a post only order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
+     * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
+     * @param {string} [params.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
+     * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
+     * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#createOrder
-         * @description create a trade order
-         * @see https://blofin.com/docs#place-order
-         * @see https://blofin.com/docs#place-tpsl-order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
-         * @param {bool} [params.postOnly] true to place a post only order
-         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
-         * @param {float} [params.stopLossPrice] stop loss trigger price (will use privatePostTradeOrderTpsl)
-         * @param {float} [params.takeProfitPrice] take profit trigger price (will use privatePostTradeOrderTpsl)
-         * @param {string} [param.positionSide] *stopLossPrice/takeProfitPrice orders only* 'long' or 'short' or 'net' default is 'net'
-         * @param {string} [params.clientOrderId] a unique id for the order
-         * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
-         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-         * @param {float} [params.takeProfit.price] take profit order price (if not provided the order will be a market order)
-         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
-         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const tpsl = this.safeBool(params, 'tpsl', false);
@@ -1289,19 +1289,19 @@ class blofin extends blofin$1 {
         params = this.omit(params, ['stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, params);
     }
+    /**
+     * @method
+     * @name blofin#cancelOrder
+     * @description cancels an open order
+     * @see https://blofin.com/docs#cancel-order
+     * @see https://blofin.com/docs#cancel-tpsl-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#cancelOrder
-         * @description cancels an open order
-         * @see https://blofin.com/docs#cancel-order
-         * @see https://blofin.com/docs#cancel-tpsl-order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
@@ -1334,15 +1334,16 @@ class blofin extends blofin$1 {
         const order = this.safeDict(data, 0);
         return this.parseOrder(order, market);
     }
+    /**
+     * @method
+     * @name blofin#createOrders
+     * @description create a list of trade orders
+     * @see https://blofin.com/docs#place-multiple-orders
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrders(orders, params = {}) {
-        /**
-         * @method
-         * @name blofin#createOrders
-         * @description create a list of trade orders
-         * @see https://blofin.com/docs#place-multiple-orders
-         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1361,21 +1362,21 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
     }
+    /**
+     * @method
+     * @name blofin#fetchOpenOrders
+     * @description Fetch orders that are still open
+     * @see https://blofin.com/docs#get-active-orders
+     * @see https://blofin.com/docs#get-active-tpsl-orders
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of  open orders structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchOpenOrders
-         * @description Fetch orders that are still open
-         * @see https://blofin.com/docs#get-active-orders
-         * @see https://blofin.com/docs#get-active-tpsl-orders
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of  open orders structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
@@ -1405,20 +1406,20 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name blofin#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://blofin.com/docs#get-trade-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @see https://blofin.com/docs#get-trade-history
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
@@ -1439,20 +1440,20 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name blofin#fetchDeposits
+     * @description fetch all deposits made to an account
+     * @see https://blofin.com/docs#get-deposite-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchDeposits
-         * @description fetch all deposits made to an account
-         * @see https://blofin.com/docs#get-deposite-history
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch deposits for
-         * @param {int} [limit] the maximum number of deposits structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
@@ -1476,20 +1477,20 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name blofin#fetchWithdrawals
+     * @description fetch all withdrawals made from an account
+     * @see https://blofin.com/docs#get-withdraw-history
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchWithdrawals
-         * @description fetch all withdrawals made from an account
-         * @see https://blofin.com/docs#get-withdraw-history
-         * @param {string} code unified currency code
-         * @param {int} [since] the earliest time in ms to fetch withdrawals for
-         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
@@ -1513,21 +1514,21 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit, params);
     }
+    /**
+     * @method
+     * @name blofin#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://blofin.com/docs#get-funds-transfer-history
+     * @param {string} [code] unified currency code, default is undefined
+     * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+     * @param {int} [limit] max number of ledger entries to return, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @param {int} [params.until] the latest time in ms to fetch entries for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://blofin.com/docs#get-funds-transfer-history
-         * @param {string} [code] unified currency code, default is undefined
-         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
-         * @param {int} [limit] max number of ledger entries to return, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @param {int} [params.until] the latest time in ms to fetch entries for
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
@@ -1698,18 +1699,18 @@ class blofin extends blofin$1 {
             return ids;
         }
     }
+    /**
+     * @method
+     * @name blofin#cancelOrders
+     * @description cancel multiple orders
+     * @see https://blofin.com/docs#cancel-multiple-orders
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] whether the order is a stop/trigger order
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#cancelOrders
-         * @description cancel multiple orders
-         * @see https://blofin.com/docs#cancel-multiple-orders
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
-         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         // TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
@@ -1769,19 +1770,19 @@ class blofin extends blofin$1 {
         const ordersData = this.safeList(response, 'data', []);
         return this.parseOrders(ordersData, market, undefined, undefined, params);
     }
+    /**
+     * @method
+     * @name blofin#transfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://blofin.com/docs#funds-transfer
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from (funding, swap, copy_trading, earn)
+     * @param {string} toAccount account to transfer to (funding, swap, copy_trading, earn)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        /**
-         * @method
-         * @name blofin#transfer
-         * @description transfer currency internally between wallets on the same account
-         * @see https://blofin.com/docs#funds-transfer
-         * @param {string} code unified currency code
-         * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from (funding, swap, copy_trading, earn)
-         * @param {string} toAccount account to transfer to (funding, swap, copy_trading, earn)
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
-         */
         await this.loadMarkets();
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
@@ -1811,17 +1812,17 @@ class blofin extends blofin$1 {
             'status': undefined,
         };
     }
+    /**
+     * @method
+     * @name blofin#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://blofin.com/docs#get-positions
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPosition(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @see https://blofin.com/docs#get-positions
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const request = {
@@ -1835,17 +1836,17 @@ class blofin extends blofin$1 {
         }
         return this.parsePosition(position, market);
     }
+    /**
+     * @method
+     * @name blofin#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://blofin.com/docs#get-positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @see https://blofin.com/docs#get-positions
-         * @param {string[]} [symbols] list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const response = await this.privateGetAccountPositions(params);
@@ -1970,17 +1971,17 @@ class blofin extends blofin$1 {
             'takeProfitPrice': undefined,
         });
     }
+    /**
+     * @method
+     * @name blofin#fetchLeverages
+     * @description fetch the set leverage for all contract markets
+     * @see https://docs.blofin.com/index.html#get-multiple-leverage
+     * @param {string[]} symbols a list of unified market symbols, required on blofin
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     async fetchLeverages(symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchLeverages
-         * @description fetch the set leverage for all contract markets
-         * @see https://docs.blofin.com/index.html#get-multiple-leverage
-         * @param {string[]} symbols a list of unified market symbols, required on blofin
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
         await this.loadMarkets();
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLeverages() requires a symbols argument');
@@ -2026,17 +2027,17 @@ class blofin extends blofin$1 {
         const leverages = this.safeList(response, 'data', []);
         return this.parseLeverages(leverages, symbols, 'instId');
     }
+    /**
+     * @method
+     * @name blofin#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://docs.blofin.com/index.html#get-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     */
     async fetchLeverage(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchLeverage
-         * @description fetch the set leverage for a market
-         * @see https://docs.blofin.com/index.html#get-leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
         await this.loadMarkets();
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchLeverage', params);
@@ -2077,18 +2078,18 @@ class blofin extends blofin$1 {
             'shortLeverage': leverageValue,
         };
     }
+    /**
+     * @method
+     * @name blofin#setLeverage
+     * @description set the level of leverage for a market
+     * @see https://blofin.com/docs#set-leverage
+     * @param {int} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
+     * @returns {object} response from the exchange
+     */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#setLeverage
-         * @description set the level of leverage for a market
-         * @see https://blofin.com/docs#set-leverage
-         * @param {int} leverage the rate of leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.marginMode] 'cross' or 'isolated'
-         * @returns {object} response from the exchange
-         */
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
@@ -2112,24 +2113,24 @@ class blofin extends blofin$1 {
         const response = await this.privatePostAccountSetLeverage(this.extend(request, params));
         return response;
     }
+    /**
+     * @method
+     * @name blofin#closePosition
+     * @description closes open positions for a market
+     * @see https://blofin.com/docs#close-positions
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
+     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {string} [params.clientOrderId] a unique identifier for the order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
+     * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
+     * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async closePosition(symbol, side = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#closePosition
-         * @description closes open positions for a market
-         * @see https://blofin.com/docs#close-positions
-         * @param {string} symbol Unified CCXT market symbol
-         * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-         * @param {object} [params] extra parameters specific to the blofin api endpoint
-         * @param {string} [params.clientOrderId] a unique identifier for the order
-         * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
-         * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
-         * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const clientOrderId = this.safeString(params, 'clientOrderId');
@@ -2145,21 +2146,21 @@ class blofin extends blofin$1 {
         const response = await this.privatePostTradeClosePosition(this.extend(request, params));
         return this.safeDict(response, 'data');
     }
+    /**
+     * @method
+     * @name blofin#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://blofin.com/docs#get-order-history
+     * @see https://blofin.com/docs#get-tpsl-order-history
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of  orde structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.stop] True if fetching trigger or conditional orders
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://blofin.com/docs#get-order-history
-         * @see https://blofin.com/docs#get-tpsl-order-history
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of  orde structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] True if fetching trigger or conditional orders
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
@@ -2192,16 +2193,16 @@ class blofin extends blofin$1 {
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
+    /**
+     * @method
+     * @name blofin#fetchMarginMode
+     * @description fetches the margin mode of a trading pair
+     * @see https://docs.blofin.com/index.html#get-margin-mode
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     */
     async fetchMarginMode(symbol, params = {}) {
-        /**
-         * @method
-         * @name blofin#fetchMarginMode
-         * @description fetches the margin mode of a trading pair
-         * @see https://docs.blofin.com/index.html#get-margin-mode
-         * @param {string} symbol unified symbol of the market to fetch the margin mode for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
-         */
         await this.loadMarkets();
         const market = this.market(symbol);
         const response = await this.privateGetAccountMarginMode(params);

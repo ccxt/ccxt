@@ -7,7 +7,7 @@
             {
                 "description": "spot limit buy",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -20,7 +20,7 @@
             {
                 "description": "spot market buy",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -33,7 +33,7 @@
             {
                 "description": "spot market buy using base amount",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                   "LTC/USDT",
                   "market",
@@ -45,7 +45,7 @@
             {
                 "description": "spot market sell",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -57,7 +57,7 @@
             {
                 "description": "swap market buy",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -69,7 +69,7 @@
             {
                 "description": "Swap market sell with reduceOnly",
                 "method": "createOrder",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -85,7 +85,7 @@
             {
                 "description": "Swap trailingAmount reduceOnly order",
                 "method": "createOrder",
-                "url": "https://api.staging.woo.org/v3/algo/order",
+                "url": "https://api.staging.woox.io/v3/algo/order",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -103,7 +103,7 @@
             {
                 "description": "Swap trailingPercent reduceOnly order",
                 "method": "createOrder",
-                "url": "https://api.staging.woo.org/v3/algo/order",
+                "url": "https://api.staging.woox.io/v3/algo/order",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -121,7 +121,7 @@
             {
                 "description": "Swap margine mode isolated order",
                 "method": "createOrder",
-                "url": "https://api.staging.woo.org/v1/order",
+                "url": "https://api.staging.woox.io/v1/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -137,7 +137,7 @@
             {
                 "description": "Swap margine mode cross order",
                 "method": "createOrder",
-                "url": "https://api.staging.woo.org/v1/order",
+                "url": "https://api.staging.woox.io/v1/order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -155,7 +155,7 @@
             {
                 "description": "spot market buy with cost",
                 "method": "createMarketBuyOrderWithCost",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                     "LTC/USDT",
                     5
@@ -167,7 +167,7 @@
             {
                 "description": "spot market sell with cost",
                 "method": "createMarketSellOrderWithCost",
-                "url": "https://api.woo.org/v1/order",
+                "url": "https://api.woox.io/v1/order",
                 "input": [
                   "LTC/USDT",
                   5
@@ -179,7 +179,7 @@
             {
                 "description": "Spot orders",
                 "method": "fetchOrders",
-                "url": "https://api.woo.org/v1/orders?symbol=SPOT_LTC_USDT&size=500",
+                "url": "https://api.woox.io/v1/orders?symbol=SPOT_LTC_USDT&size=500",
                 "input": [
                     "LTC/USDT"
                 ]
@@ -187,7 +187,7 @@
             {
                 "description": "Swap orders",
                 "method": "fetchOrders",
-                "url": "https://api.woo.org/v1/orders?symbol=PERP_LTC_USDT&size=500",
+                "url": "https://api.woox.io/v1/orders?symbol=PERP_LTC_USDT&size=500",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -195,7 +195,7 @@
             {
                 "description": "Swap trailing orders",
                 "method": "fetchOrders",
-                "url": "https://api.staging.woo.org/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=500",
+                "url": "https://api.staging.woox.io/v3/algo/orders?algoType=TRAILING_STOP&symbol=PERP_BTC_USDT&size=500",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -210,7 +210,7 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT&size=5",
+                "url": "https://api.woox.io/v1/client/trades?start_t=1699457638000&symbol=SPOT_LTC_USDT&size=5",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
@@ -220,7 +220,7 @@
             {
                 "description": "Swap private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api.woo.org/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT&size=5",
+                "url": "https://api.woox.io/v1/client/trades?start_t=1699457638000&symbol=PERP_LTC_USDT&size=5",
                 "input": [
                     "LTC/USDT:USDT",
                     1699457638000,
@@ -232,7 +232,7 @@
             {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.woo.org/v1/orders",
+                "url": "https://api.woox.io/v1/orders",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
@@ -241,7 +241,7 @@
             {
                 "description": "Cancel spot orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.woo.org/v1/orders",
+                "url": "https://api.woox.io/v1/orders",
                 "input": [
                     "LTC/USDT"
                 ],
@@ -252,7 +252,7 @@
             {
                 "description": "Cancel all orders after",
                 "method": "cancelAllOrdersAfter",
-                "url": "https://api.woo.org/v1/order/cancel_all_after",
+                "url": "https://api.woox.io/v1/order/cancel_all_after",
                 "input": [
                     10000
                 ],
@@ -261,7 +261,7 @@
             {
                 "description": "Close cancel all orders after",
                 "method": "cancelAllOrdersAfter",
-                "url": "https://api.woo.org/v1/order/cancel_all_after",
+                "url": "https://api.woox.io/v1/order/cancel_all_after",
                 "input": [
                     0
                 ],
@@ -272,7 +272,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api.woo.org/v3/balances?type=spot",
+                "url": "https://api.woox.io/v3/balances?type=spot",
                 "input": [
                     {
                         "type": "spot"
@@ -282,7 +282,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api.woo.org/v3/balances?type=swap",
+                "url": "https://api.woox.io/v3/balances?type=swap",
                 "input": [
                     {
                         "type": "swap"
@@ -294,7 +294,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api.woo.org/v3/positions",
+                "url": "https://api.woox.io/v3/positions",
                 "input": [
                     [
                         "LTC/USDT:USDT"
@@ -306,7 +306,7 @@
             {
                 "description": "Set linear leverage for spot margin market",
                 "method": "setLeverage",
-                "url": "https://api.woo.org/v1/client/leverage",
+                "url": "https://api.woox.io/v1/client/leverage",
                 "input": [
                     5,
                     "LTC/USDT"
@@ -318,7 +318,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api.woo.org/v1/asset/history?token_side=DEPOSIT&type=BALANCE",
+                "url": "https://api.woox.io/v1/asset/history?token_side=DEPOSIT&type=BALANCE",
                 "input": []
             }
         ],
@@ -326,7 +326,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api.woo.org/v1/asset/history?token_side=WITHDRAW&type=BALANCE",
+                "url": "https://api.woox.io/v1/asset/history?token_side=WITHDRAW&type=BALANCE",
                 "input": []
             }
         ],
@@ -334,7 +334,7 @@
             {
                 "description": "fetch USDT transfers",
                 "method": "fetchTransfers",
-                "url": "https://api.woo.org/v1/asset/main_sub_transfer_history",
+                "url": "https://api.woox.io/v1/asset/main_sub_transfer_history",
                 "input": []
             }
         ],
@@ -342,7 +342,7 @@
             {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
-                "url": "https://api.woo.org/v1/asset/history?balance_token=USDT",
+                "url": "https://api.woox.io/v1/asset/history?balance_token=USDT",
                 "input": [
                     "USDT"
                 ]
@@ -352,7 +352,7 @@
             {
                 "description": "Swap edit trailingPercent order",
                 "method": "editOrder",
-                "url": "https://api.staging.woo.org/v3/algo/order/1111779",
+                "url": "https://api.staging.woox.io/v3/algo/order/1111779",
                 "input": [
                     "1111779",
                     "BTC/USDT:USDT",
@@ -369,7 +369,7 @@
             {
                 "description": "Swap edit trailingAmount order",
                 "method": "editOrder",
-                "url": "https://api.staging.woo.org/v3/algo/order/1111778",
+                "url": "https://api.staging.woox.io/v3/algo/order/1111778",
                 "input": [
                     "1111778",
                     "BTC/USDT:USDT",
@@ -389,7 +389,7 @@
             {
                 "description": "fetch usdt address",
                 "method": "fetchDepositAddress",
-                "url": "https://api.woo.org/v1/asset/deposit?token=ETH_USDT",
+                "url": "https://api.woox.io/v1/asset/deposit?token=ETH_USDT",
                 "input": [
                     "USDT"
                 ]
@@ -399,7 +399,7 @@
             {
                 "description": "fetchOHLCV with since and limit",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api-pub.woox.io/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
@@ -410,7 +410,7 @@
             {
                 "description": "fetchOHLCV with limit",
                 "method": "fetchOHLCV",
-                "url": "https://api-pub.woo.org/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api-pub.woox.io/v1/hist/kline?start_time=1704067200000&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
@@ -420,7 +420,7 @@
             {
                 "description": "fetchOHLCV with limit and without since",
                 "method": "fetchOHLCV",
-                "url": "https://api.woo.org/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v1/public/kline?limit=200&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
@@ -431,7 +431,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.woo.org/v1/public/kline?symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v1/public/kline?symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -439,7 +439,7 @@
             {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.woo.org/v1/public/kline?symbol=PERP_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v1/public/kline?symbol=PERP_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -449,7 +449,7 @@
             {
                 "description": "set position mode to hedge mode",
                 "method": "setPositionMode",
-                "url": "https://api.woo.org/v1/client/position_mode",
+                "url": "https://api.woox.io/v1/client/position_mode",
                 "input": [
                     true
                 ],
@@ -458,7 +458,7 @@
             {
                 "description": "set position mode to one way mode",
                 "method": "setPositionMode",
-                "url": "https://api.woo.org/v1/client/position_mode",
+                "url": "https://api.woox.io/v1/client/position_mode",
                 "input": [
                     false
                 ],
@@ -469,7 +469,7 @@
             {
                 "description": "Fetch Trades",
                 "method": "fetchTrades",
-                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/market_trades?symbol=SPOT_BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -477,7 +477,7 @@
             {
                 "description": "spot fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.woo.org/v1/public/market_trades?symbol=SPOT_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/market_trades?symbol=SPOT_BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -485,7 +485,7 @@
             {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.woo.org/v1/public/market_trades?symbol=PERP_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/market_trades?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -495,7 +495,7 @@
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api.staging.woo.org/v1/order",
+                "url": "https://api.staging.woox.io/v1/order",
                 "input": [
                     "1111779",
                     "LTC/USDT:USDT"
@@ -505,7 +505,7 @@
             {
                 "description": "cancelOrder - algo",
                 "method": "cancelOrder",
-                "url": "https://api.staging.woo.org/v3/algo/order/1111779",
+                "url": "https://api.staging.woox.io/v3/algo/order/1111779",
                 "input": [
                     "1111779",
                     "LTC/USDT:USDT",
@@ -520,13 +520,13 @@
             {
                 "description": "fetchTime",
                 "method": "fetchTime",
-                "url": "https://api.woo.org/v1/public/system_info",
+                "url": "https://api.woox.io/v1/public/system_info",
                 "input": []
             },
             {
                 "description": "fetchTime",
                 "method": "fetchTime",
-                "url": "https://api.woo.org/v1/public/system_info",
+                "url": "https://api.woox.io/v1/public/system_info",
                 "input": []
             }
         ],
@@ -534,7 +534,7 @@
             {
                 "description": "fetchStatus",
                 "method": "fetchStatus",
-                "url": "https://api.woo.org/v1/public/system_info",
+                "url": "https://api.woox.io/v1/public/system_info",
                 "input": []
             }
         ],
@@ -542,7 +542,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
-                "url": "https://api.woo.org/v1/public/info",
+                "url": "https://api.woox.io/v1/public/info",
                 "input": []
             }
         ],
@@ -550,7 +550,7 @@
             {
                 "description": "fetchTradingFees",
                 "method": "fetchTradingFees",
-                "url": "https://api.woo.org/v3/accountinfo",
+                "url": "https://api.woox.io/v3/accountinfo",
                 "input": []
             }
         ],
@@ -558,7 +558,7 @@
             {
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
-                "url": "https://api.woo.org/v1/public/token",
+                "url": "https://api.woox.io/v1/public/token",
                 "input": []
             }
         ],
@@ -566,7 +566,7 @@
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woo.org/v1/public/orderbook/SPOT_LTC_USDT?max_level=5",
+                "url": "https://api.woox.io/v1/public/orderbook/SPOT_LTC_USDT?max_level=5",
                 "input": [
                     "LTC/USDT",
                     5
@@ -575,7 +575,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woo.org/v1/public/orderbook/SPOT_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/orderbook/SPOT_BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -583,7 +583,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.woo.org/v1/public/orderbook/PERP_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/orderbook/PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -593,7 +593,7 @@
             {
                 "description": "fetchOrderTrades",
                 "method": "fetchOrderTrades",
-                "url": "https://api.woo.org/v1/order/1034475822/trades",
+                "url": "https://api.woox.io/v1/order/1034475822/trades",
                 "input": [
                     "1034475822",
                     "LTC/USDT"
@@ -604,7 +604,7 @@
             {
                 "description": "fetchAccounts",
                 "method": "fetchAccounts",
-                "url": "https://api.woo.org/v1/sub_account/assets",
+                "url": "https://api.woox.io/v1/sub_account/assets",
                 "input": []
             }
         ],
@@ -612,7 +612,7 @@
             {
                 "description": "transfer",
                 "method": "transfer",
-                "url": "https://api.woo.org/v1/asset/main_sub_transfer",
+                "url": "https://api.woox.io/v1/asset/main_sub_transfer",
                 "input": [
                     "USDT",
                     1000,
@@ -626,7 +626,7 @@
             {
                 "description": "fundingRateHistory",
                 "method": "fetchFundingRateHistory",
-                "url": "https://api.woo.org/v1/public/funding_rate_history?symbol=PERP_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/funding_rate_history?symbol=PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -636,7 +636,7 @@
             {
                 "description": "fetchFundingHistory",
                 "method": "fetchFundingHistory",
-                "url": "https://api.woo.org/v1/funding_fee/history?size=1&symbol=PERP_LTC_USDT",
+                "url": "https://api.woox.io/v1/funding_fee/history?size=1&symbol=PERP_LTC_USDT",
                 "input": [
                   "LTC/USDT:USDT",
                   null,
@@ -648,7 +648,7 @@
             {
                 "description": "fundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://api.woo.org/v1/public/funding_rate/PERP_BTC_USDT",
+                "url": "https://api.woox.io/v1/public/funding_rate/PERP_BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -658,7 +658,7 @@
             {
                 "description": "open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.staging.woo.org/v1/orders?size=500&status=INCOMPLETE",
+                "url": "https://api.staging.woox.io/v1/orders?size=500&status=INCOMPLETE",
                 "input": []
             }
         ],
@@ -666,7 +666,7 @@
             {
                 "description": "closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api.staging.woo.org/v1/orders?size=500&status=COMPLETED",
+                "url": "https://api.staging.woox.io/v1/orders?size=500&status=COMPLETED",
                 "input": []
             }
         ],
@@ -674,7 +674,7 @@
             {
                 "description": "Fetch a conversion trade",
                 "method": "fetchConvertTrade",
-                "url": "https://api.staging.woo.org/v3/convert/trade?quoteId=12",
+                "url": "https://api.staging.woox.io/v3/convert/trade?quoteId=12",
                 "input": [
                   "12"
                 ]
@@ -684,7 +684,7 @@
             {
                 "description": "Add margin with position side long",
                 "method": "addMargin",
-                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "url": "https://api.staging.woox.io/v1/client/isolated_margin",
                 "input": [
                   "XRP/USDT:USDT",
                   0.2,
@@ -697,7 +697,7 @@
             {
                 "description": "Add margin with position side short",
                 "method": "addMargin",
-                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "url": "https://api.staging.woox.io/v1/client/isolated_margin",
                 "input": [
                     "XRP/USDT:USDT",
                     0.2,
@@ -712,7 +712,7 @@
             {
                 "description": "Reduce margin with position side long",
                 "method": "reduceMargin",
-                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "url": "https://api.staging.woox.io/v1/client/isolated_margin",
                 "input": [
                     "XRP/USDT:USDT",
                     0.2,
@@ -725,7 +725,7 @@
             {
                 "description": "Reduce margin with position side short",
                 "method": "reduceMargin",
-                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "url": "https://api.staging.woox.io/v1/client/isolated_margin",
                 "input": [
                     "XRP/USDT:USDT",
                     0.2,
@@ -740,7 +740,7 @@
             {
                 "description": "linear swap fetch the funding interval",
                 "method": "fetchFundingInterval",
-                "url": "https://api.staging.woo.org/v1/public/funding_rate/PERP_BTC_USDT",
+                "url": "https://api.staging.woox.io/v1/public/funding_rate/PERP_BTC_USDT",
                 "input": [
                   "BTC/USDT:USDT"
                 ]

@@ -136,6 +136,11 @@ public partial class alpaca : Exchange
         return await this.callAsync ("traderPrivatePostV2WalletsTransfers",parameters);
     }
 
+    public async Task<object> traderPrivatePutV2OrdersOrderId (object parameters = null)
+    {
+        return await this.callAsync ("traderPrivatePutV2OrdersOrderId",parameters);
+    }
+
     public async Task<object> traderPrivatePutV2WatchlistsWatchlistId (object parameters = null)
     {
         return await this.callAsync ("traderPrivatePutV2WatchlistsWatchlistId",parameters);

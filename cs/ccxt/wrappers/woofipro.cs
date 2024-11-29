@@ -383,6 +383,12 @@ public partial class woofipro
     /// <remarks>
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -1028,6 +1034,18 @@ public partial class woofipro
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>leverage</term>
+    /// <description>
+    /// int : the rate of leverage
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -1071,12 +1089,6 @@ public partial class woofipro
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>method</term>
-    /// <description>
-    /// string : method name to call, "positionRisk", "account" or "option", default is "positionRisk"
     /// </description>
     /// </item>
     /// </list>

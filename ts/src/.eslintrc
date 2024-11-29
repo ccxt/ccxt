@@ -83,6 +83,7 @@
     "camelcase": "off",
     "no-lonely-if": "off",
     "no-mixed-operators": "off",
+    "jsdoc/no-types": "off",
     "no-shadow": ["error", {
       "builtinGlobals": true, // prevent shadowing global vars (i.e. Object, Array, Number, etc...)
       "hoist": "all", // just for cleanest practices
@@ -100,7 +101,8 @@
     "prefer-exponentiation-operator": "off",
     "jsdoc/check-tag-names": ["error", {
       "definedTags": ["method"]
-    }]
+    }],
+    "jsdoc/require-param-description": "off"
   },
   "settings": {
     "import/resolver": {

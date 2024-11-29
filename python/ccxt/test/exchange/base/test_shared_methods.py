@@ -58,7 +58,7 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     return result
 
 
-def assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for=[]):
+def assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for=None, deep=False):
     log_text = log_template(exchange, method, entry)
     assert entry, 'item is null/undefined' + log_text
     # get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
@@ -68,7 +68,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         expected_length = len(format)
         assert real_length == expected_length, 'entry length is not equal to expected length of ' + str(expected_length) + log_text
         for i in range(0, len(format)):
-            empty_allowed_for_this_key = exchange.in_array(i, empty_allowed_for)
+            empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(i, empty_allowed_for)
             value = entry[i]
             if i in skipped_properties:
                 continue
@@ -91,7 +91,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             assert key in entry, '"' + string_value(key) + '" key is missing from structure' + log_text
             if key in skipped_properties:
                 continue
-            empty_allowed_for_this_key = exchange.in_array(key, empty_allowed_for)
+            empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
             # - it's not inside "allowe empty values" list
@@ -104,6 +104,9 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             if key != 'info':
                 type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
+                if deep:
+                    if isinstance(value, dict):
+                        assert_structure(exchange, skipped_properties, method, value, format[key], empty_allowed_for, deep)
 
 
 def assert_timestamp(exchange, skipped_properties, method, entry, now_to_check=None, key_name_or_index='timestamp'):

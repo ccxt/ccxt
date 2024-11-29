@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.4.27';
+$version = '4.4.34';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.4.27';
+    const VERSION = '4.4.34';
 
     public $browser;
     public $marketsLoading = null;
@@ -1029,7 +1029,7 @@ class Exchange extends \ccxt\Exchange {
                 $entryFiledEqualValue = $entry[$field] === $value;
                 $firstCondition = $valueIsDefined ? $entryFiledEqualValue : true;
                 $entryKeyValue = $this->safe_value($entry, $key);
-                $entryKeyGESince = ($entryKeyValue) && $since && ($entryKeyValue >= $since);
+                $entryKeyGESince = ($entryKeyValue) && ($since !== null) && ($entryKeyValue >= $since);
                 $secondCondition = $sinceIsDefined ? $entryKeyGESince : true;
                 if ($firstCondition && $secondCondition) {
                     $result[] = $entry;
@@ -1043,6 +1043,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function set_sandbox_mode(bool $enabled) {
+        /**
+         * set the sandbox mode for the exchange
+         * @param {boolean} $enabled true to enable sandbox mode, false to disable it
+         */
         if ($enabled) {
             if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
                 if (gettype($this->urls['api']) === 'string') {
@@ -1156,6 +1160,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchOrderBook() is not supported yet');
+    }
+
+    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchOrderBookWs() is not supported yet');
     }
 
     public function fetch_margin_mode(string $symbol, $params = array ()) {
@@ -1464,6 +1472,94 @@ class Exchange extends \ccxt\Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->features_generator();
+    }
+
+    public function features_generator() {
+        //
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
+        //
+        //     {
+        //         'myItem' : array(
+        //             'createOrder' : array(...),
+        //             'fetchOrders' : array(...),
+        //         ),
+        //         'swap' => array(
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         ),
+        //         'future' => {
+        //             'linear' => 'myItem',
+        //             'inverse' => 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
+        //
+        //     {
+        //         "spot" => array(
+        //             "createOrder" => null,
+        //             "fetchBalance" => null,
+        //             ...
+        //         ),
+        //         "swap" => {
+        //             ...
+        //         }
+        //     }
+        //
+        if ($this->features === null) {
+            return;
+        }
+        // reconstruct
+        $initialFeatures = $this->features;
+        $this->features = array();
+        $unifiedMarketTypes = array( 'spot', 'swap', 'future', 'option' );
+        $subTypes = array( 'linear', 'inverse' );
+        // atm only support basic methods, eg => 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
+        for ($i = 0; $i < count($unifiedMarketTypes); $i++) {
+            $marketType = $unifiedMarketTypes[$i];
+            // if $marketType is not filled for this exchange, don't add that in `features`
+            if (!(is_array($initialFeatures) && array_key_exists($marketType, $initialFeatures))) {
+                $this->features[$marketType] = null;
+            } else {
+                if ($marketType === 'spot') {
+                    $this->features[$marketType] = $this->features_mapper($initialFeatures, $marketType, null);
+                } else {
+                    $this->features[$marketType] = array();
+                    for ($j = 0; $j < count($subTypes); $j++) {
+                        $subType = $subTypes[$j];
+                        $this->features[$marketType][$subType] = $this->features_mapper($initialFeatures, $marketType, $subType);
+                    }
+                }
+            }
+        }
+    }
+
+    public function features_mapper(mixed $initialFeatures, ?string $marketType, ?string $subType = null) {
+        $featuresObj = ($subType !== null) ? $initialFeatures[$marketType][$subType] : $initialFeatures[$marketType];
+        $extendsStr = $this->safe_string($featuresObj, 'extends');
+        if ($extendsStr !== null) {
+            $featuresObj = $this->omit($featuresObj, 'extends');
+            $extendObj = $this->features_mapper($initialFeatures, $extendsStr);
+            $featuresObj = $this->deep_extend($extendObj, $featuresObj);
+        }
+        //
+        // corrections
+        //
+        if (is_array($featuresObj) && array_key_exists('createOrder', $featuresObj)) {
+            $value = $this->safe_dict($featuresObj['createOrder'], 'attachedStopLossTakeProfit');
+            if ($value !== null) {
+                $featuresObj['createOrder']['stopLoss'] = $value;
+                $featuresObj['createOrder']['takeProfit'] = $value;
+            }
+            // false 'hedged' for spot
+            if ($marketType === 'spot') {
+                $featuresObj['createOrder']['hedged'] = false;
+            }
+        }
+        return $featuresObj;
     }
 
     public function orderbook_checksum_message(?string $symbol) {
@@ -2577,6 +2673,17 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function currency_ids(?array $codes = null) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->currency_id($codes[$i]);
+        }
+        return $result;
+    }
+
     public function markets_for_symbols(?array $symbols = null) {
         if ($symbols === null) {
             return $symbols;
@@ -3020,6 +3127,17 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_headers($headers) {
         return $headers;
+    }
+
+    public function currency_id(string $code) {
+        $currency = $this->safe_dict($this->currencies, $code);
+        if ($currency === null) {
+            $currency = $this->safe_currency($code);
+        }
+        if ($currency !== null) {
+            return $currency['id'];
+        }
+        return $code;
     }
 
     public function market_id(string $symbol) {

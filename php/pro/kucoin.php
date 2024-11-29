@@ -200,7 +200,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -219,7 +221,9 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
+             *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -347,7 +351,9 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+             *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -440,7 +446,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -511,7 +519,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
@@ -526,8 +536,10 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             *
+             * @param {string[]} $symbols
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -564,8 +576,10 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches trades stream
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             *
+             * @param {string} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -596,7 +610,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches trades stream
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+             *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
@@ -642,10 +658,12 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -675,10 +693,12 @@ class kucoin extends \ccxt\async\kucoin {
     public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+             *
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -692,10 +712,12 @@ class kucoin extends \ccxt\async\kucoin {
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+             *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -746,13 +768,14 @@ class kucoin extends \ccxt\async\kucoin {
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+             *
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
-             * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
@@ -985,8 +1008,10 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
              * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+             *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -1160,7 +1185,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+             *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
@@ -1316,7 +1343,9 @@ class kucoin extends \ccxt\async\kucoin {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             *
              * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
+             *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
