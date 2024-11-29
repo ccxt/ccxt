@@ -1605,7 +1605,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit; // default 100, max 500
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
