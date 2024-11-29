@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.33",
+  "version": "4.4.34",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -89,6 +89,7 @@
     "copy-python-readme": "node build/copy README.md python/README.md",
     "postinstall": "node postinstall.js",
     "validate-types": "tsx build/validate-types.ts",
+    "runtests": "node run-tests",
     "live-tests": "node run-tests --useProxy",
     "live-tests-rest": "npm run live-tests",
     "live-tests-ws": "npm run live-tests -- --ws",

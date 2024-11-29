@@ -37,6 +37,16 @@ export default class hyperliquid extends Exchange {
     fetchSwapMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
+     * @name calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    calculatePricePrecision(price: number, amountPrecision: number, maxDecimals: number): number;
+    /**
+     * @method
      * @name hyperliquid#fetchMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts

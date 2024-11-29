@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.4.33'
+__version__ = '4.4.34'
 
 # -----------------------------------------------------------------------------
 
@@ -118,6 +118,7 @@ from ccxt.async_support.currencycom import currencycom                          
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
+from ccxt.async_support.ellipx import ellipx                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
@@ -229,6 +230,7 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
+    'ellipx',
     'exmo',
     'fmfwio',
     'gate',

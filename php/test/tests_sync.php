@@ -1291,7 +1291,17 @@ class testMainClass {
                 $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
             }
         }
-        ($promises);
+        try {
+            ($promises);
+        } catch(\Throwable $e) {
+            if ($type === 'request') {
+                $this->request_tests_failed = true;
+            } else {
+                $this->response_tests_failed = true;
+            }
+            $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . ((string) $e);
+            dump('[TEST_FAILURE]' . $error_message);
+        }
         if ($this->request_tests_failed || $this->response_tests_failed) {
             exit_script(1);
         } else {

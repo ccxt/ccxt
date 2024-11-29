@@ -446,7 +446,13 @@ public partial class coinbase
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// object : "spot" (default) or "swap" or "future"
+    /// string : "spot" (default) or "swap" or "future"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : default 250, maximum number of accounts to return
     /// </description>
     /// </item>
     /// </list>

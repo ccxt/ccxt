@@ -83,7 +83,7 @@ class onetrading extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTrades' => true,
+                'fetchTrades' => false,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactionFee' => false,
@@ -134,7 +134,6 @@ class onetrading extends Exchange {
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
                         'time',
                     ),
                 ),
@@ -637,6 +636,9 @@ class onetrading extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://docs.onetrading.com/#$market-ticker-for-instrument
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -671,7 +673,10 @@ class onetrading extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         *
+         * @see https://docs.onetrading.com/#market-$ticker
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
          */
@@ -710,6 +715,9 @@ class onetrading extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.onetrading.com/#order-book
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -835,6 +843,9 @@ class onetrading extends Exchange {
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://docs.onetrading.com/#candlesticks
+         *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -957,46 +968,6 @@ class onetrading extends Exchange {
             'fee' => $fee,
             'info' => $trade,
         ), $market);
-    }
-
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [$limit] the maximum amount of trades to fetch
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
-         */
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_code' => $market['id'],
-            // 'from' => $this->iso8601($since),
-            // 'to' => $this->iso8601($this->milliseconds()),
-        );
-        if ($since !== null) {
-            // returns price ticks for a specific $market with an interval of maximum of 4 hours
-            // sorted by latest first
-            $request['from'] = $this->iso8601($since);
-            $request['to'] = $this->iso8601($this->sum($since, 14400000));
-        }
-        $response = $this->publicGetPriceTicksInstrumentCode ($this->extend($request, $params));
-        //
-        //     array(
-        //         {
-        //             "instrument_code":"BTC_EUR",
-        //             "price":"8137.28",
-        //             "amount":"0.22269",
-        //             "taker_side":"BUY",
-        //             "volume":"1812.0908832",
-        //             "time":"2020-07-10T14:44:32.299Z",
-        //             "trade_timestamp":1594392272299,
-        //             "sequence":603047
-        //         }
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_balance($response): array {

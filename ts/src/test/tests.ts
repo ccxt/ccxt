@@ -1388,7 +1388,17 @@ class testMainClass {
                 promises.push (this.testExchangeResponseStatically (exchangeName, exchangeData, testName));
             }
         }
-        await Promise.all (promises);
+        try {
+            await Promise.all (promises);
+        } catch (e) {
+            if (type === 'request') {
+                this.requestTestsFailed = true;
+            } else {
+                this.responseTestsFailed = true;
+            }
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + e.toString ();
+            dump ('[TEST_FAILURE]' + errorMessage);
+        }
         if (this.requestTestsFailed || this.responseTestsFailed) {
             exitScript (1);
         } else {

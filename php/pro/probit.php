@@ -140,6 +140,7 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTicker', 'filter', 'ticker');
+            $symbol = $this->safe_symbol($symbol);
             return Async\await($this->subscribe_order_book($symbol, 'ticker', $filter, $params));
         }) ();
     }
@@ -189,6 +190,8 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchTrades', 'filter', 'recent_trades');
+            Async\await($this->load_markets());
+            $symbol = $this->safe_symbol($symbol);
             $trades = Async\await($this->subscribe_order_book($symbol, 'trades', $filter, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -246,7 +249,7 @@ class probit extends \ccxt\async\probit {
              *
              * @see https://docs-en.probit.com/reference/trade_history
              *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -256,8 +259,7 @@ class probit extends \ccxt\async\probit {
             Async\await($this->authenticate($params));
             $messageHash = 'myTrades';
             if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_symbol($symbol);
                 $messageHash = $messageHash . ':' . $symbol;
             }
             $url = $this->urls['api']['ws'];
@@ -331,7 +333,7 @@ class probit extends \ccxt\async\probit {
              *
              * @see https://docs-en.probit.com/reference/open_order
              *
-             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {int} [$since] timestamp in ms of the earliest order to watch
              * @param {int} [$limit] the maximum amount of $orders to watch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -342,8 +344,7 @@ class probit extends \ccxt\async\probit {
             $url = $this->urls['api']['ws'];
             $messageHash = 'orders';
             if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
+                $symbol = $this->safe_symbol($symbol);
                 $messageHash = $messageHash . ':' . $symbol;
             }
             $channel = null;
@@ -429,6 +430,7 @@ class probit extends \ccxt\async\probit {
              */
             $filter = null;
             list($filter, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'filter', 'order_books');
+            $symbol = $this->safe_symbol($symbol);
             $orderbook = Async\await($this->subscribe_order_book($symbol, 'orderbook', $filter, $params));
             return $orderbook->limit ();
         }) ();
@@ -548,7 +550,8 @@ class probit extends \ccxt\async\probit {
         $result = $this->safe_string($message, 'result');
         $future = $client->subscriptions['authenticated'];
         if ($result === 'ok') {
-            $future->resolve (true);
+            $messageHash = 'authenticated';
+            $client->resolve ($message, $messageHash);
         } else {
             $future->reject ($message);
             unset($client->subscriptions['authenticated']);
@@ -561,11 +564,13 @@ class probit extends \ccxt\async\probit {
             $this->handle_ticker($client, $message);
         }
         $trades = $this->safe_value($message, 'recent_trades', array());
-        if (strlen($trades)) {
+        $tradesLength = count($trades);
+        if ($tradesLength) {
             $this->handle_trades($client, $message);
         }
         $orderBook = $this->safe_value_n($message, array( 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ), array());
-        if (strlen($orderBook)) {
+        $orderBookLength = count($orderBook);
+        if ($orderBookLength) {
             $this->handle_order_book($client, $message, $orderBook);
         }
     }

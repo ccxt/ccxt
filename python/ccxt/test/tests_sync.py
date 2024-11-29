@@ -1061,7 +1061,15 @@ class testMainClass:
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
             else:
                 promises.append(self.test_exchange_response_statically(exchange_name, exchange_data, test_name))
-        (promises)
+        try:
+            (promises)
+        except Exception as e:
+            if type == 'request':
+                self.request_tests_failed = True
+            else:
+                self.response_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_REQUEST]' + '[' + exchange.id + ']' + str(e)
+            dump('[TEST_FAILURE]' + error_message)
         if self.request_tests_failed or self.response_tests_failed:
             exit_script(1)
         else:

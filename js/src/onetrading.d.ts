@@ -55,6 +55,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.onetrading.com/#market-ticker-for-instrument
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -64,7 +65,8 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @see https://docs.onetrading.com/#market-ticker
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
@@ -73,6 +75,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://docs.onetrading.com/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -84,6 +87,7 @@ export default class onetrading extends Exchange {
      * @method
      * @name onetrading#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://docs.onetrading.com/#candlesticks
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -93,17 +97,6 @@ export default class onetrading extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     parseTrade(trade: Dict, market?: Market): Trade;
-    /**
-     * @method
-     * @name onetrading#fetchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     /**
      * @method

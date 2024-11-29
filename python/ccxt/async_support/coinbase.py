@@ -2182,7 +2182,8 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :param dict [params.type]: "spot"(default) or "swap" or "future"
+        :param str [params.type]: "spot"(default) or "swap" or "future"
+        :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -2199,7 +2200,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = 250
             response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
-            request['limit'] = 100
+            request['limit'] = 250
             response = await self.v2PrivateGetAccounts(self.extend(request, params))
         #
         # v2PrivateGetAccounts

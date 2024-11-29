@@ -133,6 +133,7 @@ export default class probit extends probitRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTicker', 'filter', 'ticker');
+        symbol = this.safeSymbol (symbol);
         return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
     }
 
@@ -180,6 +181,8 @@ export default class probit extends probitRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
+        await this.loadMarkets ();
+        symbol = this.safeSymbol (symbol);
         const trades = await this.subscribeOrderBook (symbol, 'trades', filter, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -245,8 +248,7 @@ export default class probit extends probitRest {
         await this.authenticate (params);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws'];
@@ -329,8 +331,7 @@ export default class probit extends probitRest {
         const url = this.urls['api']['ws'];
         let messageHash = 'orders';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         let channel = undefined;
@@ -414,6 +415,7 @@ export default class probit extends probitRest {
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
+        symbol = this.safeSymbol (symbol);
         const orderbook = await this.subscribeOrderBook (symbol, 'orderbook', filter, params);
         return orderbook.limit ();
     }
@@ -530,7 +532,8 @@ export default class probit extends probitRest {
         const result = this.safeString (message, 'result');
         const future = client.subscriptions['authenticated'];
         if (result === 'ok') {
-            future.resolve (true);
+            const messageHash = 'authenticated';
+            client.resolve (message, messageHash);
         } else {
             future.reject (message);
             delete client.subscriptions['authenticated'];
@@ -543,11 +546,13 @@ export default class probit extends probitRest {
             this.handleTicker (client, message);
         }
         const trades = this.safeValue (message, 'recent_trades', []);
-        if (trades.length) {
+        const tradesLength = trades.length;
+        if (tradesLength) {
             this.handleTrades (client, message);
         }
         const orderBook = this.safeValueN (message, [ 'order_books', 'order_books_l1', 'order_books_l2', 'order_books_l3', 'order_books_l4' ], []);
-        if (orderBook.length) {
+        const orderBookLength = orderBook.length;
+        if (orderBookLength) {
             this.handleOrderBook (client, message, orderBook);
         }
     }

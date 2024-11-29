@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.4.33",
+  "version": "4.4.34",
   "description": "A JavaScript / TypeScript / Python / C# / PHP cryptocurrency trading library with support for 100+ exchanges",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -116,6 +116,7 @@
     "response-py-sync": "npm run ti-py  -- --responseTests --sync",
     "response-tests":       "npm run response-js && npm run response-py && npm run response-php && npm run response-cs",
     "response-ts":          "npm run ti-ts  -- --responseTests",
+    "runtests": "node run-tests",
     "serve-docs": "docsify serve ./wiki",
     "static-updater": "node ./utils/update-static-tests-data --update",
     "test":                 "npm run build && npm run commonjs-test && npm run id-tests && npm run request-tests && npm run response-tests && npm run live-tests",

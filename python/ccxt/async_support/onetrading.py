@@ -98,7 +98,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': True,
+                'fetchTrades': False,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactionFee': False,
@@ -149,7 +149,6 @@ class onetrading(Exchange, ImplicitAPI):
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
                         'time',
                     ],
                 },
@@ -636,6 +635,9 @@ class onetrading(Exchange, ImplicitAPI):
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://docs.onetrading.com/#market-ticker-for-instrument
+
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -669,7 +671,10 @@ class onetrading(Exchange, ImplicitAPI):
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+
+        https://docs.onetrading.com/#market-ticker
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -706,6 +711,9 @@ class onetrading(Exchange, ImplicitAPI):
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.onetrading.com/#order-book
+
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -828,6 +836,9 @@ class onetrading(Exchange, ImplicitAPI):
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://docs.onetrading.com/#candlesticks
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -945,44 +956,6 @@ class onetrading(Exchange, ImplicitAPI):
             'fee': fee,
             'info': trade,
         }, market)
-
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
-        """
-        get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
-        """
-        await self.load_markets()
-        market = self.market(symbol)
-        request: dict = {
-            'instrument_code': market['id'],
-            # 'from': self.iso8601(since),
-            # 'to': self.iso8601(self.milliseconds()),
-        }
-        if since is not None:
-            # returns price ticks for a specific market with an interval of maximum of 4 hours
-            # sorted by latest first
-            request['from'] = self.iso8601(since)
-            request['to'] = self.iso8601(self.sum(since, 14400000))
-        response = await self.publicGetPriceTicksInstrumentCode(self.extend(request, params))
-        #
-        #     [
-        #         {
-        #             "instrument_code":"BTC_EUR",
-        #             "price":"8137.28",
-        #             "amount":"0.22269",
-        #             "taker_side":"BUY",
-        #             "volume":"1812.0908832",
-        #             "time":"2020-07-10T14:44:32.299Z",
-        #             "trade_timestamp":1594392272299,
-        #             "sequence":603047
-        #         }
-        #     ]
-        #
-        return self.parse_trades(response, market, since, limit)
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'balances', [])

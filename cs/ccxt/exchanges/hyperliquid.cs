@@ -193,6 +193,8 @@ public partial class hyperliquid : Exchange
                     { "User or API Wallet ", typeof(InvalidOrder) },
                     { "Order has invalid size", typeof(InvalidOrder) },
                     { "Order price cannot be more than 80% away from the reference price", typeof(InvalidOrder) },
+                    { "Order has zero size.", typeof(InvalidOrder) },
+                    { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                 } },
             } },
             { "precisionMode", DECIMAL_PLACES },
@@ -355,6 +357,60 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
+     * @name calculatePricePrecision
+     * @description Helper function to calculate the Hyperliquid DECIMAL_PLACES price precision
+     * @param {float} price the price to use in the calculation
+     * @param {int} amountPrecision the amountPrecision to use in the calculation
+     * @param {int} maxDecimals the maxDecimals to use in the calculation
+     * @returns {int} The calculated price precision
+     */
+    public virtual object calculatePricePrecision(object price, object amountPrecision, object maxDecimals)
+    {
+        object pricePrecision = 0;
+        object priceStr = this.numberToString(price);
+        if (isTrue(isEqual(priceStr, null)))
+        {
+            return 0;
+        }
+        object priceSplitted = ((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        if (isTrue(Precise.stringEq(priceStr, "0")))
+        {
+            // Significant digits is always 5 in this case
+            object significantDigits = 5;
+            // Integer digits is always 0 in this case (0 doesn't count)
+            object integerDigits = 0;
+            // Calculate the price precision
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, integerDigits));
+        } else if (isTrue(isTrue(Precise.stringGt(priceStr, "0")) && isTrue(Precise.stringLt(priceStr, "1"))))
+        {
+            // Significant digits, always 5 in this case
+            object significantDigits = 5;
+            // Get the part after the decimal separator
+            object decimalPart = this.safeString(priceSplitted, 1, "");
+            // Count the number of leading zeros in the decimal part
+            object leadingZeros = 0;
+            while (isTrue((isLessThanOrEqual(leadingZeros, ((string)decimalPart).Length))) && isTrue((isEqual(getValue(decimalPart, leadingZeros), "0"))))
+            {
+                leadingZeros = add(leadingZeros, 1);
+            }
+            // Calculate price precision based on leading zeros and significant digits
+            pricePrecision = add(leadingZeros, significantDigits);
+            // Calculate the price precision based on maxDecimals - szDecimals and the calculated price precision from the previous step
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), pricePrecision);
+        } else
+        {
+            // Count the numbers before the decimal separator
+            object integerPart = this.safeString(priceSplitted, 0, "");
+            // Get significant digits, take the max() of 5 and the integer digits count
+            object significantDigits = mathMax(5, ((string)integerPart).Length);
+            // Calculate price precision based on maxDecimals - szDecimals and significantDigits - integerPart.length
+            pricePrecision = mathMin(subtract(maxDecimals, amountPrecision), subtract(significantDigits, ((string)integerPart).Length));
+        }
+        return this.parseToInt(pricePrecision);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#fetchMarkets
      * @description retrieves data on all spot markets for hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot#retrieve-spot-asset-contexts
@@ -446,6 +502,8 @@ public partial class hyperliquid : Exchange
             object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
             // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
             object amountPrecision = this.safeInteger(innerBaseTokenInfo, "szDecimals");
+            object price = this.safeNumber(extraData, "midPx");
+            object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
             // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
             object baseId = this.numberToString(add(i, 10000));
             ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
@@ -477,7 +535,7 @@ public partial class hyperliquid : Exchange
                 { "optionType", null },
                 { "precision", new Dictionary<string, object>() {
                     { "amount", amountPrecision },
-                    { "price", subtract(8, amountPrecision) },
+                    { "price", pricePrecision },
                 } },
                 { "limits", new Dictionary<string, object>() {
                     { "leverage", new Dictionary<string, object>() {
@@ -546,6 +604,8 @@ public partial class hyperliquid : Exchange
         object taker = this.safeNumber(fees, "taker");
         object maker = this.safeNumber(fees, "maker");
         object amountPrecision = this.safeInteger(market, "szDecimals");
+        object price = this.safeNumber(market, "markPx", 0);
+        object pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", baseId },
             { "symbol", symbol },
@@ -574,7 +634,7 @@ public partial class hyperliquid : Exchange
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
                 { "amount", amountPrecision },
-                { "price", subtract(6, amountPrecision) },
+                { "price", pricePrecision },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -1090,10 +1150,12 @@ public partial class hyperliquid : Exchange
     public override object priceToPrecision(object symbol, object price)
     {
         object market = this.market(symbol);
-        // https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/tick-and-lot-size
-        object result = this.decimalToPrecision(price, ROUND, 5, SIGNIFICANT_DIGITS, this.paddingMode);
-        object decimalParsedResult = this.decimalToPrecision(result, ROUND, getValue(getValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
-        return decimalParsedResult;
+        object priceStr = this.numberToString(price);
+        object integerPart = getValue(((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(), 0);
+        object significantDigits = mathMax(5, ((string)integerPart).Length);
+        object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        object maxDecimals = ((bool) isTrue(getValue(market, "spot"))) ? 8 : 6;
+        return this.decimalToPrecision(result, ROUND, subtract(maxDecimals, getValue(getValue(market, "precision"), "amount")), this.precisionMode, this.paddingMode);
     }
 
     public virtual object hashMessage(object message)

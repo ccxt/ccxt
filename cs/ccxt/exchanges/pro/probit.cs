@@ -141,6 +141,7 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "filter", "ticker");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         return await this.subscribeOrderBook(symbol, "ticker", filter, parameters);
     }
 
@@ -193,6 +194,8 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "filter", "recent_trades");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
         object trades = await this.subscribeOrderBook(symbol, "trades", filter, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -265,8 +268,7 @@ public partial class probit : ccxt.probit
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -358,8 +360,7 @@ public partial class probit : ccxt.probit
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            symbol = this.safeSymbol(symbol);
             messageHash = add(add(messageHash, ":"), symbol);
         }
         object channel = null;
@@ -455,6 +456,7 @@ public partial class probit : ccxt.probit
         var filterparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "filter", "order_books");
         filter = ((IList<object>)filterparametersVariable)[0];
         parameters = ((IList<object>)filterparametersVariable)[1];
+        symbol = this.safeSymbol(symbol);
         object orderbook = await this.subscribeOrderBook(symbol, "orderbook", filter, parameters);
         return (orderbook as IOrderBook).limit();
     }
@@ -589,7 +591,8 @@ public partial class probit : ccxt.probit
         var future = getValue(((WebSocketClient)client).subscriptions, "authenticated");
         if (isTrue(isEqual(result, "ok")))
         {
-            (future as Future).resolve(true);
+            object messageHash = "authenticated";
+            callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
         } else
         {
             ((Future)future).reject(message);
@@ -605,12 +608,14 @@ public partial class probit : ccxt.probit
             this.handleTicker(client as WebSocketClient, message);
         }
         object trades = this.safeValue(message, "recent_trades", new List<object>() {});
-        if (isTrue(getArrayLength(trades)))
+        object tradesLength = getArrayLength(trades);
+        if (isTrue(tradesLength))
         {
             this.handleTrades(client as WebSocketClient, message);
         }
         object orderBook = this.safeValueN(message, new List<object>() {"order_books", "order_books_l1", "order_books_l2", "order_books_l3", "order_books_l4"}, new List<object>() {});
-        if (isTrue(getArrayLength(orderBook)))
+        object orderBookLength = getArrayLength(orderBook);
+        if (isTrue(orderBookLength))
         {
             this.handleOrderBook(client as WebSocketClient, message, orderBook);
         }

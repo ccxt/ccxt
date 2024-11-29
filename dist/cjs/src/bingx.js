@@ -2685,6 +2685,10 @@ class bingx extends bingx$1 {
         };
         const isMarketOrder = type === 'MARKET';
         const isSpot = marketType === 'spot';
+        const isTwapOrder = type === 'TWAP';
+        if (isTwapOrder && isSpot) {
+            throw new errors.BadSymbol(this.id + ' createOrder() twap order supports swap contracts only');
+        }
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const triggerPrice = this.safeString2(params, 'stopPrice', 'triggerPrice');
@@ -2750,6 +2754,27 @@ class bingx extends bingx$1 {
             }
         }
         else {
+            if (isTwapOrder) {
+                const twapRequest = {
+                    'symbol': request['symbol'],
+                    'side': request['side'],
+                    'positionSide': (side === 'buy') ? 'LONG' : 'SHORT',
+                    'triggerPrice': this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)),
+                    'totalAmount': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
+                };
+                //     {
+                //         "symbol": "LTC-USDT",
+                //         "side": "BUY",
+                //         "positionSide": "LONG",
+                //         "priceType": "constant",
+                //         "priceVariance": "10",
+                //         "triggerPrice": "120",
+                //         "interval": 8,
+                //         "amountPerOrder": "0.5",
+                //         "totalAmount": "1"
+                //     }
+                return this.extend(twapRequest, params);
+            }
             if (timeInForce === 'FOK') {
                 request['timeInForce'] = 'FOK';
             }
@@ -2872,6 +2897,7 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2910,6 +2936,9 @@ class bingx extends bingx$1 {
             }
             else if (market['inverse']) {
                 response = await this.cswapV1PrivatePostTradeOrder(request);
+            }
+            else if (type === 'twap') {
+                response = await this.swapV1PrivatePostTwapOrder(request);
             }
             else {
                 response = await this.swapV2PrivatePostTradeOrder(request);
@@ -2971,6 +3000,17 @@ class bingx extends bingx$1 {
         //         "timeInForce": ""
         //     }
         //
+        // twap order
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1732693774386,
+        //         "data": {
+        //             "mainOrderId": "4633860139993029715"
+        //         }
+        //     }
+        //
         if (typeof response === 'string') {
             // broken api engine : order-ids are too long numbers (i.e. 1742930526912864656)
             // and JSON.parse can not handle them in JS, so we have to use .parseJson
@@ -2985,7 +3025,7 @@ class bingx extends bingx$1 {
                 result = response;
             }
             else {
-                result = this.safeDict(data, 'order', {});
+                result = this.safeDict(data, 'order', data);
             }
         }
         else {
@@ -3413,9 +3453,9 @@ class bingx extends bingx$1 {
             market = this.safeMarket(marketId, undefined, undefined, marketType);
         }
         const side = this.safeStringLower2(order, 'side', 'S');
-        const timestamp = this.safeIntegerN(order, ['time', 'transactTime', 'E']);
+        const timestamp = this.safeIntegerN(order, ['time', 'transactTime', 'E', 'createdTime']);
         const lastTradeTimestamp = this.safeInteger2(order, 'updateTime', 'T');
-        const statusId = this.safeStringUpper2(order, 'status', 'X');
+        const statusId = this.safeStringUpperN(order, ['status', 'X', 'orderStatus']);
         let feeCurrencyCode = this.safeString2(order, 'feeAsset', 'N');
         const feeCost = this.safeStringN(order, ['fee', 'commission', 'n']);
         if ((feeCurrencyCode === undefined)) {
@@ -3470,7 +3510,7 @@ class bingx extends bingx$1 {
         }
         return this.safeOrder({
             'info': info,
-            'id': this.safeString2(order, 'orderId', 'i'),
+            'id': this.safeStringN(order, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': this.safeStringN(order, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': this.safeSymbol(marketId, market, '-', marketType),
             'timestamp': timestamp,
@@ -3488,7 +3528,7 @@ class bingx extends bingx$1 {
             'takeProfitPrice': takeProfitPrice,
             'average': this.safeString2(order, 'avgPrice', 'ap'),
             'cost': this.safeString(order, 'cummulativeQuoteQty'),
-            'amount': this.safeStringN(order, ['origQty', 'q', 'quantity']),
+            'amount': this.safeStringN(order, ['origQty', 'q', 'quantity', 'totalAmount']),
             'filled': this.safeString2(order, 'executedQty', 'z'),
             'remaining': undefined,
             'status': this.parseOrderStatus(statusId),
@@ -3505,6 +3545,7 @@ class bingx extends bingx$1 {
             'NEW': 'open',
             'PENDING': 'open',
             'PARTIALLY_FILLED': 'open',
+            'RUNNING': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
             'CANCELLED': 'canceled',
@@ -3519,6 +3560,7 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3526,36 +3568,71 @@ class bingx extends bingx$1 {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOrderID');
-        params = this.omit(params, ['clientOrderId']);
-        if (clientOrderId !== undefined) {
-            request['clientOrderID'] = clientOrderId;
-        }
-        else {
-            request['orderId'] = id;
-        }
+        const isTwapOrder = this.safeBool(params, 'twap', false);
+        params = this.omit(params, 'twap');
         let response = undefined;
-        let type = undefined;
-        let subType = undefined;
-        [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
-        [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
-        if (type === 'spot') {
-            response = await this.spotV1PrivatePostTradeCancel(this.extend(request, params));
+        let market = undefined;
+        if (isTwapOrder) {
+            const twapRequest = {
+                'mainOrderId': id,
+            };
+            response = await this.swapV1PrivatePostTwapCancelOrder(this.extend(twapRequest, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1702731661854,
+            //         "data": {
+            //             "symbol": "BNB-USDT",
+            //             "side": "BUY",
+            //             "positionSide": "LONG",
+            //             "priceType": "constant",
+            //             "priceVariance": "2000",
+            //             "triggerPrice": "68000",
+            //             "interval": 8,
+            //             "amountPerOrder": "0.111",
+            //             "totalAmount": "0.511",
+            //             "orderStatus": "Running",
+            //             "executedQty": "0.1",
+            //             "duration": 800,
+            //             "maxDuration": 9000,
+            //             "createdTime": 1702731661854,
+            //             "updateTime": 1702731661854
+            //         }
+            //     }
+            //
         }
         else {
-            if (subType === 'inverse') {
-                response = await this.cswapV1PrivateDeleteTradeCancelOrder(this.extend(request, params));
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
+            }
+            market = this.market(symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientOrderID');
+            params = this.omit(params, ['clientOrderId']);
+            if (clientOrderId !== undefined) {
+                request['clientOrderID'] = clientOrderId;
             }
             else {
-                response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, params));
+                request['orderId'] = id;
+            }
+            let type = undefined;
+            let subType = undefined;
+            [type, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+            [subType, params] = this.handleSubTypeAndParams('cancelOrder', market, params);
+            if (type === 'spot') {
+                response = await this.spotV1PrivatePostTradeCancel(this.extend(request, params));
+            }
+            else {
+                if (subType === 'inverse') {
+                    response = await this.cswapV1PrivateDeleteTradeCancelOrder(this.extend(request, params));
+                }
+                else {
+                    response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, params));
+                }
             }
         }
         //
@@ -3963,134 +4040,172 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
-        }
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
-            'symbol': market['id'],
-            'orderId': id,
-        };
-        let type = undefined;
-        let subType = undefined;
+        const isTwapOrder = this.safeBool(params, 'twap', false);
+        params = this.omit(params, 'twap');
         let response = undefined;
-        [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
-        [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
-        if (type === 'spot') {
-            response = await this.spotV1PrivateGetTradeQuery(this.extend(request, params));
+        let market = undefined;
+        if (isTwapOrder) {
+            const twapRequest = {
+                'mainOrderId': id,
+            };
+            response = await this.swapV1PrivateGetTwapOrderDetail(this.extend(twapRequest, params));
             //
             //     {
             //         "code": 0,
-            //         "msg": "",
+            //         "msg": "success cancel order",
+            //         "timestamp": 1732760856617,
             //         "data": {
-            //             "symbol": "XRP-USDT",
-            //             "orderId": 1514087361158316032,
-            //             "price": "0.5",
-            //             "origQty": "10",
-            //             "executedQty": "0",
-            //             "cummulativeQuoteQty": "0",
-            //             "status": "CANCELED",
-            //             "type": "LIMIT",
+            //             "symbol": "LTC-USDT",
+            //             "mainOrderId": "5596903086063901779",
             //             "side": "BUY",
-            //             "time": 1649821532000,
-            //             "updateTime": 1649821543000,
-            //             "origQuoteOrderQty": "0",
-            //             "fee": "0",
-            //             "feeAsset": "XRP"
+            //             "positionSide": "LONG",
+            //             "priceType": "constant",
+            //             "priceVariance": "10.00",
+            //             "triggerPrice": "120.00",
+            //             "interval": 8,
+            //             "amountPerOrder": "0.5",
+            //             "totalAmount": "1.0",
+            //             "orderStatus": "Filled",
+            //             "executedQty": "1.0",
+            //             "duration": 16,
+            //             "maxDuration": 86400,
+            //             "createdTime": 1732693017000,
+            //             "updateTime": 1732693033000
             //         }
             //     }
             //
         }
         else {
-            if (subType === 'inverse') {
-                response = await this.cswapV1PrivateGetTradeOrderDetail(this.extend(request, params));
+            if (symbol === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
+            }
+            market = this.market(symbol);
+            const request = {
+                'symbol': market['id'],
+                'orderId': id,
+            };
+            let type = undefined;
+            let subType = undefined;
+            [type, params] = this.handleMarketTypeAndParams('fetchOrder', market, params);
+            [subType, params] = this.handleSubTypeAndParams('fetchOrder', market, params);
+            if (type === 'spot') {
+                response = await this.spotV1PrivateGetTradeQuery(this.extend(request, params));
                 //
                 //     {
                 //         "code": 0,
                 //         "msg": "",
                 //         "data": {
-                //             "order": {
-                //                 "symbol": "SOL-USD",
-                //                 "orderId": "1816342420721254400",
-                //                 "side": "BUY",
-                //                 "positionSide": "Long",
-                //                 "type": "LIMIT",
-                //                 "quantity": 1,
-                //                 "origQty": "",
-                //                 "price": "150",
-                //                 "executedQty": "0",
-                //                 "avgPrice": "0.000",
-                //                 "cumQuote": "",
-                //                 "stopPrice": "",
-                //                 "profit": "0.0000",
-                //                 "commission": "0.0000",
-                //                 "status": "Pending",
-                //                 "time": 1721884753767,
-                //                 "updateTime": 1721884753786,
-                //                 "clientOrderId": "",
-                //                 "leverage": "",
-                //                 "takeProfit": {
-                //                     "type": "TAKE_PROFIT",
-                //                     "quantity": 0,
-                //                     "stopPrice": 0,
-                //                     "price": 0,
-                //                     "workingType": "MARK_PRICE",
-                //                     "stopGuaranteed": ""
-                //                 },
-                //                 "stopLoss": {
-                //                     "type": "STOP",
-                //                     "quantity": 0,
-                //                     "stopPrice": 0,
-                //                     "price": 0,
-                //                     "workingType": "MARK_PRICE",
-                //                     "stopGuaranteed": ""
-                //                 },
-                //                 "advanceAttr": 0,
-                //                 "positionID": 0,
-                //                 "takeProfitEntrustPrice": 0,
-                //                 "stopLossEntrustPrice": 0,
-                //                 "orderType": "",
-                //                 "workingType": "MARK_PRICE"
-                //             }
+                //             "symbol": "XRP-USDT",
+                //             "orderId": 1514087361158316032,
+                //             "price": "0.5",
+                //             "origQty": "10",
+                //             "executedQty": "0",
+                //             "cummulativeQuoteQty": "0",
+                //             "status": "CANCELED",
+                //             "type": "LIMIT",
+                //             "side": "BUY",
+                //             "time": 1649821532000,
+                //             "updateTime": 1649821543000,
+                //             "origQuoteOrderQty": "0",
+                //             "fee": "0",
+                //             "feeAsset": "XRP"
                 //         }
                 //     }
                 //
             }
             else {
-                response = await this.swapV2PrivateGetTradeOrder(this.extend(request, params));
-                //
-                //     {
-                //         "code": 0,
-                //         "msg": "",
-                //         "data": {
-                //             "order": {
-                //                 "symbol": "BTC-USDT",
-                //                 "orderId": 1597597642269917184,
-                //                 "side": "SELL",
-                //                 "positionSide": "LONG",
-                //                 "type": "TAKE_PROFIT_MARKET",
-                //                 "origQty": "1.0000",
-                //                 "price": "0.0",
-                //                 "executedQty": "0.0000",
-                //                 "avgPrice": "0.0",
-                //                 "cumQuote": "",
-                //                 "stopPrice": "16494.0",
-                //                 "profit": "",
-                //                 "commission": "",
-                //                 "status": "FILLED",
-                //                 "time": 1669731935000,
-                //                 "updateTime": 1669752524000
-                //             }
-                //         }
-                //     }
-                //
+                if (subType === 'inverse') {
+                    response = await this.cswapV1PrivateGetTradeOrderDetail(this.extend(request, params));
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "msg": "",
+                    //         "data": {
+                    //             "order": {
+                    //                 "symbol": "SOL-USD",
+                    //                 "orderId": "1816342420721254400",
+                    //                 "side": "BUY",
+                    //                 "positionSide": "Long",
+                    //                 "type": "LIMIT",
+                    //                 "quantity": 1,
+                    //                 "origQty": "",
+                    //                 "price": "150",
+                    //                 "executedQty": "0",
+                    //                 "avgPrice": "0.000",
+                    //                 "cumQuote": "",
+                    //                 "stopPrice": "",
+                    //                 "profit": "0.0000",
+                    //                 "commission": "0.0000",
+                    //                 "status": "Pending",
+                    //                 "time": 1721884753767,
+                    //                 "updateTime": 1721884753786,
+                    //                 "clientOrderId": "",
+                    //                 "leverage": "",
+                    //                 "takeProfit": {
+                    //                     "type": "TAKE_PROFIT",
+                    //                     "quantity": 0,
+                    //                     "stopPrice": 0,
+                    //                     "price": 0,
+                    //                     "workingType": "MARK_PRICE",
+                    //                     "stopGuaranteed": ""
+                    //                 },
+                    //                 "stopLoss": {
+                    //                     "type": "STOP",
+                    //                     "quantity": 0,
+                    //                     "stopPrice": 0,
+                    //                     "price": 0,
+                    //                     "workingType": "MARK_PRICE",
+                    //                     "stopGuaranteed": ""
+                    //                 },
+                    //                 "advanceAttr": 0,
+                    //                 "positionID": 0,
+                    //                 "takeProfitEntrustPrice": 0,
+                    //                 "stopLossEntrustPrice": 0,
+                    //                 "orderType": "",
+                    //                 "workingType": "MARK_PRICE"
+                    //             }
+                    //         }
+                    //     }
+                    //
+                }
+                else {
+                    response = await this.swapV2PrivateGetTradeOrder(this.extend(request, params));
+                    //
+                    //     {
+                    //         "code": 0,
+                    //         "msg": "",
+                    //         "data": {
+                    //             "order": {
+                    //                 "symbol": "BTC-USDT",
+                    //                 "orderId": 1597597642269917184,
+                    //                 "side": "SELL",
+                    //                 "positionSide": "LONG",
+                    //                 "type": "TAKE_PROFIT_MARKET",
+                    //                 "origQty": "1.0000",
+                    //                 "price": "0.0",
+                    //                 "executedQty": "0.0000",
+                    //                 "avgPrice": "0.0",
+                    //                 "cumQuote": "",
+                    //                 "stopPrice": "16494.0",
+                    //                 "profit": "",
+                    //                 "commission": "",
+                    //                 "status": "FILLED",
+                    //                 "time": 1669731935000,
+                    //                 "updateTime": 1669752524000
+                    //             }
+                    //         }
+                    //     }
+                    //
+                }
             }
         }
         const data = this.safeDict(response, 'data', {});
@@ -4195,10 +4310,12 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.twap] if fetching twap open orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4218,7 +4335,12 @@ class bingx extends bingx$1 {
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, params));
         }
         else {
-            if (subType === 'inverse') {
+            const isTwapOrder = this.safeBool(params, 'twap', false);
+            params = this.omit(params, 'twap');
+            if (isTwapOrder) {
+                response = await this.swapV1PrivateGetTwapOpenOrders(this.extend(request, params));
+            }
+            else if (subType === 'inverse') {
                 response = await this.cswapV1PrivateGetTradeOpenOrders(this.extend(request, params));
             }
             else {
@@ -4334,8 +4456,38 @@ class bingx extends bingx$1 {
         //        }
         //    }
         //
+        // twap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1702731661854,
+        //         "data": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BNB-USDT",
+        //                     "side": "BUY",
+        //                     "positionSide": "LONG",
+        //                     "priceType": "constant",
+        //                     "priceVariance": "2000",
+        //                     "triggerPrice": "68000",
+        //                     "interval": 8,
+        //                     "amountPerOrder": "0.111",
+        //                     "totalAmount": "0.511",
+        //                     "orderStatus": "Running",
+        //                     "executedQty": "0.1",
+        //                     "duration": 800,
+        //                     "maxDuration": 9000,
+        //                     "createdTime": 1702731661854,
+        //                     "updateTime": 1702731661854
+        //                 }
+        //             ],
+        //             "total": 1
+        //         }
+        //     }
+        //
         const data = this.safeDict(response, 'data', {});
-        const orders = this.safeList(data, 'orders', []);
+        const orders = this.safeList2(data, 'orders', 'list', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
@@ -4388,12 +4540,14 @@ class bingx extends bingx$1 {
      * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
      * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
      * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {boolean} [params.standard] whether to fetch standard contract orders
+     * @param {boolean} [params.twap] if fetching twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4446,7 +4600,47 @@ class bingx extends bingx$1 {
             //
         }
         else {
-            if (subType === 'inverse') {
+            const isTwapOrder = this.safeBool(params, 'twap', false);
+            params = this.omit(params, 'twap');
+            if (isTwapOrder) {
+                request['pageIndex'] = 1;
+                request['pageSize'] = (limit === undefined) ? 100 : limit;
+                request['startTime'] = (since === undefined) ? 1 : since;
+                const until = this.safeInteger(params, 'until', this.milliseconds());
+                params = this.omit(params, 'until');
+                request['endTime'] = until;
+                response = await this.swapV1PrivateGetTwapHistoryOrders(this.extend(request, params));
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1702731661854,
+                //         "data": {
+                //             "list": [
+                //                 {
+                //                     "symbol": "BNB-USDT",
+                //                     "side": "BUY",
+                //                     "positionSide": "LONG",
+                //                     "priceType": "constant",
+                //                     "priceVariance": "2000",
+                //                     "triggerPrice": "68000",
+                //                     "interval": 8,
+                //                     "amountPerOrder": "0.111",
+                //                     "totalAmount": "0.511",
+                //                     "orderStatus": "Running",
+                //                     "executedQty": "0.1",
+                //                     "duration": 800,
+                //                     "maxDuration": 9000,
+                //                     "createdTime": 1702731661854,
+                //                     "updateTime": 1702731661854
+                //                 }
+                //             ],
+                //             "total": 1
+                //         }
+                //     }
+                //
+            }
+            else if (subType === 'inverse') {
                 response = await this.cswapV1PrivateGetTradeOrderHistory(this.extend(request, params));
                 //
                 //     {
@@ -4535,7 +4729,7 @@ class bingx extends bingx$1 {
             }
         }
         const data = this.safeDict(response, 'data', {});
-        const orders = this.safeList(data, 'orders', []);
+        const orders = this.safeList2(data, 'orders', 'list', []);
         return this.parseOrders(orders, market, since, limit);
     }
     /**
