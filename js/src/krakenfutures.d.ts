@@ -297,6 +297,8 @@ export default class krakenfutures extends Exchange {
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseAccount(account: any): any;
     /**
+     * @method
+     * @name krakenfutures#transferOut
      * @description transfer from futures wallet to spot wallet
      * @param {str} code Unified currency code
      * @param {float} amount Size of the transfer

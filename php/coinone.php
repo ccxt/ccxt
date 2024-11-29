@@ -231,7 +231,7 @@ class coinone extends Exchange {
         //     }
         //
         $result = array();
-        $currencies = $this->safe_value($response, 'currencies', array());
+        $currencies = $this->safe_list($response, 'currencies', array());
         for ($i = 0; $i < count($currencies); $i++) {
             $entry = $currencies[$i];
             $id = $this->safe_string($entry, 'symbol');
@@ -313,7 +313,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $tickers = $this->safe_value($response, 'tickers', array());
+        $tickers = $this->safe_list($response, 'tickers', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $entry = $this->safe_value($tickers, $i);
@@ -572,7 +572,7 @@ class coinone extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'tickers', array());
+        $data = $this->safe_list($response, 'tickers', array());
         $ticker = $this->safe_dict($data, 0, array());
         return $this->parse_ticker($ticker, $market);
     }
@@ -606,8 +606,8 @@ class coinone extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $last = $this->safe_string($ticker, 'last');
-        $asks = $this->safe_value($ticker, 'best_asks');
-        $bids = $this->safe_value($ticker, 'best_bids');
+        $asks = $this->safe_list($ticker, 'best_asks', array());
+        $bids = $this->safe_list($ticker, 'best_bids', array());
         $baseId = $this->safe_string($ticker, 'target_currency');
         $quoteId = $this->safe_string($ticker, 'quote_currency');
         $base = $this->safe_currency_code($baseId);
@@ -662,7 +662,7 @@ class coinone extends Exchange {
         //
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $market = $this->safe_market(null, $market);
-        $isSellerMaker = $this->safe_value($trade, 'is_seller_maker');
+        $isSellerMaker = $this->safe_bool($trade, 'is_seller_maker');
         $side = null;
         if ($isSellerMaker !== null) {
             $side = $isSellerMaker ? 'sell' : 'buy';
@@ -1093,7 +1093,7 @@ class coinone extends Exchange {
         //         }
         //     }
         //
-        $walletAddress = $this->safe_value($response, 'walletAddress', array());
+        $walletAddress = $this->safe_dict($response, 'walletAddress', array());
         $keys = is_array($walletAddress) ? array_keys($walletAddress) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {

@@ -1560,7 +1560,7 @@ public partial class okx
     /// <item>
     /// <term>params.posSide</term>
     /// <description>
-    /// string : 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+    /// string : 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
     /// </description>
     /// </item>
     /// </list>
@@ -2193,6 +2193,18 @@ public partial class okx
     /// <term>type</term>
     /// <description>
     /// string : "add" or "reduce"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch margin adjustment history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of entries to retrieve
     /// </description>
     /// </item>
     /// <item>

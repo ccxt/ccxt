@@ -332,6 +332,7 @@ class okx extends Exchange {
                         'asset/convert/history' => 5 / 3,
                         'asset/monthly-statement' => 2,
                         // account
+                        'account/instruments' => 1,
                         'account/balance' => 2,
                         'account/positions' => 2,
                         'account/positions-history' => 100,
@@ -1181,6 +1182,98 @@ class okx extends Exchange {
                 ),
                 'brokerId' => 'e847386590ce4dBC',
             ),
+            'features' => array(
+                // https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-order
+                'default' => array(
+                    'sandbox' => true,
+                    'createOrder' => array(
+                        'marginMode' => true,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => true,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => array(
+                            'triggerPriceType' => array(
+                                'last' => true,
+                                'mark' => true,
+                                'index' => true,
+                            ),
+                            'limitPrice' => true,
+                        ),
+                        'timeInForce' => array(
+                            'GTC' => true,
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        // even though the below params not unified yet, it's useful metadata for users to know that exchange supports them
+                        'selfTradePrevention' => true,
+                        'trailing' => true,
+                        'twap' => true,
+                        'iceberg' => true,
+                        'oco' => true,
+                    ),
+                    'createOrders' => array(
+                        'max' => 20,
+                    ),
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'daysBack' => 90,
+                        'limit' => 100,
+                        'untilDays' => 10000,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOrders' => null, // not supported
+                    'fetchClosedOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 100,
+                        'daysBackClosed' => 90, // 3 months
+                        'daysBackCanceled' => 1 / 12, // 2 hour
+                        'untilDays' => null,
+                        'trigger' => true,
+                        'trailing' => true,
+                    ),
+                    'fetchOHLCV' => array(
+                        'limit' => 300,
+                    ),
+                ),
+                'spot' => array(
+                    'extends' => 'default',
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+                'future' => array(
+                    'linear' => array(
+                        'extends' => 'default',
+                    ),
+                    'inverse' => array(
+                        'extends' => 'default',
+                    ),
+                ),
+            ),
             'commonCurrencies' => array(
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
@@ -1747,7 +1840,7 @@ class okx extends Exchange {
                             'active' => $active,
                             'deposit' => $canDeposit,
                             'withdraw' => $canWithdraw,
-                            'fee' => $this->safe_number($chain, 'minFee'),
+                            'fee' => $this->safe_number($chain, 'fee'),
                             'precision' => $this->parse_number($precision),
                             'limits' => array(
                                 'withdraw' => array(
@@ -3249,7 +3342,7 @@ class okx extends Exchange {
                 $request['newPx'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
+        $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit', 'postOnly' ));
         return $this->extend($request, $params);
     }
 
@@ -6491,7 +6584,7 @@ class okx extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
-             * @param {string} [$params->posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+             * @param {string} [$params->posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
              * @return {array} $response from the exchange
              */
             if ($symbol === null) {
@@ -6517,14 +6610,12 @@ class okx extends Exchange {
                 'mgnMode' => $marginMode,
                 'instId' => $market['id'],
             );
-            $posSide = $this->safe_string($params, 'posSide');
+            $posSide = $this->safe_string($params, 'posSide', 'net');
             if ($marginMode === 'isolated') {
-                if ($posSide === null) {
-                    throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
-                }
                 if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
                     throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
                 }
+                $request['posSide'] = $posSide;
             }
             $response = Async\await($this->privatePostAccountSetLeverage ($this->extend($request, $params)));
             //
@@ -7524,7 +7615,12 @@ class okx extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fees structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAssetCurrencies ($params));
+            $request = array();
+            if ($codes !== null) {
+                $ids = $this->currency_ids($codes);
+                $request['ccy'] = implode(',', $ids);
+            }
+            $response = Async\await($this->privateGetAssetCurrencies ($this->extend($request, $params)));
             //
             //    {
             //        "code" => "0",
@@ -7613,7 +7709,7 @@ class okx extends Exchange {
                 }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
-                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawFee = $this->safe_number($feeInfo, 'fee');
                 $withdrawResult = array(
                     'fee' => $withdrawFee,
                     'percentage' => ($withdrawFee !== null) ? false : null,
@@ -8512,8 +8608,8 @@ class okx extends Exchange {
              *
              * @param {string} [$symbol] not used by okx fetchMarginAdjustmentHistory
              * @param {string} [$type] "add" or "reduce"
-             * @param $since
-             * @param $limit
+             * @param {int} [$since] the earliest time in ms to fetch margin adjustment history for
+             * @param {int} [$limit] the maximum number of entries to retrieve
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @param {boolean} [$params->auto] true if fetching $auto margin increases
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=margin-loan-structure margin structures~

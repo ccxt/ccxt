@@ -2182,7 +2182,8 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
-        :param dict [params.type]: "spot"(default) or "swap" or "future"
+        :param str [params.type]: "spot"(default) or "swap" or "future"
+        :param int [params.limit]: default 250, maximum number of accounts to return
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -2199,7 +2200,7 @@ class coinbase(Exchange, ImplicitAPI):
             request['limit'] = 250
             response = await self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
         else:
-            request['limit'] = 100
+            request['limit'] = 250
             response = await self.v2PrivateGetAccounts(self.extend(request, params))
         #
         # v2PrivateGetAccounts
@@ -2311,28 +2312,8 @@ class coinbase(Exchange, ImplicitAPI):
         pagination = self.safe_dict(response, 'pagination', {})
         cursor = self.safe_string(pagination, 'next_starting_after')
         if (cursor is not None) and (cursor != ''):
-            lastFee = self.safe_dict(last, 'fee')
-            last['next_starting_after'] = cursor
-            ledger[lastIndex] = {
-                'info': self.safe_dict(last, 'info'),
-                'id': self.safe_string(last, 'id'),
-                'timestamp': self.safe_integer(last, 'timestamp'),
-                'datetime': self.safe_string(last, 'datetime'),
-                'direction': self.safe_string(last, 'direction'),
-                'account': self.safe_string(last, 'account'),
-                'referenceId': None,
-                'referenceAccount': None,
-                'type': self.safe_string(last, 'type'),
-                'currency': self.safe_string(last, 'currency'),
-                'amount': self.safe_number(last, 'amount'),
-                'before': None,
-                'after': None,
-                'status': self.safe_string(last, 'status'),
-                'fee': {
-                    'cost': self.safe_number(lastFee, 'cost'),
-                    'currency': self.safe_string(lastFee, 'currency'),
-                },
-            }
+            last['info']['next_starting_after'] = cursor
+            ledger[lastIndex] = last
         return ledger
 
     def parse_ledger_entry_status(self, status):

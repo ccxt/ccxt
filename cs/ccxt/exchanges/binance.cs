@@ -1578,6 +1578,155 @@ public partial class binance : Exchange
                     { "BUSD", "USD" },
                 } },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "spot", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", null },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "selfTradePrevention", true },
+                        { "trailing", true },
+                        { "twap", false },
+                        { "iceberg", true },
+                        { "oco", false },
+                    } },
+                    { "createOrders", null },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 1 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", null },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", null },
+                        { "untilDays", 10000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBackClosed", null },
+                        { "daysBackCanceled", null },
+                        { "untilDays", 10000 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1000 },
+                    } },
+                } },
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "mark", true },
+                            { "last", true },
+                            { "index", false },
+                        } },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", null },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", true },
+                        } },
+                        { "hedged", true },
+                        { "selfTradePrevention", true },
+                        { "trailing", true },
+                        { "twap", false },
+                        { "iceberg", false },
+                        { "oco", false },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 5 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "daysBack", null },
+                        { "limit", 1000 },
+                        { "untilDays", 7 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 500 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBack", 90 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "limit", 1000 },
+                        { "daysBackClosed", 90 },
+                        { "daysBackCanceled", 3 },
+                        { "untilDays", 7 },
+                        { "trigger", false },
+                        { "trailing", false },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 1500 },
+                    } },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
                     { "exact", new Dictionary<string, object>() {
@@ -1931,12 +2080,15 @@ public partial class binance : Exchange
                         { "-4088", typeof(PermissionDenied) },
                         { "-4114", typeof(BadRequest) },
                         { "-4115", typeof(BadRequest) },
+                        { "-4116", typeof(InvalidOrder) },
+                        { "-4117", typeof(OperationRejected) },
                         { "-4118", typeof(OperationRejected) },
                         { "-4131", typeof(OperationRejected) },
                         { "-4140", typeof(BadRequest) },
                         { "-4141", typeof(OperationRejected) },
                         { "-4144", typeof(BadSymbol) },
                         { "-4164", typeof(InvalidOrder) },
+                        { "-4136", typeof(InvalidOrder) },
                         { "-4165", typeof(BadRequest) },
                         { "-4167", typeof(BadRequest) },
                         { "-4168", typeof(BadRequest) },
@@ -6435,6 +6587,7 @@ public partial class binance : Exchange
         object typeRequest = ((bool) isTrue(isPortfolioMarginConditional)) ? "strategyType" : "type";
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
         // additional required fields depending on the order type
+        object closePosition = this.safeBool(parameters, "closePosition", false);
         object timeInForceIsRequired = false;
         object priceIsRequired = false;
         object stopPriceIsRequired = false;
@@ -6519,15 +6672,17 @@ public partial class binance : Exchange
             priceIsRequired = true;
         } else if (isTrue(isTrue((isEqual(uppercaseType, "STOP_MARKET"))) || isTrue((isEqual(uppercaseType, "TAKE_PROFIT_MARKET")))))
         {
-            object closePosition = this.safeBool(parameters, "closePosition");
-            if (isTrue(isEqual(closePosition, null)))
+            if (!isTrue(closePosition))
             {
                 quantityIsRequired = true;
             }
             stopPriceIsRequired = true;
         } else if (isTrue(isEqual(uppercaseType, "TRAILING_STOP_MARKET")))
         {
-            quantityIsRequired = true;
+            if (!isTrue(closePosition))
+            {
+                quantityIsRequired = true;
+            }
             if (isTrue(isEqual(trailingPercent, null)))
             {
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() requires a trailingPercent param for a "), type), " order")) ;
@@ -12256,13 +12411,13 @@ public partial class binance : Exchange
     {
         object marketType = null;
         object hostname = ((bool) isTrue((!isEqual(this.hostname, null)))) ? this.hostname : "binance.com";
-        if (isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))))
+        if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://api.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binance.vision")))))
         {
             marketType = "spot";
-        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://dapi.", hostname), "/")))))
+        } else if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://dapi.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binancefuture.com/dapi")))))
         {
             marketType = "inverse";
-        } else if (isTrue(((string)url).StartsWith(((string)add(add("https://fapi.", hostname), "/")))))
+        } else if (isTrue(isTrue(((string)url).StartsWith(((string)add(add("https://fapi.", hostname), "/")))) || isTrue(((string)url).StartsWith(((string)"https://testnet.binancefuture.com/fapi")))))
         {
             marketType = "linear";
         } else if (isTrue(((string)url).StartsWith(((string)add(add("https://eapi.", hostname), "/")))))
@@ -13988,6 +14143,7 @@ public partial class binance : Exchange
 
     /**
      * @method
+     * @name binance#fetchMarginAdjustmentHistory
      * @description fetches the history of margin added or reduced from contract isolated positions
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Get-Position-Margin-Change-History
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Get-Position-Margin-Change-History

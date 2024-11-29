@@ -2259,7 +2259,8 @@ export default class coinbase extends Exchange {
      * @see https://docs.cloud.coinbase.com/advanced-trade/reference/retailbrokerageapi_getfcmbalancesummary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
-     * @param {object} [params.type] "spot" (default) or "swap" or "future"
+     * @param {string} [params.type] "spot" (default) or "swap" or "future"
+     * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -2277,7 +2278,7 @@ export default class coinbase extends Exchange {
             request['limit'] = 250;
             response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
         } else {
-            request['limit'] = 100;
+            request['limit'] = 250;
             response = await this.v2PrivateGetAccounts (this.extend (request, params));
         }
         //
@@ -2390,32 +2391,12 @@ export default class coinbase extends Exchange {
             return ledger;
         }
         const lastIndex = length - 1;
-        const last = this.safeDict (ledger, lastIndex);
+        const last = this.safeDict (ledger, lastIndex) as LedgerEntry;
         const pagination = this.safeDict (response, 'pagination', {});
         const cursor = this.safeString (pagination, 'next_starting_after');
         if ((cursor !== undefined) && (cursor !== '')) {
-            const lastFee = this.safeDict (last, 'fee');
-            last['next_starting_after'] = cursor;
-            ledger[lastIndex] = {
-                'info': this.safeDict (last, 'info'),
-                'id': this.safeString (last, 'id'),
-                'timestamp': this.safeInteger (last, 'timestamp'),
-                'datetime': this.safeString (last, 'datetime'),
-                'direction': this.safeString (last, 'direction'),
-                'account': this.safeString (last, 'account'),
-                'referenceId': undefined,
-                'referenceAccount': undefined,
-                'type': this.safeString (last, 'type'),
-                'currency': this.safeString (last, 'currency'),
-                'amount': this.safeNumber (last, 'amount'),
-                'before': undefined,
-                'after': undefined,
-                'status': this.safeString (last, 'status'),
-                'fee': {
-                    'cost': this.safeNumber (lastFee, 'cost'),
-                    'currency': this.safeString (lastFee, 'currency'),
-                },
-            };
+            last['info']['next_starting_after'] = cursor;
+            ledger[lastIndex] = last;
         }
         return ledger;
     }

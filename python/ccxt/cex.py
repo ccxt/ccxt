@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -25,7 +26,7 @@ class cex(Exchange, ImplicitAPI):
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 1667,  # 100 req/min
+            'rateLimit': 300,  # 200 req/min
             'pro': True,
             'has': {
                 'CORS': None,
@@ -37,6 +38,8 @@ class cex(Exchange, ImplicitAPI):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopOrder': True,
+                'createTriggerOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
@@ -126,6 +129,7 @@ class cex(Exchange, ImplicitAPI):
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
                     'Market Trigger orders are not allowed': BadRequest,  # for some reason, triggerPrice does not work for market orders
+                    'key not passed or incorrect': AuthenticationError,
                 },
             },
             'timeframes': {
@@ -836,7 +840,7 @@ class cex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(key)
             account: dict = {
                 'used': self.safe_string(balance, 'balanceOnHold'),
-                'free': self.safe_string(balance, 'balance'),
+                'total': self.safe_string(balance, 'balance'),
             }
             result[code] = account
         return self.safe_balance(result)
@@ -847,7 +851,7 @@ class cex(Exchange, ImplicitAPI):
 
         https://trade.cex.io/docs/#rest-private-api-calls-orders
 
- @param status
+        :param str status: order status to fetch for
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -916,7 +920,7 @@ class cex(Exchange, ImplicitAPI):
         #            },
         #            ...
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -985,10 +989,16 @@ class cex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         statuses: dict = {
+            'PENDING_NEW': 'open',
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
+            'EXPIRED': 'expired',
+            'REJECTED': 'rejected',
+            'PENDING_CANCEL': 'canceling',
             'CANCELLED': 'canceled',
         }
-        return self.safe_string(statuses, status, None)
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
@@ -1037,7 +1047,7 @@ class cex(Exchange, ImplicitAPI):
             currencyId = self.safe_string(order, 'feeCurrency')
             feeCode = self.safe_currency_code(currencyId)
             fee['currency'] = feeCode
-            fee['fee'] = feeAmount
+            fee['cost'] = feeAmount
         timestamp = self.safe_integer(order, 'serverCreateTimestamp')
         requestedBase = self.safe_number(order, 'requestedAmountCcy1')
         executedBase = self.safe_number(order, 'executedAmountCcy1')
@@ -1081,6 +1091,7 @@ class cex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountId]: account-id to use(default is empty string)
+        :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         accountId = None

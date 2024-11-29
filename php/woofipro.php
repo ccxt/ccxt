@@ -2491,8 +2491,8 @@ class woofipro extends Exchange {
          *
          * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-$leverage-setting
          *
-         * @param $leverage
-         * @param {string} $symbol unified market $symbol
+         * @param {int} [$leverage] the rate of $leverage
+         * @param {string} [$symbol] unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */

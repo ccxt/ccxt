@@ -464,6 +464,7 @@ public partial class bitrue : Exchange
                     { "-4051", typeof(InsufficientFunds) },
                 } },
                 { "broad", new Dictionary<string, object>() {
+                    { "Insufficient account balance", typeof(InsufficientFunds) },
                     { "has no operation privilege", typeof(PermissionDenied) },
                     { "MAX_POSITION", typeof(InvalidOrder) },
                 } },
@@ -3176,7 +3177,7 @@ public partial class bitrue : Exchange
         object version = this.safeString(api, 1);
         object access = this.safeString(api, 2);
         object url = null;
-        if (isTrue(isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline"))))
+        if (isTrue(isTrue((isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline")))) || isTrue((isTrue(isEqual(type, "open")) && isTrue(isGreaterThanOrEqual(getIndexOf(path, "listenKey"), 0))))))
         {
             url = getValue(getValue(this.urls, "api"), type);
         } else
@@ -3189,7 +3190,7 @@ public partial class bitrue : Exchange
         {
             this.checkRequiredCredentials();
             object recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
-            if (isTrue(isEqual(type, "spot")))
+            if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "open"))))
             {
                 object query = this.urlencode(this.extend(new Dictionary<string, object>() {
                     { "timestamp", this.nonce() },

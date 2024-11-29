@@ -39,6 +39,8 @@ export default class krakenfutures extends Exchange {
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'createOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRateHistories': false,
@@ -204,7 +206,7 @@ export default class krakenfutures extends Exchange {
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
                     'Bad Request': BadRequest,
-                    'Unavailable': InsufficientFunds,
+                    'Unavailable': ExchangeNotAvailable,
                     'invalidUnit': BadRequest,
                     'Json Parse Error': ExchangeError,
                     'nonceBelowThreshold': InvalidNonce,
@@ -2577,6 +2579,8 @@ export default class krakenfutures extends Exchange {
         }
     }
     /**
+     * @method
+     * @name krakenfutures#transferOut
      * @description transfer from futures wallet to spot wallet
      * @param {str} code Unified currency code
      * @param {float} amount Size of the transfer

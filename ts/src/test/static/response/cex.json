@@ -68,10 +68,10 @@
                   "average": null,
                   "filled": 0,
                   "remaining": 0.23,
-                  "status": null,
+                  "status": "open",
                   "fee": {
                     "currency": "USDT",
-                    "fee": 0
+                    "cost": 0
                   },
                   "trades": [],
                   "info": {
@@ -107,8 +107,7 @@
                   "fees": [
                     {
                       "currency": "USDT",
-                      "fee": 0,
-                      "cost": null
+                      "cost": 0
                     }
                   ],
                   "reduceOnly": null,
@@ -188,7 +187,7 @@
                   "status": "closed",
                   "fee": {
                     "currency": "USDT",
-                    "fee": 0.0409515
+                    "cost": 0.0409515
                   },
                   "trades": [],
                   "info": {
@@ -227,8 +226,7 @@
                   "fees": [
                     {
                       "currency": "USDT",
-                      "fee": 0.0409515,
-                      "cost": null
+                      "cost": 0.0409515
                     }
                   ],
                   "reduceOnly": null,
@@ -308,7 +306,7 @@
                   "status": "closed",
                   "fee": {
                     "currency": "USDT",
-                    "fee": 0.04094
+                    "cost": 0.04094
                   },
                   "trades": [],
                   "info": {
@@ -347,8 +345,7 @@
                   "fees": [
                     {
                       "currency": "USDT",
-                      "fee": 0.04094,
-                      "cost": null
+                      "cost": 0.04094
                     }
                   ],
                   "reduceOnly": null,
@@ -534,35 +531,35 @@
                   },
                   "BTC": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "XRP": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "TRX": {
                     "used": null,
-                    "free": 0.039369,
-                    "total": null
+                    "free": null,
+                    "total": 0.039369
                   },
                   "USD": {
                     "used": null,
-                    "free": 0.02,
-                    "total": null
+                    "free": null,
+                    "total": 0.02
                   },
                   "AI": {
                     "used": null,
-                    "free": 0,
-                    "total": null
+                    "free": null,
+                    "total": 0
                   },
                   "USDT": {
                     "used": null,
-                    "free": 0.877611,
-                    "total": null
+                    "free": null,
+                    "total": 0.877611
                   },
-                  "free": {
+                 "total": {
                     "BTC": 0,
                     "XRP": 0,
                     "TRX": 0.039369,
@@ -578,7 +575,7 @@
                     "AI": null,
                     "USDT": null
                   },
-                  "total": {
+                  "free": {
                     "BTC": null,
                     "XRP": null,
                     "TRX": null,
@@ -650,10 +647,10 @@
                     "average": null,
                     "filled": null,
                     "remaining": null,
-                    "status": null,
+                    "status": "open",
                     "fee": {
                       "currency": "USDT",
-                      "fee": 0
+                      "cost": 0
                     },
                     "trades": [],
                     "info": {
@@ -690,8 +687,7 @@
                     "fees": [
                       {
                         "currency": "USDT",
-                        "fee": 0,
-                        "cost": null
+                        "cost": 0
                       }
                     ],
                     "reduceOnly": null,
@@ -832,7 +828,7 @@
                     "status": "closed",
                     "fee": {
                         "currency": "USDT",
-                        "fee": 0.0409515
+                        "cost": 0.0409515
                     },
                     "trades": [],
                     "info": {
@@ -868,8 +864,7 @@
                     },
                     "fees": [{
                             "currency": "USDT",
-                            "fee": 0.0409515,
-                            "cost": null
+                            "cost": 0.0409515
                         }
                     ],
                     "reduceOnly": null,
@@ -899,7 +894,7 @@
                     "status": "closed",
                     "fee": {
                         "currency": "USDT",
-                        "fee": 0.04094
+                        "cost": 0.04094
                     },
                     "trades": [],
                     "info": {
@@ -935,8 +930,7 @@
                     },
                     "fees": [{
                             "currency": "USDT",
-                            "fee": 0.04094,
-                            "cost": null
+                            "cost": 0.04094
                         }
                     ],
                     "reduceOnly": null,
@@ -966,7 +960,7 @@
                     "status": "canceled",
                     "fee": {
                         "currency": "USDT",
-                        "fee": 0
+                        "cost": 0
                     },
                     "trades": [],
                     "info": {
@@ -1002,8 +996,7 @@
                     },
                     "fees": [{
                             "currency": "USDT",
-                            "fee": 0,
-                            "cost": null
+                            "cost": 0
                         }
                     ],
                     "reduceOnly": null,

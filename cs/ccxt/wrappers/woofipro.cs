@@ -1034,6 +1034,18 @@ public partial class woofipro
     /// See <see href="https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>leverage</term>
+    /// <description>
+    /// int : the rate of leverage
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

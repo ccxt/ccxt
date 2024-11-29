@@ -89,6 +89,8 @@ class Transpiler {
         return [
             [ /(?<!assert|equals)(\s\(?)(rsa|ecdsa|eddsa|jwt|totp|inflate)\s/g, '$1this.$2' ],
             [ /errorHierarchy/g, 'error_hierarchy'],
+            [ /\.featuresGenerator/g, '.features_generator'],
+            [ /\.featuresMapper/g, '.features_mapper'],
             [ /\.safeValue2/g, '.safe_value_2'],
             [ /\.safeInteger2/g, '.safe_integer_2'],
             [ /\.safeString2/g, '.safe_string_2'],
@@ -1175,7 +1177,6 @@ class Transpiler {
                     line.replace ('asyncio.get_event_loop().run_until_complete(main())', 'main()')
                         .replace ('asyncio.run(main())', 'main()')
                         .replace ('import ccxt.async_support as ccxt', 'import ccxt')
-                        .replace (/.*token\_bucket.*/g, '')
                         .replace ('await asyncio.sleep', 'time.sleep')
                         .replace ('async ', '')
                         .replace ('await ', ''))

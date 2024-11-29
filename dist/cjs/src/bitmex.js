@@ -44,7 +44,9 @@ class bitmex extends bitmex$1 {
                 'closePosition': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': true,
+                'createStopOrder': true,
                 'createTrailingAmountOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -1512,7 +1514,7 @@ class bitmex extends bitmex$1 {
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
         }
-        const until = this.safeInteger2(params, 'until', 'endTime');
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['endTime'] = this.iso8601(until);

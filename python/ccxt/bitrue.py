@@ -531,6 +531,7 @@ class bitrue(Exchange, ImplicitAPI):
                     '-4051': InsufficientFunds,  # {"code":-4051,"msg":"Isolated balance insufficient."}
                 },
                 'broad': {
+                    'Insufficient account balance': InsufficientFunds,  # {"code":-2010,"msg":"Insufficient account balance.","data":null}
                     'has no operation privilege': PermissionDenied,
                     'MAX_POSITION': InvalidOrder,  # {"code":-2010,"msg":"Filter failure: MAX_POSITION"}
                 },
@@ -2938,7 +2939,7 @@ class bitrue(Exchange, ImplicitAPI):
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
         url = None
-        if type == 'api' and version == 'kline':
+        if (type == 'api' and version == 'kline') or (type == 'open' and path.find('listenKey') >= 0):
             url = self.urls['api'][type]
         else:
             url = self.urls['api'][type] + '/' + version
@@ -2947,7 +2948,7 @@ class bitrue(Exchange, ImplicitAPI):
         if access == 'private':
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
-            if type == 'spot':
+            if type == 'spot' or type == 'open':
                 query = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,

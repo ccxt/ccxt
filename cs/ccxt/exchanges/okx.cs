@@ -306,6 +306,7 @@ public partial class okx : Exchange
                         { "asset/convert/currency-pair", divide(5, 3) },
                         { "asset/convert/history", divide(5, 3) },
                         { "asset/monthly-statement", 2 },
+                        { "account/instruments", 1 },
                         { "account/balance", 2 },
                         { "account/positions", 2 },
                         { "account/positions-history", 100 },
@@ -1096,6 +1097,96 @@ public partial class okx : Exchange
                 } },
                 { "brokerId", "e847386590ce4dBC" },
             } },
+            { "features", new Dictionary<string, object>() {
+                { "default", new Dictionary<string, object>() {
+                    { "sandbox", true },
+                    { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", true },
+                        { "triggerPrice", true },
+                        { "triggerPriceType", new Dictionary<string, object>() {
+                            { "last", true },
+                            { "mark", true },
+                            { "index", true },
+                        } },
+                        { "triggerDirection", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
+                        { "attachedStopLossTakeProfit", new Dictionary<string, object>() {
+                            { "triggerPriceType", new Dictionary<string, object>() {
+                                { "last", true },
+                                { "mark", true },
+                                { "index", true },
+                            } },
+                            { "limitPrice", true },
+                        } },
+                        { "timeInForce", new Dictionary<string, object>() {
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
+                            { "GTD", false },
+                        } },
+                        { "hedged", true },
+                        { "selfTradePrevention", true },
+                        { "trailing", true },
+                        { "twap", true },
+                        { "iceberg", true },
+                        { "oco", true },
+                    } },
+                    { "createOrders", new Dictionary<string, object>() {
+                        { "max", 20 },
+                    } },
+                    { "fetchMyTrades", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "daysBack", 90 },
+                        { "limit", 100 },
+                        { "untilDays", 10000 },
+                    } },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchOpenOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchOrders", null },
+                    { "fetchClosedOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 100 },
+                        { "daysBackClosed", 90 },
+                        { "daysBackCanceled", divide(1, 12) },
+                        { "untilDays", null },
+                        { "trigger", true },
+                        { "trailing", true },
+                    } },
+                    { "fetchOHLCV", new Dictionary<string, object>() {
+                        { "limit", 300 },
+                    } },
+                } },
+                { "spot", new Dictionary<string, object>() {
+                    { "extends", "default" },
+                } },
+                { "swap", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+                { "future", new Dictionary<string, object>() {
+                    { "linear", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "default" },
+                    } },
+                } },
+            } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
                 { "WIN", "WINTOKEN" },
@@ -1694,7 +1785,7 @@ public partial class okx : Exchange
                         { "active", active },
                         { "deposit", canDeposit },
                         { "withdraw", canWithdraw },
-                        { "fee", this.safeNumber(chain, "minFee") },
+                        { "fee", this.safeNumber(chain, "fee") },
                         { "precision", this.parseNumber(precision) },
                         { "limits", new Dictionary<string, object>() {
                             { "withdraw", new Dictionary<string, object>() {
@@ -3343,7 +3434,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["newPx"] = this.priceToPrecision(symbol, price);
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit"});
+        parameters = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly"});
         return this.extend(request, parameters);
     }
 
@@ -6661,7 +6752,7 @@ public partial class okx : Exchange
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.posSide] 'long' or 'short' for isolated margin long/short mode on futures and swap markets
+     * @param {string} [params.posSide] 'long' or 'short' or 'net' for isolated margin long/short mode on futures and swap markets, default is 'net'
      * @returns {object} response from the exchange
      */
     public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
@@ -6696,17 +6787,14 @@ public partial class okx : Exchange
             { "mgnMode", marginMode },
             { "instId", getValue(market, "id") },
         };
-        object posSide = this.safeString(parameters, "posSide");
+        object posSide = this.safeString(parameters, "posSide", "net");
         if (isTrue(isEqual(marginMode, "isolated")))
         {
-            if (isTrue(isEqual(posSide, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a posSide argument for isolated margin")) ;
-            }
             if (isTrue(isTrue(isTrue(!isEqual(posSide, "long")) && isTrue(!isEqual(posSide, "short"))) && isTrue(!isEqual(posSide, "net"))))
             {
                 throw new BadRequest ((string)add(this.id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")) ;
             }
+            ((IDictionary<string,object>)request)["posSide"] = posSide;
         }
         object response = await this.privatePostAccountSetLeverage(this.extend(request, parameters));
         //
@@ -7760,7 +7848,13 @@ public partial class okx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object response = await this.privateGetAssetCurrencies(parameters);
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(codes, null)))
+        {
+            object ids = this.currencyIds(codes);
+            ((IDictionary<string,object>)request)["ccy"] = String.Join(",", ((IList<object>)ids).ToArray());
+        }
+        object response = await this.privateGetAssetCurrencies(this.extend(request, parameters));
         //
         //    {
         //        "code": "0",
@@ -7853,7 +7947,7 @@ public partial class okx : Exchange
                 }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
-                object withdrawFee = this.safeNumber(feeInfo, "minFee");
+                object withdrawFee = this.safeNumber(feeInfo, "fee");
                 object withdrawResult = new Dictionary<string, object>() {
                     { "fee", withdrawFee },
                     { "percentage", ((bool) isTrue((!isEqual(withdrawFee, null)))) ? false : null },
@@ -8789,8 +8883,8 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
      * @param {string} [symbol] not used by okx fetchMarginAdjustmentHistory
      * @param {string} [type] "add" or "reduce"
-     * @param since
-     * @param limit
+     * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
+     * @param {int} [limit] the maximum number of entries to retrieve
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}

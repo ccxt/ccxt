@@ -2310,7 +2310,8 @@ class coinbase extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->v3] default false, set true to use v3 api endpoint
-             * @param {array} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {string} [$params->type] "spot" (default) or "swap" or "future"
+             * @param {int} [$params->limit] default 250, maximum number of accounts to return
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2327,7 +2328,7 @@ class coinbase extends Exchange {
                 $request['limit'] = 250;
                 $response = Async\await($this->v3PrivateGetBrokerageAccounts ($this->extend($request, $params)));
             } else {
-                $request['limit'] = 100;
+                $request['limit'] = 250;
                 $response = Async\await($this->v2PrivateGetAccounts ($this->extend($request, $params)));
             }
             //
@@ -2446,28 +2447,8 @@ class coinbase extends Exchange {
             $pagination = $this->safe_dict($response, 'pagination', array());
             $cursor = $this->safe_string($pagination, 'next_starting_after');
             if (($cursor !== null) && ($cursor !== '')) {
-                $lastFee = $this->safe_dict($last, 'fee');
-                $last['next_starting_after'] = $cursor;
-                $ledger[$lastIndex] = array(
-                    'info' => $this->safe_dict($last, 'info'),
-                    'id' => $this->safe_string($last, 'id'),
-                    'timestamp' => $this->safe_integer($last, 'timestamp'),
-                    'datetime' => $this->safe_string($last, 'datetime'),
-                    'direction' => $this->safe_string($last, 'direction'),
-                    'account' => $this->safe_string($last, 'account'),
-                    'referenceId' => null,
-                    'referenceAccount' => null,
-                    'type' => $this->safe_string($last, 'type'),
-                    'currency' => $this->safe_string($last, 'currency'),
-                    'amount' => $this->safe_number($last, 'amount'),
-                    'before' => null,
-                    'after' => null,
-                    'status' => $this->safe_string($last, 'status'),
-                    'fee' => array(
-                        'cost' => $this->safe_number($lastFee, 'cost'),
-                        'currency' => $this->safe_string($lastFee, 'currency'),
-                    ),
-                );
+                $last['info']['next_starting_after'] = $cursor;
+                $ledger[$lastIndex] = $last;
             }
             return $ledger;
         }) ();
