@@ -244,7 +244,7 @@ function updateMarketOrCurrency (exchange, symbolOrCurrency) {
     const targetObject = isMarketOrCurrency ? exchange.markets[symbolOrCurrency] : exchange.currencies[symbolOrCurrency];
     if (!targetObject) {
         // @ts-expect-error
-        die ('Symbol or Currency not found in ' + exchange.id, 1);
+        die ('Symbol or Currency ['  + (symbolOrCurrency || 'undefined')  + '] not found in '+ exchange.id, 1);
     }
     // writeJson to file
     if (isMarketOrCurrency) {
