@@ -539,7 +539,6 @@ export default class bingx extends Exchange {
                             'limitPrice': true,
                         },
                         'timeInForce': {
-                            'GTC': true,
                             'IOC': true,
                             'FOK': true,
                             'PO': true,
