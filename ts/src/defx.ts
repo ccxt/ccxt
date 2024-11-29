@@ -1196,7 +1196,7 @@ export default class defx extends Exchange {
             request['timeInForce'] = timeInForce;
         } else {
             if (isLimit) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a timeInForce parameter for limit orders');
+                request['timeInForce'] = 'GTC';
             }
         }
         if (reduceOnly) {
@@ -1968,7 +1968,7 @@ export default class defx extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            headers = {};
+            headers = { 'X-DEFX-SOURCE': 'ccxt' };
             url += 'auth/' + pathWithParams;
             const nonce = this.milliseconds ().toString ();
             let payload = nonce;
