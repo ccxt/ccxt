@@ -275,15 +275,15 @@ export default class defx extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name defx#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     */
     async fetchStatus (params = {}) {
-        /**
-         * @method
-         * @name defx#fetchStatus
-         * @description the latest known information on the availability of the exchange API
-         * @see https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
-         */
         const response = await this.v1PublicGetHealthcheckPing (params);
         //
         // {
@@ -309,15 +309,15 @@ export default class defx extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name defx#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
     async fetchTime (params = {}) {
-        /**
-         * @method
-         * @name defx#fetchTime
-         * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @see https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int} the current integer timestamp in milliseconds from the exchange server
-         */
         const response = await this.v1PublicGetHealthcheckPing (params);
         //
         // {
@@ -330,16 +330,16 @@ export default class defx extends Exchange {
         return this.safeInteger (response, 't');
     }
 
+    /**
+     * @method
+     * @name defx#fetchMarkets
+     * @description retrieves data on all markets for defx
+     * @see https://api-docs.defx.com/#73cce0c8-f842-4891-9145-01bb6d61324d
+     * @see https://api-docs.defx.com/#24fd4e5b-840e-451e-99e0-7fea47c7f371
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        /**
-         * @method
-         * @name defx#fetchMarkets
-         * @description retrieves data on all markets for defx
-         * @see https://api-docs.defx.com/#73cce0c8-f842-4891-9145-01bb6d61324d
-         * @see https://api-docs.defx.com/#24fd4e5b-840e-451e-99e0-7fea47c7f371
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} an array of objects representing market data
-         */
         const request = {
             'type': 'perps',
         };
@@ -567,16 +567,16 @@ export default class defx extends Exchange {
         };
     }
 
+    /**
+     * @method
+     * @name defx#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://api-docs.defx.com/#fe6f81d0-2f3a-4eee-976f-c8fc8f4c5d56
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name defx#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://api-docs.defx.com/#fe6f81d0-2f3a-4eee-976f-c8fc8f4c5d56
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -609,16 +609,16 @@ export default class defx extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    /**
+     * @method
+     * @name defx#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://api-docs.defx.com/#8c61cfbd-40d9-410e-b014-f5b36eba51d1
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name defx#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://api-docs.defx.com/#8c61cfbd-40d9-410e-b014-f5b36eba51d1
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbols !== undefined) {
@@ -751,20 +751,20 @@ export default class defx extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name defx#fetchOHLCV
+     * @see https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name defx#fetchOHLCV
-         * @see https://api-docs.defx.com/#54b71951-1472-4670-b5af-4c2dc41e73d0
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const maxLimit = 1000;
@@ -826,18 +826,18 @@ export default class defx extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name defx#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://api-docs.defx.com/#5865452f-ea32-4f13-bfbc-03af5f5574fd
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name defx#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @see https://api-docs.defx.com/#5865452f-ea32-4f13-bfbc-03af5f5574fd
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const maxLimit = 50;
@@ -864,18 +864,18 @@ export default class defx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    /**
+     * @method
+     * @name defx#fetchTrades
+     * @description fetch all trades made by the user
+     * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name defx#fetchTrades
-         * @description fetch all trades made by the user
-         * @see https://api-docs.defx.com/#06b5b33c-2fc6-48de-896c-fc316f5871a7
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -974,18 +974,18 @@ export default class defx extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name defx#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://api-docs.defx.com/#6c1a2971-8325-4e7d-9962-e0bfcaacf9c4
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.slab] slab from market.info.depthSlabs
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name defx#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://api-docs.defx.com/#6c1a2971-8325-4e7d-9962-e0bfcaacf9c4
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.slab] slab from market.info.depthSlabs
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1024,17 +1024,17 @@ export default class defx extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'qty');
     }
 
+    /**
+     * @method
+     * @name defx#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] "linear" or "inverse"
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name defx#fetchMarkPrice
-         * @description fetches mark price for the market
-         * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.subType] "linear" or "inverse"
-         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1054,16 +1054,16 @@ export default class defx extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    /**
+     * @method
+     * @name defx#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        /**
-         * @method
-         * @name defx#fetchFundingRate
-         * @description fetch the current funding rate
-         * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1120,15 +1120,15 @@ export default class defx extends Exchange {
         } as FundingRate;
     }
 
+    /**
+     * @method
+     * @name defx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api-docs.defx.com/#26414338-14f7-40a1-b246-f8ea8571493f
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async fetchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name defx#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://api-docs.defx.com/#26414338-14f7-40a1-b246-f8ea8571493f
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         const response = await this.v1PrivateGetApiWalletBalance (params);
         //
@@ -1159,22 +1159,22 @@ export default class defx extends Exchange {
         return this.safeBalance (result);
     }
 
+    /**
+     * @method
+     * @name defx#createOrder
+     * @description create a trade order
+     * @see https://api-docs.defx.com/#ba222d88-8856-4d3c-87a9-7cec07bb2622
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#createOrder
-         * @description create a trade order
-         * @see https://api-docs.defx.com/#ba222d88-8856-4d3c-87a9-7cec07bb2622
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-         * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -1357,18 +1357,18 @@ export default class defx extends Exchange {
         }, market);
     }
 
+    /**
+     * @method
+     * @name defx#cancelOrder
+     * @see https://api-docs.defx.com/#09186f23-f8d1-4993-acf4-9974d8a6ddb0
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.stop] whether the order is a stop/algo order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#cancelOrder
-         * @see https://api-docs.defx.com/#09186f23-f8d1-4993-acf4-9974d8a6ddb0
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.stop] whether the order is a stop/algo order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'orderId': id,
@@ -1401,16 +1401,16 @@ export default class defx extends Exchange {
         return this.extend (this.parseOrder (response), extendParams);
     }
 
+    /**
+     * @method
+     * @name defx#cancelAllOrders
+     * @description cancel all open orders
+     * @see https://api-docs.defx.com/#db5531da-3692-4a53-841f-6ad6495f823a
+     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#cancelAllOrders
-         * @description cancel all open orders
-         * @see https://api-docs.defx.com/#db5531da-3692-4a53-841f-6ad6495f823a
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -1427,16 +1427,16 @@ export default class defx extends Exchange {
         return response;
     }
 
+    /**
+     * @method
+     * @name defx#fetchPosition
+     * @description fetch data on a single open contract trade position
+     * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
+     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPosition (symbol: string, params = {}) {
-        /**
-         * @method
-         * @name defx#fetchPosition
-         * @description fetch data on a single open contract trade position
-         * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
         }
@@ -1467,16 +1467,16 @@ export default class defx extends Exchange {
         return this.parsePosition (first, market);
     }
 
+    /**
+     * @method
+     * @name defx#fetchPositions
+     * @description fetch all open positions
+     * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#fetchPositions
-         * @description fetch all open positions
-         * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
-         * @param {string[]} [symbols] list of unified market symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets ();
         const response = await this.v1PrivateGetApiPositionActive (params);
         //
@@ -1551,17 +1551,17 @@ export default class defx extends Exchange {
         });
     }
 
+    /**
+     * @method
+     * @name defx#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api-docs.defx.com/#44f82dd5-26b3-4e1f-b4aa-88ceddd65237
+     * @param {string} id the order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#fetchOrder
-         * @description fetches information on an order made by the user
-         * @see https://api-docs.defx.com/#44f82dd5-26b3-4e1f-b4aa-88ceddd65237
-         * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {
             'orderId': id,
@@ -1608,19 +1608,19 @@ export default class defx extends Exchange {
         return this.parseOrder (data);
     }
 
+    /**
+     * @method
+     * @name defx#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name defx#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1674,72 +1674,72 @@ export default class defx extends Exchange {
         return this.parseOrders (data, undefined, since, limit);
     }
 
+    /**
+     * @method
+     * @name defx#fetchOpenOrders
+     * @description fetch all unfilled currently open orders
+     * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name defx#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         params['statuses'] = 'OPEN';
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name defx#fetchClosedOrders
+     * @description fetches information on multiple closed orders made by the user
+     * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name defx#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         params['statuses'] = 'FILLED';
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name defx#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name defx#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://api-docs.defx.com/#ab200038-8acb-4170-b05e-4fcb4cc13751
-         * @param {string} symbol unified market symbol
-         * @param {int} [since] the earliest time in ms to fetch open orders for
-         * @param {int} [limit] the maximum number of open order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch orders for
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         params['statuses'] = 'CANCELED';
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
+    /**
+     * @method
+     * @name defx#closePosition
+     * @description closes an open position for a market
+     * @see https://api-docs.defx.com/#b2c08074-c4d9-4e50-b637-0d6c498fa29e
+     * @param {string} symbol unified CCXT market symbol
+     * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionId] the position id you want to close
+     * @param {string} [params.type] 'MARKET' or 'LIMIT'
+     * @param {string} [params.quantity] how much of currency you want to trade in units of base currency
+     * @param {string} [params.price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        /**
-         * @method
-         * @name defx#closePosition
-         * @description closes an open position for a market
-         * @see https://api-docs.defx.com/#b2c08074-c4d9-4e50-b637-0d6c498fa29e
-         * @param {string} symbol unified CCXT market symbol
-         * @param {string} [side] one-way mode: 'buy' or 'sell', hedge-mode: 'long' or 'short'
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.positionId] the position id you want to close
-         * @param {string} [params.type] 'MARKET' or 'LIMIT'
-         * @param {string} [params.quantity] how much of currency you want to trade in units of base currency
-         * @param {string} [params.price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         const positionId = this.safeString (params, 'positionId');
         if (positionId === undefined) {
@@ -1773,15 +1773,15 @@ export default class defx extends Exchange {
         return response;
     }
 
+    /**
+     * @method
+     * @name defx#closeAllPositions
+     * @description closes all open positions for a market type
+     * @see https://api-docs.defx.com/#d6f63b43-100e-47a9-998c-8b6c0c72d204
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
     async closeAllPositions (params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name defx#closeAllPositions
-         * @description closes all open positions for a market type
-         * @see https://api-docs.defx.com/#d6f63b43-100e-47a9-998c-8b6c0c72d204
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
-         */
         await this.loadMarkets ();
         const response = await this.v1PrivateDeleteApiPositionAll (params);
         //
@@ -1798,20 +1798,20 @@ export default class defx extends Exchange {
         return this.parsePositions (data, undefined, params);
     }
 
+    /**
+     * @method
+     * @name defx#fetchLedger
+     * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://api-docs.defx.com/#38cc8974-794f-48c0-b959-db045a0ee565
+     * @param {string} [code] unified currency code
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
+     * @param {int} [limit] max number of ledger entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest ledger entry
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+     */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        /**
-         * @method
-         * @name defx#fetchLedger
-         * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-         * @see https://api-docs.defx.com/#38cc8974-794f-48c0-b959-db045a0ee565
-         * @param {string} [code] unified currency code
-         * @param {int} [since] timestamp in ms of the earliest ledger entry
-         * @param {int} [limit] max number of ledger entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest ledger entry
-         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
-         */
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
@@ -1886,19 +1886,19 @@ export default class defx extends Exchange {
         return this.safeString (ledgerType, type, type);
     }
 
+    /**
+     * @method
+     * @name defx#withdraw
+     * @description make a withdrawal
+     * @see https://api-docs.defx.com/#2600f503-63ed-4672-b8f6-69ea5f03203b
+     * @param {string} code unified currency code
+     * @param {float} amount the amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#withdraw
-         * @description make a withdrawal
-         * @see https://api-docs.defx.com/#2600f503-63ed-4672-b8f6-69ea5f03203b
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string} tag
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {

@@ -88,49 +88,49 @@ export default class defx extends defxRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    /**
+     * @method
+     * @name defx#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name defx#watchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
     }
 
+    /**
+     * @method
+     * @name defx#unWatchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchOHLCV
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
+    /**
+     * @method
+     * @name defx#watchOHLCVForSymbols
+     * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
-        /**
-         * @method
-         * @name defx#watchOHLCVForSymbols
-         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
@@ -155,16 +155,16 @@ export default class defx extends defxRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchOHLCVForSymbols
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchOHLCVForSymbols
-         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
@@ -228,16 +228,16 @@ export default class defx extends defxRest {
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
+    /**
+     * @method
+     * @name defx#watchTicker
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name defx#watchTicker
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -246,30 +246,30 @@ export default class defx extends defxRest {
         return await this.watchPublic ([ topic ], [ messageHash ], params);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchTicker
-         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         return await this.unWatchTickers ([ symbol ], params);
     }
 
+    /**
+     * @method
+     * @name defx#watchTickers
+     * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name defx#watchTickers
-         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics = [];
@@ -284,15 +284,15 @@ export default class defx extends defxRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchTickers
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchTickers
-         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics = [];
@@ -347,16 +347,16 @@ export default class defx extends defxRest {
         client.resolve (parsedTicker, messageHash);
     }
 
+    /**
+     * @method
+     * @name defx#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name defx#watchBidsAsks
-         * @description watches best bid & ask for symbols
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false);
         const topics = [];
@@ -399,46 +399,46 @@ export default class defx extends defxRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name defx#watchTrades
+     * @description watches information on multiple trades made in a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name defx#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchTradesForSymbols
+     * @description unWatches from the stream channel
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchTradesForSymbols
-         * @description unWatches from the stream channel
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
+    /**
+     * @method
+     * @name defx#watchTradesForSymbols
+     * @description watches information on multiple trades made in a market
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} symbols unified symbol of the market to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name defx#watchTradesForSymbols
-         * @description watches information on multiple trades made in a market
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} symbols unified symbol of the market to fetch trades for
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
@@ -462,16 +462,16 @@ export default class defx extends defxRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchTradesForSymbols
+     * @description unWatches from the stream channel
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchTradesForSymbols
-         * @description unWatches from the stream channel
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-         */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const symbolsLength = symbols.length;
@@ -518,44 +518,44 @@ export default class defx extends defxRest {
         client.resolve (trades, messageHash);
     }
 
+    /**
+     * @method
+     * @name defx#watchOrderBook
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name defx#watchOrderBook
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    /**
+     * @method
+     * @name defx#unWatchOrderBook
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string} symbol unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchOrderBook
-         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string} symbol unified array of symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
+    /**
+     * @method
+     * @name defx#watchOrderBookForSymbols
+     * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} symbols unified array of symbols
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        /**
-         * @method
-         * @name defx#watchOrderBookForSymbols
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} symbols unified array of symbols
-         * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -574,16 +574,16 @@ export default class defx extends defxRest {
         return orderbook.limit ();
     }
 
+    /**
+     * @method
+     * @name defx#unWatchOrderBookForSymbols
+     * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
+     * @param {string[]} symbols unified array of symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        /**
-         * @method
-         * @name defx#unWatchOrderBookForSymbols
-         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://www.postman.com/defxcode/defx-public-apis/collection/667939a1b5d8069c13d614e9
-         * @param {string[]} symbols unified array of symbols
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
-         */
         await this.loadMarkets ();
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
@@ -681,15 +681,15 @@ export default class defx extends defxRest {
         }
     }
 
+    /**
+     * @method
+     * @name defx#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
     async watchBalance (params = {}): Promise<Balances> {
-        /**
-         * @method
-         * @name defx#watchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         const baseUrl = this.urls['api']['ws']['private'];
@@ -726,18 +726,18 @@ export default class defx extends defxRest {
         client.resolve (this.balance, messageHash);
     }
 
+    /**
+     * @method
+     * @name defx#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name defx#watchOrders
-         * @description watches information on multiple orders made by the user
-         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
-         * @param {string} [symbol] unified market symbol of the market the orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         const baseUrl = this.urls['api']['ws']['private'];
@@ -801,16 +801,16 @@ export default class defx extends defxRest {
         client.resolve (orders, messageHash);
     }
 
+    /**
+     * @method
+     * @name defx#watchPositions
+     * @description watch all open positions
+     * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name defx#watchPositions
-         * @description watch all open positions
-         * @see https://www.postman.com/defxcode/defx-public-apis/ws-raw-request/667939b2f00f79161bb47809
-         * @param {string[]|undefined} symbols list of unified market symbols
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
-         */
         await this.loadMarkets ();
         await this.authenticate ();
         symbols = this.marketSymbols (symbols);
