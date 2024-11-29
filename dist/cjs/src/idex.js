@@ -195,10 +195,8 @@ class idex extends idex$1 {
         // {"code":"INVALID_PARAMETER","message":"invalid value provided for request parameter \"price\": all quantities and prices must be below 100 billion, above 0, need to be provided as strings, and always require 4 decimals ending with 4 zeroes"}
         //
         const market = this.market(symbol);
-        const info = this.safeValue(market, 'info', {});
-        const quoteAssetPrecision = this.safeInteger(info, 'quoteAssetPrecision');
         price = this.decimalToPrecision(price, number.ROUND, market['precision']['price'], this.precisionMode);
-        return this.decimalToPrecision(price, number.TRUNCATE, quoteAssetPrecision, number.DECIMAL_PLACES, number.PAD_WITH_ZERO);
+        return this.decimalToPrecision(price, number.TRUNCATE, market['precision']['quote'], number.TICK_SIZE, number.PAD_WITH_ZERO);
     }
     /**
      * @method
@@ -306,6 +304,8 @@ class idex extends idex$1 {
                 'precision': {
                     'amount': basePrecision,
                     'price': this.safeNumber(entry, 'tickSize'),
+                    'base': basePrecision,
+                    'quote': quotePrecision,
                 },
                 'limits': {
                     'leverage': {
