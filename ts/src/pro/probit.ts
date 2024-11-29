@@ -133,6 +133,7 @@ export default class probit extends probitRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTicker', 'filter', 'ticker');
+        symbol = this.safeSymbol (symbol);
         return await this.subscribeOrderBook (symbol, 'ticker', filter, params);
     }
 
@@ -181,7 +182,7 @@ export default class probit extends probitRest {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
         await this.loadMarkets ();
-        symbol = this.safeSymbol(symbol);
+        symbol = this.safeSymbol (symbol);
         const trades = await this.subscribeOrderBook (symbol, 'trades', filter, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -247,8 +248,7 @@ export default class probit extends probitRest {
         await this.authenticate (params);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws'];
@@ -331,8 +331,7 @@ export default class probit extends probitRest {
         const url = this.urls['api']['ws'];
         let messageHash = 'orders';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         let channel = undefined;
@@ -416,6 +415,7 @@ export default class probit extends probitRest {
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'filter', 'order_books');
+        symbol = this.safeSymbol (symbol);
         const orderbook = await this.subscribeOrderBook (symbol, 'orderbook', filter, params);
         return orderbook.limit ();
     }
