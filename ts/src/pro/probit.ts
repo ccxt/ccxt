@@ -180,6 +180,8 @@ export default class probit extends probitRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let filter = undefined;
         [ filter, params ] = this.handleOptionAndParams (params, 'watchTrades', 'filter', 'recent_trades');
+        await this.loadMarkets ();
+        symbol = this.safeSymbol(symbol);
         const trades = await this.subscribeOrderBook (symbol, 'trades', filter, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
