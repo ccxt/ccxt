@@ -126,6 +126,7 @@ class probit extends probit$1 {
     async watchTicker(symbol, params = {}) {
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTicker', 'filter', 'ticker');
+        symbol = this.safeSymbol(symbol);
         return await this.subscribeOrderBook(symbol, 'ticker', filter, params);
     }
     handleTicker(client, message) {
@@ -171,6 +172,8 @@ class probit extends probit$1 {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchTrades', 'filter', 'recent_trades');
+        await this.loadMarkets();
+        symbol = this.safeSymbol(symbol);
         const trades = await this.subscribeOrderBook(symbol, 'trades', filter, params);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
@@ -234,8 +237,7 @@ class probit extends probit$1 {
         await this.authenticate(params);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol(symbol);
             messageHash = messageHash + ':' + symbol;
         }
         const url = this.urls['api']['ws'];
@@ -316,8 +318,7 @@ class probit extends probit$1 {
         const url = this.urls['api']['ws'];
         let messageHash = 'orders';
         if (symbol !== undefined) {
-            const market = this.market(symbol);
-            symbol = market['symbol'];
+            symbol = this.safeSymbol(symbol);
             messageHash = messageHash + ':' + symbol;
         }
         let channel = undefined;
@@ -399,6 +400,7 @@ class probit extends probit$1 {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         let filter = undefined;
         [filter, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'filter', 'order_books');
+        symbol = this.safeSymbol(symbol);
         const orderbook = await this.subscribeOrderBook(symbol, 'orderbook', filter, params);
         return orderbook.limit();
     }
